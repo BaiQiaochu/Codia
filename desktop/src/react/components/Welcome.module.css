@@ -1,0 +1,449 @@
+/* ========================================
+   Welcome — CSS Module
+   ======================================== */
+
+.welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: stretch;
+    width: min(100%, 1120px);
+    height: 100%;
+    min-height: 100%;
+    gap: clamp(12px, 2vh, 18px);
+    padding: 0;
+    margin: 0 auto;
+    color: var(--text);
+    container: codia-welcome / inline-size;
+}
+
+.codiaHeroStage {
+    display: grid;
+    flex: 1 1 260px;
+    width: 100%;
+    min-height: 228px;
+    padding: clamp(8px, 2.2vh, 24px) 0;
+    place-items: center;
+}
+
+.codiaHero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 190px;
+    overflow: hidden;
+    padding: 28px 38px;
+    align-self: center;
+    max-width: 1050px;
+    border-radius: 24px;
+    color: #fff;
+    background: linear-gradient(112deg, #b998f5 0%, #d6a9e9 58%, #e7b7d9 100%);
+    box-shadow: 0 18px 42px rgba(132, 91, 178, .16);
+    animation: codiaRiseIn 460ms cubic-bezier(.22, 1, .36, 1) 40ms both;
+}
+
+.codiaHeroCopy { position: relative; z-index: 1; width: calc(100% - 212px); max-width: 690px; min-width: 0; }
+.codiaEyebrow { margin-bottom: 14px; font-size: 12px; font-weight: 600; letter-spacing: .09em; opacity: .9; }
+.codiaHero h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: #fff; font-size: clamp(25px, 3vw, 34px); font-weight: 650; }
+.codiaHero h2 svg { color: #fff9e8; font-size: .86em; }
+.codiaHero p { max-width: 600px; margin: 0 0 20px; color: rgba(255,255,255,.94); font-size: 14px; }
+.codiaHeroCopy button { display: inline-flex; align-items: center; gap: 12px; padding: 10px 20px; border: 0; border-radius: 999px; color: #72559c; background: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.codiaHeroCopy button:hover { background: #fff9f2; transform: translateY(-1px); }
+.codiaHeroArt { position: absolute; top: 0; right: 4%; display: grid; width: 200px; height: 100%; place-items: center; }
+.codiaHeroArt span, .codiaHeroArt::before { position: absolute; display: block; border-radius: 50%; content: ''; }
+.codiaHeroArt span { width: 168px; height: 168px; background: rgba(255,255,255,.20); }
+.codiaHeroArt::before { width: 118px; height: 118px; background: rgba(255,255,255,.45); }
+.codiaHeroArt img { position: relative; z-index: 1; width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(83,51,106,.16)); }
+.codiaActionDock { display: flex; flex: 0 0 auto; width: 100%; flex-direction: column; align-items: center; gap: 9px; }
+.codiaQuickSection { width: 100%; }
+.codiaQuickSection h3 { margin: 0 0 8px; color: #463653; font-size: 18px; font-weight: 650; }
+.codiaQuickSection h3 { animation: codiaRiseIn 380ms cubic-bezier(.22, 1, .36, 1) 150ms both; }
+.codiaQuickGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.codiaQuickGrid > button { display: flex; min-height: 62px; flex-direction: row; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid #eee5f6; border-radius: 16px; background: #fff; box-shadow: 0 5px 18px rgba(99,67,128,.045); text-align: left; cursor: pointer; transition: transform .16s ease, box-shadow .16s ease; }
+.codiaQuickGrid > button { animation: codiaRiseIn 400ms cubic-bezier(.22, 1, .36, 1) both; }
+.codiaQuickGrid > button:nth-child(1) { animation-delay: 200ms; }
+.codiaQuickGrid > button:nth-child(2) { animation-delay: 250ms; }
+.codiaQuickGrid > button:nth-child(3) { animation-delay: 300ms; }
+.codiaQuickGrid > button:nth-child(4) { animation-delay: 350ms; }
+.codiaQuickGrid > button:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(99,67,128,.11); }
+.codiaQuickIcon { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: #705394; background: #f2eafd; font-size: 18px; }
+.codiaQuickCopy { display: flex; min-width: 0; flex-direction: column; }
+.codiaQuickGrid > button:nth-child(1) .codiaQuickIcon { color: #aa5c84; background: #f9e8f1; }
+.codiaQuickGrid > button:nth-child(3) .codiaQuickIcon { color: #6c866c; background: #eaf3e9; }
+.codiaQuickGrid > button:nth-child(4) .codiaQuickIcon { color: #a26e40; background: #fff1d9; }
+.codiaQuickGrid strong { color: #483954; font-size: 14px; font-weight: 600; }
+.codiaQuickGrid small { margin-top: 4px; color: #81768c; font-size: 12px; line-height: 1.4; }
+
+@container codia-welcome (max-width: 959px) {
+  .codiaQuickGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@container codia-welcome (max-width: 639px) {
+  .codiaQuickGrid { grid-template-columns: minmax(0, 1fr); }
+  .codiaHero { min-height: 215px; padding: 24px; }
+  .codiaHeroArt { right: 12px; width: 126px; }
+  .codiaHeroArt img { width: 110px; height: 110px; }
+  .codiaHeroArt span { width: 126px; height: 126px; }
+  .codiaHeroArt::before { width: 92px; height: 92px; }
+  .codiaHeroCopy { width: calc(100% - 138px); }
+  .codiaHero h2 { font-size: 25px; }
+  .codiaHero p { font-size: 12px; }
+}
+
+@container codia-welcome (max-width: 399px) {
+  .codiaHero { padding: 22px; }
+  .codiaHeroCopy { width: 100%; }
+  .codiaHeroArt { display: none; }
+}
+
+@media (max-width: 720px) {
+  .codiaQuickGrid { gap: 9px; }
+  .codiaQuickGrid > button { min-height: 66px; padding: 10px 12px; }
+}
+
+.codiaContextControls {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    animation: codiaRiseIn 380ms cubic-bezier(.22, 1, .36, 1) 470ms both;
+}
+
+@keyframes codiaRiseIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+:global(.main-content.welcome-mode .input-area .input-wrapper) {
+    animation: codiaRiseIn 420ms cubic-bezier(.22, 1, .36, 1) 520ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .codiaHero,
+    .codiaQuickSection h3,
+    .codiaQuickGrid > button,
+    .codiaContextControls,
+    .welcomeAgentSelector,
+    :global(.main-content.welcome-mode .input-area .input-wrapper) {
+        animation: none;
+    }
+}
+
+.workspaceControls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: min(100%, 720px);
+    margin-top: 0;
+}
+
+.workspaceSettingsButton {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--text-muted);
+    background: color-mix(in srgb, var(--bg-card) 92%, var(--bg));
+    border: 1px solid var(--control-border);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--shadow) 14%, transparent);
+}
+
+.workspaceSettingsButton {
+    padding: 0;
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+}
+
+.workspaceSettingsButton:hover {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--bg-card));
+}
+
+.welcomeText {
+    font-size: 1.05rem;
+    color: var(--text-light);
+    letter-spacing: 0.06em;
+    font-family: var(--font-serif);
+}
+
+/* 文件夹选择按钮 */
+.folderSelectBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: min(100%, 720px);
+    margin-top: var(--space-sm);
+    padding: 0.3rem 0.65rem;
+    font-family: inherit;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-out);
+    -webkit-app-region: no-drag;
+    opacity: 0.8;
+}
+
+.folderSelectBtn span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.folderSelectBtn:hover {
+    color: var(--accent);
+    opacity: 1;
+}
+
+.folderSelectBtnHasFolder {
+    color: var(--accent);
+    opacity: 0.85;
+}
+
+.folderSwapIcon {
+    display: none;
+    opacity: 0.45;
+    margin-left: 2px;
+    flex-shrink: 0;
+}
+
+.folderSelectBtnHasFolder .folderSwapIcon {
+    display: block;
+}
+
+/* 文件夹选择区域容器 */
+.folderSelectWrap {
+    position: relative;
+    display: inline-block;
+    min-width: 0;
+}
+
+.folderSelectWrap .folderSelectBtn {
+    margin-top: 0;
+}
+
+/* 历史文件夹下拉 */
+.folderHistory {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 220px;
+    max-width: 320px;
+    max-height: min(46vh, 280px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: 0 14px 34px color-mix(in srgb, var(--shadow) 24%, transparent),
+        0 1px 2px color-mix(in srgb, var(--shadow) 22%, transparent);
+    padding: 4px 0;
+    z-index: 60;
+}
+
+.folderSelectWrapShowHistory .folderHistory {
+    display: block;
+    animation: folderHistoryIn 0.15s var(--ease-out);
+}
+
+@keyframes folderHistoryIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0);   }
+}
+
+.folderHistoryList {
+    display: flex;
+    flex-direction: column;
+}
+
+.folderHistoryListScrollable {
+    max-height: calc(30px * 5);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.folderHistoryItem {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 30px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.1s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.folderHistoryItem:hover {
+    background: var(--overlay-subtle);
+}
+
+.folderHistoryItemActive {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.folderHistoryItemIcon {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: var(--text-muted);
+}
+
+.folderHistoryItemName {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.folderHistorySectionLabel {
+    padding: 4px 12px 2px;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    opacity: 0.78;
+}
+
+.folderHistoryRemove {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font: inherit;
+}
+
+.folderHistoryRemove:hover {
+    background: var(--overlay-subtle);
+    color: var(--accent);
+}
+
+.folderHistoryDivider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+}
+
+.folderHistoryBrowse {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.folderHistoryBrowse:hover {
+    background: var(--overlay-subtle);
+    color: var(--accent);
+}
+
+/* 记忆开关按钮 */
+.memoryToggleBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: var(--space-xs);
+    padding: 0.3rem 0.65rem;
+    font-family: inherit;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-out);
+    -webkit-app-region: no-drag;
+    opacity: 0.8;
+}
+
+.memoryToggleBtn:hover {
+    color: var(--accent);
+    opacity: 1;
+}
+
+.memoryToggleBtnActive {
+    color: var(--accent);
+    opacity: 0.85;
+}
+
+.memoryToggleIcon {
+    display: inline-flex;
+    align-items: center;
+}
+
+.welcomeHidden {
+    display: none;
+}
+
+/* Agent 选择器 */
+.welcomeAgentSelector {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: var(--space-sm);
+    animation: codiaRiseIn 380ms cubic-bezier(.22, 1, .36, 1) 420ms both;
+}
+
+.welcomeAgentSelector:empty {
+    display: none;
+}
+
+.welcomeAgentChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    transition: all 0.2s var(--ease-out);
+    -webkit-app-region: no-drag;
+}
+
+.welcomeAgentChip:hover {
+    border-color: var(--accent);
+    color: var(--text);
+}
+
+.welcomeAgentChipSelected {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.welcomeAgentChipAvatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+}

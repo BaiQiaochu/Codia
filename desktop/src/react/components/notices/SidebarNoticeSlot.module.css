@@ -1,0 +1,159 @@
+.slot {
+    flex-shrink: 0;
+    padding: var(--space-sm);
+    -webkit-app-region: no-drag;
+}
+
+.card {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    width: 100%;
+    padding: var(--space-sm);
+    color: var(--text);
+    background: color-mix(in srgb, var(--bg-card, var(--bg)) 96%, var(--accent) 4%);
+    border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--shadow) 80%, transparent);
+    overflow: hidden;
+}
+
+:global(body.paper-texture) .card,
+:global(body[data-paper-texture="on"]:not(.no-paper-texture)) .card {
+    background-image: url(../../../assets/textures/rice-paper.png);
+    background-repeat: repeat;
+    background-size: 160px;
+    background-attachment: fixed;
+    background-blend-mode: var(--paper-texture-card-blend-mode);
+}
+
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.09);
+    border-radius: var(--radius-sm);
+}
+
+.content {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding-right: var(--space-md);
+}
+
+.title {
+    min-width: 0;
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.body {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-top: var(--space-xs);
+}
+
+.actionButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    min-height: 24px;
+    padding: 0 var(--space-sm);
+    color: var(--text);
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+    border-radius: 3px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.7rem;
+    transition: color 0.16s var(--ease-out),
+                border-color 0.16s var(--ease-out),
+                background 0.16s var(--ease-out);
+}
+
+.actionButton:hover,
+.actionButton:focus-visible {
+    color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.07);
+    border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+    outline: none;
+}
+
+.closeButton {
+    position: absolute;
+    top: var(--space-xs);
+    right: var(--space-xs);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    opacity: 0.66;
+    transition: opacity 0.16s var(--ease-out),
+                color 0.16s var(--ease-out),
+                background 0.16s var(--ease-out);
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+    color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.08);
+    opacity: 1;
+    outline: none;
+}
+
+.progressRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.progressTrack {
+    position: relative;
+    flex: 1;
+    height: 4px;
+    overflow: hidden;
+    background: rgba(var(--accent-rgb), 0.13);
+    border-radius: 999px;
+}
+
+.progressFill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width 0.24s var(--ease-out);
+}
+
+.progressValue {
+    flex: 0 0 auto;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,91 @@
+/*
+ * Theme: Nocturne
+ * Dark workbench theme with restrained contrast and readable status colors.
+ */
+
+[data-theme="nocturne"] {
+    --bg:           #15181E;
+    --bg-main:      #15181E;
+    --bg-card:      #1D222A;
+    --bg-card-alt:  #232933;
+    --bg-input:     #15181E;
+    --bg-glass:     rgba(29, 34, 42, 0.92);
+
+    --accent:       #8EB8D8;
+    --accent-bg:    rgba(142, 184, 216, 0.13);
+    --accent-hover: #A7CCE5;
+    --accent-light: rgba(142, 184, 216, 0.13);
+    --accent-contrast: var(--bg-card);
+
+    --text:         #E8EDF2;
+    --text-light:   #B8C2CE;
+    --text-muted:   #8995A4;
+    --text-link:    #A7CCE5;
+    --text-error:   #E08080;
+
+    --border:       rgba(142, 184, 216, 0.21);
+    --border-light: rgba(255, 255, 255, 0.08);
+    --border-muted: rgba(142, 184, 216, 0.13);
+    --shadow:       rgba(0, 0, 0, 0.42);
+
+    --green:        #86C99A;
+    --green-rgb:    134, 201, 154;
+    --success:      #86C99A;
+    --coral:        #D8A06A;
+    --danger:       #E08080;
+    --danger-rgb:   224, 128, 128;
+    --danger-contrast: var(--bg-card);
+    --error:        #E08080;
+
+    --sidebar-bg:   #11151B;
+    --jian-note-bg: #232A32;
+    --jian-note-border: rgba(216, 160, 106, 0.24);
+
+    --gsap-text:    #DDE7EF;
+    --mood-bg:      rgba(216, 160, 106, 0.10);
+    --mood-text:    #E5B783;
+    --mood-border:  rgba(216, 160, 106, 0.28);
+    --tool-bg:      rgba(142, 184, 216, 0.10);
+    --tool-text:    #B8C2CE;
+    --user-bg:      rgba(142, 184, 216, 0.13);
+    --drop-overlay-bg: rgba(21, 24, 30, 0.90);
+    --attach-bg:    rgba(255, 255, 255, 0.08);
+
+    --accent-rgb:   142, 184, 216;
+    --coral-rgb:    216, 160, 106;
+    --overlay-subtle: rgba(255, 255, 255, 0.04);
+    --overlay-light:  rgba(255, 255, 255, 0.08);
+    --overlay-medium: rgba(255, 255, 255, 0.12);
+    --overlay-strong: rgba(255, 255, 255, 0.20);
+    --bg-secondary: rgba(255, 255, 255, 0.04);
+    --bg-tertiary: rgba(255, 255, 255, 0.12);
+    --surface-raised: #1D222A;
+    --scrim-subtle: rgba(0, 0, 0, 0.22);
+    --scrim: rgba(0, 0, 0, 0.42);
+    --scrim-strong: rgba(0, 0, 0, 0.58);
+    --scrim-contrast: #FFFFFF;
+    --tab-slider-bg: var(--overlay-strong);
+    --tab-slider-shadow: none;
+
+    --focus-ring: #A7CCE5;
+    --control-bg: #1D222A;
+    --control-bg-hover: #272E38;
+    --control-bg-active: #2E3742;
+    --control-border: #354150;
+    --control-text: #E8EDF2;
+    --control-muted: #B8C2CE;
+    --primary-button-bg: #8EB8D8;
+    --primary-button-hover: #A7CCE5;
+    --primary-button-text: #111820;
+    --danger-button-bg: #E08080;
+    --danger-button-hover: #EE9A9A;
+    --danger-button-text: #211314;
+    --chrome-bg: rgba(21, 24, 30, 0.90);
+    --chrome-bg-solid: #15181E;
+    --chrome-border: rgba(255, 255, 255, 0.09);
+    --panel-bg: #15181E;
+    --panel-bg-muted: #1B2028;
+    --panel-shadow: 0 16px 42px rgba(0, 0, 0, 0.42);
+
+    --select-arrow: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238995A4' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+}

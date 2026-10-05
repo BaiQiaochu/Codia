@@ -1,0 +1,4 @@
+interface:
+  display_name: "G-SAP Plugin Creator"
+  short_description: "Plan and scaffold G-SAP plugins"
+  default_prompt: "Help me create a G-SAP plugin. Start with the right beginner or developer flow."

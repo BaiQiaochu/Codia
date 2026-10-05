@@ -1,0 +1,8 @@
+{
+  "id": "company",
+  "name": "成品一人公司",
+  "version": "0.1.0",
+  "description": "Ready-made one-person company module with trained employees, channel truth, and PM dispatch tools.",
+  "trust": "full-access",
+  "hidden": false
+}

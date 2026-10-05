@@ -1,0 +1,85 @@
+/*
+ * Theme: Coral
+ * Warm light theme with coral accents and high-readability document surfaces.
+ */
+
+[data-theme="coral"] {
+    --bg:           #FDF6EC;
+    --bg-main:      #FDF6EC;
+    --bg-card:      #FFFBF3;
+    --bg-card-alt:  #FFF8F4;
+    --bg-input:     #FFF8F4;
+    --bg-glass:     rgba(255, 251, 243, 0.92);
+
+    --accent:       #1A3049;
+    --accent-bg:    rgba(26, 48, 73, 0.10);
+    --accent-hover: #243A55;
+    --accent-light: rgba(26, 48, 73, 0.07);
+    --accent-contrast: #FFFFFF;
+
+    --text:         #1A3049;
+    --text-light:   #314153;
+    --text-muted:   #727F89;
+    --text-link:    #C95742;
+    --text-error:   #A3483B;
+
+    --border:       rgba(243, 126, 99, 0.18);
+    --border-light: rgba(243, 126, 99, 0.09);
+    --border-muted: rgba(243, 126, 99, 0.16);
+    --shadow:       rgba(26, 48, 73, 0.08);
+
+    --green:        #6E8C7A;
+    --green-rgb:    110, 140, 122;
+    --success:      #6E8C7A;
+    --coral:        #F37E63;
+    --danger:       #A3483B;
+    --danger-rgb:   163, 72, 59;
+    --danger-contrast: #FFFFFF;
+    --error:        #A3483B;
+
+    --sidebar-bg:   #FCF1E4;
+    --jian-note-bg: #FFF6E6;
+    --jian-note-border: rgba(243, 126, 99, 0.14);
+
+    --gsap-text:    #1A3049;
+    --mood-bg:      rgba(243, 126, 99, 0.06);
+    --mood-text:    #C86F4A;
+    --mood-border:  rgba(243, 126, 99, 0.20);
+    --tool-bg:      rgba(26, 48, 73, 0.05);
+    --tool-text:    #314153;
+    --user-bg:      rgba(26, 48, 73, 0.07);
+    --drop-overlay-bg: rgba(253, 246, 236, 0.86);
+    --attach-bg:    rgba(26, 48, 73, 0.04);
+
+    --accent-rgb:   26, 48, 73;
+    --coral-rgb:    243, 126, 99;
+    --overlay-subtle: rgba(26, 48, 73, 0.03);
+    --overlay-light:  rgba(26, 48, 73, 0.05);
+    --overlay-medium: rgba(26, 48, 73, 0.08);
+    --overlay-strong: rgba(26, 48, 73, 0.15);
+    --bg-secondary: rgba(26, 48, 73, 0.035);
+    --bg-tertiary: rgba(26, 48, 73, 0.12);
+    --surface-raised: #FFFFFF;
+    --scrim-subtle: rgba(26, 48, 73, 0.15);
+    --scrim: rgba(26, 48, 73, 0.35);
+    --scrim-strong: rgba(26, 48, 73, 0.45);
+    --scrim-contrast: #FFFFFF;
+    --tab-slider-bg: var(--bg-card);
+    --tab-slider-shadow: 0 1px 3px var(--shadow);
+
+    --focus-ring: #C95742;
+    --control-bg: #FFFFFF;
+    --control-bg-hover: #FFF8F4;
+    --control-bg-active: #FDEAE3;
+    --control-border: rgba(198, 144, 84, 0.28);
+    --control-text: #1A3049;
+    --control-muted: #78848A;
+    --primary-button-bg: #B94633;
+    --primary-button-hover: #A33B3B;
+    --primary-button-text: #FFFFFF;
+    --danger-button-bg: #A3483B;
+    --danger-button-hover: #87372E;
+    --danger-button-text: #FFFFFF;
+
+    --select-arrow: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2378848A' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+}

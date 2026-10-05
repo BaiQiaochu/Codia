@@ -1,0 +1,50 @@
+{
+  "id": "image-gen",
+  "name": "Image Generation",
+  "version": "0.1.0",
+  "description": "Unified media generation for images, audio, music, and video.",
+  "trust": "full-access",
+  "hidden": true,
+  "contributes": {
+    "configuration": {
+      "properties": {
+        "defaultImageModel": {
+          "type": "object",
+          "title": "Default Image Model",
+          "properties": {
+            "id": { "type": "string" },
+            "provider": { "type": "string" }
+          }
+        },
+        "defaultAudioModel": {
+          "type": "object",
+          "title": "Default Audio Model",
+          "properties": {
+            "id": { "type": "string" },
+            "provider": { "type": "string" }
+          }
+        },
+        "defaultMusicModel": {
+          "type": "object",
+          "title": "Default Music Model",
+          "properties": {
+            "id": { "type": "string" },
+            "provider": { "type": "string" }
+          }
+        },
+        "defaultVideoModel": {
+          "type": "object",
+          "title": "Default Video Model",
+          "properties": {
+            "id": { "type": "string" },
+            "provider": { "type": "string" }
+          }
+        },
+        "providerDefaults": {
+          "type": "object",
+          "title": "Per-provider Default Parameters"
+        }
+      }
+    }
+  }
+}

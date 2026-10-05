@@ -1,0 +1,73 @@
+.dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--text-muted);
+}
+
+.dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  opacity: 0.72;
+}
+
+.dot[data-status="running"] {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.dot[data-status="done"] {
+  color: var(--success);
+  opacity: 0.9;
+}
+
+.dot[data-status="failed"] {
+  color: var(--danger);
+  opacity: 0.95;
+}
+
+.dot[data-status="aborted"] {
+  color: var(--text-light);
+}
+
+.dot[data-step-kind="parallel"] {
+  color: color-mix(in srgb, var(--accent) 65%, var(--text-muted));
+}
+
+.dot[data-step-kind="pipeline"] {
+  color: color-mix(in srgb, var(--warning, #c49a4a) 70%, var(--text-muted));
+}
+
+.dot[data-step-kind="log"] {
+  color: color-mix(in srgb, var(--success) 62%, var(--text-muted));
+}
+
+.avatarWrap {
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--overlay-light);
+  box-shadow: 0 0 0 1px var(--overlay-light);
+}
+
+.avatarWrap img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.avatarSm {
+  width: 12px;
+  height: 12px;
+}
+
+.avatarMd {
+  width: 20px;
+  height: 20px;
+}

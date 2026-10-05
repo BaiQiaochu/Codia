@@ -1,0 +1,150 @@
+.card {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: var(--space-sm) var(--space-md);
+    gap: 6px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    color: inherit;
+}
+
+.title {
+    flex: 1;
+    text-align: left;
+    font-family: "Songti SC", "Noto Serif CJK SC", serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.count {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.chevron {
+    flex: 0 0 auto;
+    color: var(--text-light);
+    transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.chevron[data-open="false"] {
+    transform: rotate(-90deg);
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-height: 0;
+}
+
+.item {
+    border: 1px solid var(--overlay-light);
+    border-radius: 6px;
+    background: var(--bg-card);
+    overflow: hidden;
+}
+
+.activityRow {
+    width: 100%;
+    min-height: 34px;
+    padding: 6px 8px;
+    display: grid;
+    grid-template-columns: 20px minmax(48px, max-content) minmax(0, 1fr);
+    gap: 7px;
+    align-items: center;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.activityRow:hover {
+    background: var(--overlay-subtle);
+}
+
+.avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--overlay-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 0.58rem;
+    font-weight: 600;
+}
+
+.avatarImg {
+    width: 20px;
+    height: 20px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.nameGroup {
+    display: flex;
+    align-items: baseline;
+    min-width: 0;
+}
+
+.name {
+    font-size: 0.78rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.instance {
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    color: var(--text);
+    margin-left: 1px;
+    white-space: nowrap;
+}
+
+.summary {
+    min-width: 0;
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activityRow[data-status="running"] .summary {
+    color: var(--accent);
+}
+
+.details {
+    border-top: 1px solid var(--overlay-light);
+}
+
+.scroll {
+    max-height: 11.5rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 6px 7px 7px;
+    font-size: 0.74rem;
+}
+
+.scroll :global(.message) {
+    max-width: 100%;
+}

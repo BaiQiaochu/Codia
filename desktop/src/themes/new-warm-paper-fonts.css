@@ -1,0 +1,4 @@
+/* Font-face declarations are intentionally omitted in application builds.
+ * The upstream theme used this filename; keeping the contract preserves
+ * renderer, mobile, and PDF font lookup compatibility without bundling fonts.
+ */

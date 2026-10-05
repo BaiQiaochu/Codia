@@ -1,0 +1,67 @@
+.backdrop {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-app-region: no-drag;
+}
+
+.backdrop-dim {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.backdrop-blur {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.enter {
+    animation: overlay-fade-in var(--duration-slow, 250ms) var(--ease-out, ease-out);
+}
+
+.exit {
+    animation: overlay-fade-out var(--duration-fast, 180ms) var(--ease-in, ease-in) forwards;
+}
+
+.container {
+    position: relative;
+    max-height: calc(100vh - var(--space-lg, 24px) - var(--space-lg, 24px));
+    max-width: calc(100vw - var(--space-lg, 24px) - var(--space-lg, 24px));
+}
+
+.container-enter {
+    animation: overlay-scale-in var(--duration-slow, 250ms) var(--ease-out, ease-out);
+}
+
+.container-exit {
+    animation: overlay-fade-down var(--duration-fast, 180ms) var(--ease-in, ease-in) forwards;
+}
+
+.card {
+    background: var(--bg-card, var(--bg));
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+}
+
+@keyframes overlay-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes overlay-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes overlay-scale-in {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes overlay-fade-down {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(6px); }
+}

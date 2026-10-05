@@ -1,0 +1,96 @@
+/*
+ * Theme: Midnight
+ * Deep blue-green surface with soft rose accents.
+ */
+
+[data-theme="midnight"] {
+    --bg:           #3B4A54;
+    --bg-main:      #3B4A54;
+    --bg-card:      #445560;
+    --bg-card-alt:  #4B5D69;
+    --bg-input:     #34424B;
+    --bg-glass:     rgba(59, 74, 84, 0.92);
+
+    --accent:       #C99AAF;
+    --accent-bg:    rgba(201, 154, 175, 0.11);
+    --accent-hover: #D8AFC0;
+    --accent-light: rgba(201, 154, 175, 0.11);
+    --accent-contrast: #26323A;
+
+    --text:         #E1EAF0;
+    --text-light:   #B7C5CE;
+    --text-muted:   #A3B5C0;
+    --text-link:    #B9E2FF;
+    --text-error:   #D98787;
+
+    --border:       rgba(170, 121, 141, 0.16);
+    --border-light: rgba(255, 255, 255, 0.07);
+    --border-muted: rgba(170, 121, 141, 0.12);
+    --shadow:       rgba(0, 0, 0, 0.36);
+
+    --green:        #8CC790;
+    --green-rgb:    140, 199, 144;
+    --success:      #8CC790;
+    --coral:        #EAB2A0;
+    --danger:       #C77070;
+    --danger-rgb:   199, 112, 112;
+    --danger-contrast: #2B1D20;
+    --error:        #C77070;
+
+    --sidebar-bg:   #34424B;
+    --sidebar-bridge-card-text: #26323A;
+    --jian-note-bg: #4B5A63;
+    --jian-note-border: rgba(170, 121, 141, 0.14);
+
+    --gsap-text:    #DCE6EC;
+    --hana-text:    #DCE6EC;
+    --mood-bg:      rgba(234, 178, 160, 0.08);
+    --mood-text:    #EAB2A0;
+    --mood-border:  rgba(234, 178, 160, 0.20);
+    --tool-bg:      rgba(67, 91, 102, 0.20);
+    --tool-text:    #B7C5CE;
+    --user-bg:      rgba(170, 121, 141, 0.10);
+    --drop-overlay-bg: rgba(59, 74, 84, 0.85);
+    --attach-bg:    rgba(255, 255, 255, 0.06);
+
+    --accent-rgb:   201, 154, 175;
+    --coral-rgb:    234, 178, 160;
+    --link:         #B9E2FF;
+    --link-hover:   #D7F0FF;
+    --link-rgb:     185, 226, 255;
+    --overlay-subtle: rgba(255, 255, 255, 0.03);
+    --overlay-light:  rgba(255, 255, 255, 0.05);
+    --overlay-medium: rgba(255, 255, 255, 0.08);
+    --overlay-strong: rgba(255, 255, 255, 0.15);
+    --bg-secondary: rgba(255, 255, 255, 0.035);
+    --bg-tertiary: rgba(255, 255, 255, 0.10);
+    --surface-raised: #445560;
+    --scrim-subtle: rgba(0, 0, 0, 0.20);
+    --scrim: rgba(0, 0, 0, 0.38);
+    --scrim-strong: rgba(0, 0, 0, 0.56);
+    --scrim-contrast: #FFFFFF;
+    --tab-slider-bg: var(--overlay-strong);
+    --tab-slider-shadow: none;
+
+    --focus-ring: #D8AFC0;
+    --control-bg: #445560;
+    --control-bg-hover: #4D616D;
+    --control-bg-active: #566B78;
+    --control-border: rgba(201, 154, 175, 0.24);
+    --control-text: #E1EAF0;
+    --control-muted: #B7C5CE;
+    --primary-button-bg: #C99AAF;
+    --primary-button-hover: #D8AFC0;
+    --primary-button-text: #26323A;
+    --danger-button-bg: #C77070;
+    --danger-button-hover: #D98787;
+    --danger-button-text: #2B1D20;
+    --chrome-bg: rgba(52, 66, 75, 0.92);
+    --chrome-bg-solid: #34424B;
+    --chrome-border: rgba(255, 255, 255, 0.08);
+    --panel-bg: #34424B;
+    --panel-bg-muted: #3B4A54;
+    --panel-shadow: 0 16px 42px rgba(0, 0, 0, 0.38);
+
+    --select-arrow: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23A3B5C0' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+}

@@ -1,0 +1,9 @@
+{
+  "id": "mind-map",
+  "name": "Mind Map",
+  "version": "0.1.0",
+  "description": "Create, preview, and edit local XMind mind maps from explicit documents or text.",
+  "trust": "full-access",
+  "hidden": false,
+  "contributes": {}
+}

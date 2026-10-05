@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; connect-src 'self' http: https: ws: wss:; img-src 'self' data: file: http://127.0.0.1:*; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:;">
+    <title>Setup</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes/codia-lilac.css" id="themeSheet">
+    <style>
+        body {
+            background-color: var(--bg);
+            overflow: hidden;
+            margin: 0;
+        }
+        .codia-startup-fallback { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:#493858; background:#F8F4FF; font:14px/1.5 'Segoe UI','Microsoft YaHei',sans-serif; }
+        .codia-startup-fallback img { width:64px; height:64px; object-fit:contain; }
+        .codia-startup-fallback strong { font-size:20px; }
+        .codia-startup-fallback span { color:#756A86; }
+    </style>
+</head>
+<body>
+    <!-- Windows/Linux 窗口控制按钮注入点 -->
+    <div class="titlebar titlebar-minimal"></div>
+    <div id="react-root"><div class="codia-startup-fallback" role="status"><img src="assets/codia/codia-flower.png" alt=""><strong>Codia · 小豆蔻</strong><span>正在准备你的工作空间…</span></div></div>
+
+    <script type="module" src="lib/i18n.js"></script>
+    <script type="module" src="lib/theme.js"></script>
+    <script type="module" src="modules/platform.js"></script>
+    <script type="module" src="./onboarding-main.tsx"></script>
+</body>
+</html>
+

@@ -1,0 +1,96 @@
+.overlay {
+  --settings-modal-open-dur: 250ms;
+  --settings-modal-close-dur: 150ms;
+  --settings-modal-scale: 0.96;
+  --settings-modal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  position: fixed;
+  inset: 0;
+  z-index: 1800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  background: var(--scrim-subtle, rgba(20, 24, 30, 0.18));
+  opacity: 0;
+  backdrop-filter: blur(0);
+  -webkit-backdrop-filter: blur(0);
+  transition:
+    opacity var(--settings-modal-open-dur) var(--settings-modal-ease);
+  -webkit-app-region: no-drag;
+}
+
+.overlay.open {
+  opacity: 1;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+:global(html[data-platform="win32"]) .overlay.open {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.overlay.closing {
+  opacity: 0;
+  backdrop-filter: blur(0);
+  -webkit-backdrop-filter: blur(0);
+  pointer-events: none;
+  transition-duration: var(--settings-modal-close-dur);
+}
+
+.card {
+  width: min(960px, calc(100vw - var(--space-lg) - var(--space-lg)));
+  height: min(880px, calc(100vh - var(--space-lg) - var(--space-lg)));
+  min-height: min(500px, calc(100vh - var(--space-lg) - var(--space-lg)));
+  display: flex;
+  overflow: hidden;
+  background: var(--panel-bg, var(--bg));
+  color: var(--text);
+  border: 1px solid var(--chrome-border, var(--overlay-light));
+  border-radius: var(--radius-lg, 4px);
+  box-shadow: var(--panel-shadow, 0 18px 44px color-mix(in srgb, var(--shadow) 48%, transparent));
+  opacity: 0;
+  transform: scale(var(--settings-modal-scale));
+  transform-origin: center;
+  pointer-events: none;
+  transition:
+    transform var(--settings-modal-open-dur) var(--settings-modal-ease),
+    opacity var(--settings-modal-open-dur) var(--settings-modal-ease);
+  will-change: transform, opacity;
+}
+
+.card[data-wide="true"] {
+  width: min(1280px, calc(100vw - var(--space-lg) - var(--space-lg)));
+}
+
+.card.open {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.card.closing {
+  opacity: 0;
+  transform: scale(var(--settings-modal-scale));
+  pointer-events: none;
+  transition-duration: var(--settings-modal-close-dur);
+}
+
+@media (max-width: 760px) {
+  .overlay {
+    padding: var(--space-sm);
+  }
+
+  .card {
+    width: calc(100vw - var(--space-sm) - var(--space-sm));
+    height: calc(100vh - var(--space-sm) - var(--space-sm));
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .card {
+    transition: none !important;
+  }
+}

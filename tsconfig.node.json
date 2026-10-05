@@ -1,0 +1,41 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
+    "useUnknownInCatchVariables": false,
+    "allowImportingTsExtensions": true,
+    "baseUrl": ".",
+    "paths": {
+      "@g-sap/plugin-components": ["packages/plugin-components/src/index.ts"],
+      "@g-sap/plugin-protocol": ["packages/plugin-protocol/src/index.ts"],
+      "@g-sap/plugin-runtime": ["packages/plugin-runtime/src/index.ts"],
+      "@g-sap/plugin-sdk": ["packages/plugin-sdk/src/index.ts"],
+      "@hana/plugin-components": ["packages/plugin-components/src/index.ts"],
+      "@hana/plugin-protocol": ["packages/plugin-protocol/src/index.ts"],
+      "@hana/plugin-runtime": ["packages/plugin-runtime/src/index.ts"],
+      "@hana/plugin-sdk": ["packages/plugin-sdk/src/index.ts"]
+    }
+  },
+  "include": [
+    "core/**/*.ts",
+    "lib/**/*.ts",
+    "server/**/*.ts",
+    "shared/**/*.ts",
+    "hub/**/*.ts",
+    "cli/**/*.ts",
+    "plugins/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "openhanako-*",
+    "openhanako-*/**",
+    "dist",
+    "dist-server",
+    "dist-server-bundle",
+    "dist-computer-use",
+    "dist-sandbox"
+  ]
+}
