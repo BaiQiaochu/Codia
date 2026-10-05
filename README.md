@@ -86,4 +86,4 @@ tests/         测试与夹具
 - [行为准则](CODE_OF_CONDUCT.md)
 - [许可证](LICENSE) · [来源与修改说明](NOTICE)
 
-项目沿用 Apache-2.0 许可证，保留 OpenHanako 上游版权及第三方归属。`@g-sap/*`、`gsap.*` 和相关环境变量是兼容标识。
+项目沿用 Apache-2.0 许可证。
