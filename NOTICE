@@ -1,13 +1,3 @@
 Codia / G-SAP Professional
 
-This source tree is derived in part from OpenHanako (HanaAgent).
-Upstream copyright: Copyright 2025 liliMozi.
-The upstream Apache License 2.0 text and copyright notice are retained in LICENSE.
 
-This distribution contains modifications to branding, desktop navigation,
-settings, source startup, skills, workflow editing, media handling, and
-multi-assistant review. It is not an unmodified upstream release.
-
-Existing source notices and third-party licenses remain applicable, including
-the license supplied with skills2set/skill-creator. Runtime dependencies retain
-their respective licenses as installed by npm.
