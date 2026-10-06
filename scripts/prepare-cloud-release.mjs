@@ -9,7 +9,8 @@ if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error('A stable semantic version
 const directory = path.resolve(process.argv[2] || 'artifacts');
 const required = [
   `Codia-${version}-Windows-x64.exe`,
-  `Codia-${version}-Linux-x64.deb`,
+  // electron-builder uses Debian's architecture name in the .deb artifact.
+  `Codia-${version}-Linux-amd64.deb`,
   ...['arm64', 'x64'].flatMap(arch => ['dmg', 'zip'].map(ext => `Codia-${version}-macOS-${arch}.${ext}`)),
   'latest.yml', 'latest-mac.yml',
 ];
@@ -25,6 +26,11 @@ for (const name of names) {
   checksums.push(`${hash.digest('hex')}  ${name}`);
 }
 fs.writeFileSync(path.join(directory, 'SHA256SUMS.txt'), `${checksums.join('\n')}\n`);
+// Cached OCR archives already live in this release as build inputs.
+const modelSums = fs.readFileSync(path.join(root, 'scripts/ocr-runtime.sha256'), 'utf8')
+  .split(/\r?\n/).filter(line => /^[a-f0-9]{64}\s/.test(line))
+  .map(line => line.replace('vendor/ocr-runtime/models/', ''));
+fs.appendFileSync(path.join(directory, 'SHA256SUMS.txt'), `${modelSums.join('\n')}\n`);
 fs.writeFileSync(path.join(directory, 'RELEASE-NOTES.md'), `# Codia ${version}
 
 本次安装包由 GitHub Actions 从同一提交构建，保留源码中的版本号。
@@ -33,6 +39,7 @@ fs.writeFileSync(path.join(directory, 'RELEASE-NOTES.md'), `# Codia ${version}
 - Linux x64：下载 .deb 软件包。
 - macOS Apple Silicon：下载 arm64.dmg；Intel：下载 x64.dmg。
 - ZIP 和 latest*.yml 用于 macOS 更新；SHA256SUMS.txt 可核对下载文件。
+- PP-OCRv5 的 .tar 文件为离线 OCR 构建依赖，已打入安装包，无需单独安装。模型来源见源码 scripts/prepare-ocr-runtime.mjs。
 
 包含新版雾紫图标、Live2D 欢迎动画、显式会话视图切换、桌面窗口显示和会话完成时序修复。
 

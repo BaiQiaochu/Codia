@@ -18,8 +18,7 @@ concurrency:
 
 jobs:
   runtime-resources:
-    # OCR assets are platform-independent. Download once on Linux because the
-    # upstream model host rejects requests from some macOS runner networks.
+    # Reuse checksum-pinned OCR inputs; upstream downloads are unreliable from CI.
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -32,6 +31,13 @@ jobs:
           node-version: 24.15.0
           cache: npm
       - run: npm ci
+      - name: Download pinned OCR model inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p vendor/ocr-runtime/models
+          gh release download v0.2.0 --repo "$GITHUB_REPOSITORY" --pattern 'PP-OCRv5_mobile_*.tar' --dir vendor/ocr-runtime/models
+          sha256sum --check scripts/ocr-runtime.sha256
       - run: node scripts/prepare-ocr-runtime.mjs
       - uses: actions/upload-artifact@v4
         with:
@@ -170,4 +176,4 @@ jobs:
             gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Codia $RELEASE_TAG" --notes-file artifacts/RELEASE-NOTES.md --draft
           fi
           gh release upload "$RELEASE_TAG" artifacts/* --clobber
-          gh release edit "$RELEASE_TAG" --draft=false --latest
+          gh release edit "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Codia $RELEASE_TAG" --notes-file artifacts/RELEASE-NOTES.md --draft=false --latest
