@@ -17,7 +17,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  runtime-resources:
+    # OCR assets are platform-independent. Download once on Linux because the
+    # upstream model host rejects requests from some macOS runner networks.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: npm
+      - run: npm ci
+      - run: node scripts/prepare-ocr-runtime.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ocr-runtime-resources
+          path: vendor/ocr-runtime/
+          if-no-files-found: error
+          retention-days: 7
+
   build:
+    needs: runtime-resources
     timeout-minutes: 90
     strategy:
       fail-fast: false
@@ -60,7 +84,10 @@ jobs:
           node -e "if (process.arch !== process.env.EXPECTED_ARCH) throw new Error('Wrong build architecture'); console.log(process.platform, process.arch)"
           node scripts/prepare-codia-live2d.mjs --check
       - name: Prepare offline OCR resources
-        run: node scripts/prepare-ocr-runtime.mjs
+        uses: actions/download-artifact@v4
+        with:
+          name: ocr-runtime-resources
+          path: vendor/ocr-runtime/
       - name: Prepare Windows Git and sandbox runtime
         if: runner.os == 'Windows'
         run: |
