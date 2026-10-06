@@ -1,7 +1,10 @@
 import path from "path";
+import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   computerUseHelperOutputDir,
+  patchCuaDriverAppStateSource,
+  patchCuaDriverClickToolSource,
   resolveComputerUseHelperBuildArch,
   shouldBuildComputerUseHelper,
   swiftBuildScratchPath,
@@ -9,6 +12,29 @@ import {
 } from "../scripts/build-computer-use-helper.mjs";
 
 describe("Computer Use helper build script", () => {
+  it.each(["LF", "CRLF", "extra blank lines"])("patches the pinned upstream Swift sources with %s formatting", (format) => {
+    const read = (name: string) => {
+      const original = fs.readFileSync(path.join(process.cwd(), "tests/fixtures/cua-driver", name), "utf8").replace(/\r\n/g, "\n");
+      return format === "CRLF" ? original.replace(/\n/g, "\r\n")
+        : format === "extra blank lines" ? original.replace(/\n/g, "\n\n") : original;
+    };
+    const state = patchCuaDriverAppStateSource(read("AppState.swift"));
+    expect(state).toContain("applyCuaDriverAXMessagingTimeout(root)");
+    expect(state).toContain("bundleId: running.bundleIdentifier");
+    expect(state).toContain("maxActionableElements = 48");
+    expect(state).toContain("descendantLabelSummary(of: element)");
+    expect(patchCuaDriverAppStateSource(state)).toBe(state);
+    const click = patchCuaDriverClickToolSource(read("ClickTool.swift"));
+    expect(click).toContain('"show_default_ui": "AXShowDefaultUI"');
+    expect(patchCuaDriverClickToolSource(click)).toBe(click);
+  });
+
+  it("rejects unexpected upstream code instead of silently omitting a patch", () => {
+    const state = fs.readFileSync(path.join(process.cwd(), "tests/fixtures/cua-driver/AppState.swift"), "utf8");
+    expect(() => patchCuaDriverAppStateSource(state.replace("maxDepth = 25", "maxDepth = 30")))
+      .toThrow("Cua patch anchor not found: bounded AX tree walk");
+  });
+
   it("skips the Swift helper build outside macOS", () => {
     expect(shouldBuildComputerUseHelper({ platform: "linux" })).toBe(false);
     expect(shouldBuildComputerUseHelper({ platform: "win32" })).toBe(false);

@@ -122,14 +122,18 @@ const CUA_CLICK_PATCH_SENTINEL = '"show_default_ui": "AXShowDefaultUI"';
 
 
 function replaceRequired(source, needle, replacement, label) {
-
-  if (!source.includes(needle)) {
-
-    throw new Error(`[computer-use-helper] Cua patch anchor not found: ${label}`);
-
+  // Match code lines exactly while allowing blank-line / checkout EOL differences.
+  // Require a single match so upstream code changes still fail closed.
+  const lines = needle.replace(/\r\n/g, "\n").split("\n").filter(line => line.trim());
+  const escape = line => line.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = lines.map(escape).join("\\r?\\n(?:[ \\t]*\\r?\\n)*")
+    + (needle.endsWith("\n") ? "\\r?\\n" : "");
+  const expression = new RegExp(pattern, "g");
+  const matches = [...source.matchAll(expression)];
+  if (matches.length !== 1) {
+    throw new Error(`[computer-use-helper] Cua patch anchor ${matches.length ? "ambiguous" : "not found"}: ${label}`);
   }
-
-  return source.replace(needle, replacement);
+  return source.replace(expression, () => replacement.replace(/\r\n/g, "\n").replace(/\n\n/g, "\n"));
 
 }
 
@@ -199,7 +203,7 @@ private func applyCuaDriverAXMessagingTimeout(_ element: AXUIElement) -> AXError
 
         // Cue Chromium/Electron apps to turn on their web accessibility tree.
 
- //
+        // Non-Chromium apps ignore these attribute writes — safe no-op.
 
         try await activateAccessibilityIfNeeded(pid: pid, root: root)
 
