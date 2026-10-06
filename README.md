@@ -66,6 +66,14 @@ npm test                   # 单元与回归测试
 
 构建及打包脚本保留供按需使用；默认启动和 CI 不再预先构建应用。GitHub 的安装包构建工作流只允许手动触发，推送源码或标签不会自动发布安装包。可选构建入口仍为 `build:client`、`build:server`、`dist:win`、`dist` 和 `dist:linux`。
 
+### GitHub 云端安装包
+
+在 Actions 中手动运行 **Build release artifacts (manual only)**，勾选 `publish_release` 后，云端将生成 Windows x64 安装程序、Linux x64 `.deb`、macOS Apple Silicon 和 Intel 的 `.dmg`／`.zip`。所有平台构建成功后才发布到同版本的 GitHub Release，并附 `SHA256SUMS.txt`。
+
+云端使用源码中的版本号，不自动递增；已发布的版本不会覆盖，下一次发布前应更新 `package.json` 和锁文件中的版本。未勾选发布时，只保存 Actions 构建产物。云端流程不会删除本地依赖或构建目录。
+
+当前 Windows 包无商业代码签名，macOS 为 ad-hoc 签名且未做 Apple 公证，首次安装可能出现系统安全提示。
+
 ### 本地编译与桌面验证
 
 Git 只忽略本地依赖、编译输出和缓存，不会删除它们。已安装依赖的工作目录可以直接继续开发；只有首次克隆或锁文件发生变化时才需要重新运行 `npm ci`。
