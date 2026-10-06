@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "status": "Hidden sclera patches only; not a completed eye rig or blink asset",
+  "sourceSha256": "0db9931dde32548419ab298fc17ce5f09e7658287896fe31e6787a3660a4cb6c",
+  "generatedSha256": "ef42273088d2bf4789cd76a80346087d925c57b25d194031d2ca7c3fe3457f6d",
+  "generatedSourceSize": {
+    "width": 1891,
+    "height": 831
+  },
+  "normalizedSize": {
+    "width": 485,
+    "height": 213
+  },
+  "crop": {
+    "left": 393,
+    "top": 495,
+    "rightExclusive": 878,
+    "bottomExclusive": 708,
+    "width": 485,
+    "height": 213
+  },
+  "alignment": {
+    "method": "Resize generated crop to reference dimensions, then translation-only edge comparison outside all eye bounds",
+    "sampleCount": 4480,
+    "zeroOffsetMeanAbsoluteRgbDifference": 13.332440476190476,
+    "sampleGeneratedAtTargetPlusOffset": {
+      "dx": 0,
+      "dy": 0,
+      "meanAbsoluteRgbDifference": 13.332440476190476
+    },
+    "originalReferenceNotResampled": true
+  },
+  "results": [
+    {
+      "side": "Left",
+      "viewerSide": "right",
+      "patch": "EyeLeft_sclera-patch.png",
+      "filledLayer": "EyeLeft_filled.png",
+      "addedPixels": 7951,
+      "originalEyeChangedPixels": 0,
+      "patchPixelsOutsideIris": 0,
+      "patchOverlapWithVisibleEye": 0,
+      "originalIrisRgbaSha256": "5debcc704697889e62f3ad35ce485790792add1249377cb3961720f6cf0e1647",
+      "irisLayerNotModified": true,
+      "boundaryLightScleraRgbDifference": {
+        "samples": 118,
+        "mean": 7.353107344632766,
+        "median": 4.666666666666667,
+        "p95": 25.333333333333332
+      },
+      "fullCanvas": {
+        "width": 1254,
+        "height": 1254,
+        "left": 0,
+        "top": 0
+      }
+    },
+    {
+      "side": "Right",
+      "viewerSide": "left",
+      "patch": "EyeRight_sclera-patch.png",
+      "filledLayer": "EyeRight_filled.png",
+      "addedPixels": 8014,
+      "originalEyeChangedPixels": 0,
+      "patchPixelsOutsideIris": 0,
+      "patchOverlapWithVisibleEye": 0,
+      "originalIrisRgbaSha256": "8145c93ba7d1439298c2886a7e37219119e0d5d13a699e0e34fbb3a1c601efd2",
+      "irisLayerNotModified": true,
+      "boundaryLightScleraRgbDifference": {
+        "samples": 136,
+        "mean": 5.323529411764707,
+        "median": 3,
+        "p95": 15.333333333333334
+      },
+      "fullCanvas": {
+        "width": 1254,
+        "height": 1254,
+        "left": 0,
+        "top": 0
+      }
+    }
+  ],
+  "neutralComposite": {
+    "neutralAlphaDifferences": 15965,
+    "neutralRgbDifferences": 11161,
+    "maxNeutralRgbDifference": 2,
+    "neutralChangedOutsideOriginalIris": 0,
+    "note": "Original eye-region alpha is 254, so adding an underlayer changes source-over alpha by one and can change RGB by rounding; original Eye/Iris layer bytes remain unchanged."
+  },
+  "integration": "Composite each full-canvas sclera-patch beneath the corresponding unchanged Iris and into transparent pixels of the corresponding Eye layer. Keep all current visible Eye pixels, including any later edge restoration. Do not replace newer Eye data wholesale with the filled example if newer source has additional pixels.",
+  "visualReview": {
+    "neutralAppearance": "Preserved; no visible proportion or position change in the neutral preview.",
+    "movementAcceptance": "Failed: residual dark iris outlines remain stationary in the original Eye layers when the Iris layers shift.",
+    "cause": "The original coarse Iris polygon does not contain every visible iris contour pixel. The strict hole-only fill deliberately preserves those visible Eye pixels.",
+    "requiredNextStep": "Review and correct Eye/Iris ownership using original pixels while preserving the neutral composite, then fill the newly exposed sclera holes. Do not expand this patch or alter visible Eye RGB silently.",
+    "blinkAcceptance": "Not implemented or assessed."
+  },
+  "limitations": [
+    "Shifted previews intentionally have no eye-opening clipping mask and are diagnostic only.",
+    "The strict hole-only fill cannot correct stationary iris-outline fragments that belong to the original visible Eye layers.",
+    "No eyelid redraw, closed-eye shape, blink, keyform, PSD or model export was created.",
+    "Original Eye masks contain skin/lash edges and must not be used uncritically as a complete eye-opening mask."
+  ]
+}

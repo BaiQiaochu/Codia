@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM"],
+    "strict": false,
+    "useDefineForClassFields": false,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": { "@cubism/*": ["../../../../.local-tools/live2d/sdk/CubismSdkForWeb-5-r.5/Framework/src/*"] }
+  },
+  "include": ["*.ts", "../../../../.local-tools/live2d/sdk/CubismSdkForWeb-5-r.5/Core/live2dcubismcore.d.ts"]
+}

@@ -1,0 +1,220 @@
+{
+  "status": "eye candidate for Editor adjustment; ownership repair packaged, opening boundaries and motion not accepted",
+  "originalPsd": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-source.psd",
+  "output": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-eyes-v2.psd",
+  "preview": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-eyes-v2.neutral.png",
+  "width": 1254,
+  "height": 1254,
+  "originalPsdSha256": "6b0949a2ceecf19210b7f50fcf5342480b02b7c04bb1b101efa636d434f770ff",
+  "outputPsdSha256": "539a2ddea4d14486858b4107aee8af8bc194c7596ed5a241f77e6e10833bf9f8",
+  "originalLayerCount": 15,
+  "outputLayerCount": 17,
+  "originalGroupAndLayerNamesAndOrderPreserved": true,
+  "originalCoordinatesPreserved": true,
+  "nonEyeLayers": [
+    {
+      "path": "ArmLGroup/HandLeft_Visible",
+      "unchangedRgba": true,
+      "rgbaSha256": "6d2021207732c3c935cc2bfc880c3ebf2c1c7da5357ddcd62edb4bf6517730e3"
+    },
+    {
+      "path": "ArmLGroup/SleeveLeft_Visible",
+      "unchangedRgba": true,
+      "rgbaSha256": "0cbe38e16b4a1cfc2a8dd63a48129d7fcb120590718128869746fa3ae609d2f8"
+    },
+    {
+      "path": "ArmRGroup/HandRight_Visible",
+      "unchangedRgba": true,
+      "rgbaSha256": "01fcc7e610b2087c8c755d49c5d72fb1fac44afe942346c690b3a2701b0454fa"
+    },
+    {
+      "path": "ArmRGroup/SleeveRight_Visible",
+      "unchangedRgba": true,
+      "rgbaSha256": "ccaa2420275bfa185e852f62fefc97907369199366a8aef34b4fc74abd06b2e8"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Hair/Ahoge_Visible",
+      "unchangedRgba": true,
+      "rgbaSha256": "0c91d95d1eacf4c0ffe84bab6b4c6d2e71fe5b7e8bf42039c3ad1d30892d3636"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Hair/Hair_Visible",
+      "unchangedRgba": true,
+      "rgbaSha256": "1db4c3124af4c91dab47c0bf7a77989c53af40593a91903479d9e4b8403354e1"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Face/Face_Visible",
+      "unchangedRgba": true,
+      "rgbaSha256": "e065a48df3de13262bfd0cfb2aa4135890ed783cf9e97aa4e1bd6f43fb95101c"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Headphones/HeadphoneLeft_Visible",
+      "unchangedRgba": true,
+      "rgbaSha256": "84732c2334d2bb351125ed3c3e910e064f7c1ff8e07cc76e2fe043dd40d0df3b"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Headphones/HeadphoneRight_Visible",
+      "unchangedRgba": true,
+      "rgbaSha256": "0b4b5aad805423a90f626d9ef667ed3e5800ca1b19bb21de2ca7bd37cef7f992"
+    },
+    {
+      "path": "BodyGroup/Body_Visible",
+      "unchangedRgba": true,
+      "rgbaSha256": "70d203064cd738cf0efa011a3858c8c73cc7f3cf2f4a71caa092d4465930b0c0"
+    },
+    {
+      "path": "Transparent_RGB_Retention",
+      "unchangedRgba": true,
+      "rgbaSha256": "bd068450236052a6f75d4b1f4f0f8beb5723806f3f7906844c8cca697975e079"
+    }
+  ],
+  "replacements": [
+    {
+      "name": "IrisLeft_Visible",
+      "source": "IrisLeft_reassigned.png",
+      "rgbaSha256": "fd6575273d3e5498002f558d88455818136bbe3552e457a43c6d5b5fc9dd0a73",
+      "left": 0,
+      "top": 0,
+      "width": 1254,
+      "height": 1254,
+      "scaledOrTranslated": false
+    },
+    {
+      "name": "IrisRight_Visible",
+      "source": "IrisRight_reassigned.png",
+      "rgbaSha256": "66a0e379ad49ffa26a325ccd33108fe5275aa764e52dd27c22caa85a9af47099",
+      "left": 0,
+      "top": 0,
+      "width": 1254,
+      "height": 1254,
+      "scaledOrTranslated": false
+    },
+    {
+      "name": "EyeLeft_Visible",
+      "source": "EyeLeft_filled.png",
+      "rgbaSha256": "0d165636d34941424bc76bb97a680468a912c6f430d32a07af04bb7dcdad717f",
+      "left": 0,
+      "top": 0,
+      "width": 1254,
+      "height": 1254,
+      "scaledOrTranslated": false
+    },
+    {
+      "name": "EyeRight_Visible",
+      "source": "EyeRight_filled.png",
+      "rgbaSha256": "98615e4ed7ad07aa18c3c27eb0fc8eaa6d202e9180afe79b7d48ba882d40bd3f",
+      "left": 0,
+      "top": 0,
+      "width": 1254,
+      "height": 1254,
+      "scaledOrTranslated": false
+    }
+  ],
+  "ownershipResults": [
+    {
+      "side": "Left",
+      "unionRgbaPixelDifferences": 0,
+      "unionOverlaps": 0,
+      "changedOriginalEyePixels": 0,
+      "additionsOutsideIris": 0,
+      "addedBackingPixels": 8620
+    },
+    {
+      "side": "Right",
+      "unionRgbaPixelDifferences": 0,
+      "unionOverlaps": 0,
+      "changedOriginalEyePixels": 0,
+      "additionsOutsideIris": 0,
+      "addedBackingPixels": 8222
+    }
+  ],
+  "masks": [
+    {
+      "name": "EyeLeft_OpeningMask",
+      "opacity": 0,
+      "hidden": false,
+      "blendMode": "normal",
+      "rgbaSha256": "2ea3c20b390d2dfe8f864ee73721d9d7f6ffd3b7b48e13b8a3fe365c0f65b9fb"
+    },
+    {
+      "name": "EyeRight_OpeningMask",
+      "opacity": 0,
+      "hidden": false,
+      "blendMode": "normal",
+      "rgbaSha256": "b242487bdf7aaf1ad22e06d598b36d6fc5657b2e5eaa4c37cf26eefb3046a4ce"
+    }
+  ],
+  "neutralComposite": {
+    "changedPixels": 16842,
+    "changedOutsideIris": 0,
+    "maxRgbDelta": 2,
+    "maxAlphaDelta": 3,
+    "expectedMaxAlphaDelta": 3,
+    "masksExcluded": true,
+    "decodedLayerRecompositionMatches": true,
+    "note": "Ownership-only Eye + Iris union is exact. Hidden sclera backing can alter neutral compositing beneath original iris pixels with alpha 252–254."
+  },
+  "inputFiles": [
+    {
+      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-source.psd",
+      "sha256": "6b0949a2ceecf19210b7f50fcf5342480b02b7c04bb1b101efa636d434f770ff"
+    },
+    {
+      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\IrisLeft_reassigned.png",
+      "sha256": "cfbf7e43feb8e2b633f10c680ebe000a277d4715e1bb2009f2c175afd2f2d869"
+    },
+    {
+      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\IrisRight_reassigned.png",
+      "sha256": "da14740050a9fcc8431f60b8dab9a343b61150ce986035d21e9541d138baa039"
+    },
+    {
+      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeLeft_filled.png",
+      "sha256": "301192d9636871e48630956afdad2419332065e01a32f641ea82c1f93dda2fe2"
+    },
+    {
+      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeRight_filled.png",
+      "sha256": "895e57b7225dcbb5c490de7f7e8ee692cc5104ff34155418c32674a343aeb4bf"
+    },
+    {
+      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeLeft_original-ownership.png",
+      "sha256": "55a6deb06045934280c3ee012d9b4248561fb29dca14e5d806fb73579c0e3429"
+    },
+    {
+      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeRight_original-ownership.png",
+      "sha256": "051184f0a0accb64a9203529d1c45a14ae09a42bff1326b950ccfe25a59b3c82"
+    },
+    {
+      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeLeft_opening-mask.png",
+      "sha256": "b80d2986e4cba6759cb4c49830f43ed40c57bdc13e962f09f41d04bf626f3ded"
+    },
+    {
+      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeRight_opening-mask.png",
+      "sha256": "93522410ce663a5f3ec33a3251cbf9a27e3d3cb6c20fb56af5bac985b7321da7"
+    }
+  ],
+  "modifiedCmo3": false,
+  "rigParametersChanged": false,
+  "clippingAssigned": false,
+  "editorImportVerified": false,
+  "openingMaskReview": "authoring candidate only; eye-opening boundaries require adjustment in Editor",
+  "motionReview": {
+    "accepted": false,
+    "rejectedDiagnosticOffsets": [
+      [
+        -8,
+        -6
+      ],
+      [
+        8,
+        -6
+      ]
+    ],
+    "note": "Ownership fringe was corrected, but left/right 8px plus upward 6px eye-motion diagnostics have not passed visual review."
+  },
+  "limitations": [
+    "No clipping relationships are encoded by adding PSD image layers. Assign each iris to its matching OpeningMask in Cubism.",
+    "Opacity zero with hidden=false is verified in the PSD only; retained ArtMesh and runtime masking require Editor/export verification.",
+    "Opening masks are provisional authoring candidates. Neither the eye-opening edges nor the +/-8px, -6px eye-motion diagnostics are approved.",
+    "No blink shape, facial turn, torso backing or neck backing is added by this package."
+  ]
+}

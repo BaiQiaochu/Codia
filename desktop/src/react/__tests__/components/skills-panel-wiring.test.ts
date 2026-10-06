@@ -9,14 +9,17 @@ function read(relPath: string) {
 }
 
 describe('Skills panel wiring', () => {
-  it('adds the Skills floating panel to the sidebar app shell', () => {
+  it('opens the Skills panel from the composer sparkle button', () => {
     const app = read('App.tsx');
     const types = read('types.ts');
+    const buttons = read('components/input/InputUtilityButtons.tsx');
 
     expect(types).toContain("'skills'");
     expect(app).toContain('SkillsPanel');
-    expect(app).toContain("togglePanel('skills')");
-    expect(app).toContain("t('skills.panel.title')");
+    expect(app).not.toContain("togglePanel('skills')");
+    expect(buttons).toContain("setActivePanel('skills')");
+    expect(buttons).toContain("'skills.panel.title'");
+    expect(buttons).toContain('<Sparkle');
     expect(app).toContain("activePanel === 'skills'");
   });
 });

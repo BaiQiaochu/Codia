@@ -24,6 +24,16 @@ npm test -- <相关测试文件>
 
 `build:client`、`build:server` 和平台打包脚本仍可按需使用；它们不是源码开发的前置步骤。`build/installer.nsh` 是安装脚本源码，应保留在版本控制中。
 
+## 本地编译验证
+
+- `npm run build`：重新生成客户端及独立服务端。
+- `npm run start:local`：重新生成客户端并启动本地编译界面。
+- `npm run start:built`：使用已有客户端构建，服务端默认使用源码；设置 `GSAP_DESKTOP_SERVER_MODE=dist` 可验证独立服务端。
+- `npm run e2e:desktop-smoke`：使用隔离数据、自动端口及本机模拟模型验证源码桌面。
+- 完成构建后，设置 `GSAP_E2E_DESKTOP_MODE=built` 再执行同一冒烟命令，可验证编译桌面和独立服务端。验证后清除该环境变量。
+
+依赖安装失败时先确认 Node 版本符合要求，再运行 `npm ci`；不必删除源码或用户数据。Windows 原生沙盒使用 `npm run build:windows-sandbox-helper`，需要 Visual Studio C++ Build Tools。构建日志中的分块提示不等于编译失败，应以命令退出码为准。
+
 ## 报告问题
 
 提供操作系统、Node 版本、复现步骤、预期和实际行为。提交日志前移除密钥、用户文件内容及其他个人信息。

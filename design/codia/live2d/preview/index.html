@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Codia · Live2D 模型预览</title>
+  <style>
+    :root { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; color: #463650; background: #f8f4ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px; }
+    main { max-width: 1060px; margin: auto; }
+    h1 { font-size: 26px; margin: 0 0 10px; }
+    p { line-height: 1.65; }
+    .caption { color: #786589; margin: 0 0 24px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; }
+    .stage { position: relative; display: grid; place-items: center; align-self: start; min-height: 460px; border: 1px solid #e7def1; border-radius: 26px; background: linear-gradient(120deg,#ba9af0,#e6b9d8); overflow: hidden; }
+    .model-viewport { position: relative; width: min(100%, 540px); aspect-ratio: 1; }
+    canvas { display: block; width: 100%; aspect-ratio: 1; height: auto; }
+    .marking-contact { cursor: crosshair; }
+    .contact-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .contact-overlay path, .contact-overlay circle { fill: none; stroke: currentColor; stroke-width: 2; vector-effect: non-scaling-stroke; }
+    .contact-overlay text { fill: currentColor; font-size: 26px; paint-order: stroke; stroke: white; stroke-width: 3px; }
+    #contact-left { color: #007263; } #contact-right { color: #7c31a0; }
+    .debug-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+    .debug-actions button { padding: 6px 8px; font-size: 12px; }
+    #manual-parameters { max-height: 310px; overflow: auto; padding: 0 4px; }
+    .parameter-control { display: grid; grid-template-columns: 1fr auto; margin: 12px 0; }
+    .parameter-control label { font-size: 11px; margin: 0; }
+    .parameter-control output { font-size: 11px; font-variant-numeric: tabular-nums; }
+    .parameter-control input, .parameter-control small { grid-column: 1 / -1; }
+    .parameter-control small, #contact-status { color: #786589; font-size: 11px; }
+    .waiting { position: absolute; width: min(85%, 390px); padding: 24px; text-align: center; border-radius: 18px; background: #ffffffeb; border: 1px solid #ffffff; }
+    .waiting p { margin-bottom: 0; font-size: 14px; }
+    .panel { border-radius: 24px; background: white; padding: 22px; border: 1px solid #e7def1; }
+    .panel h2 { margin-top: 0; font-size: 18px; }
+    button { color: #68448f; border: 1px solid #dfcdeb; background: #faf6ff; border-radius: 10px; padding: 9px 13px; font: inherit; cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 3px solid #b595df; outline-offset: 3px; }
+    button:disabled { opacity: .5; cursor: default; }
+    label { display: flex; gap: 8px; align-items: center; margin-top: 16px; font-size: 14px; }
+    input[type=range] { width: 100%; accent-color: #7955ab; }
+    #status { margin: 0 0 16px; font-weight: 600; }
+    #phase { min-height: 3em; font-size: 14px; }
+    #time { font-variant-numeric: tabular-nums; }
+    #missing { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.7; color: #994759; }
+    #binding-summary { font-size: 13px; line-height: 1.6; }
+    #binding-results { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .evidence-actions { display: grid; gap: 8px; margin-top: 16px; }
+    #evidence-status { font-size: 12px; line-height: 1.6; margin: 8px 0; }
+    #evidence-status[data-state=error] { color: #994759; }
+    #evidence-download { display: block; font-size: 11px; overflow-wrap: anywhere; color: #68448f; }
+    #evidence-path { font-size: 11px; overflow-wrap: anywhere; color: #786589; }
+    .action-list { padding-left: 18px; line-height: 1.65; font-size: 12px; }
+    .action-list li { margin: 4px 0; }
+    details { font-size: 13px; margin-top: 16px; }
+    pre { font-size: 11px; max-height: 290px; overflow: auto; }
+    [hidden] { display: none !important; }
+    @media (max-width: 760px) { body { padding: 18px; } .layout { grid-template-columns: 1fr; } .stage { min-height: 300px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Codia · Live2D 模型预览</h1>
+    <p class="caption">独立本地建模预览 · 透明画布 · 10 秒动作循环</p>
+    <div class="layout">
+      <section class="stage" aria-label="Codia 模型舞台">
+        <div class="model-viewport">
+          <canvas id="canvas" width="540" height="540" aria-label="Codia Live2D 动画"></canvas>
+          <svg class="contact-overlay" viewBox="0 0 1000 1000" aria-hidden="true">
+            <g id="contact-left" visibility="hidden"><circle r="12"/><path d="M-24 0H24M0-24V24"/><text x="28" y="-14">L</text></g>
+            <g id="contact-right" visibility="hidden"><circle r="12"/><path d="M-24 0H24M0-24V24"/><text x="28" y="-14">R</text></g>
+          </svg>
+        </div>
+        <div id="waiting" class="waiting" role="status"><strong id="waiting-title">等待 Cubism 模型导出</strong><p id="waiting-detail">请将真实模型导出为 Codia.model3.json、.moc3 和纹理，再点击重新加载。</p></div>
+      </section>
+      <section class="panel" aria-label="预览控制">
+        <h2>动作控制</h2>
+        <p id="status" role="status">检查模型文件…</p>
+        <button id="play" type="button" disabled>暂停</button>
+        <button id="reload" type="button">重新加载</button>
+        <p id="phase">等待模型，尚未播放动画。</p>
+        <input id="scrub" aria-label="动作时间" type="range" min="0" max="10" step="0.01" value="0" disabled />
+        <output id="time">0.00 / 10.00 秒</output>
+        <label><input id="reduce" type="checkbox" />减少动态效果</label>
+        <div class="evidence-actions" aria-label="导出本地预览证据">
+          <button id="save-png" type="button" disabled>保存当前画布 PNG</button>
+          <button id="record-webm" type="button" disabled>录制两轮 WebM · 20 秒</button>
+        </div>
+        <p id="evidence-status" role="status" aria-live="polite">载入模型后可导出画布。</p>
+        <a id="evidence-download" hidden>下载证据</a>
+        <p id="evidence-path"></p>
+        <button id="retry-evidence" type="button" hidden>重试保存当前成果</button>
+        <p class="caption" style="font-size:11px;margin:8px 0">只保存真实模型画布到本机 validation/visual，不含页面背景或标定十字。录像从第 0 秒播放两轮，完成后恢复原状态；录制期间请保持页面可见。</p>
+        <details open>
+          <summary>真实动作组 · 9 个核心 / 4 个扩展</summary>
+          <ul id="core-actions" class="action-list"></ul>
+          <p style="font-size:12px">以下扩展尚待绑定，不参与自动循环：</p>
+          <ul id="extra-actions" class="action-list"></ul>
+          <p class="caption" style="font-size:11px;margin:0">左右按角色方向：左手在画面右侧。握持仅为现有拳形的局部收放；参数有响应仍需检查最终动作和框沿接触。</p>
+        </details>
+        <details open>
+          <summary>单参数手动检查</summary>
+          <div class="debug-actions"><button id="manual-defaults" type="button" disabled>重置为模型默认值</button><button id="manual-raised" type="button" disabled>抬起静止姿势</button></div>
+          <p class="caption" style="font-size:12px;margin:0">保留 13 个参数用于建模检查；自动循环只使用 9 个核心参数，不驱动头部 Z 轴、眨眼和头发。拖动任一参数会保留当前其他参数并暂停循环。点击“恢复自动循环”或拖动时间轴会退出手动模式，恢复模型原始参数基线。</p>
+          <div id="manual-parameters"></div>
+        </details>
+        <details>
+          <summary>圆框接触点标定</summary>
+          <div class="debug-actions"><button id="mark-left" type="button" disabled>标记左手 L</button><button id="mark-right" type="button" disabled>标记右手 R</button><button id="clear-contacts" type="button" disabled>清除标记</button></div>
+          <p id="contact-status">载入模型后可标定固定接触点。</p>
+          <p class="caption" style="font-size:11px;margin:0">L 为角色左手（画面右），R 为角色右手（画面左）。标记只是检查辅助线，不是模型圆框或实际绑定。</p>
+        </details>
+        <p id="missing"></p>
+        <p id="binding-summary" role="status">尚未验证参数响应。</p>
+        <details open><summary>实际绑定采样结果</summary><pre id="binding-results"></pre></details>
+        <p class="caption" style="font-size:12px;margin:12px 0">仅检测默认姿势与静止展示姿势下，参数最小值、默认值、最大值是否改变网格、遮罩或离屏组。未检测到变化不一定代表完全未绑定；有变化也不代表动作质量、遮挡与朝向已合格，仍需视觉验收。</p>
+        <details><summary>实际模型参数</summary><pre id="parameters">未载入模型</pre></details>
+        <p class="caption" style="font-size:12px;margin:18px 0 0">左手指角色自身左手，即画面右侧。头部转向以观看者方向为准。浏览器切到后台会暂停。</p>
+      </section>
+    </div>
+  </main>
+  <script id="binding-validation" type="application/json">{"schemaVersion":1,"state":"not-loaded"}</script>
+  <script id="debug-state" type="application/json">{"state":"not-loaded"}</script>
+  <script id="evidence-state" type="application/json">{"state":"idle"}</script>
+  <script src="/sdk-core/live2dcubismcore.min.js"></script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

@@ -148,18 +148,25 @@ describe("release preflight contract", () => {
   it("uses env-only remote debugging and a sanitized environment for packaged desktop E2E launches", async () => {
     const { desktopLaunchCommand, desktopLaunchEnv } = await import(pathToFileURL(path.join(root, "scripts", "e2e-desktop-launcher.mjs")).href);
     const previous = process.env.GSAP_E2E_DESKTOP_APP;
+    const previousMode = process.env.GSAP_E2E_DESKTOP_MODE;
     const previousElectronRunAsNode = process.env.ELECTRON_RUN_AS_NODE;
     const extraArgs = ["--remote-debugging-port=12345", "--remote-allow-origins=*"];
 
     try {
       process.env.ELECTRON_RUN_AS_NODE = "1";
       delete process.env.GSAP_E2E_DESKTOP_APP;
+      delete process.env.GSAP_E2E_DESKTOP_MODE;
       const source = desktopLaunchCommand(root, extraArgs);
       expect(source.mode).toBe("source");
       expect(source.args).toEqual(["scripts/launch.js", "electron", ...extraArgs]);
       expect(desktopLaunchEnv({ GSAP_E2E: "1" }).ELECTRON_RUN_AS_NODE).toBeUndefined();
       expect(desktopLaunchEnv({ GSAP_E2E: "1" }).GSAP_PORT).toBe("0");
       expect(desktopLaunchEnv({ GSAP_E2E: "1", GSAP_PORT: "32123" }).GSAP_PORT).toBe("32123");
+
+      process.env.GSAP_E2E_DESKTOP_MODE = "built";
+      const built = desktopLaunchCommand(root, extraArgs);
+      expect(built.mode).toBe("built");
+      expect(built.args).toEqual(["scripts/launch.js", "electron-built", ...extraArgs]);
 
       const packagedApp = path.join(root, "dist", "G-SAP.exe");
       process.env.GSAP_E2E_DESKTOP_APP = packagedApp;
@@ -169,6 +176,8 @@ describe("release preflight contract", () => {
       expect(packaged.args).toEqual([]);
       expect(packaged.cwd).toBe(path.dirname(packagedApp));
     } finally {
+      if (previousMode === undefined) delete process.env.GSAP_E2E_DESKTOP_MODE;
+      else process.env.GSAP_E2E_DESKTOP_MODE = previousMode;
       if (previous === undefined) delete process.env.GSAP_E2E_DESKTOP_APP;
       else process.env.GSAP_E2E_DESKTOP_APP = previous;
       if (previousElectronRunAsNode === undefined) delete process.env.ELECTRON_RUN_AS_NODE;

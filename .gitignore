@@ -45,6 +45,11 @@ inbox/
 # Runtime dependencies
 node_modules/
 .pi/
+/.local-tools/live2d/
+
+# Local authoring backups and recorded validation sessions (keep working sources).
+/design/codia/live2d/checkpoints/
+/design/codia/live2d/validation/
 
 # IDE and tool state
 .claude/

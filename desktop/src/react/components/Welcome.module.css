@@ -31,7 +31,7 @@
     display: flex;
     align-items: center;
     width: 100%;
-    min-height: 190px;
+    min-height: 228px;
     overflow: hidden;
     padding: 28px 38px;
     align-self: center;
@@ -51,10 +51,14 @@
 .codiaHeroCopy button { display: inline-flex; align-items: center; gap: 12px; padding: 10px 20px; border: 0; border-radius: 999px; color: #72559c; background: #fff; font: inherit; font-weight: 600; cursor: pointer; }
 .codiaHeroCopy button:hover { background: #fff9f2; transform: translateY(-1px); }
 .codiaHeroArt { position: absolute; top: 0; right: 4%; display: grid; width: 200px; height: 100%; place-items: center; }
-.codiaHeroArt span, .codiaHeroArt::before { position: absolute; display: block; border-radius: 50%; content: ''; }
-.codiaHeroArt span { width: 168px; height: 168px; background: rgba(255,255,255,.20); }
-.codiaHeroArt::before { width: 118px; height: 118px; background: rgba(255,255,255,.45); }
-.codiaHeroArt img { position: relative; z-index: 1; width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(83,51,106,.16)); }
+.codiaLive2D { z-index: 1; width: clamp(174px, 18cqw, 200px); aspect-ratio: 1; overflow: visible; }
+.codiaMascotFallback { position: relative; display: grid; width: 100%; height: 100%; place-items: center; }
+.codiaHeroHalo { position: absolute; display: block; width: 174px; height: 174px; border-radius: 50%; background: rgba(255,255,255,.20); }
+.codiaMascotFrame { position: relative; z-index: 1; width: 142px; height: 142px; overflow: hidden; border: 2px solid rgba(255,255,255,.62); border-radius: 50%; background: rgba(255,255,255,.42); box-shadow: inset 0 -14px 28px rgba(123,81,158,.08), 0 12px 24px rgba(83,51,106,.14); }
+.codiaMascotFrame::after { position: absolute; z-index: 3; right: 7px; bottom: 5px; left: 7px; height: 38%; border-bottom: 2px solid rgba(255,255,255,.74); border-radius: 0 0 999px 999px; content: ''; pointer-events: none; }
+.codiaMascotMotion { position: absolute; z-index: 2; inset: 0; transform: translateY(112%); animation: codiaMascotPeek 8s cubic-bezier(.22, 1, .36, 1) 520ms infinite both; will-change: transform; }
+.codiaMascotViewport { position: absolute; inset: 0; overflow: hidden; }
+.codiaMascotSprite { display: block; width: 300%; max-width: none; height: 100%; object-fit: fill; filter: drop-shadow(0 8px 10px rgba(83,51,106,.13)); transform: translateX(0); animation: codiaMascotGaze 8s steps(1, end) 520ms infinite both; will-change: transform; }
 .codiaActionDock { display: flex; flex: 0 0 auto; width: 100%; flex-direction: column; align-items: center; gap: 9px; }
 .codiaQuickSection { width: 100%; }
 .codiaQuickSection h3 { margin: 0 0 8px; color: #463653; font-size: 18px; font-weight: 650; }
@@ -83,9 +87,9 @@
   .codiaQuickGrid { grid-template-columns: minmax(0, 1fr); }
   .codiaHero { min-height: 215px; padding: 24px; }
   .codiaHeroArt { right: 12px; width: 126px; }
-  .codiaHeroArt img { width: 110px; height: 110px; }
-  .codiaHeroArt span { width: 126px; height: 126px; }
-  .codiaHeroArt::before { width: 92px; height: 92px; }
+  .codiaLive2D { width: clamp(106px, 20cqw, 126px); }
+  .codiaHeroHalo { width: 126px; height: 126px; }
+  .codiaMascotFrame { width: 106px; height: 106px; }
   .codiaHeroCopy { width: calc(100% - 138px); }
   .codiaHero h2 { font-size: 25px; }
   .codiaHero p { font-size: 12px; }
@@ -116,6 +120,20 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes codiaMascotPeek {
+    0%, 9%, 74%, 100% { transform: translateY(112%); }
+    19%, 63% { transform: translateY(0); }
+}
+
+@keyframes codiaMascotGaze {
+    0%, 24.99% { transform: translateX(0); }
+    25%, 31.99% { transform: translateX(-33.333333%); }
+    32%, 39.99% { transform: translateX(-66.666667%); }
+    40%, 46.99% { transform: translateX(-33.333333%); }
+    47%, 54.99% { transform: translateX(-66.666667%); }
+    55%, 100% { transform: translateX(0); }
+}
+
 :global(.main-content.welcome-mode .input-area .input-wrapper) {
     animation: codiaRiseIn 420ms cubic-bezier(.22, 1, .36, 1) 520ms both;
 }
@@ -128,6 +146,19 @@
     .welcomeAgentSelector,
     :global(.main-content.welcome-mode .input-area .input-wrapper) {
         animation: none;
+    }
+
+    .codiaMascotMotion,
+    .codiaMascotSprite {
+        animation: none;
+    }
+
+    .codiaMascotMotion {
+        transform: translateY(0);
+    }
+
+    .codiaMascotSprite {
+        transform: translateX(0);
     }
 }
 

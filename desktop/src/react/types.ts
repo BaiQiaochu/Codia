@@ -396,6 +396,7 @@ export interface PlatformApi {
   isE2EMode?(): Promise<boolean>;
   readClipboardText?(): Promise<string>;
   writeClipboardText?(text: string): Promise<boolean>;
+  getGpuRuntimeState?(): Promise<{ gpuSafeMode: boolean; hardwareAccelerationEnabled: boolean }>;
   getRuntimeDiagnosticsState?(): Promise<{
     currentSessionPath: string | null;
     pendingNewSession: boolean;

@@ -5,6 +5,17 @@ import path from "path";
 const MAIN_PATH = path.join(process.cwd(), "desktop", "main.cjs");
 
 describe("desktop main GPU startup contract", () => {
+  it("exposes the applied GPU state through a read-only preload method", () => {
+    const source = fs.readFileSync(MAIN_PATH, "utf-8");
+    const preload = fs.readFileSync(path.join(process.cwd(), "desktop", "preload.cjs"), "utf-8");
+    const start = source.indexOf('wrapIpcHandler("get-gpu-runtime-state"');
+    const handler = source.slice(start, source.indexOf("}));", start) + 4);
+    expect(start).toBeGreaterThan(-1);
+    expect(handler).toContain("gpuStartupPolicy.shouldDisableHardwareAcceleration === true");
+    expect(handler).toContain("app.isHardwareAccelerationEnabled()");
+    expect(handler).not.toContain("disableHardwareAcceleration(");
+    expect(preload).toContain('getGpuRuntimeState: () => ipcRenderer.invoke("get-gpu-runtime-state")');
+  });
   it("applies GPU startup policy before Electron ready", () => {
     const source = fs.readFileSync(MAIN_PATH, "utf-8");
 

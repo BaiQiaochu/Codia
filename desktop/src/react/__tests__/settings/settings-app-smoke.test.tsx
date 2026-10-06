@@ -1,6 +1,6 @@
 ﻿// @vitest-environment jsdom
 import React, { act } from 'react';
-import { cleanup, render, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 type RestartPayload = { port: number; token?: string };
@@ -115,6 +115,29 @@ describe('settings app smoke', () => {
     gsapFetchMock.mockResolvedValue({
       json: async () => ({ locale: 'en' }),
     });
+  });
+
+  it('mounts setting modules only after initial connection and config loading', async () => {
+    storeState.ready = false;
+    let resolvePort!: (port: number) => void;
+    const port = new Promise<number>((resolve) => { resolvePort = resolve; });
+    window.platform = {
+      getServerPort: () => port,
+      getServerToken: async () => 'token-1',
+      onServerRestarted: vi.fn(),
+    } as unknown as typeof window.platform;
+    window.i18n = { load: vi.fn(async () => {}) } as unknown as typeof window.i18n;
+    window.t = (key: string) => key;
+    const { SettingsContent } = await import('../../settings/SettingsContent');
+    const { rerender } = render(<SettingsContent variant="modal" />);
+    expect(screen.queryByTestId('AgentTab')).toBeNull();
+    expect(gsapFetchMock).not.toHaveBeenCalled();
+    await act(async () => { resolvePort(8123); });
+    await waitFor(() => expect(storeState.ready).toBe(true));
+    // This file's store mock is not reactive; render the resolved state explicitly.
+    rerender(<SettingsContent variant="modal" />);
+    expect(screen.getByTestId('AgentTab')).toBeTruthy();
+    expect(loadSettingsSnapshotMock).toHaveBeenCalledTimes(1);
   });
 
   it('refreshes avatars and settings snapshot after a server restart event', async () => {

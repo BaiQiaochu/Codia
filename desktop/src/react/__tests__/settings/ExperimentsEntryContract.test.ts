@@ -19,8 +19,7 @@ describe('Experiments settings entry contract', () => {
     expect(content).not.toContain("import { ComputerUseTab } from './tabs/ComputerUseTab'");
     expect(content).not.toContain('computer: ComputerUseTab');
     expect(content).toContain('experiments: ExperimentsTab');
-    expect(content).toContain("experiments: 'settings.tabs.experiments'");
-    expect(content).toContain("experiments: '\\u5b9e\\u9a8c'");
+    expect(read('settings-navigation.ts')).toContain("{ id: 'experiments', key: 'settings.tabs.experiments', fallback: '实验功能' }");
     expect(experiments).toContain("import { ComputerUseSection } from './ComputerUseSection'");
     expect(experiments).toContain('<ComputerUseSection />');
     expect(experiments).not.toContain("import { ComputerUseTab } from './ComputerUseTab'");
@@ -28,7 +27,7 @@ describe('Experiments settings entry contract', () => {
   });
 
   it('adds experiments to the native settings navigation without computer-use', () => {
-    const nav = read('SettingsNav.tsx');
+    const nav = read('settings-navigation.ts');
 
     expect(nav).toContain("{ id: 'experiments'");
     expect(nav).toContain("key: 'settings.tabs.experiments'");

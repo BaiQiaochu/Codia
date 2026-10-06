@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="desktop/src/assets/codia/codia-flower.png" width="88" alt="Codia">
+  <img src="desktop/src/assets/codia/codia-brand-emblem.png" width="88" alt="Codia">
 </p>
 
 <h1 align="center">Codia · 小豆蔻</h1>
@@ -52,6 +52,9 @@ npm start
 
 ```bash
 npm start                  # 完整桌面源码模式
+npm run start:local         # 重新构建客户端，然后启动本地编译界面
+npm run start:built         # 启动已有客户端构建（修改前端后先重新构建）
+npm run build               # 构建客户端和独立服务端
 npm run dev:web            # 浏览器开发模式（GSAP_DEV_HOME 指定数据目录）
 npm run dev:renderer       # 单独启动 Vite，仅前端
 npm run server             # 单独启动服务端源码
@@ -62,6 +65,35 @@ npm test                   # 单元与回归测试
 ```
 
 构建及打包脚本保留供按需使用；默认启动和 CI 不再预先构建应用。GitHub 的安装包构建工作流只允许手动触发，推送源码或标签不会自动发布安装包。可选构建入口仍为 `build:client`、`build:server`、`dist:win`、`dist` 和 `dist:linux`。
+
+### 本地编译与桌面验证
+
+Git 只忽略本地依赖、编译输出和缓存，不会删除它们。已安装依赖的工作目录可以直接继续开发；只有首次克隆或锁文件发生变化时才需要重新运行 `npm ci`。
+
+日常修改后执行 `npm run start:local` 即可重新编译客户端并打开桌面窗口。只重新编译可使用 `npm run build:client`；完整客户端和独立服务端使用 `npm run build`。构建脚本、锁文件、图标母版和 Live2D 运行素材均随源码保存。
+
+`npm run check:local` 默认保留检查产物。仅在需要主动清理 `artifacts` 调试记录时添加 `-- --clean-after`；`-- --keep-artifacts` 明确保留这些记录。日常开发不要执行 `git clean -fdx`，它会删除 Git 忽略的本地依赖、缓存和编译输出。
+
+源码模式需要保持启动终端运行；关闭终端或按 Ctrl+C 会结束开发服务器。`start:dev` 会额外打开开发者工具，日常查看完整界面使用 `npm start`。
+
+`start:local` 每次重新生成客户端；本地编译界面默认仍由当前 Node 执行服务端源码。验证独立服务端构建时，先运行 `npm run build`，再在 PowerShell 中执行：
+
+```powershell
+$env:GSAP_DESKTOP_SERVER_MODE = "dist"
+npm run start:built
+Remove-Item Env:GSAP_DESKTOP_SERVER_MODE
+```
+
+桌面冒烟脚本自动创建临时配置、分配空闲端口并使用本机模拟模型，不需要配置付费模型。脚本结束后测试窗口自动关闭。
+
+```powershell
+npm run e2e:desktop-smoke
+$env:GSAP_E2E_DESKTOP_MODE = "built"
+npm run e2e:desktop-smoke
+Remove-Item Env:GSAP_E2E_DESKTOP_MODE
+```
+
+第二组命令需要先完成 `npm run build`。窗口异常退出时，保留终端报错，并查看数据目录中的 `diagnostics/desktop-launch/renderer.log` 和 `crash.log`。
 
 ## 目录
 

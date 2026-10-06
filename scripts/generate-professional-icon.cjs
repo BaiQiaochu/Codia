@@ -10,7 +10,7 @@ const ICON_PATH = path.join(ROOT, "desktop", "src", "icon.png");
 const ICON_ICO_PATH = path.join(ROOT, "desktop", "src", "icon.ico");
 const ICON_ICNS_PATH = path.join(ROOT, "desktop", "src", "icon.icns");
 const ASSETS_DIR = path.join(ROOT, "desktop", "src", "assets");
-const SOURCE_PATH = path.join(ASSETS_DIR, "codia", "codia-flower.png");
+const SOURCE_PATH = path.join(ASSETS_DIR, "codia", "codia-brand-master.png");
 const CHARACTER_ASSETS_DIR = path.join(ASSETS_DIR, "character-cards");
 const ICON_SIZE = 512;
 const SAFE_AREA_RATIO = 0.86;
@@ -139,15 +139,15 @@ function createIcns(layers) {
 
 function main() {
   if (!fs.existsSync(SOURCE_PATH)) {
-    throw new Error(`Codia flower source not found: ${SOURCE_PATH}`);
+    throw new Error(`Codia brand source not found: ${SOURCE_PATH}`);
   }
 
-  // The canonical source is already isolated on transparency. Preserve its
-  // white rounded-square tile instead of applying legacy white-background removal.
+  // Preserve the approved transparent artwork for UI, shell and packaging alike.
   const source = PNG.sync.read(fs.readFileSync(SOURCE_PATH));
   const icon = renderSquare(source, ICON_SIZE);
   const sharedPngTargets = [
     ICON_PATH,
+    path.join(ASSETS_DIR, "codia", "codia-brand-emblem.png"),
     path.join(ASSETS_DIR, "G-SAP.png"),
     path.join(ASSETS_DIR, "about-icon.png"),
     path.join(CHARACTER_ASSETS_DIR, "gsap-default-avatar.png"),
@@ -197,7 +197,7 @@ function main() {
     fs.copyFileSync(ICON_ICO_PATH, target);
   }
 
-  console.log("Generated Codia icon assets from desktop/src/assets/codia/codia-flower.png.");
+  console.log("Generated Codia icon assets from desktop/src/assets/codia/codia-brand-master.png.");
 }
 
 main();

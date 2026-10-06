@@ -13,7 +13,7 @@ import { ThemeStep } from './steps/ThemeStep';
 import { WorkspaceStep } from './steps/WorkspaceStep';
 import { TutorialStep } from './steps/TutorialStep';
 import { getDesktopApi } from '../utils/desktop-api';
-import { localFilePathToUrl } from '../utils/local-file-url';
+import codiaBrandEmblem from '../../assets/codia/codia-brand-emblem.png';
 
 interface OnboardingAppProps { preview: boolean; skipToTutorial: boolean }
 export function OnboardingApp({ preview, skipToTutorial }: OnboardingAppProps) {
@@ -21,7 +21,7 @@ export function OnboardingApp({ preview, skipToTutorial }: OnboardingAppProps) {
   const [serverToken, setServerToken] = useState<string | null>(null);
   const [step, setStep] = useState(skipToTutorial ? 6 : 0);
   const [stepKey, setStepKey] = useState(0);
-  const [avatarSrc, setAvatarSrc] = useState('');
+  const avatarSrc = codiaBrandEmblem;
   const [locale, setLocale] = useState('zh-CN');
   const [i18nReady, setI18nReady] = useState(false);
 
@@ -84,10 +84,6 @@ export function OnboardingApp({ preview, skipToTutorial }: OnboardingAppProps) {
         await i18n.load(loc);
         i18n.defaultName = name;
         setI18nReady(true);
-        try {
-          const localPath = await desktopApi.getAvatarPath?.('agent');
-          if (localPath) setAvatarSrc(localFilePathToUrl(localPath));
-        } catch { /* ignore */ }
       } catch (err) {
         console.error('[onboarding] init failed:', err);
         try {
@@ -105,13 +101,7 @@ export function OnboardingApp({ preview, skipToTutorial }: OnboardingAppProps) {
     return (
       <div className="onboarding">
         <div className="onboarding-step active">
-          {avatarSrc ? (
-            <img className="onboarding-avatar" src={avatarSrc} draggable={false} alt="" />
-          ) : (
-            <div className="onboarding-avatar onboarding-avatar-placeholder" aria-hidden="true">
-              G
-            </div>
-          )}
+          <img className="onboarding-avatar" src={avatarSrc} draggable={false} alt="Codia" />
           <h1 className="onboarding-title">Codia · 小豆蔻</h1>
           <p className="onboarding-subtitle">正在初始化...</p>
         </div>

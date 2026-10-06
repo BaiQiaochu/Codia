@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useRef, useState, lazy, Suspense, type TouchEvent } from 'react';
 import { ChatCircleDots, UsersThree, FlowArrow, Wrench, Flower, Plus } from '@phosphor-icons/react';
-import codiaFlower from '../assets/codia/codia-flower.png';
+import codiaBrandEmblem from '../assets/codia/codia-brand-emblem.png';
 import { useStore } from './stores';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { RegionalErrorBoundary } from './components/RegionalErrorBoundary';
@@ -398,7 +398,7 @@ function App() {
             </button>
             {!sidebarVisible && (
               <div className="codia-titlebar-brand" data-testid="codia-titlebar-brand" aria-label="Codia 小豆蔻">
-                <img src={codiaFlower} alt="" />
+                <img src={codiaBrandEmblem} alt="" />
                 <strong>Codia</strong>
               </div>
             )}
@@ -439,7 +439,7 @@ function App() {
         <aside className={`sidebar${sidebarVisible ? '' : ' collapsed'}`} id="sidebar">
           <div className="sidebar-inner">
             <div className="codia-brand-lockup">
-              <img src={codiaFlower} alt="" className="codia-brand-mark" />
+              <img src={codiaBrandEmblem} alt="" className="codia-brand-mark" />
               <div><strong>Codia</strong><span>小豆蔻 · AI 工作室</span></div>
             </div>
             <nav className="codia-primary-nav" aria-label="主导航">

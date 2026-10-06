@@ -16,14 +16,15 @@ function sha256(relativePath: string): string {
 }
 
 describe("Codia branding contract", () => {
-  it("uses the Codia flower as the source for generated product icons", () => {
+  it("uses the approved Codia mark as the source for generated product icons", () => {
     const generator = read("scripts/generate-professional-icon.cjs");
-    expect(generator).toContain('"codia", "codia-flower.png"');
+    expect(generator).toContain('"codia", "codia-brand-master.png"');
     expect(generator).not.toContain("byoung-logo-source.png");
     expect(generator).not.toContain("drawProfessionalMark");
 
     const iconHash = sha256(path.join("desktop", "src", "icon.png"));
     for (const relativePath of [
+      path.join("desktop", "src", "assets", "codia", "codia-brand-emblem.png"),
       path.join("desktop", "src", "assets", "G-SAP.png"),
       path.join("desktop", "src", "assets", "about-icon.png"),
       path.join("desktop", "src", "assets", defaultAssistantAvatar),

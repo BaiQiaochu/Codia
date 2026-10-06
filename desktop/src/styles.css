@@ -4576,7 +4576,7 @@ body.resizing .jian-sidebar-inner {
 .codia-nav-item:hover { background:#f1e9fa; color:#5d4283; }
 .codia-nav-item.active { background:#eee5fb; color:#65488f; font-weight:650; }
 .codia-nav-item.active svg { color:#7955ab; }
-.codia-nav-badge { margin-left:auto; min-width:18px; height:18px; padding:0 5px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:#a985dc; color:#fff; font-size:10px; font-weight:700; line-height:1; }
+.codia-nav-badge { margin-left:auto; min-width:18px; height:18px; padding:0 5px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:var(--accent); color:var(--accent-contrast); font-size:10px; font-weight:700; line-height:1; }
 .codia-profile { display:flex; align-items:center; gap:10px; min-height:64px; margin:8px 12px 12px; padding:8px 11px; border:1px solid #eee5f5; border-radius:17px; background:#fff; text-align:left; cursor:pointer; }
 .codia-profile > span:nth-child(2) { display:flex; flex:1; min-width:0; flex-direction:column; }
 .codia-profile strong { overflow:hidden; color:#51435f; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }

@@ -1,0 +1,12 @@
+{
+  "tool": "built-in image_gen",
+  "mode": "precise-object-edit",
+  "createdAt": "2026-10-06",
+  "output": "codia-neck-occlusion-v4.png",
+  "generatedPath": "C:/Users/baiqiaochu/.codex/generated_images/01a110e6-917b-78b0-bf47-ad5bc9918420/exec-a4db188c-70e7-40d8-9b59-7827d121ee84.png",
+  "editTarget": "../codia-rig-source.Body.png",
+  "reference": "codia-neck-color-reference.png",
+  "transparentBackground": true,
+  "prompt": "Use case: precise-object-edit. Asset type: hidden neck underpainting for a Live2D cutout, on the original 1254x1254 transparent canvas. Image 1 is the EDIT TARGET, the original body layer with an empty V-shaped cut where a jaw originally covered the neck. Image 2 is a supporting reference of the exact original neck colors, enlarged 4x, NOT a shape reference. Primary request: extend the original neck upward into the transparent region, at x approximately 584..716, up to y740. THE NEW EXTENSION MUST BE ENTIRELY IN THE SAME DUSTY ROSE UNDER-CHIN SHADOW AS THE TOP V-SHAPED EDGE OF THE ORIGINAL NECK. Continue that existing dark shadow smoothly across its old V edge, so the old V edge vanishes in color. The diagonal lit pale-peach patch in the lower neck must stay only in the existing LOWER neck; DO NOT repeat the diagonal highlight in the newly extended upper skin, and DO NOT move the old diagonal shadow. A single continuous top shadow across the extension, softly shaded, not a second highlight stripe. Keep ALL existing original visible pixels unchanged, including the original lower neck shading, collar, hoodie, drawstrings, source arm cutout holes. Exact same dimensions, positions and proportions. No face, jaw line, mouth, eyes, hair or hands, no background, text or watermark. Genuine transparent background. Change only the previously transparent upper neck extension; retain the image's original illustration style.",
+  "usage": "Only original jaw/adjacent hair-covered skin pixels within the restricted neck polygon are consumed. Original visible source pixels are retained. Current frozen candidate still has visual seam limitations."
+}

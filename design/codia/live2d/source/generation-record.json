@@ -1,0 +1,22 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "codia-reference.png",
+  "assets": [
+    {
+      "file": "codia-neutral-bust.png",
+      "status": "sole reference for position and proportions",
+      "generatedFile": "exec-b1d6d244-a1af-4b3b-8eea-283be80bdb23.png",
+      "transparentBackground": true,
+      "prompt": "Identity-preserving transparent Live2D neutral bust of the supplied Codia character. Straight-on, from the top of the curled ahoge to the upper chest. Preserve white bob with pink streak, dark G hair clip, black/pink cat-ear headphones, pink open eyes, white/pink hoodie and black collar. Gentle closed-mouth smile. Both forearms raised, separate curled hands as if gripping a circular rim; no actual rim, no background, no labels. Match delicate anime linework and pastel shading."
+    },
+    {
+      "file": "codia-parts-atlas.png",
+      "status": "rejected; must not be used to build the character",
+      "generatedFile": "exec-b1a3c12b-aca1-4f6a-825e-e8cd0e72c488.png",
+      "transparentBackground": true,
+      "reference": "codia-neutral-bust.png",
+      "prompt": "Create an exploded 4 by 4 Live2D parts atlas from the exact neutral bust. Row 1: face base without eyes/brows/hair; front bangs with pink streak and G clip; complete back hair; ahoge. Row 2: left and right black/pink cat-ear headphones; left and right white side hair. Row 3: left and right eye outlines/lashes with white sclera but no iris; left and right pink iris/pupil/highlights. Row 4: neck and upper chest hoodie without head/arms; left and right forearm/hand with cuff in grip pose; pair of eyebrows. Fill occluded areas; keep separated cutouts on transparent background, no labels or grid. Preserve identity, line art and palette."
+    }
+  ],
+  "review": "The atlas and its assembled PSD were rejected by the user because independent generations changed proportions and shape. The replacement must separate the neutral bust at unchanged source coordinates. A follow-up alpha-cleanup generation did not improve the edges and was not selected. Occluded-area completion and deformation authoring remain pending."
+}

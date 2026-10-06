@@ -79,7 +79,7 @@ describe("package build order", () => {
     expect(releasePreflight).toContain("package-size-trend.mjs");
   });
 
-  it("cleans generated artifacts by default before non-Windows npm packaging and after local health checks", () => {
+  it("keeps local health artifacts unless cleanup is requested while preserving packaging cleanup", () => {
     const scripts = packageScripts();
     const localHealth = fs.readFileSync(path.join(rootDir, "scripts", "local-health-check.mjs"), "utf-8");
 
@@ -95,6 +95,13 @@ describe("package build order", () => {
     expect(localHealth).toContain('args.has("--clean-after")');
     expect(localHealth).toContain('await runCleanArtifacts()');
     expect(localHealth).toContain('"--keep-artifacts"');
+    const cleanExpression = localHealth.match(/const cleanAfter = (.+);/)?.[1];
+    expect(cleanExpression).toBeDefined();
+    const shouldClean = (flags: string[]) => new Function("args", `return ${cleanExpression}`)(new Set(flags));
+    expect(shouldClean([])).toBe(false);
+    expect(shouldClean(["--keep-artifacts"])).toBe(false);
+    expect(shouldClean(["--clean-after"])).toBe(true);
+    expect(shouldClean(["--clean-after", "--keep-artifacts"])).toBe(false);
   });
 
   it("builds a Windows installer and folder portable output without single-file portable target", () => {

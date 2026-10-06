@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WelcomeScreen } from '../../components/WelcomeScreen';
 
 type StoreState = {
   welcomeVisible: boolean;
+  serverPort: string | null;
+  activeServerConnection?: { url: string };
   agents: unknown[];
   agentName: string;
   agentAvatarUrl: string | null;
@@ -44,7 +46,22 @@ const loadStudioWorkspacesMock = vi.fn(async (..._args: unknown[]) => []);
 const applyStudioWorkspaceMock = vi.fn(async (..._args: unknown[]) => undefined);
 const createLocalStudioWorkspaceFromFolderMock = vi.fn(async (..._args: unknown[]) => null);
 const removeStudioWorkspaceMock = vi.fn(async (..._args: unknown[]) => true);
-const { switchTabMock } = vi.hoisted(() => ({ switchTabMock: vi.fn() }));
+const { switchTabMock, live2DPropsMock, resolveLive2DAssetsMock } = vi.hoisted(() => ({
+  switchTabMock: vi.fn(),
+  live2DPropsMock: vi.fn(),
+  resolveLive2DAssetsMock: vi.fn(() => ({
+    modelUrl: 'http://127.0.0.1:15733/desktop/assets/codia/live2d/model/Codia.model3.json',
+    shaderPath: 'http://127.0.0.1:15733/desktop/assets/codia/live2d/shaders/',
+  })),
+}));
+
+vi.mock('../../live2d/assets', () => ({ resolveCodiaLive2DAssets: resolveLive2DAssetsMock }));
+vi.mock('../../components/CodiaLive2DMascot', () => ({
+  CodiaLive2DMascot: (props: { fallback: React.ReactNode; className?: string }) => {
+    live2DPropsMock(props);
+    return <div data-testid="live2d-mascot" className={props.className}>{props.fallback}</div>;
+  },
+}));
 
 vi.mock('../../stores', () => ({
   get useStore() {
@@ -99,6 +116,7 @@ describe('WelcomeScreen studio workspaces', () => {
   beforeEach(() => {
     state = {
       welcomeVisible: true,
+      serverPort: '15733',
       agents: [],
       agentName: 'G-SAP',
       agentAvatarUrl: null,
@@ -136,6 +154,8 @@ describe('WelcomeScreen studio workspaces', () => {
     createLocalStudioWorkspaceFromFolderMock.mockClear();
     removeStudioWorkspaceMock.mockClear();
     switchTabMock.mockClear();
+    live2DPropsMock.mockClear();
+    resolveLive2DAssetsMock.mockClear();
   });
 
   afterEach(() => {
@@ -187,5 +207,43 @@ describe('WelcomeScreen studio workspaces', () => {
     } finally {
       window.removeEventListener('gsap-input-draft-request', onDraft);
     }
+  });
+
+  it('uses the local asset port and a dedicated mascot surface, preserving the PNG fallback', () => {
+    state.activeServerConnection = { url: 'https://remote.example.test' };
+    const { container } = render(<WelcomeScreen />);
+
+    expect(resolveLive2DAssetsMock).toHaveBeenCalledWith(window.location.href, 15733);
+    expect(live2DPropsMock).toHaveBeenLastCalledWith(expect.objectContaining({
+      enabled: true, gpuSafeMode: false, hardwareAccelerationEnabled: true,
+      assets: expect.objectContaining({ modelUrl: expect.stringContaining('/model/Codia.model3.json') }),
+    }));
+    expect(screen.getByTestId('live2d-mascot').closest('[data-codia-mascot-frame]')).toBeNull();
+    expect(container.querySelector('[data-codia-mascot-frame] img')).not.toBeNull();
+  });
+
+  it('waits for the desktop GPU policy and passes the actual safe mode to the mascot', async () => {
+    let resolvePolicy!: (value: { gpuSafeMode: boolean; hardwareAccelerationEnabled: boolean }) => void;
+    window.platform.getGpuRuntimeState = vi.fn(() => new Promise<{ gpuSafeMode: boolean; hardwareAccelerationEnabled: boolean }>(resolve => { resolvePolicy = resolve; }));
+    render(<WelcomeScreen />);
+    expect(live2DPropsMock).toHaveBeenLastCalledWith(expect.objectContaining({ enabled: false }));
+    await act(async () => resolvePolicy({ gpuSafeMode: true, hardwareAccelerationEnabled: false }));
+    expect(live2DPropsMock).toHaveBeenLastCalledWith(expect.objectContaining({
+      enabled: true, gpuSafeMode: true, hardwareAccelerationEnabled: false,
+    }));
+  });
+
+  it('keeps the PNG fallback when the desktop GPU policy cannot be read', async () => {
+    window.platform.getGpuRuntimeState = vi.fn().mockRejectedValue(new Error('IPC unavailable'));
+    render(<WelcomeScreen />);
+    await act(async () => { await Promise.resolve(); });
+    expect(window.platform.getGpuRuntimeState).toHaveBeenCalledOnce();
+    expect(live2DPropsMock).toHaveBeenLastCalledWith(expect.objectContaining({ enabled: false }));
+  });
+
+  it('does not mount a mascot when the welcome screen is hidden', () => {
+    state.welcomeVisible = false;
+    render(<WelcomeScreen />);
+    expect(live2DPropsMock).not.toHaveBeenCalled();
   });
 });

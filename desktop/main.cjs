@@ -468,11 +468,20 @@ function loadWindowURL(win, pageName, opts) {
 
 function attachRendererLaunchDiagnostics(win, label) {
   if (!win || win.isDestroyed?.()) return;
+  const windowId = win.id;
   writeDesktopLaunchDiagnostic("window-created", {
     label,
     windowId: win.id,
     visible: win.isVisible?.() || false,
   });
+  for (const eventName of ["show", "hide", "minimize", "restore", "close", "closed"]) {
+    win.on(eventName, () => writeDesktopLaunchDiagnostic(`window-${eventName}`, {
+      label, windowId,
+      ...(!win.isDestroyed() ? {
+        visible: win.isVisible(), minimized: win.isMinimized(), focused: win.isFocused(),
+      } : {}),
+    }));
+  }
   const wc = win.webContents;
   if (!wc) return;
 
@@ -1413,7 +1422,7 @@ async function restartServerFromRenderer() {
 
 function showPrimaryWindow() {
   if (process.platform === "darwin") app.dock.show();
-  const win = mainWindow || onboardingWindow;
+  const win = mainWindow || onboardingWindow || splashWindow;
   focusExistingWindow(win);
 }
 
@@ -1705,8 +1714,8 @@ function createMainWindow() {
   const initTimeout = setTimeout(() => {
     console.warn("[desktop] main window init timed out (30s); forcing window show");
     writeDesktopLaunchDiagnostic("app-ready-timeout", { label: "main", timeoutMs: 30000 });
-    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) {
-      mainWindow.show();
+    if (mainWindow && !mainWindow.isDestroyed() && (!mainWindow.isVisible() || mainWindow.isMinimized())) {
+      focusExistingWindow(mainWindow);
     }
   }, 30000);
   mainWindow.webContents.once("did-finish-load", () => {
@@ -1714,8 +1723,11 @@ function createMainWindow() {
     console.log("[desktop] Main window HTML loaded; waiting for renderer init...");
   });
   mainWindow.once("show", () => {
-    clearTimeout(initTimeout);
-    writeDesktopLaunchDiagnostic("app-ready", { label: "main", visible: true });
+    // Windows can emit "show" while SW_HIDE still prevents native visibility.
+    if (mainWindow.isVisible() && !mainWindow.isMinimized()) clearTimeout(initTimeout);
+    writeDesktopLaunchDiagnostic("app-ready", {
+      label: "main", visible: mainWindow.isVisible(), minimized: mainWindow.isMinimized(),
+    });
   });
 
   if (process.argv.includes("--dev")) {
@@ -1770,7 +1782,6 @@ function createMainWindow() {
       if (settingsWindow && !settingsWindow.isDestroyed()) settingsWindow.hide();
       if (browserViewerWindow && !browserViewerWindow.isDestroyed()) browserViewerWindow.hide();
       if (quickChatWindow && !quickChatWindow.isDestroyed()) quickChatWindow.hide();
-      if (editorWindow && !editorWindow.isDestroyed()) editorWindow.hide();
       for (const [, viewerWindow] of _viewerWindows) {
         if (viewerWindow && !viewerWindow.isDestroyed()) viewerWindow.hide();
       }
@@ -1791,10 +1802,6 @@ function createMainWindow() {
     if (quickChatWindow && !quickChatWindow.isDestroyed()) {
       quickChatWindow.destroy();
       quickChatWindow = null;
-    }
-    if (editorWindow && !editorWindow.isDestroyed()) {
-      editorWindow.destroy();
-      editorWindow = null;
     }
     for (const [, viewerWindow] of _viewerWindows) {
       if (viewerWindow && !viewerWindow.isDestroyed()) viewerWindow.destroy();
@@ -3602,6 +3609,10 @@ wrapIpcHandler("get-runtime-diagnostics-state", async () => {
   }
 });
 wrapIpcHandler("get-app-version", () => app.getVersion());
+wrapIpcHandler("get-gpu-runtime-state", () => ({
+  gpuSafeMode: gpuStartupPolicy.shouldDisableHardwareAcceleration === true,
+  hardwareAccelerationEnabled: app.isHardwareAccelerationEnabled(),
+}));
 wrapIpcHandler("get-auto-launch-status", () => getAutoLaunchStatus({ app }));
 wrapIpcHandler("set-auto-launch-enabled", (_event, enabled) => setAutoLaunchEnabled({ app, enabled: enabled === true }));
 wrapIpcHandler("get-keep-awake-status", () => keepAwakeManager.getStatus());
@@ -4314,9 +4325,7 @@ wrapIpcHandler("app-ready", () => {
       phase: "app-ready",
     });
   } catch {}
-  if (mainWindow) {
-    mainWindow.show();
-  }
+  focusExistingWindow(mainWindow);
 
   // Request notification permission on first launch for macOS.
   if (process.platform === "darwin" && Notification.isSupported()) {
@@ -4470,7 +4479,7 @@ app.on("activate", () => {
     createMainWindow();
 
   } else if (mainWindow) {
-    mainWindow.show();
+    showPrimaryWindow();
   }
 });
 
@@ -4581,6 +4590,10 @@ async function shutdownServer() {
 }
 
 app.on("before-quit", async (event) => {
+  writeDesktopLaunchDiagnostic("before-quit", {
+    forceQuitApp, isQuitting, updating: _isUpdating,
+    stack: new Error("Desktop quit requested").stack,
+  });
   if (_isE2E) {
     const windows = BrowserWindow.getAllWindows().map((win) => ({
       title: win.getTitle?.() || "",

@@ -45,18 +45,20 @@ describe("quality gates", () => {
     expect(packageJson.scripts["build:packages"]).toBe("npm run build --workspaces --if-present");
   });
 
-  it("CI runs lint before build and tests can merge to main", () => {
+  it("source CI runs lint and type checks before tests without requiring a build", () => {
     const ci = readYaml(".github/workflows/ci.yml");
     const runSteps = ci.jobs.test.steps
       .map((step) => step.run)
       .filter(Boolean);
 
     const lintIndex = runSteps.indexOf("npm run lint");
-    const buildIndex = runSteps.indexOf("npm run build:renderer");
+    const typecheckIndex = runSteps.indexOf("npm run typecheck");
     const testIndex = runSteps.indexOf("npm test");
 
     expect(lintIndex).toBeGreaterThan(-1);
-    expect(lintIndex).toBeLessThan(buildIndex);
+    expect(typecheckIndex).toBeGreaterThan(lintIndex);
+    expect(typecheckIndex).toBeLessThan(testIndex);
+    expect(runSteps).not.toContain("npm run build:renderer");
     expect(lintIndex).toBeLessThan(testIndex);
   });
 

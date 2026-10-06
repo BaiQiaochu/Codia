@@ -1,0 +1,826 @@
+{
+  "status": "candidate clothing and hidden neck backplates; visual seam review required; not a completed rig",
+  "source": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-neutral-bust.png",
+  "originalRigPsd": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-source.psd",
+  "generatedCandidate": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-body-occlusion-v1.png",
+  "generatedNeckCandidate": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-neck-occlusion-v4.png",
+  "output": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-occlusion-v1.psd",
+  "sourceSha256": "0db9931dde32548419ab298fc17ce5f09e7658287896fe31e6787a3660a4cb6c",
+  "originalRigSha256": "6b0949a2ceecf19210b7f50fcf5342480b02b7c04bb1b101efa636d434f770ff",
+  "candidateSha256": "87a4d261c9f6c728e0f4b366c55a994d22ba5ca70372cc1e12f500291b7ea5e9",
+  "outputSha256": "75b45003973850a9d0e0bd059098d66275c97fe4a5af473942def304ffdc4f74",
+  "neckCandidateSha256": "b15bc941fc3c4c0ad5ca8b8efdf6de20d792662a20de8e51aca67c25e401d931",
+  "width": 1254,
+  "height": 1254,
+  "originalCoordinatesPreserved": true,
+  "originalLayersScaledOrTranslated": false,
+  "groupAndLayerNamesUnchanged": true,
+  "bodyRemainsBehindHeadAndArms": true,
+  "originalVisibleRgbaDifferencesAfterOwnershipCorrections": 0,
+  "originalOverlapsAfterOwnershipCorrections": 0,
+  "originalLayerMembershipCorrected": true,
+  "ownershipMoves": [
+    {
+      "name": "torso_above_right_hand",
+      "from": [
+        "ArmRGroup/"
+      ],
+      "to": "BodyGroup/Body_Visible",
+      "polygon": [
+        [
+          300,
+          960
+        ],
+        [
+          510,
+          960
+        ],
+        [
+          510,
+          1052
+        ],
+        [
+          475,
+          1055
+        ],
+        [
+          464,
+          1049
+        ],
+        [
+          454,
+          1045
+        ],
+        [
+          451,
+          1037
+        ],
+        [
+          444,
+          1032
+        ],
+        [
+          432,
+          1023
+        ],
+        [
+          420,
+          1016
+        ],
+        [
+          410,
+          1009
+        ],
+        [
+          401,
+          1005
+        ],
+        [
+          393,
+          1003
+        ],
+        [
+          380,
+          1008
+        ],
+        [
+          369,
+          1014
+        ],
+        [
+          355,
+          1018
+        ],
+        [
+          346,
+          1025
+        ],
+        [
+          338,
+          1019
+        ],
+        [
+          328,
+          1013
+        ],
+        [
+          318,
+          1009
+        ],
+        [
+          307,
+          1007
+        ]
+      ],
+      "movedPixelsByDonor": {
+        "ArmRGroup/HandRight_Visible": 2,
+        "ArmRGroup/SleeveRight_Visible": 2815
+      }
+    },
+    {
+      "name": "torso_above_left_hand",
+      "from": [
+        "ArmLGroup/"
+      ],
+      "to": "BodyGroup/Body_Visible",
+      "polygon": [
+        [
+          730,
+          950
+        ],
+        [
+          1010,
+          950
+        ],
+        [
+          1010,
+          1008
+        ],
+        [
+          994,
+          1007
+        ],
+        [
+          980,
+          1009
+        ],
+        [
+          965,
+          1013
+        ],
+        [
+          951,
+          1018
+        ],
+        [
+          939,
+          1025
+        ],
+        [
+          929,
+          1034
+        ],
+        [
+          923,
+          1042
+        ],
+        [
+          917,
+          1041
+        ],
+        [
+          909,
+          1035
+        ],
+        [
+          902,
+          1029
+        ],
+        [
+          891,
+          1026
+        ],
+        [
+          879,
+          1022
+        ],
+        [
+          867,
+          1018
+        ],
+        [
+          856,
+          1016
+        ],
+        [
+          846,
+          1019
+        ],
+        [
+          835,
+          1026
+        ],
+        [
+          824,
+          1034
+        ],
+        [
+          815,
+          1042
+        ],
+        [
+          808,
+          1050
+        ],
+        [
+          805,
+          1062
+        ],
+        [
+          797,
+          1067
+        ],
+        [
+          787,
+          1071
+        ],
+        [
+          779,
+          1077
+        ],
+        [
+          775,
+          1085
+        ],
+        [
+          773,
+          1090
+        ],
+        [
+          730,
+          1090
+        ]
+      ],
+      "movedPixelsByDonor": {
+        "ArmLGroup/HandLeft_Visible": 32,
+        "ArmLGroup/SleeveLeft_Visible": 5881
+      }
+    },
+    {
+      "name": "left_torso_drawstring_beside_cuff",
+      "from": [
+        "ArmLGroup/"
+      ],
+      "to": "BodyGroup/Body_Visible",
+      "polygon": [
+        [
+          700,
+          1088
+        ],
+        [
+          773,
+          1090
+        ],
+        [
+          769,
+          1097
+        ],
+        [
+          765,
+          1107
+        ],
+        [
+          762,
+          1120
+        ],
+        [
+          761,
+          1135
+        ],
+        [
+          762,
+          1148
+        ],
+        [
+          766,
+          1160
+        ],
+        [
+          773,
+          1174
+        ],
+        [
+          781,
+          1188
+        ],
+        [
+          791,
+          1201
+        ],
+        [
+          803,
+          1213
+        ],
+        [
+          816,
+          1224
+        ],
+        [
+          823,
+          1230
+        ],
+        [
+          826,
+          1254
+        ],
+        [
+          700,
+          1254
+        ]
+      ],
+      "movedPixelsByDonor": {
+        "ArmLGroup/SleeveLeft_Visible": 2483
+      }
+    },
+    {
+      "name": "right_cuff_fragment",
+      "from": [
+        "BodyGroup/Body_Visible"
+      ],
+      "to": "ArmRGroup/SleeveRight_Visible",
+      "polygon": [
+        [
+          454,
+          1044
+        ],
+        [
+          461,
+          1046
+        ],
+        [
+          469,
+          1050
+        ],
+        [
+          478,
+          1054
+        ],
+        [
+          485,
+          1059
+        ],
+        [
+          491,
+          1066
+        ],
+        [
+          496,
+          1073
+        ],
+        [
+          500,
+          1081
+        ],
+        [
+          503,
+          1090
+        ],
+        [
+          505,
+          1100
+        ],
+        [
+          506,
+          1110
+        ],
+        [
+          505,
+          1120
+        ],
+        [
+          503,
+          1130
+        ],
+        [
+          500,
+          1140
+        ],
+        [
+          496,
+          1150
+        ],
+        [
+          468,
+          1150
+        ],
+        [
+          451,
+          1065
+        ]
+      ],
+      "movedPixelsByDonor": {
+        "BodyGroup/Body_Visible": 354
+      }
+    }
+  ],
+  "changedCorrectedOriginalBodyPixels": 0,
+  "unexpectedChangesToOtherCorrectedLayers": 0,
+  "faceCompositeChanges": 5732,
+  "addedOcclusionPixels": 69975,
+  "addedUnderHeadPixels": 12369,
+  "addedUnderArmsPixels": 57606,
+  "addedNeckPixels": 6202,
+  "addedPixelBounds": [
+    250,
+    744,
+    1001,
+    1237
+  ],
+  "allowedBodyPolygon": [
+    [
+      590,
+      782
+    ],
+    [
+      645,
+      799
+    ],
+    [
+      715,
+      778
+    ],
+    [
+      713,
+      809
+    ],
+    [
+      750,
+      813
+    ],
+    [
+      782,
+      830
+    ],
+    [
+      824,
+      829
+    ],
+    [
+      876,
+      816
+    ],
+    [
+      922,
+      811
+    ],
+    [
+      939,
+      821
+    ],
+    [
+      950,
+      850
+    ],
+    [
+      992,
+      876
+    ],
+    [
+      1008,
+      919
+    ],
+    [
+      995,
+      982
+    ],
+    [
+      1060,
+      1040
+    ],
+    [
+      1120,
+      1100
+    ],
+    [
+      1190,
+      1165
+    ],
+    [
+      1189,
+      1198
+    ],
+    [
+      1100,
+      1224
+    ],
+    [
+      1000,
+      1238
+    ],
+    [
+      800,
+      1242
+    ],
+    [
+      620,
+      1242
+    ],
+    [
+      410,
+      1238
+    ],
+    [
+      220,
+      1226
+    ],
+    [
+      65,
+      1190
+    ],
+    [
+      72,
+      1160
+    ],
+    [
+      134,
+      1110
+    ],
+    [
+      205,
+      1040
+    ],
+    [
+      265,
+      985
+    ],
+    [
+      254,
+      931
+    ],
+    [
+      253,
+      892
+    ],
+    [
+      282,
+      865
+    ],
+    [
+      310,
+      840
+    ],
+    [
+      332,
+      825
+    ],
+    [
+      358,
+      815
+    ],
+    [
+      385,
+      815
+    ],
+    [
+      427,
+      826
+    ],
+    [
+      480,
+      837
+    ],
+    [
+      521,
+      836
+    ],
+    [
+      548,
+      819
+    ],
+    [
+      587,
+      811
+    ]
+  ],
+  "allowedTorsoPolygon": [
+    [
+      0,
+      770
+    ],
+    [
+      1254,
+      770
+    ],
+    [
+      1254,
+      980
+    ],
+    [
+      998,
+      1008
+    ],
+    [
+      983,
+      1011
+    ],
+    [
+      962,
+      1020
+    ],
+    [
+      944,
+      1031
+    ],
+    [
+      928,
+      1044
+    ],
+    [
+      914,
+      1060
+    ],
+    [
+      906,
+      1075
+    ],
+    [
+      919,
+      1110
+    ],
+    [
+      932,
+      1150
+    ],
+    [
+      946,
+      1190
+    ],
+    [
+      966,
+      1230
+    ],
+    [
+      970,
+      1254
+    ],
+    [
+      398,
+      1254
+    ],
+    [
+      399,
+      1240
+    ],
+    [
+      404,
+      1205
+    ],
+    [
+      407,
+      1160
+    ],
+    [
+      408,
+      1118
+    ],
+    [
+      399,
+      1100
+    ],
+    [
+      383,
+      1075
+    ],
+    [
+      366,
+      1050
+    ],
+    [
+      348,
+      1030
+    ],
+    [
+      330,
+      1015
+    ],
+    [
+      309,
+      1003
+    ],
+    [
+      0,
+      980
+    ]
+  ],
+  "allowedHiddenNeckPolygon": [
+    [
+      580,
+      744
+    ],
+    [
+      726,
+      744
+    ],
+    [
+      723,
+      770
+    ],
+    [
+      718,
+      797
+    ],
+    [
+      713,
+      828
+    ],
+    [
+      594,
+      828
+    ],
+    [
+      590,
+      802
+    ],
+    [
+      585,
+      772
+    ]
+  ],
+  "bodyOnlyAddsWhereOriginallyCovered": true,
+  "originalFaceAndEyeLayersUnchanged": true,
+  "clothingExcludedFromFaceCoverage": true,
+  "hiddenNeckRequiresOriginalJawOrAdjacentHeadCoverage": true,
+  "generatedBackgroundExcluded": true,
+  "seamBoundarySamples": 2250,
+  "candidateBoundaryMeanRgbError": 21.062370370370363,
+  "candidateBoundaryMaxRgbError": 232,
+  "candidateBoundarySamplesOver20": 520,
+  "neckBoundarySamples": 124,
+  "neckBoundaryMeanRgbError": 18.970430107526877,
+  "neckBoundaryMaxRgbError": 165,
+  "neckSkinBoundarySamples": 121,
+  "neckSkinBoundaryMeanRgbError": 16.179063360881543,
+  "neckSkinBoundaryMaxRgbError": 92,
+  "boundaryMetricNote": "Candidate-vs-original RGB comparison at untouched original pixels adjacent to additions; all-neck metrics may include dark outline/collar pixels. These numbers do not establish visual continuity.",
+  "neutralRgbaDifferences": 71003,
+  "compositeNote": "Original foreground layer RGBA is unchanged. Most source foreground alpha is 252–254; adding clothing underneath can alter neutral composited RGBA. Exact layer preservation is not a claim of zero composite difference or animation acceptance.",
+  "diagnosticTransformsOnly": {
+    "headLeft": [
+      -12,
+      -8
+    ],
+    "headRight": [
+      12,
+      -8
+    ],
+    "armLeft": [
+      20,
+      50
+    ],
+    "armRight": [
+      -20,
+      50
+    ],
+    "actualHeadLeft": [
+      -4,
+      -2
+    ],
+    "actualHeadRight": [
+      4,
+      -2
+    ]
+  },
+  "rigParametersChanged": false,
+  "animationValidated": false,
+  "needsVisualReview": true,
+  "frozenCandidate": true,
+  "visualAssessment": [
+    {
+      "item": "Original approved foreground pixels, dimensions and Face/Eye/Iris names",
+      "result": "PASS",
+      "detail": "Original visible RGBA and coordinates preserved, apart from explicitly recorded source layer membership corrections; decoded PSD verified."
+    },
+    {
+      "item": "Central neck transparent triangle in displacement previews",
+      "result": "PASS_LIMITED",
+      "detail": "Hidden generated neck covers the central gap in +/-4,-2 and +/-12,-8 static diagnostics. This is not validation of a bound Cubism deforming mesh."
+    },
+    {
+      "item": "Small head motion +/-4 horizontal, -2 vertical",
+      "result": "REQUIRES_EDITOR_REVIEW",
+      "detail": "No broad central gap; magnified previews still show a narrow color boundary and small neck-side slit. Do not call this fully seamless."
+    },
+    {
+      "item": "Larger head motion +/-12 horizontal, -8 vertical",
+      "result": "FAIL",
+      "detail": "New skin shading boundary and neck-side openings remain visible."
+    },
+    {
+      "item": "Whole-arm translation +/-20 horizontal, +50 vertical",
+      "result": "FAIL",
+      "detail": "Both shoulder connections open. No stationary sleeve wings were added to conceal them; requires sleeve-joint deformation or a separately approved hidden seam repair."
+    },
+    {
+      "item": "Bound Live2D animation and mesh clipping",
+      "result": "NOT_TESTED",
+      "detail": "No Cubism UI, CMO3, parameter bindings or runtime configuration changed by this builder."
+    }
+  ],
+  "limitations": [
+    "This candidate adds generated clothing beneath existing Hair/Arm pixels and a narrow generated neck extension beneath the original jaw; no eye whites, fingers, face turn or hair underlayers are created.",
+    "The two outstretched sleeves are not copied into the stationary torso. Whole-arm translation still exposes shoulder gaps and is not accepted motion.",
+    "No original visible artwork is recolored, moved, scaled or blended to hide candidate mismatch.",
+    "The seam previews are static pixel displacement diagnostics, not bound Live2D motion."
+  ],
+  "previews": [
+    "codia-rig-occlusion-v1.neutral.png",
+    "codia-rig-occlusion-v1.Body.png",
+    "codia-rig-occlusion-v1.arms-hidden.png",
+    "codia-rig-occlusion-v1.head-left.png",
+    "codia-rig-occlusion-v1.head-right.png",
+    "codia-rig-occlusion-v1.arms-separated.png",
+    "codia-rig-occlusion-v1.actual-head-left.png",
+    "codia-rig-occlusion-v1.actual-head-right.png"
+  ],
+  "seamReview": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-occlusion-v1.seam-review.png"
+}

@@ -3,11 +3,13 @@
  * Cross-platform dev launcher
  */
 import { spawn } from "node:child_process";
+import { createRequire } from "node:module";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { DEFAULT_GSAP_DEV_HOME, applyGsapHomeEnv, resolveServerInfoPath } from "../shared/gsap-home.ts";
 
 const projectRoot = fileURLToPath(new URL("..", import.meta.url));
+const require = createRequire(import.meta.url);
 const sourceServerEntryTs = fileURLToPath(new URL("../server/index.ts", import.meta.url));
 const sourceServerEntryJs = fileURLToPath(new URL("../server/index.js", import.meta.url));
 const bundledServerEntry = fileURLToPath(new URL("../dist-server-bundle/index.js", import.meta.url));
@@ -34,6 +36,23 @@ switch (mode) {
     if (mode === "electron-dev") process.argv.push("--dev");
     await import('./dev-desktop.mjs');
     process.exit(process.exitCode || 0);
+    break;
+  case "electron-built": {
+    const requiredFiles = ["desktop/preload.bundle.cjs", "desktop/dist-renderer/index.html"];
+    const missing = requiredFiles.filter((file) => !fs.existsSync(fileURLToPath(new URL(`../${file}`, import.meta.url))));
+    if (missing.length) {
+      console.error(`[launch] Missing local build files: ${missing.join(", ")}. Run 'npm run build:client' or 'npm run start:local'.`);
+      process.exit(1);
+    }
+    launchEnv.GSAP_LAUNCH_NODE = process.execPath;
+    launchEnv.GSAP_LAUNCH_NODE_VERSION = process.versions.node;
+    launchEnv.GSAP_PORT = launchEnv.GSAP_PORT || "0";
+    delete launchEnv.VITE_DEV_URL;
+    delete launchEnv.GSAP_DEV_PRELOAD_PATH;
+    bin = require("electron");
+    args = [projectRoot, ...extra];
+    break;
+  }
   case "cli":
     bin = process.execPath;
     args = ["scripts/gsapctl.mjs", ...extra];
@@ -51,7 +70,7 @@ switch (mode) {
     args = [sourceServerBootstrap, ...extra];
     break;
   default:
-    console.error("Usage: node scripts/launch.js <electron|electron-dev|electron-vite|cli|server>");
+    console.error("Usage: node scripts/launch.js <electron|electron-dev|electron-vite|electron-built|cli|server>");
     process.exit(1);
 }
 
@@ -59,7 +78,11 @@ switch (mode) {
 // clear it so require("electron") returns Electron's runtime API.
 delete launchEnv.ELECTRON_RUN_AS_NODE;
 
-const child = spawn(bin, args, { cwd: projectRoot, stdio: "inherit", env: launchEnv });
+const child = spawn(bin, args, {
+  cwd: projectRoot, stdio: "inherit", env: launchEnv,
+  // The desktop GUI must not inherit a hidden Windows startup state.
+  windowsHide: false,
+});
 child.on("error", (error) => {
   console.error(`[launch] ${error.message}`);
   process.exitCode = 1;

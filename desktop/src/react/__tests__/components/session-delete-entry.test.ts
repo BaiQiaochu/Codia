@@ -42,10 +42,12 @@ describe('session delete entry', () => {
     expect(rowCloseIndex).toBeLessThan(block.indexOf('className={styles.sessionDeleteBtn}'));
   });
 
-  it('keeps session metadata separators readable', () => {
+  it('shows only the session title without a metadata subtitle', () => {
     const block = sessionItemBlock(read('components/SessionList.tsx'));
-    expect(block).toContain("parts.join(' 路 ')");
-    expect(block).not.toContain("parts.join(' 璺?')");
+    expect(block).toContain('className={styles.sessionItemTitle}');
+    expect(block).toContain('{displayTitle}');
+    expect(block).not.toContain('styles.sessionItemMeta');
+    expect(block).not.toContain("parts.join(");
   });
 
   it('does not hide the row delete control by default', () => {

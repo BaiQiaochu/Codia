@@ -87,6 +87,7 @@ describe("Windows icon contract", () => {
     const iconHash = sha256(iconPngPath);
 
     for (const relativePath of [
+      path.join("desktop", "src", "assets", "codia", "codia-brand-emblem.png"),
       path.join("desktop", "src", "assets", "G-SAP.png"),
       path.join("desktop", "src", "assets", "about-icon.png"),
     ]) {

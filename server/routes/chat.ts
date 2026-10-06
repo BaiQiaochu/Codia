@@ -393,6 +393,7 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
         hasError: false,
         isAborted: false,
         turnEnded: false,
+        pendingTurnEnd: false,
         titleRequested: false,
         titlePreview: "",
         lastAccessed: Date.now(),
@@ -541,6 +542,7 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
     ss.hasError = false;
     ss.isAborted = false;
     ss.turnEnded = false;
+    ss.pendingTurnEnd = false;
     ss.titleRequested = false;
     ss.titlePreview = "";
     const statusStreamId = beginSessionStream(ss, streamId);
@@ -1215,11 +1217,14 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
     } else if (event.type === "session_user_message") {
       broadcast({ type: "session_user_message", sessionPath, message: event.message });
     } else if (event.type === "session_status") {
+      // SDK completion can precede prompt cleanup (or an enclosing agent review).
+      // Keep the client busy until the runtime actually releases its turn lock.
+      if (!event.isStreaming && isSessionRuntimeStreaming(sessionPath)) return;
       if (ss) {
         if (event.isStreaming) {
           beginStreamingTurnState(sessionPath, ss, { flushDeferred: true });
         } else if (ss.isStreaming) {
-          const hadStreamActivity = ss.hasOutput || ss.hasToolCall || ss.hasThinking || ss.isThinking || ss._cardEmitted;
+          const hadStreamActivity = ss.pendingTurnEnd || ss.hasOutput || ss.hasToolCall || ss.hasThinking || ss.isThinking || ss._cardEmitted;
           if (hadStreamActivity) {
             finalizeSessionTurn({ broadcastStatus: false });
           } else {
@@ -1312,7 +1317,11 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
         broadcast({ type: "error", message: event.message.errorMessage || "Unknown error", sessionPath });
       }
     } else if (event.type === "turn_end") {
-      finalizeSessionTurn();
+      if (isSessionRuntimeStreaming(sessionPath)) {
+        if (ss) ss.pendingTurnEnd = true;
+      } else {
+        finalizeSessionTurn();
+      }
     } else if (event.type === "auto_compaction_start") {
       broadcast({ type: "compaction_start", sessionPath });
     } else if (event.type === "auto_compaction_end") {
@@ -1347,6 +1356,7 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
     function finalizeSessionTurn({ broadcastStatus = true } = {}) {
       if (!ss) return false;
       if (ss.turnEnded) return true;
+      ss.pendingTurnEnd = false;
       ss.turnEnded = true;
 
       if (ss.isThinking) {

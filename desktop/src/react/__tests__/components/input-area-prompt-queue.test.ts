@@ -29,7 +29,7 @@ describe('InputArea prompt queue wiring', () => {
     expect(source).toContain('cancelQueueRun');
     expect(source).toContain('const [queuedMessages, setQueuedMessages]');
     expect(source).toContain('const handleQueueAdd = useCallback');
-    expect(source).toContain('const draft = createPromptDraft(text, skills, inputFiles);');
+    expect(source).toContain('const draft = createPromptDraft(text, skills, inputFiles, references);');
     expect(source).toContain('workspaceTool: workspaceTool ? { ...workspaceTool } : null');
     expect(source).not.toContain('queueTextOnly');
     expect(source).toContain('const handleQueueDrop = useCallback');

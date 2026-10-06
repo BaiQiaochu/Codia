@@ -1,0 +1,23 @@
+{
+  "character": "Codia",
+  "source": "../Codia-rig-repair.cmo3",
+  "candidate": "../export-candidate-v2",
+  "binaryHashes": {
+    "Codia.moc3": "22070eaf43ccf29c1bd2989ecffdc24934c76b6d6d1506bfae946b675e26c1af",
+    "Codia.4096/texture_00.png": "6aa0225b7a4581a03b04eed4571c169324f7ed92dbdb175c6e314ef4442ab9d4",
+    "Codia.cdi3.json": "3e36084390c0ef3fa3159ede10679ce2d9a58c9bb2589ccf49b7a95175880dc9"
+  },
+  "motion": {
+    "file": "Motions/Codia.peek.motion3.json",
+    "parameters": 9,
+    "duration": 10,
+    "loop": true
+  },
+  "scope": "Body rise, independent hand reach/grip, head X/Y and iris X/Y. Original closed-fist artwork retained.",
+  "inactiveExtras": [
+    "ParamAngleZ",
+    "ParamEyeLOpen",
+    "ParamEyeROpen",
+    "ParamHairSwing"
+  ]
+}

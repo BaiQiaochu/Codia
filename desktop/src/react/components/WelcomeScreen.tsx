@@ -1,7 +1,7 @@
 import type { QuickActionId } from '../../../../shared/quick-actions';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Flower, Lightbulb, Code, Heart, ArrowRight, GearSix } from '@phosphor-icons/react';
-import codiaKitten from '../../assets/codia/codia-kitten.png';
+import codiaMascotGazeStrip from '../../assets/codia/codia-mascot-gaze-strip.png';
 import { useStore } from '../stores';
 import { gsapFetch } from '../hooks/use-gsap-fetch';
 import { useI18n } from '../hooks/use-i18n';
@@ -24,6 +24,9 @@ import styles from './Welcome.module.css';
 import { buildWorkspacePickerItems, normalizeWorkspacePath } from '../../../../shared/workspace-history.ts';
 import { switchTab } from './channels/tab-router';
 import { requestInputDraft } from '../utils/input-draft-events';
+import { getDesktopApi } from '../utils/desktop-api';
+import { resolveCodiaLive2DAssets } from '../live2d/assets';
+import { CodiaLive2DMascot } from './CodiaLive2DMascot';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- store callbacks and extended agent metadata */
 
@@ -59,6 +62,26 @@ function WelcomeInner({ enableSettings }: { enableSettings: boolean }) {
   const homeFolder = useStore(s => s.homeFolder);
   const workspaceFolders = useStore(s => s.workspaceFolders);
   const cwdHistory = useStore(s => s.cwdHistory);
+  const serverPort = useStore(s => s.serverPort);
+  const live2DAssets = useMemo(() => resolveCodiaLive2DAssets(window.location.href, serverPort ? Number(serverPort) : null), [serverPort]);
+  const [gpuRuntime, setGpuRuntime] = useState<{ gpuSafeMode: boolean; hardwareAccelerationEnabled: boolean } | null>(() => (
+    getDesktopApi()?.getGpuRuntimeState ? null : { gpuSafeMode: false, hardwareAccelerationEnabled: true }
+  ));
+
+  useEffect(() => {
+    const api = getDesktopApi();
+    if (!api?.getGpuRuntimeState) return;
+    let active = true;
+    void (async () => {
+      try {
+        const state = await api.getGpuRuntimeState!();
+        if (active) setGpuRuntime(state);
+      } catch {
+        // Keep the PNG fallback if the desktop GPU policy cannot be read.
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
   const prefillPrompt = useCallback((prompt: string) => {
     const state = useStore.getState();
@@ -103,7 +126,27 @@ function WelcomeInner({ enableSettings }: { enableSettings: boolean }) {
             <p>可以帮你写代码、整理灵感，也可以一起把复杂任务拆成小步骤。</p>
             <button type="button" onClick={() => prefillPrompt('你好小豆蔻，我想开始一段新的对话。')}>开始一段对话 <ArrowRight weight="bold" /></button>
           </div>
-          <div className={styles.codiaHeroArt}><span /><img src={codiaKitten} alt="戴着紫色蝴蝶结的小猫" /></div>
+          <div className={styles.codiaHeroArt}>
+            <CodiaLive2DMascot
+              className={styles.codiaLive2D}
+              assets={live2DAssets}
+              enabled={gpuRuntime !== null}
+              gpuSafeMode={gpuRuntime?.gpuSafeMode}
+              hardwareAccelerationEnabled={gpuRuntime?.hardwareAccelerationEnabled}
+              fallback={(
+                <div className={styles.codiaMascotFallback}>
+                  <span className={styles.codiaHeroHalo} aria-hidden="true" />
+                  <div className={styles.codiaMascotFrame} role="img" aria-label="Codia 吉祥物探出圆框" data-codia-mascot-frame>
+                    <div className={styles.codiaMascotMotion}>
+                      <div className={styles.codiaMascotViewport}>
+                        <img className={styles.codiaMascotSprite} src={codiaMascotGazeStrip} alt="" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            />
+          </div>
         </section>
       </div>
       <div className={styles.codiaActionDock}>

@@ -1,0 +1,7 @@
+GUID,类型,ID,名称,群组,最低值,基准值,最大值,循环,说明,标签颜色
+,PARAMETER,ParamBodyRise,身体探出,ParamGroupRoot,0.0,1.0,1.0,false,0藏在圆框下方；1探出到原图姿态,
+,PARAMETER,ParamHandLReach,左手伸出,ParamGroupRoot,0.0,1.0,1.0,false,角色左手位于观众右侧；0收回；1伸到圆框,
+,PARAMETER,ParamHandRReach,右手伸出,ParamGroupRoot,0.0,1.0,1.0,false,角色右手位于观众左侧；0收回；1伸到圆框,
+,PARAMETER,ParamHandLGrip,左手抓握,ParamGroupRoot,0.0,1.0,1.0,false,0松开；1抓住圆框,
+,PARAMETER,ParamHandRGrip,右手抓握,ParamGroupRoot,0.0,1.0,1.0,false,0松开；1抓住圆框,
+,PARAMETER,ParamHairSwing,头发轻摆,ParamGroupRoot,-1.0,0.0,1.0,false,负值向观众左侧轻摆；正值向观众右侧轻摆,

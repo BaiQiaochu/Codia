@@ -5,7 +5,8 @@ import { spawnSync } from "node:child_process";
 
 const args = new Set(process.argv.slice(2));
 const skipBuild = args.has("--skip-build");
-const cleanAfter = !args.has("--keep-artifacts") || args.has("--clean-after");
+// Preserve local build/debug evidence unless cleanup was explicitly requested.
+const cleanAfter = args.has("--clean-after") && !args.has("--keep-artifacts");
 const jsonOnly = args.has("--json");
 const reportArg = process.argv.find((arg) => arg.startsWith("--report="));
 const reportPath = reportArg ? path.resolve(reportArg.slice("--report=".length)) : null;

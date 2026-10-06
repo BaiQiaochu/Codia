@@ -311,7 +311,7 @@ export function SettingsContent({
               onSelect={selectModule}
             />
             <ErrorBoundary region={effectiveActiveTab}>
-              <ActiveTab />
+              {ready && <ActiveTab />}
             </ErrorBoundary>
           </div>
         </div>

@@ -31,6 +31,7 @@ try {
     await authenticate(page);
     await page.locator('[aria-label="Codia 小豆蔻"]').waitFor({ state: 'visible' });
     await page.waitForTimeout(650);
+    await freezeMascot(page, 'center');
 
     const metrics = await page.evaluate(() => {
       const rect = (element) => element ? (() => {
@@ -49,7 +50,7 @@ try {
         viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
         hero: rect(hero),
         heroCopy: rect(hero?.querySelector('[class*="codiaHeroCopy"]')),
-        heroArt: rect(hero?.querySelector('[class*="codiaHeroArt"] img')),
+        heroArt: rect(hero?.querySelector('[data-codia-mascot-frame]')),
         heroStage: rect(heroStage),
         quick: rect(quick),
         actionDock: rect(actionDock),
@@ -76,6 +77,17 @@ try {
     report.captures.push({ ...target, screenshotPath, metrics });
 
     if (target.id === 'welcome-1440x900') {
+      for (const gaze of ['left', 'right']) {
+        await freezeMascot(page, gaze);
+        const mascotScreenshot = path.join(outputDir, `mascot-${gaze}-1440x900.png`);
+        await page.locator('[aria-label="Codia 小豆蔻"]').screenshot({ path: mascotScreenshot, animations: 'disabled' });
+        report.captures.push({
+          id: `mascot-${gaze}-1440x900`,
+          screenshotPath: mascotScreenshot,
+          gaze,
+        });
+      }
+      await freezeMascot(page, 'center');
       const editor = page.locator('.input-area:not(.hidden) .tiptap').first();
       await editor.click();
       await page.keyboard.type('@');
@@ -118,6 +130,20 @@ try {
     screenshotPath: settingsScreenshot,
     categoryOrder,
     moduleLabels,
+  });
+
+  await page.locator('[data-settings-module="about"]').click();
+  const productLogo = page.getByRole('img', { name: 'Codia 小豆蔻' });
+  await productLogo.waitFor({ state: 'visible' });
+  await productLogo.scrollIntoViewIfNeeded();
+  const productInfoScreenshot = path.join(outputDir, 'settings-product-info-1280x800.png');
+  await page.screenshot({ path: productInfoScreenshot, animations: 'disabled' });
+  report.captures.push({
+    id: 'settings-product-info-1280x800',
+    width: 1280,
+    height: 800,
+    deviceScaleFactor: 1,
+    screenshotPath: productInfoScreenshot,
   });
 
   await page.locator('[data-settings-category="account-agent"]').click();
@@ -260,6 +286,20 @@ async function authenticate(page) {
     await page.locator('.pwa-login-card button[type="submit"]').click();
     await page.waitForLoadState('networkidle');
   }
+}
+
+async function freezeMascot(page, gaze) {
+  await page.evaluate((requestedGaze) => {
+    const frame = document.querySelector('[data-codia-mascot-frame]');
+    const motion = frame?.querySelector('[class*="codiaMascotMotion"]');
+    const sprite = frame?.querySelector('[class*="codiaMascotSprite"]');
+    if (!(motion instanceof HTMLElement) || !(sprite instanceof HTMLElement)) return;
+    const offsets = { center: '0', left: '-33.333333%', right: '-66.666667%' };
+    motion.style.animation = 'none';
+    motion.style.transform = 'translateY(0)';
+    sprite.style.animation = 'none';
+    sprite.style.transform = `translateX(${offsets[requestedGaze] || offsets.center})`;
+  }, gaze);
 }
 
 async function launchBrowser() {

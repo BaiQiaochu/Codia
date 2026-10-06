@@ -1,0 +1,86 @@
+{
+  "canvas": [
+    1254,
+    1254
+  ],
+  "maxPixelCoordinate": [
+    1253,
+    1253
+  ],
+  "center": [
+    653.8333387376795,
+    622.07392845697
+  ],
+  "radius": 575,
+  "algorithm": "For source pixel center y+0.5 < cy, alpha=255 across the full canvas width; otherwise copy the exact alpha byte from existing OpeningMask. Nontransparent RGB is white; transparent RGB is zero.",
+  "split": {
+    "topRows": [
+      0,
+      621
+    ],
+    "bottomRows": [
+      622,
+      1253
+    ]
+  },
+  "fullTopPixels": 779988,
+  "copiedBottomPixels": 792528,
+  "bottomAlphaDifferences": 0,
+  "vectorSource": "HeadOpeningMask.svg",
+  "pngSource": "HeadOpeningMask.png",
+  "rasterizationNote": "SVG records continuous geometry; PNG uses pixel-center split and preserves existing lower-circle alpha exactly.",
+  "intendedUsage": {
+    "part": "HeadGroup",
+    "offscreenDrawing": true,
+    "clippingId": "Actual ArtMesh ID of HeadOpeningMask, not this display name",
+    "maskOpacity": 0,
+    "maskVisible": true,
+    "maskParent": "Root stationary, outside BodyRise and HeadGroup",
+    "irisClips": "Keep each existing Eye Opening mask; do not append HeadOpeningMask to iris clip ID lists."
+  },
+  "hands": {
+    "name": "HandOpeningMask",
+    "center": [
+      653.8333387376795,
+      622.07392845697
+    ],
+    "radius": 595.7125184845703,
+    "maximumOriginalNontransparentPixelRadius": 593.7125184845703,
+    "radiusPadding": 2,
+    "farthestPixel": {
+      "layer": "HandLeft_Visible",
+      "x": 924,
+      "y": 1150,
+      "alpha": 252,
+      "distance": 593.7125184845703
+    },
+    "pixelPositionConvention": "pixel centers x+0.5,y+0.5; all alpha>0 pixels, including antialias edges",
+    "neutralVerification": [
+      {
+        "layer": "HandLeft_Visible",
+        "nontransparentPixels": 13607,
+        "minMaskAlpha": 255,
+        "partiallyClippedPixels": 0,
+        "fullyClippedPixels": 0
+      },
+      {
+        "layer": "HandRight_Visible",
+        "nontransparentPixels": 15167,
+        "minMaskAlpha": 255,
+        "partiallyClippedPixels": 0,
+        "fullyClippedPixels": 0
+      }
+    ],
+    "clippingTargets": [
+      "HandLeft_Visible",
+      "HandRight_Visible"
+    ],
+    "drawOrders": {
+      "HandRight_Visible": 610,
+      "HandLeft_Visible": 611
+    },
+    "opacity": 0,
+    "hidden": false,
+    "stationaryAtRoot": true
+  }
+}

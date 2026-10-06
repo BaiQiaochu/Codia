@@ -139,6 +139,26 @@ describe('InputArea compact bottom inset layout', () => {
     expect(cssBlock(css, String.raw`\.codiaQuickGrid > button`)).toMatch(/flex-direction:\s*row/);
     expect(cssBlock(css, String.raw`\.codiaQuickGrid > button`)).toMatch(/min-height:\s*62px/);
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(source).toContain('codia-mascot-gaze-strip.png');
+    expect(source).toContain('data-codia-mascot-frame');
+    expect(source).not.toContain('codia-kitten.png');
+    expect(css).toContain('@keyframes codiaMascotPeek');
+    expect(css).toContain('@keyframes codiaMascotGaze');
+    expect(cssBlock(css, String.raw`\.codiaMascotSprite`)).toMatch(/width:\s*300%/);
     expect(source.match(/className=\{styles.codiaQuickCopy\}/g)).toHaveLength(4);
+  });
+
+  it('sizes the Live2D surface independently of the clipped sprite fallback', () => {
+    const source = read('components/WelcomeScreen.tsx');
+    const css = read('components/Welcome.module.css');
+    const live2D = cssBlock(css, String.raw`\.codiaLive2D`);
+    expect(source).toContain('<CodiaLive2DMascot');
+    expect(source).toContain('className={styles.codiaLive2D}');
+    expect(source).toContain('fallback={(');
+    expect(live2D).toMatch(/width:\s*clamp\(174px, 18cqw, 200px\)/);
+    expect(live2D).toMatch(/overflow:\s*visible/);
+    expect(live2D).not.toMatch(/animation:|transform:|border-radius:/);
+    expect(css).not.toContain('.codiaLive2D::after');
+    expect(css).toMatch(/@container codia-welcome \(max-width:\s*639px\)[\s\S]*\.codiaLive2D\s*\{\s*width:\s*clamp\(106px, 20cqw, 126px\)/);
   });
 });

@@ -12,9 +12,9 @@ const mocks = vi.hoisted(() => ({
   gsapFetch: vi.fn(),
 }));
 
-vi.mock('../../helpers', () => ({
+vi.mock('../../helpers', async () => ({
   t: (key: string) => key,
-  VALID_THEMES: ['codia-lilac'],
+  VALID_THEMES: (await import('../../../../shared/theme-registry')).getThemeIds(),
   autoSaveConfig: (...args: unknown[]) => mocks.autoSaveConfig(...args),
 }));
 vi.mock('../../api', () => ({ gsapFetch: (...args: unknown[]) => mocks.gsapFetch(...args) }));
@@ -57,7 +57,7 @@ describe('combined general settings', () => {
       'settings.about.title',
     ]);
     const logo = screen.getByRole('img', { name: 'Codia 小豆蔻' });
-    expect(logo).toHaveAttribute('src', expect.stringContaining('codia-flower'));
+    expect(logo).toHaveAttribute('src', expect.stringContaining('codia-brand-emblem'));
     expect(logo.parentElement).toHaveTextContent('Codia · 小豆蔻');
     expect(container.textContent).not.toContain('G-SAP');
   });

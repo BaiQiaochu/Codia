@@ -1,0 +1,382 @@
+{
+  "version": 1,
+  "layout": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-layout.json",
+  "output": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-source-draft.psd",
+  "preview": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-source-draft.preview.png",
+  "canvas": {
+    "width": 2048,
+    "height": 2048
+  },
+  "layerCount": 17,
+  "groupCount": 6,
+  "order": "top-to-bottom",
+  "psdSha256": "29c412da23d1f316762075a29a5f98dca08218eae7f14639593925f4dc283769",
+  "validation": "PSD decoded and every layer name, position, visibility and RGBA pixel matched. Composite alpha and opaque RGB matched; translucent merged RGB uses PSD white-matte encoding.",
+  "compositeMattePixels": 705028,
+  "cubismImport": "Not verified in Cubism Editor by this script.",
+  "atlases": [
+    {
+      "filename": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "sha256": "ca78f5e9c844610d83630ff1278dfb4e9cc7d2c4498337f38c5840219baf9109"
+    }
+  ],
+  "layers": [
+    {
+      "path": "/HandLeft/HandLeft_GripAndSleeve",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 670,
+        "y": 978,
+        "width": 274,
+        "height": 231
+      },
+      "position": {
+        "x": 1150,
+        "y": 1400
+      },
+      "size": {
+        "width": 490,
+        "height": 414
+      },
+      "hidden": false,
+      "visiblePixelCount": 138452,
+      "rgbaSha256": "e8c0ed553b06f061e8cd804ea299715efc6f26bf506f391507f1bc5523ec2a7c"
+    },
+    {
+      "path": "/HandRight/HandRight_GripAndSleeve",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 371,
+        "y": 977,
+        "width": 271,
+        "height": 232
+      },
+      "position": {
+        "x": 408,
+        "y": 1400
+      },
+      "size": {
+        "width": 486,
+        "height": 416
+      },
+      "hidden": false,
+      "visiblePixelCount": 142486,
+      "rgbaSha256": "d249afd5c25856d2516ff2ca6382c55384b57c38b335029dd850f35ecc391eb3"
+    },
+    {
+      "path": "/Head/Ahoge",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 1007,
+        "y": 109,
+        "width": 238,
+        "height": 217
+      },
+      "position": {
+        "x": 916,
+        "y": 288
+      },
+      "size": {
+        "width": 225,
+        "height": 205
+      },
+      "hidden": false,
+      "visiblePixelCount": 16029,
+      "rgbaSha256": "94852382be32c43cd0ccd69f0cea1d00fc1721bd855b126bdf37d61aa8385012"
+    },
+    {
+      "path": "/Head/HairFront_GClip",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 309,
+        "y": 65,
+        "width": 321,
+        "height": 295
+      },
+      "position": {
+        "x": 512,
+        "y": 430
+      },
+      "size": {
+        "width": 1024,
+        "height": 790
+      },
+      "hidden": false,
+      "visiblePixelCount": 594499,
+      "rgbaSha256": "8b4fc3d2537a9a44e44cfa573c7159c998da73dfc4629f243ef5320b6f9d4804"
+    },
+    {
+      "path": "/Head/HairSideRight",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 651,
+        "y": 384,
+        "width": 240,
+        "height": 344
+      },
+      "position": {
+        "x": 482,
+        "y": 600
+      },
+      "size": {
+        "width": 400,
+        "height": 728
+      },
+      "hidden": false,
+      "visiblePixelCount": 152381,
+      "rgbaSha256": "5aa4666c395913e89e1f3fb1676c58cf3a8dfda6011f5c33679131384b35bb8d"
+    },
+    {
+      "path": "/Head/HairSideLeft",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 972,
+        "y": 386,
+        "width": 254,
+        "height": 340
+      },
+      "position": {
+        "x": 1166,
+        "y": 600
+      },
+      "size": {
+        "width": 400,
+        "height": 728
+      },
+      "hidden": false,
+      "visiblePixelCount": 145933,
+      "rgbaSha256": "b1dc8922a7ae96cb24b8d0022c84da149e6d861ebf69e43f44aae8a75757f6a8"
+    },
+    {
+      "path": "/Head/EyeLeft/EyeLeft_Iris",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 1006,
+        "y": 739,
+        "width": 174,
+        "height": 170
+      },
+      "position": {
+        "x": 1090,
+        "y": 1077
+      },
+      "size": {
+        "width": 137,
+        "height": 134
+      },
+      "hidden": false,
+      "visiblePixelCount": 12855,
+      "rgbaSha256": "cc01c712e478f5a9f55416659b47dc36e8c128273e88dba154e8da7b0e0fa4d2"
+    },
+    {
+      "path": "/Head/EyeLeft/EyeLeft_WhiteAndLash",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 378,
+        "y": 743,
+        "width": 247,
+        "height": 156
+      },
+      "position": {
+        "x": 1028,
+        "y": 1050
+      },
+      "size": {
+        "width": 263,
+        "height": 166
+      },
+      "hidden": false,
+      "visiblePixelCount": 29349,
+      "rgbaSha256": "6f8a454f25f428294fcf27888e7c4e67351f957a7dc2955a08fb5eb23fe5deb3"
+    },
+    {
+      "path": "/Head/EyeRight/EyeRight_Iris",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 701,
+        "y": 739,
+        "width": 176,
+        "height": 170
+      },
+      "position": {
+        "x": 821,
+        "y": 1077
+      },
+      "size": {
+        "width": 137,
+        "height": 134
+      },
+      "hidden": false,
+      "visiblePixelCount": 12750,
+      "rgbaSha256": "2fd1e9d14517ae5f11637de2c26599c32c0a57ba1505f106014d9af587fa861c"
+    },
+    {
+      "path": "/Head/EyeRight/EyeRight_WhiteAndLash",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 34,
+        "y": 742,
+        "width": 247,
+        "height": 160
+      },
+      "position": {
+        "x": 738,
+        "y": 1050
+      },
+      "size": {
+        "width": 263,
+        "height": 170
+      },
+      "hidden": false,
+      "visiblePixelCount": 29703,
+      "rgbaSha256": "2f03d8868e5064c8b67d495fb128a5d5d36e2e4c78753723f9a4a8625f311091"
+    },
+    {
+      "path": "/Head/BrowLeft",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 1125,
+        "y": 1047,
+        "width": 129,
+        "height": 48
+      },
+      "position": {
+        "x": 1048,
+        "y": 1000
+      },
+      "size": {
+        "width": 225,
+        "height": 55
+      },
+      "hidden": false,
+      "visiblePixelCount": 2533,
+      "rgbaSha256": "eb09d83687e8fdc3f3262467bdec4a53c0737fc43daa07e4a55e27dd3484aa4a"
+    },
+    {
+      "path": "/Head/BrowRight",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 933,
+        "y": 1047,
+        "width": 136,
+        "height": 50
+      },
+      "position": {
+        "x": 766,
+        "y": 1000
+      },
+      "size": {
+        "width": 225,
+        "height": 55
+      },
+      "hidden": false,
+      "visiblePixelCount": 2560,
+      "rgbaSha256": "c9e23e4c50ff439f1620a5ebdad53838b09df0be6be7b19aaa4d28766a31414f"
+    },
+    {
+      "path": "/Head/FaceBase",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 24,
+        "y": 65,
+        "width": 284,
+        "height": 284
+      },
+      "position": {
+        "x": 624,
+        "y": 598
+      },
+      "size": {
+        "width": 800,
+        "height": 800
+      },
+      "hidden": false,
+      "visiblePixelCount": 485293,
+      "rgbaSha256": "bf7aa57c51611890e6d2ef9f5cee6b0472ee2f66113dbc7e9f11ce8f3114f35f"
+    },
+    {
+      "path": "/Head/HeadphoneRight",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 75,
+        "y": 369,
+        "width": 186,
+        "height": 338
+      },
+      "position": {
+        "x": 459,
+        "y": 350
+      },
+      "size": {
+        "width": 417,
+        "height": 757
+      },
+      "hidden": false,
+      "visiblePixelCount": 177745,
+      "rgbaSha256": "2af6b183ad5b04c0308a826474508422812441a8f7592c9e20c943b7f2a4fc3a"
+    },
+    {
+      "path": "/Head/HeadphoneLeft",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 386,
+        "y": 369,
+        "width": 180,
+        "height": 338
+      },
+      "position": {
+        "x": 1170,
+        "y": 350
+      },
+      "size": {
+        "width": 403,
+        "height": 757
+      },
+      "hidden": false,
+      "visiblePixelCount": 174984,
+      "rgbaSha256": "2214e967eacd92854e99df1ce5529c7ba54acca43c678512b337695b8aabfd67"
+    },
+    {
+      "path": "/Head/HairBack",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 629,
+        "y": 65,
+        "width": 359,
+        "height": 309
+      },
+      "position": {
+        "x": 492,
+        "y": 460
+      },
+      "size": {
+        "width": 1064,
+        "height": 875
+      },
+      "hidden": false,
+      "visiblePixelCount": 745722,
+      "rgbaSha256": "7684217a08dada5a45afac25b418094b249f3aca0054b00a3f763de0910c3610"
+    },
+    {
+      "path": "/Body/Body_HoodieAndNeck",
+      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "crop": {
+        "x": 1,
+        "y": 930,
+        "width": 367,
+        "height": 300
+      },
+      "position": {
+        "x": 649,
+        "y": 1302
+      },
+      "size": {
+        "width": 750,
+        "height": 613
+      },
+      "hidden": false,
+      "visiblePixelCount": 393569,
+      "rgbaSha256": "553b85e42b998794508c94d565074fd002e4ce9d2e88efced16138ff8879d05f"
+    }
+  ]
+}

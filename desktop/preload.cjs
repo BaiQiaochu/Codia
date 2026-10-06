@@ -41,6 +41,7 @@ const api = {
   getRuntimeDiagnosticsState: () => ipcRenderer.invoke("get-runtime-diagnostics-state"),
 
   getAppVersion: () => ipcRenderer.invoke("get-app-version"),
+  getGpuRuntimeState: () => ipcRenderer.invoke("get-gpu-runtime-state"),
   checkUpdate: () => ipcRenderer.invoke("check-update"),
   getAutoLaunchStatus: () => ipcRenderer.invoke("get-auto-launch-status"),
   setAutoLaunchEnabled: (enabled) => ipcRenderer.invoke("set-auto-launch-enabled", enabled),

@@ -246,13 +246,19 @@ describe('desk-actions', () => {
     expect(gsapFetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the right sidebar closed when toggled in Obsidian mode', async () => {
+  it('opens the right sidebar even with a legacy reading-mode value and persists the choice', async () => {
     testStore = createTestStore({ appViewMode: 'obsidian', jianOpen: false });
     const mod = await import('../../stores/desk-actions');
 
-    mod.toggleJianSidebar(true);
-
-    expect(testStore.getState().jianOpen).toBe(false);
+    const storage = { setItem: vi.fn() };
+    vi.stubGlobal('localStorage', storage);
+    try {
+      mod.toggleJianSidebar(true);
+      expect(testStore.getState().jianOpen).toBe(true);
+      expect(storage.setItem).toHaveBeenCalledWith('gsap-jian-chat', 'open');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('returns false and shows a toast when creating a desk file fails', async () => {

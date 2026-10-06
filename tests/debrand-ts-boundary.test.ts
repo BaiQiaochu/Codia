@@ -188,6 +188,8 @@ const LEGACY_INSTALL_OR_SANDBOX_CONTEXT =
 
 function isAllowedTestBrandLine(relativePath, context) {
   if (relativePath === "debrand-ts-boundary.test.ts") return true;
+  // Copyright attribution is retained even when the product name changes.
+  if (relativePath === "readme-polish-contract.test.ts" && context.includes('保留 OpenHanako 上游版权')) return true;
   if (TEST_LEGACY_COMPATIBILITY_FIXTURE_FILES.has(relativePath)) return true;
   return [
     BRAND_NEGATIVE_ASSERTION_CONTEXT,

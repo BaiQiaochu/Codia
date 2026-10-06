@@ -28,7 +28,7 @@ import { extractAccessTokenFromHono, extractAccessTokenFromNodeRequest } from ".
 import { createOutboundProxyRuntime } from "../lib/net/outbound-proxy.ts";
 import { createServerAuthService } from "../core/server-auth.ts";
 import { resolveServerListenOptions } from "../core/server-network-config.ts";
-import { isCorsOriginAllowed } from "./http/cors-policy.ts";
+import { createCorsMiddleware } from "./http/cors-policy.ts";
 import { inferHttpConnectionKind } from "./http/transport-context.ts";
 import { authorizeHttpRoute, isPublicHttpRoute } from "./http/route-security.ts";
 import { resolveHttpRequestPrincipal } from "./http/request-principal.ts";
@@ -558,6 +558,7 @@ function renderAccessInfoPage() {
 </body>
 </html>`;
 }
+app.use("*", createCorsMiddleware(corsAllowedOrigin));
 app.use("*", async (c, next) => {
   if (isPublicAccessInfoRequest(c)) {
     c.header("Content-Type", "text/html; charset=utf-8");
@@ -565,20 +566,6 @@ app.use("*", async (c, next) => {
   }
 
   const url = new URL(c.req.url);
-  const origin = c.req.header("origin") || "";
-  const isAllowed = isCorsOriginAllowed({
-    origin,
-    configuredOrigin: corsAllowedOrigin,
-  });
-  if (origin && isAllowed) {
-    c.header("Access-Control-Allow-Origin", origin);
-    c.header("Vary", "Origin");
-    c.header("Access-Control-Allow-Credentials", "true");
-  }
-  c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  c.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key, X-GSAP-API-Key, X-gsap-API-Key, X-GSAP-VSCode-Bridge");
-  if (c.req.method === "OPTIONS") return c.body(null, 204);
-
   const transport = inferHttpConnectionKind({
     hostHeader: c.req.header("host"),
     remoteAddress: c.env?.incoming?.socket?.remoteAddress,

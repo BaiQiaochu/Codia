@@ -1,0 +1,10 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "Codia.moc3",
+		"Textures": [
+			"Codia.4096/texture_00.png"
+		],
+		"DisplayInfo": "Codia.cdi3.json"
+	}
+}

@@ -1,0 +1,168 @@
+{
+  "status": "independent 2-mask replacement candidate; not Editor-imported or visually accepted",
+  "originalPsd": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-repair-source.psd",
+  "output": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-repair-masks-v3.psd",
+  "preview": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-repair-masks-v3.neutral.png",
+  "width": 1254,
+  "height": 1254,
+  "variant": "2px",
+  "originalPsdSha256": "f7fc1015728c50cd7605bd91fd858f0e3bd87f730e6e8fdae500f851f5387a28",
+  "outputPsdSha256": "19782628ab2fa7a1308c30938759af0e0a6a44cb0f35a4cc375b2aa3d12c1601",
+  "originalLayerCount": 17,
+  "outputLayerCount": 17,
+  "groupAndLayerNamesOrderAndParentsPreserved": true,
+  "originalLayerPropertiesPreserved": true,
+  "unchangedLayers": [
+    {
+      "path": "ArmLGroup/HandLeft_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "596b7ed326a240d8d811bba6a1964d5f1bba8882df02db0786db8bca0464105a"
+    },
+    {
+      "path": "ArmLGroup/SleeveLeft_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "643722bbe9b129caea10d14c53d514f67477081270d395beddd299fc5da54bd0"
+    },
+    {
+      "path": "ArmRGroup/HandRight_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "4b9bdc2fbb512fe94ab66cc55239cd9240b4919499fa2dfcf825106dbbce385f"
+    },
+    {
+      "path": "ArmRGroup/SleeveRight_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "7b3d4bbbc9a179d3c5df9bdd47dbb24158a5ed8a649b65535565f0cc318fab15"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Hair/Ahoge_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "0c91d95d1eacf4c0ffe84bab6b4c6d2e71fe5b7e8bf42039c3ad1d30892d3636"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Hair/Hair_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "1db4c3124af4c91dab47c0bf7a77989c53af40593a91903479d9e4b8403354e1"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Face/IrisLeft_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "fd6575273d3e5498002f558d88455818136bbe3552e457a43c6d5b5fc9dd0a73"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Face/IrisRight_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "66a0e379ad49ffa26a325ccd33108fe5275aa764e52dd27c22caa85a9af47099"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Face/EyeLeft_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "0d165636d34941424bc76bb97a680468a912c6f430d32a07af04bb7dcdad717f"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Face/EyeRight_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "98615e4ed7ad07aa18c3c27eb0fc8eaa6d202e9180afe79b7d48ba882d40bd3f"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Face/Face_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "e065a48df3de13262bfd0cfb2aa4135890ed783cf9e97aa4e1bd6f43fb95101c"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Headphones/HeadphoneLeft_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "84732c2334d2bb351125ed3c3e910e064f7c1ff8e07cc76e2fe043dd40d0df3b"
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Headphones/HeadphoneRight_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "0b4b5aad805423a90f626d9ef667ed3e5800ca1b19bb21de2ca7bd37cef7f992"
+    },
+    {
+      "path": "BodyGroup/Body_Visible",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "d739b0caa20be812ba569ee74459712ec5293608c533252d06776b5d8f14dc72"
+    },
+    {
+      "path": "Transparent_RGB_Retention",
+      "unchangedRgba": true,
+      "propertiesPreserved": true,
+      "rgbaSha256": "bd068450236052a6f75d4b1f4f0f8beb5723806f3f7906844c8cca697975e079"
+    }
+  ],
+  "maskReplacements": [
+    {
+      "path": "BodyGroup/HeadGroup/Face/EyeLeft_OpeningMask",
+      "source": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v3\\EyeLeft_opening-mask-2px.png",
+      "changedPixels": 1001,
+      "sourceRgbaSha256": "d5c59f9d152c131d15496d5c6fe73a16ffa31137c172f4dd91043ee2c2665c34",
+      "outputRgbaSha256": "d5c59f9d152c131d15496d5c6fe73a16ffa31137c172f4dd91043ee2c2665c34",
+      "opacity": 0,
+      "hidden": false,
+      "blendMode": "normal",
+      "scaledOrTranslated": false,
+      "propertiesPreserved": true
+    },
+    {
+      "path": "BodyGroup/HeadGroup/Face/EyeRight_OpeningMask",
+      "source": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v3\\EyeRight_opening-mask-2px.png",
+      "changedPixels": 1012,
+      "sourceRgbaSha256": "e52bc64bf871f91755f41d95f659bed719196568c55430dad575356a55468c62",
+      "outputRgbaSha256": "e52bc64bf871f91755f41d95f659bed719196568c55430dad575356a55468c62",
+      "opacity": 0,
+      "hidden": false,
+      "blendMode": "normal",
+      "scaledOrTranslated": false,
+      "propertiesPreserved": true
+    }
+  ],
+  "neutralComposite": {
+    "changedPixels": 0,
+    "maxRgbDelta": 0,
+    "maxAlphaDelta": 0,
+    "rgbaSha256": "bca1abf282c69625f63362f25731cb6ceaf86b800102f60b60414f816c88f6b5",
+    "masksExcluded": true,
+    "decodedLayerRecompositionMatches": true
+  },
+  "inputFiles": [
+    {
+      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-repair-source.psd",
+      "sha256": "f7fc1015728c50cd7605bd91fd858f0e3bd87f730e6e8fdae500f851f5387a28"
+    },
+    {
+      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v3\\EyeLeft_opening-mask-2px.png",
+      "sha256": "00cbd83b2015cfa7c8dee113ff76015c6630876f620df99b5528bec60d7cafe4"
+    },
+    {
+      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v3\\EyeRight_opening-mask-2px.png",
+      "sha256": "7bf11322f040af49a15ffd7eeae1516ad93a7a2de0e59430d4d68ef6886767c2"
+    }
+  ],
+  "inputFilesUnmodified": true,
+  "modifiedCmo3": false,
+  "rigParametersChanged": false,
+  "editorImportVerified": false,
+  "clippingAssigned": false,
+  "visualAcceptance": false,
+  "exportReady": false,
+  "limitations": [
+    "Only the two existing opacity-zero eye-opening mask layers are replaced; all other 15 layers retain exact RGBA bytes, names, order and parent groups.",
+    "Existing body/neck repairs, eye artwork and rig acceptance are not changed or approved by this package.",
+    "PSD preservation checks do not verify Cubism import, actual clipping at motion endpoints, or retention of existing model keyforms.",
+    "The 2px opening-mask candidate still requires Editor visual review; no CMO3 or SDK export is produced."
+  ]
+}

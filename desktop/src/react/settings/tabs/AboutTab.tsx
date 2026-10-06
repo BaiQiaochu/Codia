@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { t } from '../helpers';
 import { getDesktopApi } from '../../utils/desktop-api';
 import { SettingsSection } from '../components/SettingsSection';
-import iconUrl from '../../../assets/codia/codia-flower.png';
+import iconUrl from '../../../assets/codia/codia-brand-emblem.png';
 import styles from '../Settings.module.css';
 import { GeneralSettingsSections } from './GeneralTab';
 import { InterfaceSettingsSections } from './InterfaceTab';

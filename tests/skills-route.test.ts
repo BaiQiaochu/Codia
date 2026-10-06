@@ -358,8 +358,8 @@ describe("skills route", () => {
           createdAt: "2026-05-14T00:00:00.000Z",
           updatedAt: "2026-05-14T00:00:00.000Z",
           skills: [
-            { name: "writer", enabled: true, source: "user", missing: false },
-            { name: "reader", enabled: false, source: "user", missing: false },
+            { name: "writer", displayName: "writer", displayNames: {}, shortDescription: "", shortDescriptions: {}, enabled: true, source: "user", missing: false },
+            { name: "reader", displayName: "reader", displayNames: {}, shortDescription: "", shortDescriptions: {}, enabled: false, source: "user", missing: false },
             { name: "missing-skill", enabled: false, source: null, missing: true },
           ],
         },

@@ -12,7 +12,7 @@ import {
 import { desktopLaunchCommand, desktopLaunchEnv } from "./e2e-desktop-launcher.mjs";
 
 const ROOT = process.cwd();
-const ARTIFACT_DIR = path.join(ROOT, "artifacts", "desktop-full-smoke");
+const ARTIFACT_DIR = path.join(ROOT, "artifacts", process.env.GSAP_GPU_SAFE_MODE === "1" ? "desktop-full-smoke-gpu-safe" : "desktop-full-smoke");
 const REPORT_PATH = path.join(ARTIFACT_DIR, "report.json");
 const SCREENSHOT_PATH = path.join(ARTIFACT_DIR, "workflow.png");
 const LAYOUT_1440_PATH = path.join(ARTIFACT_DIR, "layout-1440x900.png");
@@ -136,6 +136,66 @@ function assertChatLayout(layout, label) {
   }
 }
 
+async function checkWelcomeLive2D(cdp, checks) {
+  const gpu = await cdp.evaluate("(window.gsap || window.platform).getGpuRuntimeState()");
+  const expectedRenderer = gpu.gpuSafeMode || !gpu.hardwareAccelerationEnabled ? "fallback" : "live2d";
+  const readMascot = () => cdp.evaluate(`(() => {
+    const mascot = document.querySelector('[data-codia-renderer]');
+    if (!mascot) return null;
+    const rect = node => { const r = node?.getBoundingClientRect(); return r ? { left:r.left, top:r.top, right:r.right, bottom:r.bottom, width:r.width, height:r.height } : null; };
+    const canvas = mascot.querySelector('canvas');
+    const fallback = mascot.querySelector('[data-codia-mascot-frame]');
+    return {
+      renderer: mascot.getAttribute('data-codia-renderer'), error: mascot.getAttribute('data-codia-load-error'),
+      reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+      viewport: { width:innerWidth, height:innerHeight, scale:devicePixelRatio },
+      bounds: rect(mascot), canvas: rect(canvas),
+      canvasBuffer: { width:canvas?.width, height:canvas?.height },
+      canvasVisible: Boolean(canvas && getComputedStyle(canvas).visibility === 'visible'),
+      fallbackVisible: Boolean(fallback && fallback.getBoundingClientRect().width > 0 && !fallback.closest('[hidden]')),
+      insideSpriteClip: Boolean(mascot.closest('[data-codia-mascot-frame]')),
+    };
+  })()`);
+  await waitFor(async () => {
+    const state = await readMascot();
+    if (state?.error && expectedRenderer === "live2d") throw new Error(`Live2D startup failed: ${state.error}`);
+    return state?.renderer === expectedRenderer;
+  }, `welcome ${expectedRenderer} renderer`, 45_000);
+  // Hold the fully raised pose for reproducible layout screenshots, instead of
+  // occasionally capturing the intentional hidden phase of the peek animation.
+  await cdp.send("Emulation.setEmulatedMedia", { features:[{ name:"prefers-reduced-motion", value:"reduce" }] });
+  for (const size of [
+    { name:"1440x900", width:1440, height:900, deviceScaleFactor:1 },
+    { name:"1280x800", width:1280, height:800, deviceScaleFactor:1 },
+    // 1280x800 physical pixels at 125% scaling gives 1024x640 CSS pixels.
+    { name:"1280x800-125", width:1024, height:640, deviceScaleFactor:1.25 },
+  ]) {
+    await cdp.send("Emulation.setDeviceMetricsOverride", { width:size.width, height:size.height, deviceScaleFactor:size.deviceScaleFactor, mobile:false });
+    await sleep(800);
+    const layout = await readChatLayout(cdp);
+    assertChatLayout(layout, `welcome ${size.name}`);
+    const state = await readMascot();
+    if (state.renderer !== expectedRenderer || state.insideSpriteClip) throw new Error(`welcome renderer mismatch: ${JSON.stringify(state)}`);
+    if (state.bounds.width > 0 && (expectedRenderer === "live2d" ? !state.canvasVisible || state.fallbackVisible : !state.fallbackVisible || state.canvasVisible)) {
+      throw new Error(`welcome renderer visibility mismatch: ${JSON.stringify(state)}`);
+    }
+    if (state.bounds.width > 0 && (state.bounds.width < 105 || state.bounds.width > 201 || state.bounds.left < 0 || state.bounds.right > size.width || state.bounds.top < 0 || state.bounds.bottom > size.height)) {
+      throw new Error(`welcome mascot outside size limits: ${JSON.stringify(state)}`);
+    }
+    const screenshotPath = path.join(ARTIFACT_DIR, `welcome-live2d-${size.name}.png`);
+    const screenshot = await cdp.send("Page.captureScreenshot", { format:"png" });
+    fs.writeFileSync(screenshotPath, Buffer.from(screenshot.data, "base64"));
+    checks.push({ name:`welcome-live2d-${size.name}`, ok:true, gpu, expectedRenderer, detail:state, layout,
+      screenshot:path.relative(ROOT, screenshotPath).replace(/\\/g, "/") });
+  }
+  console.log(`[e2e-full-desktop-smoke] welcome ${expectedRenderer} verified at 3 sizes; gpu=${JSON.stringify(gpu)}`);
+  await cdp.send("Emulation.setEmulatedMedia", { features:[] });
+  await cdp.send("Emulation.setDeviceMetricsOverride", { width:1440, height:900, deviceScaleFactor:1, mobile:false });
+  // Restoring motion restarts the welcome CSS entrance animations. Let the last
+  // staggered card settle before measuring row alignment in the full smoke.
+  await sleep(1_000);
+}
+
 function messageText(message) {
   if (typeof message?.content === "string") return message.content;
   if (!Array.isArray(message?.content)) return "";
@@ -247,6 +307,7 @@ async function main() {
   });
   child.stdout.on("data", (chunk) => { capturedStdout += String(chunk); });
   child.stderr.on("data", (chunk) => { capturedStderr += String(chunk); });
+  console.log(`[e2e-full-desktop-smoke] isolated home=${e2eHome}; debugPort=${remoteDebugPort}; mock=${mockOpenAI.baseUrl}`);
 
   let cdp = null;
   let succeeded = false;
@@ -257,6 +318,7 @@ async function main() {
     await cdp.send("Runtime.enable");
     await waitFor(() => cdp.evaluate("window.__GSAP_E2E__?.appReady === true"), "renderer ready", 60_000);
 
+    await checkWelcomeLive2D(cdp, checks);
     await cdp.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
     const initialLayout = await readChatLayout(cdp);
     assertChatLayout(initialLayout, "1440x900");
@@ -351,7 +413,7 @@ async function main() {
       if (!action) throw new Error('welcome quick action not found');
       action.click();
     })()`);
-    await waitFor(() => cdp.evaluate("(document.querySelector('.input-area:not(.hidden) [contenteditable=\"true\"]')?.textContent || '').includes('整理这些想法')"), "welcome quick action input");
+    await waitFor(() => cdp.evaluate("!!document.querySelector('.input-area:not(.hidden) [contenteditable=\"true\"] [data-quick-action=\"ideas\"]')"), "welcome quick action badge");
     checks.push({ name: "welcome-quick-action", ok: true });
 
     await cdp.evaluate("window.__GSAP_E2E__.ensureSession()");
@@ -645,6 +707,30 @@ async function main() {
       return modal ? { label: modal.getAttribute('aria-label'), state: modal.getAttribute('data-state') } : null;
     })()`), "settings modal", 30_000);
     checks.push({ name: "settings-modal", ok: true, detail: settingsModal });
+
+    const brandSurfaces = await waitFor(() => cdp.evaluate(`(() => {
+      const home = document.querySelector('.codia-brand-lockup img');
+      const general = document.querySelector('[data-tab="about"] img[alt="Codia 小豆蔻"]');
+      const modal = document.querySelector('[data-testid="settings-modal-overlay"] [role="dialog"]');
+      if (document.querySelector('#settingsLoadingMask') || !modal || Number(getComputedStyle(modal).opacity) < 0.99) return null;
+      if (!home?.complete || !general?.complete || !home.naturalWidth || !general.naturalWidth) return null;
+      return { home: home.src, general: general.src, width: general.naturalWidth };
+    })()`), 'shared Codia brand images');
+    if (brandSurfaces.home !== brandSurfaces.general || brandSurfaces.width !== 512) {
+      throw new Error(`Product icons are inconsistent: ${JSON.stringify(brandSurfaces)}`);
+    }
+    await cdp.evaluate(`document.querySelector('[data-tab="about"] img[alt="Codia 小豆蔻"]').scrollIntoView({ block: 'center', behavior: 'instant' })`);
+    await waitFor(() => cdp.evaluate(`(() => {
+      const image = document.querySelector('[data-tab="about"] img[alt="Codia 小豆蔻"]');
+      const rect = image.getBoundingClientRect();
+      return rect.height > 0 && rect.top >= 0 && rect.bottom <= innerHeight
+        && document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) === image;
+    })()`), 'visible general product icon');
+    const settingsFailure = await cdp.evaluate(`document.querySelector('[data-testid="settings-modal-overlay"]')?.innerText.match(/保存失败[^\\n]*|server connection not ready[^\\n]*/)?.[0] || null`);
+    if (settingsFailure) throw new Error(`Settings initialization failed: ${settingsFailure}`);
+    const brandScreenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path.join(ARTIFACT_DIR, 'general-branding.png'), Buffer.from(brandScreenshot.data, 'base64'));
+    checks.push({ name: 'shared-product-branding', ok: true, detail: brandSurfaces });
 
     if (exceptions.length > 0) throw new Error(`renderer exception: ${exceptions[0]}`);
     if (mockOpenAI.requests.length < 1) throw new Error("mock model received no chat request");

@@ -34,6 +34,7 @@ import {
   setSessionProjectAssignmentForSession,
 } from '../stores/session-project-actions';
 import { ContextMenu, type ContextMenuItem } from './ContextMenu';
+import { SessionViewToggle } from './SessionViewToggle';
 import { renderMarkdown } from '../utils/markdown';
 import { getSessionDisplayTitle } from '../utils/session-title-display';
 import { cwdFromAutoProjectId } from '../../../../shared/session-projects.ts';
@@ -219,7 +220,6 @@ function SessionListInner() {
   const [collapsedFolderIds, setCollapsedFolderIds] = useState<Set<string>>(() => new Set());
   const [showAllProjectIds, setShowAllProjectIds] = useState<Set<string>>(() => new Set());
   const [sessionListRowMode, setSessionListRowMode] = useState<SidebarSessionListRowMode>('two-line');
-  const [projectMenuPosition, setProjectMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [projectActionMenu, setProjectActionMenu] = useState<ProjectActionMenuState>(null);
   const [folderActionMenu, setFolderActionMenu] = useState<FolderActionMenuState>(null);
   const [projectNameDialog, setProjectNameDialog] = useState<ProjectNameDialogState>(null);
@@ -650,17 +650,6 @@ function SessionListInner() {
   const hasSearchResults = titleResults.length > 0 || visibleContentResults.length > 0;
   const isSearching = !!searchQueryTrimmed;
   const showEmptyState = sessions.length === 0 && !isSearching;
-  const renderSortMenuButton = () => (
-    <button
-      type="button"
-      className={styles.sectionIconButton}
-      aria-label={t('sidebar.view.sort')}
-      title={t('sidebar.view.sort')}
-      onClick={(event) => setProjectMenuPosition({ x: event.clientX, y: event.clientY })}
-    >
-      <ListFilterIcon />
-    </button>
-  );
   const handleToggleProjectCollapsed = useCallback((projectId: string) => {
     setCollapsedProjectIds(prev => {
       const next = new Set(prev);
@@ -708,9 +697,7 @@ function SessionListInner() {
 
     return (
       <Fragment key={section.id}>
-        <SectionTitle
-          actions={section.group === 'today' ? renderSortMenuButton() : null}
-        >
+        <SectionTitle>
           <span>{t(section.titleKey)}</span>
         </SectionTitle>
         {items}
@@ -720,7 +707,7 @@ function SessionListInner() {
   if (!hasTodaySection && !showEmptyState) {
     const pinnedIndex = sections.findIndex(section => section.kind === 'pinned');
     timeContent.splice(Math.max(0, pinnedIndex + 1), 0, (
-      <SectionTitle key="date:today-empty" actions={renderSortMenuButton()}>
+      <SectionTitle key="date:today-empty">
         <span>{t('time.today')}</span>
       </SectionTitle>
     ));
@@ -756,7 +743,6 @@ function SessionListInner() {
       onDropProject={handleDropOnProject}
       onDropFolder={handleDropOnFolder}
       onDropRoot={handleDropOnProjectRoot}
-      onOpenMenu={setProjectMenuPosition}
       onCreateProject={() => setProjectNameDialog({ kind: 'create-project', value: '' })}
       onCreateProjectSession={handleCreateProjectSession}
       onOpenProjectMenu={(position, project) => setProjectActionMenu({ position, project })}
@@ -771,27 +757,10 @@ function SessionListInner() {
         onChange={setSearchQuery}
         onClear={() => setSearchQuery('')}
       />
+      <SessionViewToggle value={viewMode} onChange={setViewMode} t={t} />
       <div className={styles.sessionListScroller}>
         {content}
       </div>
-      {projectMenuPosition && (
-        <ContextMenu
-          position={projectMenuPosition}
-          onClose={() => setProjectMenuPosition(null)}
-          items={[
-            {
-              label: t('sidebar.view.time'),
-              checked: viewMode === 'time',
-              action: () => setViewMode('time'),
-            },
-            {
-              label: t('sidebar.view.project'),
-              checked: viewMode === 'project',
-              action: () => setViewMode('project'),
-            },
-          ]}
-        />
-      )}
       {projectActionMenu && (
         <ContextMenu
           position={projectActionMenu.position}
@@ -937,7 +906,6 @@ function ProjectSessionView({
   onDropProject,
   onDropFolder,
   onDropRoot,
-  onOpenMenu,
   onCreateProject,
   onCreateProjectSession,
   onOpenProjectMenu,
@@ -960,7 +928,6 @@ function ProjectSessionView({
   onDropProject: (event: React.DragEvent, project: SessionProjectGroup) => void;
   onDropFolder: (event: React.DragEvent, folder: SessionProjectFolderGroup) => void;
   onDropRoot: (event: React.DragEvent) => void;
-  onOpenMenu: (position: { x: number; y: number }) => void;
   onCreateProject: () => void;
   onCreateProjectSession: (project: SessionProjectGroup) => void;
   onOpenProjectMenu: (position: { x: number; y: number }, project: SessionProjectGroup) => void;
@@ -987,15 +954,6 @@ function ProjectSessionView({
               onClick={onCreateProject}
             >
               <ProjectPlusIcon />
-            </button>
-            <button
-              type="button"
-              className={styles.sectionIconButton}
-              aria-label={t('sidebar.view.sort')}
-              title={t('sidebar.view.sort')}
-              onClick={(event) => onOpenMenu({ x: event.clientX, y: event.clientY })}
-            >
-              <ListFilterIcon />
             </button>
           </>
         )}
@@ -1282,16 +1240,6 @@ function FolderIcon() {
   return (
     <svg className={styles.projectIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M3 7.5a2 2 0 0 1 2-2h4.2l2 2H19a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-    </svg>
-  );
-}
-
-function ListFilterIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 7h16" />
-      <path d="M7 12h10" />
-      <path d="M10 17h4" />
     </svg>
   );
 }

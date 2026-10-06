@@ -26,8 +26,8 @@ export function desktopLaunchCommand(rootDir, extraArgs = []) {
   }
   return {
     command: process.execPath,
-    args: ["scripts/launch.js", "electron", ...extraArgs],
+    args: ["scripts/launch.js", process.env.GSAP_E2E_DESKTOP_MODE === "built" ? "electron-built" : "electron", ...extraArgs],
     cwd: rootDir,
-    mode: "source",
+    mode: process.env.GSAP_E2E_DESKTOP_MODE === "built" ? "built" : "source",
   };
 }

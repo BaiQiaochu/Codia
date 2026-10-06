@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { createServer } from 'vite';
+import { resolveDesktopDevPort } from './dev-desktop-runtime.mjs';
 import { DEFAULT_GSAP_DEV_HOME, applyGsapHomeEnv } from '../shared/gsap-home.ts';
 
 const require = createRequire(import.meta.url);
@@ -46,10 +47,7 @@ async function close(code = 0) {
 try {
   const [major, minor] = process.versions.node.split('.').map(Number);
   if (major !== 24 || minor < 12) throw new Error('Codia source mode requires Node.js >=24.12.0 <25.');
-  const port = Number(process.env.GSAP_DEV_DESKTOP_PORT ?? (process.env.GSAP_E2E === '1' ? 0 : 5173));
-  if (!Number.isInteger(port) || port < 0 || port > 65535) {
-    throw new Error('GSAP_DEV_DESKTOP_PORT must be an integer between 0 and 65535.');
-  }
+  const port = await resolveDesktopDevPort(process.env.GSAP_DEV_DESKTOP_PORT ?? (process.env.GSAP_E2E === '1' ? 0 : 5173));
 
   temporaryDir = await mkdtemp(path.join(os.tmpdir(), 'codia-source-preload-'));
   const preloadPath = path.join(temporaryDir, 'preload.cjs');
@@ -89,13 +87,21 @@ try {
   delete env.ELECTRON_RUN_AS_NODE;
   console.log(`[source] renderer=${rendererUrl}; server=Node TypeScript source`);
   electron = spawn(require('electron'), [root, ...process.argv.slice(2)], {
-    cwd: root, env, stdio: 'inherit', windowsHide: true,
+    // This is the user's GUI, not a background helper. SW_HIDE on Windows
+    // can suppress its first ShowWindow even after Electron emits "show".
+    cwd: root, env, stdio: 'inherit', windowsHide: false,
   });
   const exitCode = await new Promise((resolve, reject) => {
     electron.once('error', reject);
-    electron.once('exit', (code) => resolve(code ?? 1));
+    electron.once('exit', (code, signal) => {
+      console.log(`[source] desktop exited: code=${code ?? 'none'}, signal=${signal || 'none'}`);
+      resolve(code ?? 1);
+    });
     for (const signal of ['SIGINT', 'SIGTERM', ...(process.platform === 'win32' ? ['SIGBREAK'] : [])]) {
-      process.once(signal, () => { void close(0); });
+      process.once(signal, () => {
+        console.log(`[source] launcher received ${signal}; closing its desktop and Vite server`);
+        void close(0);
+      });
     }
   });
   await close(exitCode);

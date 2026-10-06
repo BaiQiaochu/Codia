@@ -1,0 +1,256 @@
+{
+  "version": 1,
+  "source": "codia-neutral-bust.png",
+  "sourceSha256": "0db9931dde32548419ab298fc17ce5f09e7658287896fe31e6787a3660a4cb6c",
+  "sourceCanvas": {
+    "width": 1254,
+    "height": 1254
+  },
+  "sourcePsd": "../codia-source-aligned.psd",
+  "reference": "codia-eyes-reference.png",
+  "coordinateConvention": "Original canvas pixels, origin top-left; right and bottom exclusive. Left/Right in layer names are character anatomical sides.",
+  "crop": {
+    "left": 393,
+    "top": 495,
+    "rightExclusive": 878,
+    "bottomExclusive": 708,
+    "width": 485,
+    "height": 213
+  },
+  "referencePixelDifferences": 0,
+  "scaled": false,
+  "painted": false,
+  "layerStats": [
+    {
+      "name": "EyeLeft_Visible",
+      "psdBounds": {
+        "left": 0,
+        "top": 0,
+        "right": 1254,
+        "bottom": 1254
+      },
+      "visibleBounds": {
+        "left": 693,
+        "top": 515,
+        "rightExclusive": 858,
+        "bottomExclusive": 664,
+        "width": 165,
+        "height": 149
+      },
+      "visiblePixelCount": 9553,
+      "opaquePixelCount": 0
+    },
+    {
+      "name": "IrisLeft_Visible",
+      "psdBounds": {
+        "left": 0,
+        "top": 0,
+        "right": 1254,
+        "bottom": 1254
+      },
+      "visibleBounds": {
+        "left": 720,
+        "top": 551,
+        "rightExclusive": 813,
+        "bottomExclusive": 660,
+        "width": 93,
+        "height": 109
+      },
+      "visiblePixelCount": 7951,
+      "opaquePixelCount": 0
+    },
+    {
+      "name": "EyeRight_Visible",
+      "psdBounds": {
+        "left": 0,
+        "top": 0,
+        "right": 1254,
+        "bottom": 1254
+      },
+      "visibleBounds": {
+        "left": 413,
+        "top": 553,
+        "rightExclusive": 609,
+        "bottomExclusive": 688,
+        "width": 196,
+        "height": 135
+      },
+      "visiblePixelCount": 10398,
+      "opaquePixelCount": 0
+    },
+    {
+      "name": "IrisRight_Visible",
+      "psdBounds": {
+        "left": 0,
+        "top": 0,
+        "right": 1254,
+        "bottom": 1254
+      },
+      "visibleBounds": {
+        "left": 482,
+        "top": 574,
+        "rightExclusive": 578,
+        "bottomExclusive": 682,
+        "width": 96,
+        "height": 108
+      },
+      "visiblePixelCount": 8014,
+      "opaquePixelCount": 0
+    }
+  ],
+  "eyes": [
+    {
+      "side": "Left",
+      "viewerSide": "right",
+      "eyeCompleteReferenceBounds": {
+        "left": 693,
+        "top": 515,
+        "rightExclusive": 858,
+        "bottomExclusive": 664
+      },
+      "eyeCompleteVisibleUnionPixelCount": 17504,
+      "irisHoleBounds": {
+        "left": 720,
+        "top": 551,
+        "rightExclusive": 813,
+        "bottomExclusive": 660,
+        "width": 93,
+        "height": 109
+      },
+      "irisHolePixelCount": 7951,
+      "irisEyeOverlap": 0,
+      "irisPixelsWithUnderlyingCoverage": 0,
+      "translations": [
+        {
+          "dx": -16,
+          "dy": 0,
+          "originalIrisPixelsLeftUncovered": 1725,
+          "translatedIrisPixelsOutsideEyeRegion": 118
+        },
+        {
+          "dx": -8,
+          "dy": 0,
+          "originalIrisPixelsLeftUncovered": 867,
+          "translatedIrisPixelsOutsideEyeRegion": 0
+        },
+        {
+          "dx": 8,
+          "dy": 0,
+          "originalIrisPixelsLeftUncovered": 867,
+          "translatedIrisPixelsOutsideEyeRegion": 0
+        },
+        {
+          "dx": 16,
+          "dy": 0,
+          "originalIrisPixelsLeftUncovered": 1725,
+          "translatedIrisPixelsOutsideEyeRegion": 0
+        },
+        {
+          "dx": 0,
+          "dy": -8,
+          "originalIrisPixelsLeftUncovered": 744,
+          "translatedIrisPixelsOutsideEyeRegion": 0
+        },
+        {
+          "dx": 0,
+          "dy": 8,
+          "originalIrisPixelsLeftUncovered": 744,
+          "translatedIrisPixelsOutsideEyeRegion": 200
+        },
+        {
+          "dx": -12,
+          "dy": -8,
+          "originalIrisPixelsLeftUncovered": 1504,
+          "translatedIrisPixelsOutsideEyeRegion": 0
+        },
+        {
+          "dx": 12,
+          "dy": -8,
+          "originalIrisPixelsLeftUncovered": 1510,
+          "translatedIrisPixelsOutsideEyeRegion": 0
+        }
+      ],
+      "safeMovementWithoutNewUnderpaint": "No nonzero full-iris translation can be certified; current iris area is an alpha hole in every other layer.",
+      "underpaintRequirement": "Complete the sclera behind the entire iris footprint while preserving original eyelid/lash edges. The complete reference bounds include skin/lashes and are not a rectangle to fill white. Use a stable eye-opening clipping mask before moving the iris."
+    },
+    {
+      "side": "Right",
+      "viewerSide": "left",
+      "eyeCompleteReferenceBounds": {
+        "left": 413,
+        "top": 553,
+        "rightExclusive": 609,
+        "bottomExclusive": 688
+      },
+      "eyeCompleteVisibleUnionPixelCount": 18412,
+      "irisHoleBounds": {
+        "left": 482,
+        "top": 574,
+        "rightExclusive": 578,
+        "bottomExclusive": 682,
+        "width": 96,
+        "height": 108
+      },
+      "irisHolePixelCount": 8014,
+      "irisEyeOverlap": 0,
+      "irisPixelsWithUnderlyingCoverage": 0,
+      "translations": [
+        {
+          "dx": -16,
+          "dy": 0,
+          "originalIrisPixelsLeftUncovered": 1708,
+          "translatedIrisPixelsOutsideEyeRegion": 0
+        },
+        {
+          "dx": -8,
+          "dy": 0,
+          "originalIrisPixelsLeftUncovered": 859,
+          "translatedIrisPixelsOutsideEyeRegion": 0
+        },
+        {
+          "dx": 8,
+          "dy": 0,
+          "originalIrisPixelsLeftUncovered": 859,
+          "translatedIrisPixelsOutsideEyeRegion": 0
+        },
+        {
+          "dx": 16,
+          "dy": 0,
+          "originalIrisPixelsLeftUncovered": 1708,
+          "translatedIrisPixelsOutsideEyeRegion": 0
+        },
+        {
+          "dx": 0,
+          "dy": -8,
+          "originalIrisPixelsLeftUncovered": 767,
+          "translatedIrisPixelsOutsideEyeRegion": 0
+        },
+        {
+          "dx": 0,
+          "dy": 8,
+          "originalIrisPixelsLeftUncovered": 767,
+          "translatedIrisPixelsOutsideEyeRegion": 33
+        },
+        {
+          "dx": -12,
+          "dy": -8,
+          "originalIrisPixelsLeftUncovered": 1446,
+          "translatedIrisPixelsOutsideEyeRegion": 0
+        },
+        {
+          "dx": 12,
+          "dy": -8,
+          "originalIrisPixelsLeftUncovered": 1542,
+          "translatedIrisPixelsOutsideEyeRegion": 40
+        }
+      ],
+      "safeMovementWithoutNewUnderpaint": "No nonzero full-iris translation can be certified; current iris area is an alpha hole in every other layer.",
+      "underpaintRequirement": "Complete the sclera behind the entire iris footprint while preserving original eyelid/lash edges. The complete reference bounds include skin/lashes and are not a rectangle to fill white. Use a stable eye-opening clipping mask before moving the iris."
+    }
+  ],
+  "limitations": [
+    "This inspection uses exact alpha ownership; it does not infer unpainted anatomy behind the original iris.",
+    "Eye layers are coarse polygon crops and contain some eyelash, skin and hair-edge pixels. They are not complete isolated sclera.",
+    "Translation counts are raster alpha diagnostics at original resolution, not an approved motion range."
+  ]
+}
