@@ -14,7 +14,7 @@ let root:string,store:CloudWorkspaceStore,service:CloudWorkspaceService;
 async function reopen() { store.close();store=new CloudWorkspaceStore(path.join(root,'db.sqlite'));service=new CloudWorkspaceService(store,new LocalObjectStore(path.join(root,'objects')));return service; }
 beforeEach(async()=>{root=await mkdtemp(path.join(os.tmpdir(),'codia-upload-'));store=new CloudWorkspaceStore(path.join(root,'db.sqlite'));service=new CloudWorkspaceService(store,new LocalObjectStore(path.join(root,'objects')));});
 afterEach(async()=>{vi.useRealTimers();store.close();await rm(root,{recursive:true,force:true});});
-describe('resumable uploads SQLite durable contract',()=>uploadContract(()=>({service,reopen})));
+describe('resumable uploads SQLite durable contract',()=>uploadContract(()=>({service,reopen,expire:async()=>{vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(Date.now()+25*60*60*1000);}})));
 describe('upload expiry, admission and binary HTTP guards',()=>{
   it('expires both writable and frozen sessions across restart; late bytes never publish',async()=>{
     const real=Date.now();vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(real-25*60*60*1000);

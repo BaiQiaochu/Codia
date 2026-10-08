@@ -51,17 +51,27 @@ function getAutoLaunchStatus({ app, platform = process.platform, argv = process.
   }
   const options = getLoginItemOptions(platform, execPath);
   let rawSettings = app.getLoginItemSettings(options);
-  if (platform === "win32") {
-    const path = require("node:path");
+  if (platform === "win32" && rawSettings.openAtLogin !== true) {
+    const path = require("node:path").win32;
     const legacyOptions = getLoginItemOptions(platform, path.join(path.dirname(execPath), "BYOUNG.exe"));
     legacyOptions.args = [LEGACY_START_AT_LOGIN_ARG];
     const legacySettings = app.getLoginItemSettings(legacyOptions);
-    if (legacySettings.openAtLogin === true) {
-      if (!rawSettings.openAtLogin) {
-        app.setLoginItemSettings({ openAtLogin: true, ...options });
-      }
-      app.setLoginItemSettings({ openAtLogin: false, ...legacyOptions });
-      if (!rawSettings.openAtLogin) rawSettings = app.getLoginItemSettings(options);
+    // Electron's openAtLogin compares the default AppUserModelID value against
+    // path + args. launchItems additionally reports Task Manager's enabled flag.
+    // Only migrate a uniquely identified, enabled user entry; aggregate
+    // executableWillLaunchAtLogin may refer to a different name or arguments.
+    const legacyItems = (legacySettings.launchItems || []).filter((item) =>
+      item.scope === "user" && typeof item.name === "string" && item.name.length > 0
+      && typeof item.path === "string"
+      && path.normalize(item.path).toLowerCase() === path.normalize(legacyOptions.path).toLowerCase()
+      && Array.isArray(item.args) && item.args.length === legacyOptions.args.length
+      && item.args.every((arg, index) => arg === legacyOptions.args[index]));
+    if (legacySettings.openAtLogin === true && legacyItems.length === 1 && legacyItems[0].enabled === true) {
+      // Both paths use the SAME default registry value. Replace it once; a
+      // following set(false) would delete that value regardless of its path.
+      // Leave disabled/unknown and separately named legacy entries untouched.
+      app.setLoginItemSettings({ openAtLogin: true, ...options });
+      rawSettings = app.getLoginItemSettings(options);
     }
   }
   return normalizeStatus({ platform, argv, rawSettings });

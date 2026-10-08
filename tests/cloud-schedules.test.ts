@@ -2,9 +2,13 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { CloudWorkspaceStore, type CloudRow } from '../lib/cloud-workspace/store.ts';
+import { CloudWorkspaceStore, CloudWorkspaceError, type CloudRow } from '../lib/cloud-workspace/store.ts';
 import type { CreateCloudSchedule } from '../lib/cloud-workspace/repository.ts';
-import { MAX_SCHEDULE_INTERVAL_MS, MAX_SCHEDULE_TIMESTAMP } from '../lib/cloud-workspace/schedules.ts';
+import { randomUUID } from 'node:crypto';
+import { CloudWorkspaceService } from '../lib/cloud-workspace/service.ts';
+import { CloudWorkspaceWorker } from '../lib/cloud-workspace/worker.ts';
+import { LocalObjectStore } from '../lib/cloud-workspace/object-store.ts';
+import { MAX_SCHEDULE_INTERVAL_MS, MAX_SCHEDULE_TIMESTAMP, scheduleDispatchRejection } from '../lib/cloud-workspace/schedules.ts';
 
 const actor = { userId: 'schedule-alice', studioId: 'schedule-studio' };
 const strangers = [{ ...actor, userId: 'schedule-bob' }, { ...actor, studioId: 'other-studio' }];
@@ -98,9 +102,61 @@ describe('SQLite durable cloud schedules and cancellation', () => {
     expect(store.setScheduleEnabled(actor, schedule.id, 2, false).state).toBe('completed');
     expect(store.createSchedule(actor, workspace.id, input({ enabled: true, intervalMs: null })).id).toBe(schedule.id);
   });
-  it('rolls back queue insert, schedule advance, and events together on dispatch failure', () => {
+  it('pauses legacy oversized due schedules once and still dispatches and executes other owners work', async () => {
+    const failed=[];
+    for(const [operation,size,error] of [['agent-summary',131073,'agent_input_too_large'],['document-summary',2097153,'document_input_too_large']] as const) {
+      const staged=store.stageVersion(actor,workspace.id,`${operation}.txt`,size,hash);
+      const pinned=store.finalizeVersion(actor,staged.version.id,null).version;
+      const spec=input({inputVersion:pinned.id,operation,requestKey:randomUUID(),enabled:true});
+      const scheduleId=randomUUID();
+      // Persist the shape admitted before input-size admission existed, then reopen.
+      store.db.prepare(`INSERT INTO cw_schedules(id,workspace_id,input_version,operation,name,request_key,state,next_run_at,interval_ms,revision,last_run_id,creation_spec,created_at,updated_at)
+        VALUES(?,?,?,?,?,?,'enabled',1000,60000,1,NULL,?,?,?)`).run(scheduleId,workspace.id,pinned.id,operation,spec.name,spec.requestKey,JSON.stringify(spec),new Date().toISOString(),new Date().toISOString());
+      failed.push({id:scheduleId,error});
+    }
+    const service=new CloudWorkspaceService(store,new LocalObjectStore(path.join(directory,'objects')));
+    const other=strangers[0],space=store.createWorkspace(other,'unrelated owner');
+    const good=await service.upload(other,space.id,'ready.md',Buffer.from('# Good\nMust keep running.'));
+    const queued=store.createRun(other,space.id,good.version.id,randomUUID());
+    const healthy=store.createSchedule(other,space.id,{...input(),inputVersion:good.version.id,operation:'document-summary',firstRunAt:1001,enabled:true});
+    reopen();
+    const second=new CloudWorkspaceStore(filename);
+    try { expect(store.dispatchDueSchedules(1001)).toBe(1);expect(second.dispatchDueSchedules(1001)).toBe(0); }
+    finally { second.close(); }
+    for(const failedSchedule of failed) {
+      expect(store.schedule(actor,failedSchedule.id)).toMatchObject({state:'paused',revision:2,next_run_at:1000,last_run_id:null});
+      const events=store.events(actor,workspace.id).events.filter(event=>event.kind==='schedule.paused'&&event.payload.scheduleId===failedSchedule.id);
+      expect(events).toHaveLength(1);expect(events[0].payload).toMatchObject({reason:'dispatch_rejected',error:failedSchedule.error,dueAt:1000,revision:2});
+    }
+    expect(store.listRuns(actor,workspace.id)).toEqual([]);expect(store.schedule(other,healthy.id).last_run_id).toBeTruthy();
+    const worker=new CloudWorkspaceWorker(new CloudWorkspaceService(store,service.objects));
+    await expect(worker.tick()).resolves.toBe(true);await expect(worker.tick()).resolves.toBe(true);
+    expect(store.run(other,queued.id).run).toMatchObject({status:'succeeded',attempt:1});
+    reopen();
+    for(const failedSchedule of failed) expect(store.schedule(actor,failedSchedule.id)).toMatchObject({state:'paused',revision:2});
+  });
+  it('rolls back automatic pause when its diagnostic event cannot persist', () => {
+    const schedule=store.createSchedule(actor,workspace.id,input({enabled:true}));
+    // Legacy-sized metadata fixture: no SQL failure may be mistaken for admission.
+    store.db.prepare('UPDATE cw_versions SET size=131073 WHERE id=?').run(version.id);
+    store.db.exec("CREATE TRIGGER reject_pause BEFORE INSERT ON cw_outbox WHEN NEW.kind='schedule.paused' BEGIN SELECT RAISE(ABORT,'pause_event_failure'); END");
+    expect(()=>store.dispatchDueSchedules(1000)).toThrow('pause_event_failure');
+    expect(store.schedule(actor,schedule.id)).toEqual(schedule);expect(store.listRuns(actor,workspace.id)).toEqual([]);
+    expect(store.events(actor,workspace.id).events.filter(event=>event.kind==='schedule.paused')).toEqual([]);
+    store.db.exec('DROP TRIGGER reject_pause');expect(store.dispatchDueSchedules(1000)).toBe(0);
+    expect(store.schedule(actor,schedule.id)).toMatchObject({state:'paused',revision:2});
+  });
+  it('classifies only known typed admission failures as permanent schedule rejections', () => {
+    for(const code of ['document_input_too_large','agent_input_too_large','not_found','unsupported_operation','invalid_request_key','idempotency_conflict']) {
+      expect(scheduleDispatchRejection(new CloudWorkspaceError(code))).toBe(code);
+    }
+    for(const error of [new CloudWorkspaceError('cloud_database_migration_required',503),new CloudWorkspaceError('processing_failed',500),Object.assign(new Error('database failure'),{code:'agent_input_too_large'}),new Error('not_found'),null]) {
+      expect(scheduleDispatchRejection(error)).toBeNull();
+    }
+  });
+  it.each(['run.queued','schedule.dispatched'])('rolls back queue insert, schedule advance, and events on %s persistence failure', kind => {
     const schedule = store.createSchedule(actor, workspace.id, input({ enabled: true }));
-    store.db.exec("CREATE TRIGGER reject_dispatch BEFORE INSERT ON cw_outbox WHEN NEW.kind='schedule.dispatched' BEGIN SELECT RAISE(ABORT,'injected_failure'); END");
+    store.db.exec(`CREATE TRIGGER reject_dispatch BEFORE INSERT ON cw_outbox WHEN NEW.kind='${kind}' BEGIN SELECT RAISE(ABORT,'injected_failure'); END`);
     expect(() => store.dispatchDueSchedules(1000)).toThrow('injected_failure');
     expect(store.listRuns(actor, workspace.id)).toEqual([]); expect(store.schedule(actor, schedule.id)).toEqual(schedule);
     store.db.exec('DROP TRIGGER reject_dispatch'); expect(store.dispatchDueSchedules(1000)).toBe(1);

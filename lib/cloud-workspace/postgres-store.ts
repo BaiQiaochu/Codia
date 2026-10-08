@@ -5,7 +5,7 @@ import { CloudWorkspaceError, validName, type CloudActor, type CloudRow } from '
 import { PostgresWorkspaceDatabase, type PgPool, type PgQueryable } from './postgres.ts';
 import type { CloudOperation, CloudOutput, CloudWorkspaceRepository, StagedCloudVersion, EnqueueCloudRun, CreateCloudSchedule } from './repository.ts';
 import { validateObjectKey } from './object-store.ts';
-import { normalizeSchedule, sameScheduleSpecification, nextScheduleOccurrence, scheduleTimestamp, scheduleLimit, scheduleRevision } from './schedules.ts';
+import { normalizeSchedule, sameScheduleSpecification, nextScheduleOccurrence, scheduleTimestamp, scheduleLimit, scheduleRevision, scheduleDispatchRejection } from './schedules.ts';
 
 const schema = 'codia_workspace';
 const id = () => randomUUID();
@@ -299,7 +299,9 @@ export class PostgresWorkspaceStore implements CloudWorkspaceRepository {
     if (!found) return;
     await tx.query(`SELECT id FROM ${schema}.files WHERE id=$1 FOR UPDATE`, [found.file_id]);
     const rejected = await tx.query(`UPDATE ${schema}.versions SET status='rejected' WHERE id=$1 AND status='staging' RETURNING file_id`, [versionId]);
-    if (rejected.rowCount) await tx.query(`UPDATE ${schema}.files SET name=id::text || '.failed' WHERE id=$1 AND current_version IS NULL AND NOT EXISTS(SELECT 1 FROM ${schema}.versions WHERE file_id=$1 AND status='staging')`, [found.file_id]);
+    // Internal names contain '/', which validName forbids for public files.
+    // Keep the row/history, release its original name, and never rename a ready file.
+    if (rejected.rowCount) await tx.query(`UPDATE ${schema}.files SET name='.rejected/' || id::text WHERE id=$1 AND current_version IS NULL AND NOT EXISTS(SELECT 1 FROM ${schema}.versions WHERE file_id=$1 AND status='staging')`, [found.file_id]);
   }
   async rejectVersion(versionId: string) { await this.#tx(null, tx => this.#reject(tx, versionId)); }
   async reconcileStaging(timestamp?: number, graceMs = 300_000) {
@@ -412,8 +414,28 @@ export class PostgresWorkspaceStore implements CloudWorkspaceRepository {
         if (!schedule) return null;
         const due = Number(schedule.next_run_at), interval = schedule.interval_ms === null ? null : Number(schedule.interval_ms);
         const active = schedule.last_run_id && (await tx.query(`SELECT id FROM ${schema}.runs WHERE id=$1 AND status IN ('queued','running')`, [schedule.last_run_id])).rows[0];
-        const run = active ? null : await this.#createRun(tx, {userId: String(schedule.owner_user), studioId: String(schedule.studio_id)}, String(schedule.workspace_id),
-          String(schedule.input_version), `schedule_${schedule.id}_${due}`, schedule.operation as CloudOperation, true);
+        let run: CloudRow | null = null;
+        if (!active) {
+          await tx.query('SAVEPOINT schedule_occurrence');
+          try {
+            run = await this.#createRun(tx, {userId: String(schedule.owner_user), studioId: String(schedule.studio_id)}, String(schedule.workspace_id),
+              String(schedule.input_version), `schedule_${schedule.id}_${due}`, schedule.operation as CloudOperation, true);
+          } catch (error) {
+            const rejection = scheduleDispatchRejection(error);
+            if (!rejection) throw error;
+            // Keep the selected schedule lock but discard all occurrence writes.
+            // Pause and diagnostic outbox entry then commit together.
+            await tx.query('ROLLBACK TO SAVEPOINT schedule_occurrence');
+            await tx.query('RELEASE SAVEPOINT schedule_occurrence');
+            await tx.query(`UPDATE ${schema}.schedules SET state='paused',revision=revision+1,updated_at=clock_timestamp() WHERE id=$1`, [schedule.id]);
+            await this.#event(tx, schedule, null, 'schedule.paused', {
+              scheduleId: schedule.id, dueAt: due, revision: Number(schedule.revision) + 1,
+              reason: 'dispatch_rejected', error: rejection,
+            });
+            return false;
+          }
+          await tx.query('RELEASE SAVEPOINT schedule_occurrence');
+        }
         const next = nextScheduleOccurrence(due, interval, now), state = interval === null ? 'completed' : 'enabled';
         await tx.query(`UPDATE ${schema}.schedules SET state=$1,next_run_at=$2,revision=revision+1,last_run_id=$3,updated_at=clock_timestamp() WHERE id=$4`, [state, next, run?.id ?? schedule.last_run_id, schedule.id]);
         await this.#event(tx, schedule, run?.id ?? schedule.last_run_id as string | null, active ? 'schedule.skipped' : 'schedule.dispatched', {

@@ -34,7 +34,12 @@ suite('PostgreSQL v5 uploads, durable recovery, RLS and transaction races',()=>{
     if(bootstrap){try{const deadline=Date.now()+5000;while(Number((await bootstrap.query('SELECT count(*) AS count FROM pg_stat_activity WHERE datname=$1',[database])).rows[0].count)!==0){if(Date.now()>deadline)throw new Error('Fixture clients did not close');await new Promise(resolve=>setTimeout(resolve,25));}await bootstrap.query(`DROP DATABASE IF EXISTS ${database}`);}finally{await bootstrap.end();}}
     expect(errors).toEqual([]);
   });
-  uploadContract(()=>({service,reopen}));
+  uploadContract(()=>({service,reopen,expire:async uploadIds=>{
+    // Move only synthetic fixture expiry; the production specification stays immutable.
+    await admin.query('ALTER TABLE codia_workspace.uploads DISABLE TRIGGER immutable_upload');
+    try { await admin.query('UPDATE codia_workspace.uploads SET expires_at=0 WHERE id=ANY($1::uuid[])',[uploadIds]); }
+    finally { await admin.query('ALTER TABLE codia_workspace.uploads ENABLE TRIGGER immutable_upload'); }
+  }}));
   it('serializes duplicate creation, concurrent chunk receipts and final publication in DB',async()=>{
     const ws=await store.createWorkspace(actor,'concurrency'),bytes=Buffer.from('pg atomic'),spec={name:'atomic.bin',size:bytes.length,sha256:uploadHash(bytes),requestKey:randomUUID()};
     const uploads=await Promise.all(Array.from({length:8},()=>service.createUpload(actor,ws.id,spec)));

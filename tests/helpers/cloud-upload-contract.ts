@@ -7,7 +7,7 @@ import type { CloudActor } from '../../lib/cloud-workspace/store.ts';
 export const uploadOwner: CloudActor={userId:'upload-alice',studioId:'upload-studio'};
 export const uploadOther: CloudActor={userId:'upload-bob',studioId:'upload-studio'};
 export const uploadOtherStudio: CloudActor={userId:'upload-alice',studioId:'other-studio'};
-export function uploadContract(context:()=>{service:CloudWorkspaceService; reopen:()=>Promise<CloudWorkspaceService>}) {
+export function uploadContract(context:()=>{service:CloudWorkspaceService; reopen:()=>Promise<CloudWorkspaceService>; expire:(uploadIds:string[])=>Promise<void>}) {
   async function fixture(bytes=Buffer.from('persistent upload'),actor=uploadOwner) {
     const {service}=context(),workspace=await service.store.createWorkspace(actor,'Upload contract');
     const spec={name:'document.bin',size:bytes.length,sha256:uploadHash(bytes),requestKey:randomUUID()};
@@ -120,6 +120,55 @@ export function uploadContract(context:()=>{service:CloudWorkspaceService; reope
     await expect(pending).rejects.toMatchObject({code:'upload_not_pending'});
     expect(await f.service.store.listFiles(f.actor,f.workspace.id)).toEqual([]);
     expect((await f.service.createUpload(f.actor,f.workspace.id,{...f.spec,requestKey:randomUUID()})).state).toBe('uploading');
+  });
+  it('cancels concurrently despite legacy cleanup-name collisions, retaining bytes and history',async()=>{
+    const f=await fixture(),collisionNames=[`${f.spec.name}.failed-${f.upload.file_id}`,`${f.upload.file_id}.failed`];
+    const kept=await Promise.all(collisionNames.map(name=>f.service.upload(f.actor,f.workspace.id,name,Buffer.from(name))));
+    await chunks(f);
+    const cancelled=await Promise.allSettled(Array.from({length:8},()=>f.service.cancelUpload(f.actor,f.upload.id)));
+    for(const outcome of cancelled) { if(outcome.status==='rejected') throw outcome.reason;expect(outcome.value).toMatchObject({state:'cancelled',revision:3}); }
+    const restarted=await context().reopen(),history=await restarted.store.uploadSession(f.actor,f.upload.id);
+    expect(history.version.status).toBe('rejected');expect(history.chunks).toHaveLength(1);
+    expect((await restarted.createUpload(f.actor,f.workspace.id,f.spec)).id).toBe(f.upload.id);
+    expect((await restarted.cancelUpload(f.actor,f.upload.id)).revision).toBe(3);
+    for(const [index,file] of kept.entries()) expect((await restarted.read(f.actor,file.version.id)).bytes.toString()).toBe(collisionNames[index]);
+    expect((await restarted.store.listFiles(f.actor,f.workspace.id)).map(file=>file.name).sort()).toEqual([...collisionNames].sort());
+    const retry=await restarted.createUpload(f.actor,f.workspace.id,{...f.spec,requestKey:randomUUID()});
+    expect(retry.file_id).not.toBe(f.upload.file_id);expect(retry.state).toBe('uploading');
+    await expect(restarted.createUpload(f.actor,f.workspace.id,{...f.spec,name:`.rejected/${f.upload.file_id}`,requestKey:randomUUID()})).rejects.toMatchObject({code:'invalid_name'});
+  });
+  it('cancellation releases an active byte reservation across workspaces despite old cleanup names',async()=>{
+    const {service}=context(),actor={userId:randomUUID(),studioId:'cancel-quota'},ws=await service.store.createWorkspace(actor,'cancel quota'),uploads=[];
+    for(let i=0;i<4;i++) uploads.push(await service.createUpload(actor,ws.id,{name:`large-${i}`,size:CLOUD_RESUMABLE_UPLOAD_LIMIT,sha256:'a'.repeat(64),requestKey:randomUUID()}));
+    const first=uploads[0];
+    for(const name of [`large-0.failed-${first.file_id}`,`${first.file_id}.failed`]) await service.upload(actor,ws.id,name,Buffer.from(name));
+    const other=await service.store.createWorkspace(actor,'new upload'),spec={name:'replacement',size:CLOUD_RESUMABLE_UPLOAD_LIMIT,sha256:'b'.repeat(64),requestKey:randomUUID()};
+    await expect(service.createUpload(actor,other.id,spec)).rejects.toMatchObject({code:'upload_quota_exceeded'});
+    expect((await service.cancelUpload(actor,first.id)).state).toBe('cancelled');
+    expect((await service.createUpload(actor,other.id,spec)).state).toBe('uploading');
+    expect((await service.uploadStatus(actor,first.id)).revision).toBe(2);
+  });
+  it('expiry releases owner-wide quotas despite cleanup-name collisions and preserves retries',async()=>{
+    const {service,expire}=context(),actor={userId:randomUUID(),studioId:'expiry-quota'},workspace=await service.store.createWorkspace(actor,'expiry quota');
+    const uploads=[];
+    for(let i=0;i<4;i++) uploads.push(await service.createUpload(actor,workspace.id,{name:`large-${i}`,size:CLOUD_RESUMABLE_UPLOAD_LIMIT,sha256:'a'.repeat(64),requestKey:randomUUID()}));
+    const first=uploads[0],kept=[];
+    for(const name of [`large-0.failed-${first.file_id}`,`${first.file_id}.failed`]) kept.push(await service.upload(actor,workspace.id,name,Buffer.from(name)));
+    const other=await service.store.createWorkspace(actor,'another workspace'),spec={name:'after-cleanup',size:1,sha256:uploadHash('x'),requestKey:randomUUID()};
+    await expect(service.createUpload(actor,other.id,spec)).rejects.toMatchObject({code:'upload_quota_exceeded'});
+    await expire(uploads.map(row=>row.id));
+    // Public reads and creation used to fail owner-wide while cleaning this row.
+    const lists=await Promise.allSettled(Array.from({length:4},()=>service.listUploads(actor,other.id)));
+    for(const outcome of lists) { if(outcome.status==='rejected') throw outcome.reason;expect(outcome.value).toEqual([]); }
+    const next=await service.createUpload(actor,other.id,spec);expect(next.state).toBe('uploading');
+    for(const upload of uploads) {
+      expect(await service.uploadStatus(actor,upload.id)).toMatchObject({state:'expired',revision:2});
+      expect((await service.store.uploadSession(actor,upload.id)).version.status).toBe('rejected');
+      expect((await service.cancelUpload(actor,upload.id)).state).toBe('expired');
+    }
+    for(const file of kept) expect((await service.read(actor,file.version.id)).bytes.toString()).toBe(file.file.name);
+    const restarted=await context().reopen();expect((await restarted.uploadStatus(actor,first.id)).state).toBe('expired');
+    expect((await restarted.createUpload(actor,other.id,spec)).id).toBe(next.id);
   });
   it('bounds active and retained reservations across workspaces and cancellation loops',async()=>{
     const actor={userId:randomUUID(),studioId:'quota-studio'}, {service}=context(),ws=await service.store.createWorkspace(actor,'quota');

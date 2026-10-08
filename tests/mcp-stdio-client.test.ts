@@ -98,12 +98,14 @@ describe("MCP stdio client", () => {
         [
           "/d",
           "/s",
+          "/v:off",
           "/c",
-          "\"C:\\Program Files\\nodejs\\npx.cmd\" -y mcp-server-example",
+          "\"C:\\Program^ Files\\nodejs\\npx.cmd ^\"-y^\" ^\"mcp-server-example^\"\"",
         ],
         expect.objectContaining({
           shell: false,
           windowsHide: true,
+          windowsVerbatimArguments: true,
         }),
       );
 
@@ -259,8 +261,9 @@ describe("MCP stdio client", () => {
     expect(spec.args).toEqual([
       "/d",
       "/s",
+      "/v:off",
       "/c",
-      "C:\\nodejs\\npx.cmd -y @sylphx/pdf-reader-mcp",
+      "\"C:\\nodejs\\npx.cmd ^\"-y^\" ^\"@sylphx/pdf-reader-mcp^\"\"",
     ]);
     expect(spec.env.NPM_CONFIG_REGISTRY).toBe("https://registry.npmmirror.com");
   });
@@ -277,7 +280,7 @@ describe("MCP stdio client", () => {
     });
 
     expect(spec.command).toBe("cmd.exe");
-    expect(spec.args).toEqual(["/d", "/s", "/c", "pdf-reader-mcp --stdio"]);
+    expect(spec.args).toEqual(["/d", "/s", "/v:off", "/c", "\"pdf-reader-mcp ^\"--stdio^\"\""]);
   });
 
   it("keeps Windows .exe commands on direct spawn", () => {
@@ -309,8 +312,9 @@ describe("MCP stdio client", () => {
     expect(spec.args).toEqual([
       "/d",
       "/s",
+      "/v:off",
       "/c",
-      "\"C:\\Program Files\\nodejs\\npx.cmd\" -y \"package with spaces\"",
+      "\"C:\\Program^ Files\\nodejs\\npx.cmd ^\"-y^\" ^\"package^ with^ spaces^\"\"",
     ]);
   });
 });

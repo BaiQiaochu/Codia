@@ -2,6 +2,7 @@
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { buildWindowsCommandLine } from "./windows-cmd-escape.js";
 
 export const MCP_PROTOCOL_VERSION = "2025-11-25";
 
@@ -39,6 +40,7 @@ export class McpStdioClient {
       stdio: ["pipe", "pipe", "pipe"],
       shell: false,
       windowsHide: true,
+      windowsVerbatimArguments: spawnSpec.windowsVerbatimArguments === true,
     });
 
     this.process.stdout.setEncoding("utf-8");
@@ -210,7 +212,7 @@ export class McpStdioClient {
 }
 
 export function resolveMcpStdioSpawnSpec(server, {
-  platform = process.platform,
+  platform = process.platform as NodeJS.Platform | "direct",
   baseEnv = process.env,
   existsSync = fs.existsSync,
 } = {}) {
@@ -228,26 +230,27 @@ export function resolveMcpStdioSpawnSpec(server, {
   }
 
   const command = resolveWindowsCommand(rawCommand, baseEnv, existsSync);
-  const ext = path.extname(command).toLowerCase();
-  if (ext === ".exe") {
+  const ext = path.win32.extname(command).toLowerCase();
+  if (ext === ".exe" || ext === ".com") {
     return { command, args: rawArgs, env };
   }
-  if (ext === ".cmd" || ext === ".bat" || ext === ".com" || !ext) {
+  if (ext === ".cmd" || ext === ".bat" || !ext) {
     const comspec = String(baseEnv.ComSpec || baseEnv.COMSPEC || "cmd.exe");
     return {
       command: comspec,
-      args: ["/d", "/s", "/c", buildWindowsCommandLine(command, rawArgs)],
+      args: ["/d", "/s", "/v:off", "/c", buildWindowsCommandLine(command, rawArgs)],
       env,
+      windowsVerbatimArguments: true,
     };
   }
   return { command, args: rawArgs, env };
 }
 
 function resolveWindowsCommand(command, env, existsSync) {
-  if (isPathLike(command)) return command;
+  if (isPathLike(command)) return path.win32.normalize(command);
   const pathValue = String(env.Path || env.PATH || "");
   const pathDirs = pathValue.split(";").filter(Boolean);
-  const extensions = path.extname(command)
+  const extensions = path.win32.extname(command)
     ? [""]
     : String(env.PATHEXT || ".COM;.EXE;.BAT;.CMD")
       .split(";")
@@ -255,7 +258,7 @@ function resolveWindowsCommand(command, env, existsSync) {
       .filter(Boolean);
   for (const dir of pathDirs) {
     for (const ext of extensions) {
-      const candidate = path.join(dir, `${command}${ext}`);
+      const candidate = path.win32.join(dir, `${command}${ext}`);
       if (existsSync(candidate)) return candidate;
     }
   }
@@ -266,12 +269,3 @@ function isPathLike(command) {
   return command.includes("\\") || command.includes("/") || /^[A-Za-z]:/.test(command);
 }
 
-function buildWindowsCommandLine(command, args) {
-  return [quoteWindowsArg(command), ...args.map(quoteWindowsArg)].join(" ");
-}
-
-function quoteWindowsArg(value) {
-  const text = String(value);
-  if (!/[ \t"]/u.test(text)) return text;
-  return `"${text.replace(/"/g, '\\"')}"`;
-}

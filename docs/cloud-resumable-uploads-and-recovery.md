@@ -89,6 +89,15 @@ resumed; select the file for a new session. Expiry releases active work without
 publishing a partial file. Existing ready versions and historical run artifacts
 are unaffected.
 
+Cancelling or expiring an unpublished file releases its public filename inside the
+same terminal-state transaction. Its retained metadata uses the internal
+`.rejected/<file-id>` namespace, which the public filename validator cannot
+create. Legitimate names resembling older cleanup suffixes remain untouched;
+ready replacement targets keep their original name and current version. Session
+identity, chunk receipts and rejected version history survive terminal retries.
+Active reservation quota is released; retained-session quota still applies until
+the original expiry time. This correction requires no schema migration.
+
 ## Temporary object retention and deployment limits
 
 Temporary chunks are stored under the server-generated prefix

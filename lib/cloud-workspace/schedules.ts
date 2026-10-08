@@ -39,3 +39,13 @@ export function nextScheduleOccurrence(due: number, interval: number | null, tim
   // BigInt avoids rounding on large, but still valid, epoch-millisecond values.
   return Number(BigInt(due) + ((BigInt(timestamp) - BigInt(due)) / BigInt(interval) + 1n) * BigInt(interval));
 }
+
+/** Only persisted, deterministic admission failures may pause a schedule.
+ * Database outages, migration errors and unknown exceptions must remain retryable.
+ */
+export function scheduleDispatchRejection(error: unknown): string | null {
+  return error instanceof CloudWorkspaceError && [
+    'document_input_too_large', 'agent_input_too_large', 'not_found',
+    'unsupported_operation', 'invalid_request_key', 'idempotency_conflict',
+  ].includes(error.code) ? error.code : null;
+}

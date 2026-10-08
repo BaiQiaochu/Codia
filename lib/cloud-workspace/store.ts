@@ -4,7 +4,7 @@ import { CLOUD_DOCUMENT_INPUT_LIMIT, CLOUD_AGENT_INPUT_LIMIT } from './input-lim
 import fs from 'node:fs';
 import path from 'node:path';
 import type { CloudOperation, CreateCloudSchedule, EnqueueCloudRun } from './repository.ts';
-import { normalizeSchedule, sameScheduleSpecification, nextScheduleOccurrence, scheduleTimestamp, scheduleLimit, scheduleRevision } from './schedules.ts';
+import { normalizeSchedule, sameScheduleSpecification, nextScheduleOccurrence, scheduleTimestamp, scheduleLimit, scheduleRevision, scheduleDispatchRejection } from './schedules.ts';
 import { loadBetterSqliteDatabase } from '../../core/session-manifest/store.ts';
 
 export type CloudActor = { userId: string; studioId: string };
@@ -320,7 +320,9 @@ export class CloudWorkspaceStore {
       const v = this.db.prepare("SELECT file_id FROM cw_versions WHERE id=? AND status='staging'").get(versionId);
       if (!v) return;
       this.db.prepare("UPDATE cw_versions SET status='rejected' WHERE id=?").run(versionId);
-      this.db.prepare("UPDATE cw_files SET name=name || '.failed-' || id WHERE id=? AND current_version IS NULL").run(v.file_id);
+      // '/' is rejected by validName, so cleanup cannot collide with any user
+      // filename. The immutable file ID also makes retries/internal names unique.
+      this.db.prepare("UPDATE cw_files SET name='.rejected/' || id WHERE id=? AND current_version IS NULL AND NOT EXISTS(SELECT 1 FROM cw_versions WHERE file_id=? AND status='staging')").run(v.file_id, v.file_id);
     });
   }
   createRun(actor: CloudActor, workspaceId: string, inputVersion: string, requestKey: string, operation: CloudOperation = 'document-summary') {
@@ -416,8 +418,24 @@ export class CloudWorkspaceStore {
       let dispatched = 0;
       for (const schedule of due) {
         const active = schedule.last_run_id && this.db.prepare("SELECT id FROM cw_runs WHERE id=? AND status IN ('queued','running')").get(schedule.last_run_id);
-        const run = active ? null : this.#createRun({userId: schedule.owner_user, studioId: schedule.studio_id}, schedule.workspace_id,
-          schedule.input_version, `schedule_${schedule.id}_${schedule.next_run_at}`, schedule.operation);
+        let run: CloudRow | null = null;
+        if (!active) {
+          try {
+            // #createRun owns a nested transaction/savepoint: failed admission
+            // cannot leave a partial run or outbox entry behind.
+            run = this.#createRun({userId: schedule.owner_user, studioId: schedule.studio_id}, schedule.workspace_id,
+              schedule.input_version, `schedule_${schedule.id}_${schedule.next_run_at}`, schedule.operation);
+          } catch (error) {
+            const rejection = scheduleDispatchRejection(error);
+            if (!rejection) throw error;
+            this.db.prepare("UPDATE cw_schedules SET state='paused',revision=revision+1,updated_at=? WHERE id=?").run(now(), schedule.id);
+            this.event(schedule.workspace_id, null, 'schedule.paused', {
+              scheduleId: schedule.id, dueAt: schedule.next_run_at, revision: schedule.revision + 1,
+              reason: 'dispatch_rejected', error: rejection,
+            });
+            continue;
+          }
+        }
         const next = nextScheduleOccurrence(schedule.next_run_at, schedule.interval_ms, timestamp);
         const state = schedule.interval_ms === null ? 'completed' : 'enabled';
         this.db.prepare('UPDATE cw_schedules SET state=?,next_run_at=?,revision=revision+1,last_run_id=?,updated_at=? WHERE id=?').run(state, next, run?.id ?? schedule.last_run_id, now(), schedule.id);

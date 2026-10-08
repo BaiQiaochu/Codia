@@ -132,9 +132,55 @@ suite('Native PostgreSQL durable schedules, owner RLS, and dispatcher concurrenc
     expect((await pool.query("SELECT relrowsecurity,relforcerowsecurity FROM pg_class WHERE oid='codia_workspace.schedules'::regclass")).rows[0]).toEqual({ relrowsecurity: true, relforcerowsecurity: true });
     expect((await pool.query("SELECT current_setting('codia.trusted_worker',true) AS worker")).rows[0].worker).not.toBe('on');
   });
-  it('rolls back run, schedule advance, and outbox together on dispatch failure', async () => {
+  it('isolates legacy oversized schedules under concurrent dispatch and preserves other-owner claims', async () => {
+    const failed=[];
+    for(const [operation,size,error] of [['agent-summary',131073,'agent_input_too_large'],['document-summary',2097153,'document_input_too_large']] as const) {
+      const staged=await store.stageVersion(actor,workspace.id,`${operation}.txt`,size,hash);
+      const pinned=(await store.finalizeVersion(actor,staged.version.id,null)).version;
+      const spec=input({inputVersion:pinned.id,operation,requestKey:randomUUID(),enabled:true}),scheduleId=randomUUID();
+      // Legacy applications admitted these immutable version sizes. Seed that
+      // persisted shape through the fixture owner, without changing runtime RLS.
+      await admin.query(`INSERT INTO codia_workspace.schedules(id,workspace_id,owner_user,studio_id,input_version,operation,name,request_key,state,next_run_at,interval_ms,revision,creation_spec)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,'enabled',1000,60000,1,$9)`,[scheduleId,workspace.id,actor.userId,actor.studioId,pinned.id,operation,spec.name,spec.requestKey,JSON.stringify(spec)]);
+      failed.push({id:scheduleId,error});
+    }
+    const other=strangers[0],space=await store.createWorkspace(other,'unrelated owner'),stage=await store.stageVersion(other,space.id,'small.txt',2,hash);
+    const good=(await store.finalizeVersion(other,stage.version.id,null)).version;
+    const queued=await store.createRun(other,space.id,good.id,randomUUID());
+    const healthy=await store.createSchedule(other,space.id,{...input(),inputVersion:good.id,operation:'document-summary',firstRunAt:1001,enabled:true});
+    await pool.end();pool=runtimePool();store=new PostgresWorkspaceStore(pool);
+    const results=await Promise.allSettled(Array.from({length:8},()=>store.dispatchDueSchedules(1001)));
+    let dispatched=0;for(const outcome of results) { if(outcome.status==='rejected') throw outcome.reason;dispatched+=outcome.value; }
+    expect(dispatched).toBe(1);
+    for(const failedSchedule of failed) {
+      expect(await store.schedule(actor,failedSchedule.id)).toMatchObject({state:'paused',revision:2,next_run_at:1000,last_run_id:null});
+      const events=(await store.events(actor,workspace.id)).events.filter(event=>event.kind==='schedule.paused'&&event.payload.scheduleId===failedSchedule.id);
+      expect(events).toHaveLength(1);expect(events[0].payload).toMatchObject({reason:'dispatch_rejected',error:failedSchedule.error,dueAt:1000,revision:2});
+    }
+    expect(await store.listRuns(actor,workspace.id)).toEqual([]);expect((await store.schedule(other,healthy.id)).last_run_id).toBeTruthy();
+    expect(await store.claim()).toMatchObject({id:queued.id,status:'running',attempt:1});
+    await pool.end();pool=runtimePool();store=new PostgresWorkspaceStore(pool);
+    expect(await store.dispatchDueSchedules(1001)).toBe(0);
+    for(const failedSchedule of failed) expect(await store.schedule(actor,failedSchedule.id)).toMatchObject({state:'paused',revision:2});
+  });
+  it('rolls back automatic pause together with a failed diagnostic event', async () => {
+    const staged=await store.stageVersion(actor,workspace.id,'oversized.txt',131073,hash);
+    const pinned=(await store.finalizeVersion(actor,staged.version.id,null)).version;
+    const spec=input({inputVersion:pinned.id,operation:'agent-summary',requestKey:randomUUID(),enabled:true}),scheduleId=randomUUID();
+    await admin.query(`INSERT INTO codia_workspace.schedules(id,workspace_id,owner_user,studio_id,input_version,operation,name,request_key,state,next_run_at,interval_ms,revision,creation_spec)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,'enabled',1000,60000,1,$9)`,[scheduleId,workspace.id,actor.userId,actor.studioId,pinned.id,spec.operation,spec.name,spec.requestKey,JSON.stringify(spec)]);
+    const before=await store.schedule(actor,scheduleId);
+    await admin.query("CREATE FUNCTION codia_workspace.reject_test_pause() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.kind='schedule.paused' THEN RAISE EXCEPTION 'pause_event_failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER reject_test_pause BEFORE INSERT ON codia_workspace.outbox FOR EACH ROW EXECUTE FUNCTION codia_workspace.reject_test_pause()");
+    try {
+      await expect(store.dispatchDueSchedules(1000)).rejects.toThrow('pause_event_failure');
+      expect(await store.schedule(actor,scheduleId)).toEqual(before);expect(await store.listRuns(actor,workspace.id)).toEqual([]);
+      expect((await store.events(actor,workspace.id)).events.filter(event=>event.kind==='schedule.paused')).toEqual([]);
+    } finally { await admin.query('DROP TRIGGER reject_test_pause ON codia_workspace.outbox; DROP FUNCTION codia_workspace.reject_test_pause()'); }
+    expect(await store.dispatchDueSchedules(1000)).toBe(0);expect(await store.schedule(actor,scheduleId)).toMatchObject({state:'paused',revision:2});
+  });
+  it.each(['run.queued','schedule.dispatched'])('rolls back run, schedule advance, and outbox on %s persistence failure', async kind => {
     const schedule = await store.createSchedule(actor, workspace.id, input({ enabled: true }));
-    await admin.query("CREATE FUNCTION codia_workspace.reject_test_dispatch() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.kind='schedule.dispatched' THEN RAISE EXCEPTION 'injected_dispatch_failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER reject_test_dispatch BEFORE INSERT ON codia_workspace.outbox FOR EACH ROW EXECUTE FUNCTION codia_workspace.reject_test_dispatch()");
+    await admin.query(`CREATE FUNCTION codia_workspace.reject_test_dispatch() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.kind='${kind}' THEN RAISE EXCEPTION 'injected_dispatch_failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER reject_test_dispatch BEFORE INSERT ON codia_workspace.outbox FOR EACH ROW EXECUTE FUNCTION codia_workspace.reject_test_dispatch()`);
     try {
       await expect(store.dispatchDueSchedules(1000)).rejects.toThrow('injected_dispatch_failure');
       expect(await store.listRuns(actor, workspace.id)).toEqual([]); expect(await store.schedule(actor, schedule.id)).toEqual(schedule);
