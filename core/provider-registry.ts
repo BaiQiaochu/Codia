@@ -28,7 +28,7 @@ import {
   normalizeVisionCapabilities,
 } from "../shared/model-capabilities.ts";
 import { validateProviderRuntime } from "./media-runtime-contract.ts";
-import { capabilityKey, inferMediaProtocolId, MEDIA_CAPABILITY_KEYS } from "./media-protocols.ts";
+import { capabilityKey, inferMediaProtocolId } from "./media-protocols.ts";
 import { ProviderCatalogStore } from "./provider-catalog.ts";
 import {
   isLocalProviderPlugin,

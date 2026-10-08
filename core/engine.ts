@@ -105,7 +105,6 @@ import { PreferencesManager } from "./preferences-manager.ts";
 import { ModelManager } from "./model-manager.ts";
 import { SessionProjectCatalogStore } from "./session-project-catalog-store.ts";
 import {
-  compactSessionWithCachePreservation,
   compactSessionWithCachePreservationRecoveringRuntime,
 } from "./session-compactor.ts";
 import { SkillManager } from "./skill-manager.ts";
