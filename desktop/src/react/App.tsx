@@ -390,6 +390,9 @@ function App() {
               className={`tb-toggle tb-toggle-left${sidebarOpen ? ' active' : ''}`}
               id="tbToggleLeft"
               title={t('sidebar.toggle')}
+              aria-label={t('sidebar.toggle')}
+              aria-expanded={sidebarVisible}
+              aria-controls="sidebar"
               onClick={() => { hideFloat(); toggleSidebar(); }}
               onMouseEnter={(e) => showFloat('left', e.currentTarget)}
               onMouseLeave={scheduleFloatHide}

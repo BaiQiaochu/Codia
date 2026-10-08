@@ -18,7 +18,7 @@ suite('real PostgreSQL legacy migration, non-owner RLS role', () => {
   const actor: CloudActor = { userId: 'migration-alice', studioId: 'migration-studio' };
   beforeAll(async () => {
     admin = new Pool({ connectionString, max: 4 });
-    for (const filename of ['002-workspace-runtime.sql', '003-legacy-migration.sql', '004-cloud-agent-tasks.sql']) await admin.query(fs.readFileSync(new URL(`../lib/cloud-workspace/migrations/${filename}`, import.meta.url), 'utf8'));
+    for (const filename of ['002-workspace-runtime.sql', '003-legacy-migration.sql', '004-cloud-agent-tasks.sql', '005-resumable-uploads.sql']) await admin.query(fs.readFileSync(new URL(`../lib/cloud-workspace/migrations/${filename}`, import.meta.url), 'utf8'));
     await admin.query(`CREATE ROLE codia_migration_test_runtime NOLOGIN NOSUPERUSER NOBYPASSRLS;
       GRANT USAGE ON SCHEMA codia_workspace TO codia_migration_test_runtime;
       GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA codia_workspace TO codia_migration_test_runtime;

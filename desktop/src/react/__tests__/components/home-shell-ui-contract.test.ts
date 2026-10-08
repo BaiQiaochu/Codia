@@ -66,7 +66,7 @@ describe('home shell UI contract', () => {
     expect(welcome).not.toContain('role="menuitemradio"');
     expect(welcome).not.toContain('aria-checked={isActive}');
     expect(welcome).not.toContain('setCurrentTab');
-    expect(welcome).toContain("mode: 'replace'");
+    expect(welcome).not.toContain("mode: 'replace'");
     expect(welcome).not.toContain("id: 'research'");
     expect(welcome).not.toContain("id: 'documents'");
     expect(welcome).not.toContain("id: 'meeting'");
@@ -123,7 +123,10 @@ describe('home shell UI contract', () => {
     expect(welcome).toContain('const targetName = workspaceName || folderName;');
     expect(welcome).toContain("`${t('input.workspace')}${targetName}`");
     expect(welcome).not.toContain('今天想对');
-    expect(welcome).toContain('workspaceSettingsButton');
+    expect(welcome).not.toContain('workspaceSettingsButton');
+    expect(welcome).not.toContain('开始一段对话');
+    expect(read('App.tsx')).toContain('账户与偏好设置');
+    expect(read('App.tsx')).toContain('aria-expanded={sidebarVisible}');
     expect(welcome).toContain('const name = getFolderDisplayName(path);');
     expect(welcome).not.toContain("const name = path.split('/').pop() || path;");
   });

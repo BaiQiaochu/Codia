@@ -3,6 +3,8 @@ import {
   CubismMatrix44, CubismShaderManager_WebGL, CubismWebGLOffscreenManager,
 } from '../../assets/codia/live2d/framework.js';
 import { resolveModelAsset, validateModelManifest, type CodiaLive2DAssets } from './assets';
+import { getCodiaWebGLContext } from './capabilities';
+import { bundledShaderSources, readBundledCodiaAsset } from './bundled-assets';
 import { CODIA_LOOP_SECONDS, CODIA_PARAMETER_IDS, sampleCodiaTimeline } from './timeline';
 
 export interface CodiaLive2DOptions extends CodiaLive2DAssets {
@@ -38,6 +40,8 @@ function retainFramework(): () => void {
   };
 }
 async function fetchBuffer(url: string, signal: AbortSignal): Promise<ArrayBuffer> {
+  signal.throwIfAborted();
+  if (url.startsWith('codia-bundled:')) return readBundledCodiaAsset(url);
   const response = await fetch(url, { signal: AbortSignal.any([signal, AbortSignal.timeout(15_000)]), cache: 'no-cache' });
   if (!response.ok) throw new Error(`Live2D asset HTTP ${response.status}`);
   return response.arrayBuffer();
@@ -48,10 +52,7 @@ export async function createCodiaLive2D(canvas: HTMLCanvasElement, options: Codi
   signal.throwIfAborted();
   // Safe/software renderers may reject this request. Do not retry WebGL 1 or
   // override Electron's GPU recovery policy: 5.3 offscreen groups require WebGL 2.
-  const gl = canvas.getContext('webgl2', {
-    alpha: true, premultipliedAlpha: true, antialias: true, failIfMajorPerformanceCaveat: true,
-  });
-  if (!gl) throw new Error('WebGL 2 unavailable; using the mascot fallback');
+  const gl = getCodiaWebGLContext(canvas);
   const releaseFramework = retainFramework();
   let userModel: CubismUserModel | null = null;
   let setting: CubismModelSettingJson | null = null;
@@ -177,6 +178,10 @@ export async function createCodiaLive2D(canvas: HTMLCanvasElement, options: Codi
       const image = await createImageBitmap(new Blob([buffer]), { premultiplyAlpha: 'premultiply' });
       try {
         signal.throwIfAborted();
+        const maximumTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
+        if (image.width > maximumTextureSize || image.height > maximumTextureSize) {
+          throw new Error('Codia texture exceeds the graphics capability; using the static mascot');
+        }
         const texture = gl.createTexture();
         if (!texture) throw new Error('Could not create a Live2D texture');
         textures.push(texture);
@@ -192,8 +197,9 @@ export async function createCodiaLive2D(canvas: HTMLCanvasElement, options: Codi
         renderer.bindTexture(index, texture);
       } finally { image.close(); }
     }
-    renderer.loadShaders(options.shaderPath);
     const shader = CubismShaderManager_WebGL.getInstance().getShader(gl);
+    if (options.shaderPath === 'codia-bundled:/shaders/') shader.codiaShaderSources = bundledShaderSources;
+    renderer.loadShaders(options.shaderPath);
     const deadline = performance.now() + 15_000;
     while (!shader._isShaderLoaded) {
       signal.throwIfAborted();

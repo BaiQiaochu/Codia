@@ -9,6 +9,11 @@ export default [
       'node_modules/',
       'openhanako-*/**',
       'vendor/**',
+      // Upstream SDK sources and their generated renderer bundles retain their
+      // vendor formatting. Our Live2D integration and authoring code is linted.
+      'third_party/live2d/cubism-web-5-r.5/Core/live2dcubismcore.js',
+      'desktop/src/assets/codia/live2d/core/live2dcubismcore.js',
+      'desktop/src/assets/codia/live2d/framework.js',
       'artifacts/**',
       '**/dist/**',
       'dist-server/**',
@@ -18,6 +23,7 @@ export default [
       'desktop/dist-renderer/**',
       'desktop/native/**/.build/**',
       '.cache/**',
+      '.local-tools/live2d/react-fixture/**',
       '**/*.cjs',
     ],
   },
@@ -26,7 +32,7 @@ export default [
   ...tseslint.configs.recommended,
 
   {
-    files: ['desktop/src/**/*.js'],
+    files: ['desktop/src/**/*.js', 'design/codia/live2d/preview/review.js'],
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -47,6 +53,7 @@ export default [
     files: [
       'cli/**/*.{js,ts}',
       'core/**/*.{js,ts}',
+      'design/codia/live2d/**/*.mjs',
       'hub/**/*.{js,ts}',
       'index.js',
       'lib/**/*.{js,ts}',
@@ -79,6 +86,8 @@ export default [
   {
     files: [
       'scripts/packaged-runtime-smoke.mjs',
+      'scripts/codia-layout-visual-qa.mjs',
+      'scripts/e2e-quick-action-review.mjs',
       'scripts/pwa-theme-behavior-audit.mjs',
       'scripts/theme-screenshot-audit.mjs',
       'scripts/ui-overlap-regression.mjs',

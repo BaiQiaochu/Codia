@@ -2,6 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createCodiaLive2D } from '../runtime';
 import { CODIA_PARAMETER_IDS } from '../timeline';
+import { CODIA_BUNDLED_ASSETS } from '../assets';
+import { bundledShaderSources } from '../bundled-assets';
 
 const sdk = vi.hoisted(() => ({
   start: vi.fn(() => true), initialize: vi.fn(), dispose: vi.fn(), cleanup: vi.fn(),
@@ -12,6 +14,7 @@ const sdk = vi.hoisted(() => ({
   offscreenContexts: new Map<unknown, { deleted: boolean }>(),
   setParameter: vi.fn(), modelRelease: vi.fn(), render: vi.fn(), target: vi.fn(),
   ids: [] as string[],
+  shader: { _isShaderLoaded: true, codiaLoadError: null as Error | null, codiaShaderSources: null as Record<string, string> | null },
 }));
 vi.mock('../../../assets/codia/live2d/framework.js', () => ({
   Option: class {}, LogLevel: { LogLevel_Warning: 2 },
@@ -50,7 +53,7 @@ vi.mock('../../../assets/codia/live2d/framework.js', () => ({
     }; }
   },
   CubismShaderManager_WebGL: { getInstance: () => ({
-    getShader: () => ({ _isShaderLoaded: true, codiaLoadError: null }), releaseGlContext: sdk.releaseContext,
+    getShader: () => sdk.shader, releaseGlContext: sdk.releaseContext,
   }) },
   CubismWebGLOffscreenManager: { getInstance: () => ({
     removeContext: sdk.removeOffscreenContext,
@@ -76,9 +79,10 @@ beforeEach(() => {
   sdk.offscreenContexts.clear();
   sdk.removeOffscreenContext.mockImplementation(context => { sdk.offscreenContexts.delete(context); });
   sdk.ids = [...CODIA_PARAMETER_IDS];
+  sdk.shader = { _isShaderLoaded: true, codiaLoadError: null, codiaShaderSources: null };
   gl = Object.fromEntries(['bindTexture', 'texParameteri', 'texImage2D', 'generateMipmap', 'deleteTexture', 'clearColor', 'clear', 'viewport'].map(key => [key, vi.fn()]));
   Object.assign(gl, { TEXTURE_2D: 0x0DE1, TEXTURE_MIN_FILTER: 0x2801, TEXTURE_MAG_FILTER: 0x2800, LINEAR: 0x2601, LINEAR_MIPMAP_LINEAR: 0x2703 });
-  Object.assign(gl, { createTexture: vi.fn(() => ({})), isContextLost: () => false, getError: () => 0, NO_ERROR: 0 });
+  Object.assign(gl, { createTexture: vi.fn(() => ({})), isContextLost: () => false, getError: () => 0, NO_ERROR: 0, MAX_TEXTURE_SIZE: 0x0D33, getParameter: vi.fn(() => 4096) });
   canvas = document.createElement('canvas');
   vi.spyOn(canvas, 'getContext').mockReturnValue(gl as unknown as WebGL2RenderingContext);
   vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue({ width: 180, height: 180 } as DOMRect);
@@ -87,7 +91,7 @@ beforeEach(() => {
   vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => { frames.set(next, callback); return next++; }));
   vi.stubGlobal('cancelAnimationFrame', vi.fn((id: number) => frames.delete(id)));
   bitmapClose = vi.fn<() => void>();
-  vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ close: bitmapClose })));
+  vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ close: bitmapClose, width: 4096, height: 4096 })));
   vi.stubGlobal('fetch', vi.fn(async (url: string) => ({
     ok: true,
     arrayBuffer: async () => url.endsWith('.model3.json')
@@ -98,6 +102,25 @@ beforeEach(() => {
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe('Codia Cubism runtime resource lifetime', () => {
+  it('loads the packaged model and injects all shader sources with zero network requests', async () => {
+    const handle = await createCodiaLive2D(canvas, { ...CODIA_BUNDLED_ASSETS, signal: new AbortController().signal, reducedMotion: true, onError: vi.fn() });
+    expect(fetch).not.toHaveBeenCalled();
+    expect(sdk.shader.codiaShaderSources).toBe(bundledShaderSources);
+    expect(sdk.render).toHaveBeenCalledWith(CODIA_BUNDLED_ASSETS.shaderPath);
+    handle.dispose();
+  });
+  it('fails missing bundled assets without trying any external transport', async () => {
+    await expect(createCodiaLive2D(canvas, { ...CODIA_BUNDLED_ASSETS, modelUrl: 'codia-bundled:/model/missing.model3.json', signal: new AbortController().signal, reducedMotion: true, onError: vi.fn() })).rejects.toThrow('Missing bundled');
+    expect(fetch).not.toHaveBeenCalled();
+    expect(sdk.dispose).toHaveBeenCalledOnce();
+  });
+  it('releases a shader compilation/loading failure instead of marking the canvas ready', async () => {
+    sdk.shader = { _isShaderLoaded: false, codiaLoadError: new Error('shader unavailable'), codiaShaderSources: null };
+    await expect(createCodiaLive2D(canvas, { ...assets, signal: new AbortController().signal, reducedMotion: true, onError: vi.fn() })).rejects.toThrow('shader unavailable');
+    expect(sdk.render).not.toHaveBeenCalled();
+    expect(sdk.releaseContext).toHaveBeenCalledOnce();
+    expect(sdk.dispose).toHaveBeenCalledOnce();
+  });
   it('uploads premultiplied textures and generates mipmaps before drawing the small mascot', async () => {
     const handle = await createCodiaLive2D(canvas, { ...assets, signal: new AbortController().signal, reducedMotion: true, onError: vi.fn() });
     expect(createImageBitmap).toHaveBeenCalledWith(expect.any(Blob), { premultiplyAlpha: 'premultiply' });
@@ -109,6 +132,13 @@ describe('Codia Cubism runtime resource lifetime', () => {
     expect(upload.mock.invocationCallOrder[0]).toBeLessThan(mipmaps.mock.invocationCallOrder[0]);
     expect(mipmaps.mock.invocationCallOrder[0]).toBeLessThan(sdk.render.mock.invocationCallOrder[0]);
     handle.dispose();
+  });
+  it('keeps static fallback on a device whose maximum texture size cannot hold the atlas', async () => {
+    vi.mocked(gl.getParameter as () => number).mockReturnValue(2048);
+    await expect(createCodiaLive2D(canvas, { ...assets, signal: new AbortController().signal, reducedMotion: true, onError: vi.fn() })).rejects.toThrow('graphics capability');
+    expect(gl.texImage2D).not.toHaveBeenCalled();
+    expect(bitmapClose).toHaveBeenCalledOnce();
+    expect(sdk.dispose).toHaveBeenCalledOnce();
   });
   it('updates geometry after resize and settles offscreen targets while reduced motion is still static', async () => {
     const controller = new AbortController();

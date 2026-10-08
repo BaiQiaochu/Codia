@@ -80,10 +80,9 @@ describe('Mobile PWA entry split', () => {
     expect(source).not.toContain('settingsModal');
     expect(source).not.toContain('id="settingsBtn"');
     expect(source).not.toContain("tr('settings.title'");
-    expect(source).toContain('<WelcomeScreen enableSettings={false} />');
-    expect(welcomeSource).toContain('enableSettings?: boolean');
-    expect(welcomeSource).toContain('{enableSettings && (');
-    expect(welcomeSource).toContain('className={styles.workspaceSettingsButton}');
+    expect(source).toContain('<WelcomeScreen />');
+    expect(welcomeSource).not.toContain('openSettingsModal');
+    expect(welcomeSource).not.toContain('workspaceSettingsButton');
   });
 
   it('uses Codia naming for the mobile HTML and manifest', () => {

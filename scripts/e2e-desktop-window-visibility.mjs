@@ -43,7 +43,8 @@ async function connect(port) {
     if (!ticket) return;
     pending.delete(message.id);
     clearTimeout(ticket.timer);
-    message.error ? ticket.reject(new Error(message.error.message)) : ticket.resolve(message.result);
+    if (message.error) ticket.reject(new Error(message.error.message));
+    else ticket.resolve(message.result);
   });
   ws.on('close', () => {
     for (const ticket of pending.values()) { clearTimeout(ticket.timer); ticket.reject(new Error('Inspector closed')); }
@@ -82,6 +83,7 @@ async function checkMode(mode) {
   let inspector;
   const report = { mode, ok: false, checks: [] };
   let userData;
+  const failures = [];
   try {
     // The ESM bootstrap creates a transient inspector context. Wait until the
     // real main window exists before evaluating in the main-process context.
@@ -134,36 +136,50 @@ async function checkMode(mode) {
     console.log(`${mode}: ${report.checks.length} native window checks passed`);
   } catch (error) {
     report.error = error.stack || String(error);
-    throw error;
+    failures.push(error);
   } finally {
-    fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(report, null, 2));
-    if (inspector) {
-      await inspector.evaluate(`${electronAPI}.app.quit()`).catch(() => {});
-      inspector.close();
-      await waitFor(() => child.exitCode !== null || child.signalCode !== null, 'desktop shutdown', 10000).catch(() => {});
-    }
-    if (child.exitCode === null && child.signalCode === null) {
-      try { execFileSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' }); } catch {}
-    }
-    const log = path.join(home, 'diagnostics/desktop-launch/renderer.log');
-    if (fs.existsSync(log)) fs.copyFileSync(log, path.join(dir, 'renderer.log'));
-    await mock.close();
-    const resolved = path.resolve(home);
-    if (path.dirname(resolved) !== path.resolve(os.tmpdir()) || !path.basename(resolved).startsWith('gsap-e2e-home-')) {
-      throw new Error('Refusing to clean an unexpected smoke home');
-    }
-    removeE2EHome(resolved);
-    if (process.platform === 'win32' && userData) {
+    // Cleanup errors must not replace the original failed assertion, and a
+    // cleanup failure must still make this smoke command exit unsuccessfully.
+    const cleanup = async work => {
+      try { await work(); } catch (error) { failures.push(error); }
+    };
+    await cleanup(async () => {
+      if (inspector) {
+        await inspector.evaluate(`${electronAPI}.app.quit()`).catch(() => {});
+        inspector.close();
+        await waitFor(() => child.exitCode !== null || child.signalCode !== null, 'desktop shutdown', 10000).catch(() => {});
+      }
+      if (child.exitCode === null && child.signalCode === null) {
+        try { execFileSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' }); } catch {}
+      }
+      const log = path.join(home, 'diagnostics/desktop-launch/renderer.log');
+      if (fs.existsSync(log)) fs.copyFileSync(log, path.join(dir, 'renderer.log'));
+    });
+    await cleanup(() => mock.close());
+    await cleanup(() => {
+      const resolved = path.resolve(home);
+      if (path.dirname(resolved) !== path.resolve(os.tmpdir()) || !path.basename(resolved).startsWith('gsap-e2e-home-')) {
+        throw new Error('Refusing to clean an unexpected smoke home');
+      }
+      removeE2EHome(resolved);
+    });
+    await cleanup(() => {
+      if (process.platform !== 'win32' || !userData) return;
       const { getUserDataAppName } = createRequire(import.meta.url)('../desktop/src/shared/single-instance-lock.cjs');
       const expected = path.resolve(process.env.APPDATA, getUserDataAppName(home, path.join(os.homedir(), '.gsap')));
       if (path.resolve(userData) !== expected || !path.basename(expected).startsWith('G-SAP-e2e-home-')) {
         throw new Error('Refusing to clean an unexpected Electron userData directory');
       }
       fs.rmSync(expected, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
-    }
-    fs.closeSync(stdout);
-    fs.closeSync(stderr);
+    });
+    await cleanup(() => fs.closeSync(stdout));
+    await cleanup(() => fs.closeSync(stderr));
+    report.ok = failures.length === 0;
+    if (failures.length) report.errors = failures.map(error => error.stack || String(error));
+    await cleanup(() => fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(report, null, 2)));
   }
+  if (failures.length === 1) throw failures[0];
+  if (failures.length > 1) throw new AggregateError(failures, `${mode}: smoke and cleanup failures`);
 }
 
 for (const mode of ['electron', 'electron-dev', 'electron-built']) await checkMode(mode);

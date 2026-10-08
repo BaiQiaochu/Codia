@@ -28,6 +28,7 @@ export function CodiaLive2DMascot({
     const canvas = canvasRef.current;
     if (!canvas || !enabled || !modelUrl || !shaderPath || gpuSafeMode || !hardwareAccelerationEnabled) {
       setState('fallback');
+      setError('');
       return;
     }
     const controller = new AbortController();
@@ -35,7 +36,7 @@ export function CodiaLive2DMascot({
     let active = true;
     let failed = false;
     let inView = true;
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
     const fail = (reason: unknown) => {
       if (!active || controller.signal.aborted) return;
       failed = true;
@@ -43,9 +44,9 @@ export function CodiaLive2DMascot({
       setState('fallback');
     };
     const visibility = () => handle?.setVisible(inView && !document.hidden);
-    const motion = () => handle?.setReducedMotion(media.matches);
-    const resize = new ResizeObserver(() => handle?.resize());
-    const intersection = new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; visibility(); });
+    const motion = () => handle?.setReducedMotion(media?.matches ?? true);
+    const resize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => handle?.resize());
+    const intersection = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; visibility(); });
     const contextLost = (event: Event) => {
       event.preventDefault();
       fail(new Error('WebGL context lost'));
@@ -56,14 +57,14 @@ export function CodiaLive2DMascot({
     const contextRestored = () => { if (active) setRestored(value => value + 1); };
     canvas.addEventListener('webglcontextlost', contextLost);
     canvas.addEventListener('webglcontextrestored', contextRestored);
-    resize.observe(canvas);
-    intersection.observe(canvas);
-    media.addEventListener('change', motion);
+    resize?.observe(canvas);
+    intersection?.observe(canvas);
+    media?.addEventListener('change', motion);
     document.addEventListener('visibilitychange', visibility);
     setError('');
     setState('loading');
     void loadCodiaLive2D(canvas, {
-      modelUrl, shaderPath, signal: controller.signal, reducedMotion: media.matches, onError: fail,
+      modelUrl, shaderPath, signal: controller.signal, reducedMotion: media?.matches ?? true, onError: fail,
     }).then(loaded => {
       if (!active || controller.signal.aborted || failed) { loaded.dispose(); return; }
       handle = loaded;
@@ -76,9 +77,9 @@ export function CodiaLive2DMascot({
       active = false;
       controller.abort();
       handle?.dispose();
-      resize.disconnect();
-      intersection.disconnect();
-      media.removeEventListener('change', motion);
+      resize?.disconnect();
+      intersection?.disconnect();
+      media?.removeEventListener('change', motion);
       document.removeEventListener('visibilitychange', visibility);
       canvas.removeEventListener('webglcontextlost', contextLost);
       canvas.removeEventListener('webglcontextrestored', contextRestored);

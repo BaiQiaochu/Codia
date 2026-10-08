@@ -32,6 +32,7 @@ suite('Native PostgreSQL durable schedules, owner RLS, and dispatcher concurrenc
     await admin.query(await readFile(new URL('../lib/cloud-workspace/migrations/002-workspace-runtime.sql', import.meta.url), 'utf8'));
     await expect(new PostgresWorkspaceStore(admin).dispatchDueSchedules(1000)).rejects.toMatchObject({ code: 'cloud_database_migration_required', status: 503 });
     await admin.query(await readFile(new URL('../lib/cloud-workspace/migrations/004-cloud-agent-tasks.sql', import.meta.url), 'utf8'));
+    await admin.query(await readFile(new URL('../lib/cloud-workspace/migrations/005-resumable-uploads.sql', import.meta.url), 'utf8'));
     await admin.query('GRANT USAGE ON SCHEMA codia_workspace TO pg_database_owner; GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA codia_workspace TO pg_database_owner; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA codia_workspace TO pg_database_owner');
     pool = runtimePool(); store = new PostgresWorkspaceStore(pool); await store.verifySchema();
     expect((await pool.query('SELECT current_user,rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user')).rows[0]).toMatchObject({ current_user: 'pg_database_owner', rolsuper: false, rolbypassrls: false });

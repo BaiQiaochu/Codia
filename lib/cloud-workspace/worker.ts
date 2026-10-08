@@ -6,21 +6,43 @@ import { spawn } from 'node:child_process';
 import { CloudWorkspaceService } from './service.ts';
 import { type CloudRow } from './store.ts';
 import { CloudTaskService, parseTaskPlan, validateTaskSession } from './agent-tasks.ts';
+import { CLOUD_AGENT_INPUT_LIMIT, CLOUD_DOCUMENT_INPUT_LIMIT } from './input-limits.ts';
 // Fixed transform only, not an arbitrary-code sandbox or an LLM agent.
 // Only bounded input bytes/name enter the child; no credentials/user paths/tools.
 const TRANSFORM = `let input='';process.stdin.setEncoding('utf8');process.stdin.on('data',c=>{input+=c;if(input.length>3000000)process.exit(2)});process.stdin.on('end',()=>{const v=JSON.parse(input);const bytes=Buffer.from(v.base64,'base64');const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);const lines=text.split(/\\r?\\n/);const meaningful=lines.map(x=>x.trim()).filter(Boolean);const headings=meaningful.filter(x=>/^#{1,6}\\s/.test(x)).slice(0,12);const out=['# 文档检查与摘要','', '> 固定文本处理流程；未调用大模型。','', '文件：'+v.name,'输入版本：'+v.versionId,'字节数：'+bytes.length,'字符数：'+text.length,'行数：'+lines.length,'', '## 结构',...(headings.length?headings:['未检测到 Markdown 标题']),'', '## 内容摘录',...meaningful.slice(0,8).map(x=>x.slice(0,240)),'','## 持久化验证','本产物已作为不可变版本提交；客户端关闭不会取消后台任务。'].join('\\n');process.stdout.write(out);});`;
-export async function executeDocumentTransform(run: CloudRow, bytes: Buffer): Promise<Buffer> {
+export async function executeDocumentTransform(run: CloudRow, bytes: Buffer, signal?: AbortSignal): Promise<Buffer> {
+  if (bytes.length > CLOUD_DOCUMENT_INPUT_LIMIT) throw new Error('document_input_too_large');
+  if (signal?.aborted) throw new Error('executor_aborted');
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'codia-cloud-run-'));
   try {
+    if (signal?.aborted) throw new Error('executor_aborted');
     return await new Promise((resolve, reject) => {
       const child = spawn(process.execPath, ['--max-old-space-size=64', '-e', TRANSFORM], { cwd: directory, env: { LANG: 'C.UTF-8' }, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
-      const output: Buffer[] = []; let size = 0;
-      const timeout = setTimeout(() => { child.kill(); reject(new Error('executor_timeout')); }, 5000);
-      child.stdout.on('data', (chunk: Buffer) => { size += chunk.length; if (size > 1024 * 1024) { child.kill(); reject(new Error('executor_output_limit')); } else output.push(chunk); });
+      const output: Buffer[] = []; let size = 0, settled = false;
+      let stopped: Error | undefined;
+      const finish = (error?: Error) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        signal?.removeEventListener('abort', abort);
+        if (error) reject(error); else resolve(Buffer.concat(output));
+      };
+      // Wait for close before removing the working directory. Killing a process
+      // requests termination; it does not mean its pipes and handles are closed.
+      const stop = (error: Error) => {
+        if (settled || stopped) return;
+        stopped = error;
+        child.kill('SIGKILL');
+      };
+      const abort = () => stop(new Error('executor_aborted'));
+      const timeout = setTimeout(() => stop(new Error('executor_timeout')), 5000);
+      child.stdout.on('data', (chunk: Buffer) => { size += chunk.length; if (size > 1024 * 1024) stop(new Error('executor_output_limit')); else if (!stopped) output.push(chunk); });
       child.stderr.resume();
-      child.on('error', reject);
-      child.on('close', (code) => { clearTimeout(timeout); if (code === 0) resolve(Buffer.concat(output)); else reject(new Error('unsupported_document_or_executor_failed')); });
+      child.on('error', () => finish(stopped || new Error('executor_runtime_unavailable')));
+      child.on('close', (code) => finish(stopped || (code === 0 ? undefined : new Error('unsupported_document_or_executor_failed'))));
       child.stdin.on('error', () => {});
+      signal?.addEventListener('abort', abort, { once: true });
+      if (signal?.aborted) { abort(); return; }
       child.stdin.end(JSON.stringify({ name: run.name, versionId: run.input_version, base64: bytes.toString('base64') }));
     });
   } finally { await fs.rm(directory, { recursive: true, force: true }); }
@@ -53,12 +75,14 @@ export class CloudWorkspaceWorker {
     }, 1000);
     heartbeat.unref();
     try {
+      if (run.operation === 'document-summary' && run.size > CLOUD_DOCUMENT_INPUT_LIMIT) throw new Error('document_input_too_large');
+      if (['agent-summary', 'agent-conversation'].includes(run.operation) && run.size > CLOUD_AGENT_INPUT_LIMIT) throw new Error('agent_input_too_large');
       const bytes = await this.service.objects.get(run.object_key);
       if (bytes.length !== run.size || crypto.createHash('sha256').update(bytes).digest('hex') !== run.sha256) throw new Error('input_integrity_mismatch');
       const task = run.operation === 'agent-task' ? await new CloudTaskService(this.service).prepare({ userId: run.owner_user, studioId: run.studio_id }, run.workspace_id, parseTaskPlan(bytes)) : null;
       const output = ['agent-summary','agent-conversation','agent-task'].includes(run.operation)
         ? await (this.service.agentExecutor ? this.service.agentExecutor.execute(run, task ? Buffer.from(JSON.stringify(task)) : bytes, controller.signal) : Promise.reject(new Error('model_not_configured')))
-        : await executeDocumentTransform(run, bytes);
+        : await executeDocumentTransform(run, bytes, controller.signal);
       if (leaseLost || controller.signal.aborted) throw new Error('stale_executor');
       if (task) {
         const session = validateTaskSession(output, run);

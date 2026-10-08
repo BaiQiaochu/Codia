@@ -139,12 +139,15 @@ describe('InputArea compact bottom inset layout', () => {
     expect(cssBlock(css, String.raw`\.codiaQuickGrid > button`)).toMatch(/flex-direction:\s*row/);
     expect(cssBlock(css, String.raw`\.codiaQuickGrid > button`)).toMatch(/min-height:\s*62px/);
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
-    expect(source).toContain('codia-mascot-gaze-strip.png');
-    expect(source).toContain('data-codia-mascot-frame');
+    expect(source).toContain('<CodiaStaticMascot');
+    const staticSource = read('components/CodiaStaticMascot.tsx');
+    const staticCss = read('components/CodiaStaticMascot.module.css');
+    expect(staticSource).toContain('codia-mascot-gaze-strip.png');
+    expect(staticSource).toContain('data-codia-static-mascot');
+    expect(staticCss).toContain('animation: none');
+    expect(staticCss).toContain('transform: none');
     expect(source).not.toContain('codia-kitten.png');
-    expect(css).toContain('@keyframes codiaMascotPeek');
-    expect(css).toContain('@keyframes codiaMascotGaze');
-    expect(cssBlock(css, String.raw`\.codiaMascotSprite`)).toMatch(/width:\s*300%/);
+    expect(cssBlock(staticCss, String.raw`\.sprite`)).toMatch(/width:\s*300%/);
     expect(source.match(/className=\{styles.codiaQuickCopy\}/g)).toHaveLength(4);
   });
 

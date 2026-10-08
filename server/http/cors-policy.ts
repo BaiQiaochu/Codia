@@ -27,7 +27,7 @@ export function createCorsMiddleware(configuredOrigin = ""): MiddlewareHandler {
       c.header("Access-Control-Allow-Credentials", "true");
     }
     c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    c.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key, X-GSAP-API-Key, X-gsap-API-Key, X-GSAP-VSCode-Bridge, X-Requested-With");
+    c.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key, X-GSAP-API-Key, X-gsap-API-Key, X-GSAP-VSCode-Bridge, X-Requested-With, X-Chunk-SHA256");
     if (c.req.method === "OPTIONS") return c.body(null, 204);
   };
 }

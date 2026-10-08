@@ -17,7 +17,7 @@ await build({
   build: { outDir: outputRoot, emptyOutDir: false, target: 'es2022', sourcemap: true },
 });
 if (args.includes('--build-only')) {
-  console.log(`Codia React fixture built: ${outputRoot}`);
+  console.log(`Codia standalone React fixture built: ${pathToFileURL(path.join(outputRoot, 'index.html')).href}`);
 } else {
   await stat(modelFile);
   const mounts = [
@@ -50,7 +50,7 @@ if (args.includes('--build-only')) {
   server.listen(Number(option('--port', '0')), '127.0.0.1', async () => {
     const port = server.address().port;
     const url = `http://127.0.0.1:${port}/`;
-    const fileUrl = `${pathToFileURL(path.join(outputRoot, 'index.html')).href}?assetPort=${port}`;
+    const fileUrl = `${pathToFileURL(path.join(outputRoot, 'index.html')).href}?assets=custom&assetPort=${port}`;
     await writeFile(path.join(outputRoot, 'server.json'), JSON.stringify({ url, fileUrl, modelFile, pid: process.pid }, null, 2));
     console.log(`Codia React WebGL2 fixture: ${url}\nElectron file URL: ${fileUrl}\nModel: ${modelFile}`);
   });

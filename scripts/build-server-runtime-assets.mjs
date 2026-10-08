@@ -129,7 +129,7 @@ function copyRuntimeAssets({ fsImpl, sourceAssetsDir, targetAssetsDir, entryFile
     if (!/\.(?:js|css)$/i.test(name)) continue;
     const sourcePath = path.join(sourceAssetsDir, name);
     if (!fsImpl.existsSync(sourcePath)) continue;
-    collectAssetReferences(fsImpl.readFileSync(sourcePath, "utf-8"), addAsset);
+    collectAssetReferences(fsImpl.readFileSync(sourcePath, "utf-8"), addAsset, name);
   }
 
   for (const name of assetNames) {
@@ -137,20 +137,34 @@ function copyRuntimeAssets({ fsImpl, sourceAssetsDir, targetAssetsDir, entryFile
   }
 }
 
-function collectAssetReferences(content, addAsset) {
+function collectAssetReferences(content, addAsset, sourceAssetName = "") {
+  // Only static local literals are packaging dependencies. Vite 8 emits both
+  // template-literal imports and bare-filename new URL(..., import.meta.url).
+  // Never evaluate expressions or broaden copying to arbitrary JS files.
+  function addLocalReference(value) {
+    if (value.includes("${")) return;
+    const normalized = normalizeAssetName(value);
+    if (!normalized) return;
+    addAsset(path.join(path.dirname(sourceAssetName), normalized));
+  }
   const patterns = [
     /(?:href|src)=["'](?:\.\/)?assets\/([^"'?#]+)/g,
-    /["']\.\/([^"'?#]+)["']/g,
     /url\(\s*["']?(?!data:|https?:|\/)(?:\.\/)?assets\/([^"')?#]+)["']?\s*\)/g,
   ];
   for (const pattern of patterns) {
     for (const match of content.matchAll(pattern)) addAsset(match[1]);
   }
+  for (const match of content.matchAll(/(["'`])\.\/([^"'`?#\\\r\n]+)\1/g)) {
+    addLocalReference(match[2]);
+  }
+  for (const match of content.matchAll(/\bnew\s+URL\s*\(\s*(["'`])([^"'`?#\\\r\n]+)\1\s*,\s*import\.meta\.url\s*\)/g)) {
+    addLocalReference(match[2]);
+  }
 }
 
 function normalizeAssetName(value) {
   const normalized = String(value || "").replace(/\\/g, "/").replace(/^\.\//, "").replace(/^assets\//, "");
-  if (!normalized || normalized.startsWith("/") || normalized.includes("\0")) return null;
+  if (!normalized || normalized.startsWith("/") || normalized.includes("\0") || normalized.includes("${") || /^[a-z][a-z\d+.-]*:/i.test(normalized)) return null;
   const parts = normalized.split("/");
   if (parts.some((part) => !part || part === "." || part === "..")) return null;
   if (shouldExcludeRuntimeFile(normalized)) return null;

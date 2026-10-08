@@ -459,7 +459,7 @@ function WelcomeContainer() {
   const visible = useStore(s => s.welcomeVisible);
   return (
     <div className={`welcome${visible ? '' : ' hidden'}`} id="welcome">
-      <WelcomeScreen enableSettings={false} />
+      <WelcomeScreen />
     </div>
   );
 }

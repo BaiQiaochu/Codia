@@ -1,0 +1,4 @@
+.mascot { position: relative; display: grid; width: 100%; height: 100%; aspect-ratio: 1; place-items: center; }
+.halo { position: absolute; width: 87%; height: 87%; border-radius: 50%; background: rgba(255,255,255,.20); }
+.frame { position: relative; width: 76%; height: 76%; overflow: hidden; border: 2px solid rgba(255,255,255,.62); border-radius: 50%; background: rgba(255,255,255,.42); box-shadow: inset 0 -14px 28px rgba(123,81,158,.08), 0 12px 24px rgba(83,51,106,.14); }
+.sprite { display: block; width: 300%; max-width: none; height: 100%; object-fit: fill; transform: none; animation: none; }

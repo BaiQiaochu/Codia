@@ -1,5 +1,7 @@
 # Capability-scoped cloud Agent tasks and durable schedules
 
+> Current upload and recovery extension: [cloud-resumable-uploads-and-recovery.md](cloud-resumable-uploads-and-recovery.md). Historical limits/schema requirements below describe their original stage.
+
 This stage extends the existing Codia desktop/mobile Cloud Workspace and the existing PostgreSQL/S3 or SQLite/local-object authority. It does not replace the original project, deploy a public service, provision an account or credential, call a paid provider during verification, or migrate every legacy host tool.
 
 ## User flow

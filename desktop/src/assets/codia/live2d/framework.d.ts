@@ -34,7 +34,7 @@ export class CubismUserModel {
 }
 export class CubismShaderManager_WebGL {
   static getInstance(): CubismShaderManager_WebGL;
-  getShader(gl: WebGL2RenderingContext): { _isShaderLoaded: boolean; codiaLoadError: Error | null };
+  getShader(gl: WebGL2RenderingContext): { _isShaderLoaded: boolean; codiaLoadError: Error | null; codiaShaderSources: Record<string, string> | null };
   releaseGlContext(gl: WebGL2RenderingContext): void;
 }
 export class CubismWebGLOffscreenManager {

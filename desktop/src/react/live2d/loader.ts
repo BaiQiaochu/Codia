@@ -1,3 +1,4 @@
+import { getCodiaWebGLContext } from './capabilities';
 import coreUrl from '../../assets/codia/live2d/core/live2dcubismcore.js?url';
 import type { CodiaLive2DHandle, CodiaLive2DOptions } from './runtime';
 
@@ -28,6 +29,12 @@ function loadCore(): Promise<void> {
 
 export async function loadCodiaLive2D(canvas: HTMLCanvasElement, options: CodiaLive2DOptions): Promise<CodiaLive2DHandle> {
   options.signal.throwIfAborted();
+  // Check before downloading/initializing the lazy SDK and atlas. The static
+  // artwork remains visible even in a browser without these capabilities.
+  if (typeof WebAssembly === 'undefined' || typeof createImageBitmap !== 'function') {
+    throw new Error('Live2D runtime unavailable; using the static mascot');
+  }
+  getCodiaWebGLContext(canvas);
   await loadCore();
   options.signal.throwIfAborted();
   // Framework reads the Core global at initialization, so its chunk loads second.

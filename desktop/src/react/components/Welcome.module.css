@@ -48,8 +48,6 @@
 .codiaHero h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: #fff; font-size: clamp(25px, 3vw, 34px); font-weight: 650; }
 .codiaHero h2 svg { color: #fff9e8; font-size: .86em; }
 .codiaHero p { max-width: 600px; margin: 0 0 20px; color: rgba(255,255,255,.94); font-size: 14px; }
-.codiaHeroCopy button { display: inline-flex; align-items: center; gap: 12px; padding: 10px 20px; border: 0; border-radius: 999px; color: #72559c; background: #fff; font: inherit; font-weight: 600; cursor: pointer; }
-.codiaHeroCopy button:hover { background: #fff9f2; transform: translateY(-1px); }
 .codiaHeroArt { position: absolute; top: 0; right: 4%; display: grid; width: 200px; height: 100%; place-items: center; }
 .codiaLive2D { z-index: 1; width: clamp(174px, 18cqw, 200px); aspect-ratio: 1; overflow: visible; }
 .codiaMascotFallback { position: relative; display: grid; width: 100%; height: 100%; place-items: center; }
@@ -109,9 +107,11 @@
 .codiaContextControls {
     display: flex;
     width: 100%;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
     align-items: center;
-    gap: 2px;
+    gap: 4px 12px;
     animation: codiaRiseIn 380ms cubic-bezier(.22, 1, .36, 1) 470ms both;
 }
 
@@ -167,34 +167,9 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    width: min(100%, 720px);
+    min-width: 0;
+    max-width: 100%;
     margin-top: 0;
-}
-
-.workspaceSettingsButton {
-    width: 32px;
-    height: 32px;
-    flex: 0 0 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    color: var(--text-muted);
-    background: color-mix(in srgb, var(--bg-card) 92%, var(--bg));
-    border: 1px solid var(--control-border);
-    box-shadow: 0 1px 2px color-mix(in srgb, var(--shadow) 14%, transparent);
-}
-
-.workspaceSettingsButton {
-    padding: 0;
-    cursor: pointer;
-    -webkit-app-region: no-drag;
-}
-
-.workspaceSettingsButton:hover {
-    color: var(--accent);
-    border-color: color-mix(in srgb, var(--accent) 28%, transparent);
-    background: color-mix(in srgb, var(--accent) 8%, var(--bg-card));
 }
 
 .welcomeText {
@@ -209,7 +184,8 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    max-width: min(100%, 720px);
+    max-width: 100%;
+    min-height: 36px;
     margin-top: var(--space-sm);
     padding: 0.3rem 0.65rem;
     font-family: inherit;
@@ -221,7 +197,7 @@
     cursor: pointer;
     transition: all 0.2s var(--ease-out);
     -webkit-app-region: no-drag;
-    opacity: 0.8;
+    opacity: 1;
 }
 
 .folderSelectBtn span {
@@ -238,7 +214,7 @@
 
 .folderSelectBtnHasFolder {
     color: var(--accent);
-    opacity: 0.85;
+    opacity: 1;
 }
 
 .folderSwapIcon {
@@ -265,13 +241,9 @@
 
 /* 历史文件夹下拉 */
 .folderHistory {
-    display: none;
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 50%;
-    transform: translateX(-50%);
-    min-width: 220px;
-    max-width: 320px;
+    display: block;
+    min-width: 240px;
+    max-width: min(320px, calc(100vw - 16px));
     max-height: min(46vh, 280px);
     overflow-x: hidden;
     overflow-y: auto;
@@ -282,17 +254,13 @@
     box-shadow: 0 14px 34px color-mix(in srgb, var(--shadow) 24%, transparent),
         0 1px 2px color-mix(in srgb, var(--shadow) 22%, transparent);
     padding: 4px 0;
-    z-index: 60;
-}
-
-.folderSelectWrapShowHistory .folderHistory {
-    display: block;
     animation: folderHistoryIn 0.15s var(--ease-out);
 }
 
+
 @keyframes folderHistoryIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(4px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0);   }
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0);   }
 }
 
 .folderHistoryList {
@@ -309,9 +277,9 @@
 .folderHistoryItem {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    min-height: 30px;
-    padding: 6px 12px;
+    gap: 0;
+    min-height: 36px;
+    padding: 0;
     font-size: 0.75rem;
     color: var(--text);
     cursor: pointer;
@@ -352,8 +320,9 @@
 }
 
 .folderHistoryRemove {
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
+    margin-right: 6px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -378,6 +347,12 @@
 }
 
 .folderHistoryBrowse {
+    width: 100%;
+    min-height: 36px;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    text-align: left;
     display: flex;
     align-items: center;
     gap: 0.35rem;
@@ -398,7 +373,8 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    margin-top: var(--space-xs);
+    min-height: 36px;
+    margin-top: 0;
     padding: 0.3rem 0.65rem;
     font-family: inherit;
     font-size: 0.72rem;
@@ -409,7 +385,7 @@
     cursor: pointer;
     transition: all 0.2s var(--ease-out);
     -webkit-app-region: no-drag;
-    opacity: 0.8;
+    opacity: 1;
 }
 
 .memoryToggleBtn:hover {
@@ -419,7 +395,7 @@
 
 .memoryToggleBtnActive {
     color: var(--accent);
-    opacity: 0.85;
+    opacity: 1;
 }
 
 .memoryToggleIcon {
@@ -478,3 +454,27 @@
     border-radius: 50%;
     object-fit: cover;
 }
+
+
+.folderHistorySelect,
+.folderHistoryLabel {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+}
+.folderHistorySelect { cursor: pointer; }
+.folderHistoryItem:has(.folderHistoryLabel) { cursor: default; }
+.codiaQuickGrid > button:disabled { cursor: wait; opacity: .65; transform: none; }
+.welcome button:focus-visible,
+.folderHistory button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.memoryToggleBtnDisabled { cursor: default; opacity: .65; }
+
+.folderSelectBtn:disabled { cursor: wait; opacity: .65; }

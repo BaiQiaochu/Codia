@@ -242,10 +242,11 @@ function CloudTasksEditor({ workspaceId, client, health, files, runs = [], onRun
 }
 
 /** Task traces contain display text only; provider/tool output is never rendered as HTML. */
-export function CloudTaskRunDetail({ run, client, onRunUpdated }: { run: CloudRun; client: CloudWorkspaceClient; onRunUpdated?: (run: CloudRun) => void }) {
-  return <CloudTaskRunDetailBody key={run.id} run={run} client={client} onRunUpdated={onRunUpdated} />;
+interface CloudTaskRunDetailProps { run: CloudRun; client: CloudWorkspaceClient; health?: CloudHealth | null; onRunUpdated?: (run: CloudRun) => void; onRunCreated?: (run: CloudRun) => void }
+export function CloudTaskRunDetail(props: CloudTaskRunDetailProps) {
+  return <CloudTaskRunDetailBody key={props.run.id} {...props} />;
 }
-function CloudTaskRunDetailBody({ run, client, onRunUpdated }: { run: CloudRun; client: CloudWorkspaceClient; onRunUpdated?: (run: CloudRun) => void }) {
+function CloudTaskRunDetailBody({ run, client, health, onRunUpdated, onRunCreated }: CloudTaskRunDetailProps) {
   const [session, setSession] = useState<CloudTaskSession | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -254,6 +255,13 @@ function CloudTaskRunDetailBody({ run, client, onRunUpdated }: { run: CloudRun; 
   const alive = useRef(true);
   const busyRef = useRef(false);
   const mutationController = useRef<AbortController | null>(null);
+  const retryRequest = useRef<RequestIdentity | null>(null);
+  const [retried, setRetried] = useState(false);
+  const [retryHealth, setRetryHealth] = useState<CloudHealth | null>(null);
+  const retryable = ['failed', 'cancelled'].includes(run.status) && ['document-summary', 'agent-summary', 'agent-task'].includes(run.operation);
+  useEffect(() => { setRetryHealth(null); }, [health]);
+  const currentHealth = retryHealth || health || null;
+  const retryAvailable = currentHealth?.runRetry === true && cloudOperationAvailable(currentHealth, run.operation as CloudOperation);
   useEffect(() => { alive.current = true; return () => { alive.current = false; mutationController.current?.abort(); }; }, []);
   useEffect(() => {
     setSession(null); setError('');
@@ -275,8 +283,25 @@ function CloudTaskRunDetailBody({ run, client, onRunUpdated }: { run: CloudRun; 
     } catch (err) { if (alive.current && !controller.signal.aborted) setError(errorText(err)); }
     finally { if (alive.current) { busyRef.current = false; setBusy(false); } }
   }
+  async function retry() {
+    if (busyRef.current || !retryable || !retryAvailable || retried) return;
+    const controller = new AbortController(); mutationController.current = controller;
+    busyRef.current = true; setBusy(true); setError('');
+    try {
+      const latest = await client.json<CloudHealth>('/health', { signal: controller.signal });
+      if (!alive.current || controller.signal.aborted) return;
+      setRetryHealth(latest);
+      if (!latest.runRetry || !cloudOperationAvailable(latest, run.operation as CloudOperation)) throw new Error('当前服务或模型不支持重新运行。请检查配置后刷新。');
+      const key = requestKey(retryRequest, { sourceRun: run.id });
+      const result = await client.json<{ run: CloudRun }>(`/runs/${encodeURIComponent(run.id)}/retry`, { method: 'POST', signal: controller.signal, body: JSON.stringify({ requestKey: key }) });
+      if (alive.current && !controller.signal.aborted) { setRetried(true); onRunCreated?.(result.run); }
+    } catch (err) { if (alive.current && !controller.signal.aborted) setError(errorText(err)); }
+    finally { if (alive.current) { busyRef.current = false; setBusy(false); } }
+  }
   return <div className="cw-task-result" data-testid="task-run-detail">
     {isActiveCloudRun(run.status) && <><button type="button" className="cw-record-action" disabled={busy} onClick={() => void cancel()}>{busy ? '正在取消…' : '取消此运行'}</button><p className="cw-helper">取消不会删除记录；已发出的模型请求仍可能计费。定时任务需另外暂停。</p></>}
+    {retryable && <div className="cw-run-retry"><p className="cw-helper">重新运行会创建关联原记录的新任务，使用相同的固定输入版本；不会恢复模型中断时的内部状态。{run.operation.startsWith('agent-') && '会再次把输入发送给已配置的模型服务商，可能重复调用和计费。'}</p><button type="button" className="cw-record-action" disabled={busy || !retryAvailable || retried} onClick={() => void retry()}>{retried ? '已创建新运行' : busy ? '正在重新运行…' : '重新运行此任务'}</button>{!retryAvailable && <p className="cw-helper">当前服务未提供任务重试，或所需模型不可用。请检查配置后刷新。</p>}</div>}
+    {run.retry_of && <p className="cw-helper">此运行重试自 {run.retry_of}，原运行记录保留。</p>}
     {run.error === 'cancelled' && <p className="cw-record-success" role="status">此运行已取消。</p>}
     {error && <div className="cw-alert cw-alert-error" role="alert"><span>{error}</span>{run.status === 'succeeded' && <button type="button" className="cw-record-action" onClick={() => setReload(value => value + 1)}>重试读取结果</button>}</div>}
     {loading && <p role="status">正在读取 Agent 会话…</p>}

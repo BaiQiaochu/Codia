@@ -53,6 +53,7 @@ suite('PostgreSQL live transactions, RLS and concurrency (isolated fixture only)
     admin = makePool({connectionString:databaseUrl});
     await admin.query(await readFile(new URL('../lib/cloud-workspace/migrations/002-workspace-runtime.sql',import.meta.url),'utf8'));
     await admin.query(await readFile(new URL('../lib/cloud-workspace/migrations/004-cloud-agent-tasks.sql',import.meta.url),'utf8'));
+    await admin.query(await readFile(new URL('../lib/cloud-workspace/migrations/005-resumable-uploads.sql',import.meta.url),'utf8'));
     await admin.query(`CREATE ROLE ${roleName} NOSUPERUSER NOBYPASSRLS NOLOGIN; GRANT USAGE ON SCHEMA codia_workspace TO ${roleName}; GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA codia_workspace TO ${roleName}; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA codia_workspace TO ${roleName};`);
     pool = makePool({connectionString:databaseUrl,max:12,options:`-c role=${roleName}`});
     store = new PostgresWorkspaceStore(pool);

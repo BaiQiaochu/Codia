@@ -11,7 +11,7 @@ const file: CloudFile = { id: 'file-1', current_version: 'input-v1', name: '材�
 const plan: CloudTaskPlan = { id: 'plan-1', title: '调研计划', currentVersion: 'plan-v1', workspaceId: 'workspace-1', instruction: '核对材料并生成结论', inputVersions: [file.current_version], createdAt: stamp, updatedAt: stamp };
 const schedule: CloudSchedule = { id: 'schedule-1', name: '每日检查', input_version: file.current_version, operation: 'document-summary', state: 'paused', next_run_at: 1791435900000, interval_ms: 60_000, revision: 1, created_at: stamp, updated_at: stamp };
 const run: CloudRun = { id: 'run-1', input_version: plan.currentVersion, operation: 'agent-task', status: 'queued', created_at: stamp, updated_at: stamp };
-const health: CloudHealth = { mode: 'local', database: 'sqlite', objectStore: 'local', executor: 'codia-agent', executorAvailable: true, supportedOperations: ['document-summary', 'agent-task', 'agent-summary'], productionReady: false };
+const health: CloudHealth = { mode: 'local', database: 'sqlite', objectStore: 'local', executor: 'codia-agent', executorAvailable: true, runRetry: true, supportedOperations: ['document-summary', 'agent-task', 'agent-summary'], productionReady: false };
 const noModel: CloudHealth = { ...health, executorAvailable: false, executorUnavailableReason: 'model_not_configured' };
 const session: CloudTaskSession = { schemaVersion: 1, runId: run.id, attempt: 2, finalText: '已整理结论 <script>unsafe()</script>', inputVersions: [file.current_version], messages: [{ role: 'assistant', text: '开始检查' }, { role: 'tool', toolName: 'read_cloud_file', toolCallId: 'call-1', text: '读取完成' }, { role: 'tool', toolName: 'create_artifact', text: '拒绝越界', isError: true }], artifacts: [{ id: 'output-1', name: '调研结果.txt', content: '结论 <img src=x onerror=unsafe()>', sha256: 'a'.repeat(64), size: 45 }] };
 type Write = { path: string; method: string; body: Record<string, unknown> };
@@ -20,6 +20,7 @@ let plans: CloudTaskPlan[];
 let schedules: CloudSchedule[];
 let responseError: { status?: number; message: string } | null;
 let text: string;
+let retryHealth: CloudHealth;
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 function client() {
   return createCloudWorkspaceClient(async (path, init) => {
@@ -29,9 +30,11 @@ function client() {
       if (path.endsWith('/task-plans')) { const saved = { ...plan, ...body, instruction: body.instruction || '固定工作流指令' }; plans = [saved]; return json({ plan: saved }); }
       if (path.endsWith('/schedules')) { const saved: CloudSchedule = { ...schedule, name: body.name, input_version: body.inputVersion, operation: body.operation, next_run_at: body.firstRunAt, interval_ms: body.intervalMs, state: body.enabled ? 'enabled' : 'paused' }; schedules = [saved]; return json({ schedule: saved }); }
       if (path.includes('/schedules/')) { const saved: CloudSchedule = { ...schedules[0], revision: schedules[0].revision + 1, state: body.enabled ? 'enabled' : 'paused' }; schedules = [saved]; return json({ schedule: saved }); }
+      if (path.endsWith('/retry')) return json({ run: { ...run, id: 'run-retry', retry_of: run.id } });
       if (path.endsWith('/cancel')) return json({ run: { ...run, status: 'failed', error: 'cancelled' } });
       if (path.endsWith('/runs')) return json({ run });
     }
+    if (path.endsWith('/health')) return json(retryHealth);
     if (path.endsWith('/task-plans')) return json({ plans });
     if (path.endsWith('/schedules')) return json({ schedules });
     if (path.includes('/records?')) return json({ records: [{ id: 'workflow-1', kind: 'workflow', title: '周报草稿', currentVersion: 'workflow-v1', createdAt: stamp, updatedAt: stamp }] });
@@ -53,7 +56,7 @@ async function fillSchedule() {
   fireEvent.change(screen.getByLabelText('定时输入文件'), { target: { value: file.id } });
   await waitFor(() => expect(screen.getByRole('button', { name: '保存为暂停定时' })).toBeEnabled());
 }
-beforeEach(() => { writes = []; plans = [plan]; schedules = [schedule]; responseError = null; text = 'UTF-8 文本材料'; });
+beforeEach(() => { writes = []; plans = [plan]; schedules = [schedule]; responseError = null; text = 'UTF-8 文本材料'; retryHealth = health; });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe('cloud task plans and durable schedules', () => {
@@ -233,5 +236,63 @@ describe('cloud task results and cancellation', () => {
     view.rerender(<CloudTaskRunDetail run={{ ...run, id: 'run-2', status: 'succeeded' }} client={c} />); await screen.findByText('新任务结果');
     await act(async () => { resolveOld(json({ session })); });
     expect(screen.getByTestId('task-final-text')).toHaveTextContent('新任务结果'); expect(signals[0].aborted).toBe(true);
+  });
+});
+
+
+describe('explicit linked run retry', () => {
+  it('warns before repeating provider calls, checks health and creates a linked run once', async () => {
+    const onRunCreated = vi.fn(); const failed = { ...run, status: 'failed', error: 'provider_error' };
+    render(<CloudTaskRunDetail run={failed} client={client()} health={health} onRunCreated={onRunCreated} />);
+    expect(screen.getByText(/不会恢复模型中断时的内部状态/)).toHaveTextContent('可能重复调用和计费');
+    const button = screen.getByRole('button', { name: '重新运行此任务' }); fireEvent.click(button); fireEvent.click(button);
+    await waitFor(() => expect(onRunCreated).toHaveBeenCalledTimes(1));
+    expect(onRunCreated).toHaveBeenCalledWith(expect.objectContaining({ id: 'run-retry', retry_of: run.id }));
+    expect(writes).toHaveLength(1); expect(writes[0].path).toBe('/api/cloud/runs/run-1/retry');
+    expect(writes[0].body).toEqual({ requestKey: expect.any(String) });
+    expect(screen.getByRole('button', { name: '已创建新运行' })).toBeDisabled();
+  });
+
+  it('preserves the exact request key after an uncertain retry response', async () => {
+    const onRunCreated = vi.fn(); responseError = { message: 'Reply lost' };
+    render(<CloudTaskRunDetail run={{ ...run, status: 'failed', error: 'cancelled' }} client={client()} health={health} onRunCreated={onRunCreated} />);
+    fireEvent.click(screen.getByRole('button', { name: '重新运行此任务' })); await screen.findByRole('alert');
+    responseError = null; fireEvent.click(screen.getByRole('button', { name: '重新运行此任务' }));
+    await waitFor(() => expect(onRunCreated).toHaveBeenCalledTimes(1));
+    expect(writes).toHaveLength(2); expect(writes[0].body).toEqual(writes[1].body);
+  });
+
+  it('rechecks current model availability before any retry mutation', async () => {
+    retryHealth = noModel;
+    const c = client(); const failed = { ...run, status: 'failed' };
+    const view = render(<CloudTaskRunDetail run={failed} client={c} health={health} />);
+    fireEvent.click(screen.getByRole('button', { name: '重新运行此任务' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('当前服务或模型不支持重新运行');
+    expect(writes).toHaveLength(0); expect(screen.getByRole('button', { name: '重新运行此任务' })).toBeDisabled();
+    retryHealth = health;
+    view.rerender(<CloudTaskRunDetail run={failed} client={c} health={{ ...health }} />);
+    await waitFor(() => expect(screen.getByRole('button', { name: '重新运行此任务' })).toBeEnabled());
+  });
+
+  it.each(['queued', 'running', 'succeeded'])('does not allow retrying a %s source run', status => {
+    render(<CloudTaskRunDetail run={{ ...run, operation: 'document-summary', status }} client={client()} health={health} />);
+    expect(screen.queryByRole('button', { name: '重新运行此任务' })).not.toBeInTheDocument();
+  });
+
+  it('excludes conversations and gates servers without explicit retry support', () => {
+    const c = client(); const view = render(<CloudTaskRunDetail run={{ ...run, operation: 'agent-conversation', status: 'failed' }} client={c} health={health} />);
+    expect(screen.queryByRole('button', { name: '重新运行此任务' })).not.toBeInTheDocument();
+    view.rerender(<CloudTaskRunDetail run={{ ...run, status: 'failed' }} client={c} health={{ ...health, runRetry: undefined }} />);
+    expect(screen.getByRole('button', { name: '重新运行此任务' })).toBeDisabled();
+  });
+
+  it('aborts retry checks on run navigation and ignores a late health response', async () => {
+    let resolve = (_response: Response) => {}; const signals: AbortSignal[] = [];
+    const c = createCloudWorkspaceClient(async (_path, init) => { signals.push(init.signal!); return new Promise<Response>(next => { resolve = next; }); });
+    const created = vi.fn(); const view = render(<CloudTaskRunDetail run={{ ...run, status: 'failed' }} client={c} health={health} onRunCreated={created} />);
+    fireEvent.click(screen.getByRole('button', { name: '重新运行此任务' }));
+    view.rerender(<CloudTaskRunDetail run={{ ...run, id: 'another', status: 'queued' }} client={c} health={health} onRunCreated={created} />);
+    expect(signals[0].aborted).toBe(true); await act(async () => resolve(json(health)));
+    expect(created).not.toHaveBeenCalled(); expect(signals).toHaveLength(1);
   });
 });

@@ -1,3 +1,4 @@
+import type { CreateCloudUpload, CloudUploadChunk, CloudUploadState } from './uploads.ts';
 import type { CloudActor, CloudRow, CloudWorkspaceStore } from './store.ts';
 
 export type CloudOperation = 'document-summary' | 'agent-summary' | 'agent-conversation' | 'agent-task';
@@ -26,6 +27,14 @@ export interface CloudWorkspaceRepository {
   finalizeVersion(actor: CloudActor, versionId: string, expected: string | null, enqueue?: EnqueueCloudRun): Promise<{file: CloudRow; version: CloudRow; run?: CloudRow}>;
   rejectVersion(versionId: string): Promise<void>;
   reconcileStaging(timestamp?: number, graceMs?: number): Promise<number>;
+  createUpload(actor: CloudActor, workspaceId: string, input: CreateCloudUpload): Promise<CloudUploadState>;
+  uploadSession(actor: CloudActor, uploadId: string): Promise<CloudUploadState>;
+  listUploads(actor: CloudActor, workspaceId: string): Promise<CloudUploadState[]>;
+  recordUploadChunk(actor: CloudActor, uploadId: string, chunk: CloudUploadChunk): Promise<CloudUploadState>;
+  beginUploadCompletion(actor: CloudActor, uploadId: string): Promise<CloudUploadState>;
+  finalizeUpload(actor: CloudActor, uploadId: string, manifest: string): Promise<{file: CloudRow; version: CloudRow; upload: CloudRow}>;
+  cancelUpload(actor: CloudActor, uploadId: string): Promise<CloudUploadState>;
+  retryRun(actor: CloudActor, runId: string, requestKey: string): Promise<CloudRow>;
   createRun(actor: CloudActor, workspaceId: string, inputVersion: string, requestKey: string, operation?: CloudOperation): Promise<CloudRow>;
   listRuns(actor: CloudActor, workspaceId: string): Promise<CloudRow[]>;
   cancelRun(actor: CloudActor, runId: string): Promise<CloudRow>;

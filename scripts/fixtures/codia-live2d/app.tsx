@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CodiaLive2DMascot } from '../../../desktop/src/react/components/CodiaLive2DMascot';
-import type { CodiaLive2DAssets } from '../../../desktop/src/react/live2d/assets';
+import { CodiaStaticMascot } from '../../../desktop/src/react/components/CodiaStaticMascot';
+import { CODIA_BUNDLED_ASSETS, type CodiaLive2DAssets } from '../../../desktop/src/react/live2d/assets';
 import './style.css';
 
 function Fixture() {
-  const [assets, setAssets] = useState<CodiaLive2DAssets | null>(null);
+  const [assets, setAssets] = useState<CodiaLive2DAssets | null>(CODIA_BUNDLED_ASSETS);
   const [enabled, setEnabled] = useState(true);
   const [mounted, setMounted] = useState(true);
   const [safe, setSafe] = useState(false);
@@ -20,9 +21,10 @@ function Fixture() {
   const addEvent = (message: string) => setEvents(previous => [...previous.slice(-29), `${new Date().toISOString()} ${message}`]);
   useEffect(() => {
     const controller = new AbortController();
-    const port = new URL(location.href).searchParams.get('assetPort');
+    const query = new URL(location.href).searchParams;
+    const port = query.get('assetPort');
     const base = location.protocol === 'file:' ? `http://127.0.0.1:${Number(port)}/` : location.href;
-    void fetch(new URL('fixture-config.json', base), { signal: controller.signal }).then(async response => {
+    if (query.get('assets') === 'custom') void fetch(new URL('fixture-config.json', base), { signal: controller.signal }).then(async response => {
       if (!response.ok) throw new Error(`Fixture config HTTP ${response.status}`);
       const config = await response.json();
       setAssets({ modelUrl: new URL(config.modelUrl, base).href, shaderPath: new URL(config.shaderPath, base).href });
@@ -114,11 +116,13 @@ function Fixture() {
   return (
     <main>
       <h1>Codia Live2D · React 运行时检查</h1>
-      <p>使用真实组件、官方 SDK 与指定导出模型。这里只检查加载和生命周期，视觉质量仍需人工核对。</p>
+      <p>默认使用安装包内置模型和静态角色；file:// 不需要服务器或网络。这里只检查加载和生命周期，视觉质量仍需人工核对。</p>
       <fieldset className="controls" disabled={cycling}>
         <label><input id="enabled" type="checkbox" checked={enabled} onChange={event => setEnabled(event.target.checked)} />启用</label>
         <label><input id="mounted" type="checkbox" checked={mounted} onChange={event => setMounted(event.target.checked)} />挂载</label>
         <label><input id="gpu-safe" type="checkbox" checked={safe} onChange={event => setSafe(event.target.checked)} />安全模式回退</label>
+        <button id="missing-model" onClick={() => setAssets({ ...CODIA_BUNDLED_ASSETS, modelUrl: 'codia-bundled:/model/missing.model3.json' })}>缺失模型</button>
+        <button id="bundled-model" onClick={() => setAssets(CODIA_BUNDLED_ASSETS)}>恢复内置模型</button>
         <button id="remount" onClick={() => setKey(value => value + 1)}>重新挂载</button>
         <button id="lose-context" onClick={lose}>丢失 WebGL 上下文</button>
         <button id="restore-context" onClick={restore}>恢复 WebGL 上下文</button>
@@ -128,7 +132,7 @@ function Fixture() {
       <p id="cycle-status" role="status">{cycleStatus}</p>
       <div ref={stage} id="stage" style={{ width: size, height: size }}>
         {mounted && <CodiaLive2DMascot key={key} enabled={enabled} assets={assets} gpuSafeMode={safe}
-          fallback={<div className="fallback">静态回退占位<br /><small>此时不是 Live2D 画面</small></div>} />}
+          fallback={<CodiaStaticMascot />} />}
       </div>
       <h2>当前状态</h2><pre id="runtime-state">{JSON.stringify(state, null, 2)}</pre>
       <h2>状态与错误记录</h2><pre id="runtime-events">{events.join('\n')}</pre>

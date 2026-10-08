@@ -203,6 +203,33 @@ describe('Cloud workspace UI', () => {
     expect(screen.getByTestId('file-select').textContent).toContain(file.name);
   });
 
+  it('keeps AI processing at 128 KiB even when larger stored text remains previewable', async () => {
+    health = { ...defaultHealth, executor: 'codia-agent', executorAvailable: true, agentInputLimit: 128 * 1024, supportedOperations: ['document-summary', 'agent-summary'] };
+    sourceContent = new TextEncoder().encode('a'.repeat(128 * 1024 + 1));
+    const oldVersionSize = version.size;
+    version.size = sourceContent.length;
+    try {
+      await ready();
+      fireEvent.change(screen.getByTestId('operation-select'), { target: { value: 'agent-summary' } });
+      expect((screen.getByTestId('submit-task') as HTMLButtonElement).disabled).toBe(true);
+      expect(screen.getByText(/选定版本超过当前处理上限/)).toBeTruthy();
+      expect(screen.getByTestId('input-file-preview').textContent?.length).toBeLessThan(21000);
+      expect(screen.getByText('下载此版本 ↗')).toBeTruthy();
+      fireEvent.change(screen.getByTestId('operation-select'), { target: { value: 'document-summary' } });
+      expect((screen.getByTestId('submit-task') as HTMLButtonElement).disabled).toBe(false);
+    } finally { version.size = oldVersionSize; }
+  });
+
+  it('keeps files above 2 MiB stored and downloadable without permitting document processing', async () => {
+    sourceContent = new TextEncoder().encode('a'.repeat(CLOUD_UPLOAD_LIMIT + 1));
+    render(<CloudWorkspace principal={{ userId: 'alice' }} />);
+    await screen.findByTestId('input-binary-note');
+    expect((screen.getByTestId('submit-task') as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText('下载此版本 ↗')).toBeTruthy();
+    expect(screen.queryByTestId('input-file-preview')).toBeNull();
+    expect(mutations).toHaveLength(0);
+  });
+
   it('shows an actionable expired-session error', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => json({ error: 'unauthorized' }, 401)));
     render(<CloudWorkspace principal={{ userId: 'alice' }} />);

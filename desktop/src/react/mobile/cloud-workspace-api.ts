@@ -2,7 +2,7 @@
 export interface CloudWorkspaceRecord { id: string; name: string; created_at: string }
 export interface CloudFile { id: string; name: string; current_version: string; version_count: number; size: number; sha256: string; created_at: string }
 export interface CloudVersion { id: string; size: number; sha256: string; created_at: string }
-export interface CloudRun { id: string; status: string; operation: string; input_version: string; created_at: string; updated_at: string; artifact_file_id?: string | null; error?: string | null }
+export interface CloudRun { id: string; status: string; operation: string; input_version: string; created_at: string; updated_at: string; artifact_file_id?: string | null; error?: string | null; retry_of?: string | null }
 export interface CloudEvent { id: number | string; kind: string; payload: unknown; created_at: string }
 export interface CloudArtifact { id: string; file_id: string; version_id: string; name: string; size: number }
 export interface CloudRunDetail { run: CloudRun; events: CloudEvent[]; artifacts: CloudArtifact[] }
@@ -33,11 +33,18 @@ export interface CloudHealth {
   executorUnavailableReason?: string | null;
   supportedOperations?: string[];
   uploadLimit?: number;
+  uploadSession?: boolean;
+  resumableUploadLimit?: number;
+  uploadChunkSize?: number;
+  documentLimit?: number;
+  agentInputLimit?: number;
+  runRetry?: boolean;
 }
 export interface CloudWorkspaceClient {
   json<T>(path: string, init?: RequestInit): Promise<T>;
   contentUrl(versionId: string, download?: boolean): string;
   content(versionId: string, init?: RequestInit): Promise<Response>;
+  uploadChunk?(uploadId: string, index: number, bytes: Uint8Array, sha256: string, signal?: AbortSignal): Promise<{ upload: CloudUploadSession }>;
   download?(versionId: string, filename: string): Promise<void>;
 }
 export function cloudOperationLabel(operation: string): string {
@@ -51,6 +58,18 @@ export function cloudOperationAvailable(health: CloudHealth | null, operation: C
 
 export const CLOUD_API = '/api/cloud';
 export const CLOUD_UPLOAD_LIMIT = 2 * 1024 * 1024;
+export const CLOUD_RESUMABLE_UPLOAD_LIMIT = 32 * 1024 * 1024;
+export const CLOUD_UPLOAD_CHUNK_SIZE = 1024 * 1024;
+export interface CloudUploadSession {
+  id: string; workspace_id: string; name: string; size: number; sha256: string;
+  state: 'uploading' | 'completing' | 'completed' | 'cancelled' | 'expired';
+  chunk_size: number; received_chunks: number[]; received_bytes: number; expires_at: number | string; revision: number;
+  file_id?: string | null; expected_version?: string | null; version_id?: string | null;
+}
+export interface CloudUploadResult { upload: CloudUploadSession; file?: CloudFile; version?: CloudVersion }
+export function cloudUploadAvailable(health: CloudHealth | null, client: CloudWorkspaceClient): boolean {
+  return health?.uploadSession === true && typeof client.uploadChunk === 'function';
+}
 
 export class CloudApiError extends Error {
   readonly status: number;
@@ -60,11 +79,11 @@ export class CloudApiError extends Error {
 type CloudTransport = (path: string, init: RequestInit) => Promise<Response>;
 const webTransport: CloudTransport = (path, init) => fetch(path, { ...init, credentials: 'same-origin' });
 
-async function requestJson<T>(transport: CloudTransport, path: string, init: RequestInit = {}): Promise<T> {
+async function requestJson<T>(transport: CloudTransport, path: string, init: RequestInit = {}, raw = false): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set('Accept', 'application/json');
   if (init.method && init.method !== 'GET') {
-    headers.set('Content-Type', 'application/json');
+    headers.set('Content-Type', raw ? 'application/octet-stream' : 'application/json');
     headers.set('X-Requested-With', 'cloud-studio');
   }
   const response = await transport(`${CLOUD_API}${path}`, { ...init, headers });
@@ -95,10 +114,19 @@ async function requestJson<T>(transport: CloudTransport, path: string, init: Req
       invalid_schedule: '定时设置无效，请检查首次运行时间和运行间隔。',
       run_not_complete: '任务尚未完成，请稍后读取结果。',
       cancelled: '任务已取消。',
+      upload_completion_busy: '服务端正在完成其他上传，请稍后继续此上传。已收到的分块会保留。',
+      upload_expired: '上传会话已过期，请重新开始上传。',
+      upload_cancelled: '此上传已取消，请重新开始上传。',
+      upload_quota_exceeded: '未完成上传已达到服务端配额，请先完成或取消已有上传。',
+      upload_retention_quota_exceeded: '最近 24 小时的上传保留配额已用完，请稍后再试。取消已有上传不会立即释放此配额。',
+      upload_not_pending: '此上传已结束，请刷新上传列表查看状态。',
+      upload_hash_mismatch: '文件校验失败，请重新选择原始文件。',
+      chunk_hash_mismatch: '分块校验失败，请重试此上传。',
+      run_not_retryable: '只有失败或已取消的非对话任务可以重新运行。',
     };
     const message = response.status === 401 ? '登录已失效，请刷新页面后重新登录。'
-      : response.status === 409 ? (path.endsWith('/task-session') ? '任务会话尚不可读取，请稍后重试。' : path.includes('/schedules') ? '定时任务已被其他操作修改。请刷新列表，核对最新状态后再操作。' : path.includes('/task-plans') || path.endsWith('/runs') ? '请求与已保存的任务不一致，请刷新并核对固定版本。你的草稿仍保留。' : path.endsWith('/cancel') ? '任务状态已变化，请刷新运行记录后查看。' : path.startsWith('/records/') ? '记录已出现新版本，请重新读取后再保存。你的未保存内容仍保留在编辑器中。' : '文件已出现新版本，请重新选择最新版本后上传。')
-        : response.status === 413 ? (path.includes('/task-plans') ? '任务输入过大，请限制为最多 8 份文本、合计 128 KiB。' : path.includes('/records') ? '记录过大，请将结构化数据缩减到 120 KiB 以内。' : '文件过大，请选择不超过 2 MiB 的文件。')
+      : response.status === 409 ? (path.includes('/uploads') ? (friendlyErrors[serverMessage] || '上传状态或文件版本已变化。请刷新上传列表，核对后继续。') : path.endsWith('/retry') ? '当前运行无法重试，请刷新并核对运行状态。' : path.endsWith('/task-session') ? '任务会话尚不可读取，请稍后重试。' : path.includes('/schedules') ? '定时任务已被其他操作修改。请刷新列表，核对最新状态后再操作。' : path.includes('/task-plans') || path.endsWith('/runs') ? '请求与已保存的任务不一致，请刷新并核对固定版本。你的草稿仍保留。' : path.endsWith('/cancel') ? '任务状态已变化，请刷新运行记录后查看。' : path.startsWith('/records/') ? '记录已出现新版本，请重新读取后再保存。你的未保存内容仍保留在编辑器中。' : '文件已出现新版本，请重新选择最新版本后上传。')
+        : response.status === 413 ? (path.includes('/uploads') ? '文件或分块超出上传限制，文件最大 32 MiB、单块最大 1 MiB。' : path.includes('/task-plans') ? '任务输入过大，请限制为最多 8 份文本、合计 128 KiB。' : path.includes('/records') ? '记录过大，请将结构化数据缩减到 120 KiB 以内。' : '文件过大，请选择不超过 2 MiB 的文件。')
           : friendlyErrors[serverMessage] || serverMessage || `请求未完成（${response.status}），请稍后重试。`;
     throw new CloudApiError(message, response.status);
   }
@@ -109,6 +137,9 @@ async function requestJson<T>(transport: CloudTransport, path: string, init: Req
 export function createCloudWorkspaceClient(transport: CloudTransport = webTransport): CloudWorkspaceClient {
   return {
     json: <T>(path: string, init: RequestInit = {}) => requestJson<T>(transport, path, init),
+    uploadChunk: (uploadId, index, bytes, sha256, signal) => requestJson(transport, `/uploads/${encodeURIComponent(uploadId)}/chunks/${index}`, {
+      method: 'PUT', body: bytes as BodyInit, signal, headers: { 'X-Chunk-SHA256': sha256 },
+    }, true),
     contentUrl: cloudContentUrl,
     content: (versionId, init = {}) => transport(cloudContentUrl(versionId), init),
   };
@@ -175,4 +206,60 @@ export async function inspectCloudContent(response: Response, maxBytes = CLOUD_U
 export function isActiveCloudRun(status: string): boolean { return status === 'queued' || status === 'running' || status === 'pending'; }
 export function cloudStatusLabel(status: string): string {
   return ({ queued: '等待执行', pending: '等待执行', running: '处理中', succeeded: '已完成', completed: '已完成', failed: '失败', cancelled: '已取消' } as Record<string, string>)[status] || status;
+}
+
+/** The browser retains bytes only in memory and reads at most 32 MiB for SHA-256. */
+export async function readCloudUploadFile(file: File, limit = CLOUD_RESUMABLE_UPLOAD_LIMIT, signal?: AbortSignal): Promise<{ bytes: Uint8Array; sha256: string }> {
+  if (file.size > Math.min(limit, CLOUD_RESUMABLE_UPLOAD_LIMIT)) throw new Error('文件超过当前上传限制，最大 32 MiB。');
+  signal?.throwIfAborted();
+  const buffer = await file.arrayBuffer();
+  signal?.throwIfAborted();
+  if (buffer.byteLength !== file.size || buffer.byteLength > CLOUD_RESUMABLE_UPLOAD_LIMIT) throw new Error('文件大小已变化，请重新选择原始文件。');
+  const bytes = new Uint8Array(buffer);
+  const sha256 = await cloudBytesSha256(bytes);
+  signal?.throwIfAborted();
+  return { bytes, sha256 };
+}
+export async function cloudBytesSha256(bytes: Uint8Array): Promise<string> {
+  if (!globalThis.crypto?.subtle) throw new Error('当前浏览器无法安全校验文件，请使用 HTTPS 或受支持的桌面连接。');
+  return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes as BufferSource)), value => value.toString(16).padStart(2, '0')).join('');
+}
+
+/** Reconcile with the server before every attempt; never guess whether a lost reply committed. */
+export async function continueCloudUpload(client: CloudWorkspaceClient, upload: CloudUploadSession, bytes: Uint8Array, signal: AbortSignal, progress: (upload: CloudUploadSession) => void): Promise<CloudUploadResult> {
+  if (!client.uploadChunk) throw new Error('当前服务连接不支持分块上传。');
+  const path = `/uploads/${encodeURIComponent(upload.id)}`;
+  let current = (await client.json<{ upload: CloudUploadSession }>(path, { signal })).upload;
+  signal.throwIfAborted();
+  if (current.workspace_id !== upload.workspace_id || current.size !== bytes.length || current.sha256 !== upload.sha256 || current.chunk_size !== CLOUD_UPLOAD_CHUNK_SIZE) throw new Error('上传会话与选定文件不一致，请重新读取上传列表。');
+  progress(current);
+  if (current.state === 'completed') return { upload: current };
+  if (current.state !== 'uploading' && current.state !== 'completing') throw new Error('上传已取消或过期，请重新开始上传。');
+  const count = Math.ceil(bytes.length / current.chunk_size);
+  for (let index = 0; index < count; index += 1) {
+    signal.throwIfAborted();
+    if (current.received_chunks.includes(index)) continue;
+    const chunk = bytes.slice(index * current.chunk_size, Math.min((index + 1) * current.chunk_size, bytes.length));
+    const sha256 = await cloudBytesSha256(chunk);
+    signal.throwIfAborted();
+    current = (await client.uploadChunk(current.id, index, chunk, sha256, signal)).upload;
+    signal.throwIfAborted();
+    progress(current);
+  }
+  signal.throwIfAborted();
+  try {
+    const result = await client.json<CloudUploadResult>(`${path}/complete`, { method: 'POST', body: '{}', signal });
+    signal.throwIfAborted();
+    progress(result.upload);
+    return result;
+  } catch (error) {
+    signal.throwIfAborted();
+    // A timeout may have hidden a successful completion. Read this same session,
+    // never create another session or a second version on an uncertain response.
+    current = (await client.json<{ upload: CloudUploadSession }>(path, { signal })).upload;
+    signal.throwIfAborted();
+    progress(current);
+    if (current.state === 'completed') return { upload: current };
+    throw error;
+  }
 }

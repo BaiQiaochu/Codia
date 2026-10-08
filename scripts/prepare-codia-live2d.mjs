@@ -20,15 +20,15 @@ async function sourceHashes(directory, prefix = '') {
 }
 
 // Keep upstream files byte-for-byte. These two narrowly scoped adapter changes
-// cancel shader fetches on unmount and release a context without disposing peers.
+// cancel shader fetches, inject bundled shader text, and dispose per context.
 function adaptShader(sourceText) {
   let text = sourceText.replace(/\r\n/g, '\n');
   const replace = (before, after) => {
     if (text.split(before).length !== 2) throw new Error('Cubism 5-r.5 adapter anchor changed');
     text = text.replace(before, after);
   };
-  replace('export class CubismShader_WebGL {', 'export class CubismShader_WebGL {\n  private _codiaRequest = new AbortController();\n  public codiaLoadError: Error | null = null;');
-  replace('const response = await fetch(url);', 'const response = await fetch(url, { signal: this._codiaRequest.signal });\n    if (!response.ok) throw new Error(`Cubism shader HTTP ${response.status}`);');
+  replace('export class CubismShader_WebGL {', 'export class CubismShader_WebGL {\n  private _codiaRequest = new AbortController();\n  public codiaLoadError: Error | null = null;\n  public codiaShaderSources: Record<string, string> | null = null;');
+  replace('const response = await fetch(url);', 'if (this.codiaShaderSources) {\n      const source = this.codiaShaderSources[url];\n      if (typeof source !== \'string\') throw new Error(`Missing bundled Cubism shader: ${url}`);\n      return source;\n    }\n    const response = await fetch(url, { signal: this._codiaRequest.signal });\n    if (!response.ok) throw new Error(`Cubism shader HTTP ${response.status}`);');
   replace('console.error(`Error loading ${file.path} shader:`, error);', 'if (!this._codiaRequest.signal.aborted) this.codiaLoadError = error;');
   replace('this.releaseShaderProgram();', 'this._codiaRequest.abort();\n    this.releaseShaderProgram();');
   replace('.then(() => {\n        // NOTE:', '.then(() => {\n        if (this._codiaRequest.signal.aborted || this.codiaLoadError) return;\n        // NOTE:');
@@ -67,7 +67,7 @@ const manifest = {
   sdk: 'Cubism SDK for Web 5-r.5', editorCompatibility: '5.3',
   source: 'https://www.live2d.com/en/sdk/download/web/',
   frameworkSource: 'https://github.com/Live2D/CubismWebFramework',
-  adapter: 'Abort shader loading on disposal; release individual WebGL contexts.',
+  adapter: 'Inject bundled shader sources without network; abort shader loading on disposal; release individual WebGL contexts.',
   upstreamFiles: await sourceHashes(source),
   files: Object.fromEntries([...outputs].map(([name, bytes]) => [name, digest(bytes)])),
 };

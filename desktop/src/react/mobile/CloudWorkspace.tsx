@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CloudRecords } from './CloudRecords';
+import { CloudUploads } from './CloudUploads';
 import { CloudTasks, CloudTaskRunDetail } from './CloudTasks';
 import type { MobilePrincipal } from './mobile-init';
 import {
-  cloudStatusLabel, cloudUtcDate, fileContentBase64, isActiveCloudRun, webCloudWorkspaceClient, cloudOperationAvailable, cloudOperationLabel, inspectCloudContent,
+  cloudStatusLabel, cloudUtcDate, CLOUD_TASK_INPUT_LIMIT, CLOUD_UPLOAD_LIMIT, isActiveCloudRun, webCloudWorkspaceClient, cloudOperationAvailable, cloudOperationLabel, inspectCloudContent,
   type CloudArtifact, type CloudEvent, type CloudFile, type CloudHealth, type CloudOperation, type CloudWorkspaceClient, type CloudContentInspection,
   type CloudRun, type CloudRunDetail, type CloudVersion, type CloudWorkspaceRecord,
 } from './cloud-workspace-api';
@@ -50,7 +51,6 @@ export function CloudWorkspace({ principal, client = webCloudWorkspaceClient, de
   const [versions, setVersions] = useState<CloudVersion[]>([]);
   const [versionId, setVersionId] = useState('');
   const [inputContent, setInputContent] = useState<{ version: string; value: CloudContentInspection } | null>(null);
-  const [upload, setUpload] = useState<File | null>(null);
   const [runs, setRuns] = useState<CloudRun[]>([]);
   const [runId, setRunId] = useState('');
   const [detail, setDetail] = useState<CloudRunDetail | null>(null);
@@ -76,14 +76,16 @@ export function CloudWorkspace({ principal, client = webCloudWorkspaceClient, de
   const cloudTaskSectionRef = useRef<HTMLDivElement>(null);
   const requestRef = useRef<{ workspace: string; version: string; operation: CloudOperation; key: string } | null>(null);
   const versionFileRef = useRef('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const workspaceInputRef = useRef<HTMLInputElement>(null);
   const selectedFile = files.find(file => file.id === fileId);
   const selectedFileId = selectedFile?.id;
   const currentFileVersion = selectedFile?.current_version;
   const artifactVersionId = artifact?.version_id;
   const inputInspection = inputContent?.version === versionId ? inputContent.value : null;
-  const inputTextReady = inputInspection?.kind === 'text';
+  const inputSize = versions.find(item => item.id === versionId)?.size ?? (inputInspection?.kind === 'text' ? new TextEncoder().encode(inputInspection.text).byteLength : undefined);
+  const processingLimit = operation === 'document-summary' ? Math.min(health?.documentLimit || CLOUD_UPLOAD_LIMIT, CLOUD_UPLOAD_LIMIT) : Math.min(health?.agentInputLimit || CLOUD_TASK_INPUT_LIMIT, CLOUD_TASK_INPUT_LIMIT);
+  const inputTooLarge = inputSize !== undefined && inputSize > processingLimit;
+  const inputTextReady = inputInspection?.kind === 'text' && !inputTooLarge;
   const selectedWorkspace = workspaces.find(workspace => workspace.id === workspaceId);
   const activeRuns = runs.filter(run => isActiveCloudRun(run.status)).length;
 
@@ -107,8 +109,7 @@ export function CloudWorkspace({ principal, client = webCloudWorkspaceClient, de
   useEffect(() => { saveValue(storageKey, workspaceId); }, [storageKey, workspaceId]);
 
   useEffect(() => {
-    setFiles([]); setFileId(''); setVersions([]); setVersionId(''); setRuns([]); setRunId(''); setDetail(null); setArtifact(null); setEvents([]); setUpload(null); setNotice('');
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    setFiles([]); setFileId(''); setVersions([]); setVersionId(''); setRuns([]); setRunId(''); setDetail(null); setArtifact(null); setEvents([]); setNotice('');
     if (!workspaceId) return;
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
@@ -222,22 +223,6 @@ export function CloudWorkspace({ principal, client = webCloudWorkspaceClient, de
     });
   };
 
-  const uploadFile = () => {
-    if (!upload || !workspaceId) return;
-    const targetWorkspace = workspaceId;
-    const targetFile = files.find(file => file.name === upload.name);
-    void action('upload', async () => {
-      const contentBase64 = await fileContentBase64(upload);
-      const result = await cloudJson<{ file: CloudFile; version: CloudVersion }>(targetFile ? `/files/${encodeURIComponent(targetFile.id)}/versions` : `/workspaces/${encodeURIComponent(targetWorkspace)}/files`, {
-        method: 'POST', body: JSON.stringify(targetFile ? { contentBase64, expectedVersion: targetFile.current_version } : { name: upload.name, contentBase64 }),
-      });
-      setFiles(current => [result.file, ...current.filter(file => file.id !== result.file.id)]);
-      setFileId(result.file.id); setVersionId(result.version.id); setUpload(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      setNotice(targetFile ? '新版本已保存，原版本仍可读取。' : '文件已保存；文本文件可开始处理。');
-    });
-  };
-
   const submitRun = () => {
     if (!workspaceId || !versionId || !selectedFile || !inputTextReady || !cloudOperationAvailable(health, operation)) return;
     void action('run', async () => {
@@ -289,15 +274,18 @@ export function CloudWorkspace({ principal, client = webCloudWorkspaceClient, de
           <div className="cw-development-note"><CloudIcon kind="activity" size={16} /><span>{agentAvailable ? 'AI 摘要通过已配置的 Codia 模型执行；文档检查仅提取文本与元数据。' : '文档检查仅提取文本与元数据，尚未接入 AI 模型。文件与工作空间仍可正常使用。'}{localMode && ' 数据保存在当前服务端本机。'}</span>{!agentAvailable && onConfigureAI && <button type="button" className="cw-configure-ai" onClick={onConfigureAI}>配置 AI</button>}</div>
           {loading ? <div className="cw-initial-loading" role="status"><span className="cw-spinner" />正在读取工作空间…</div> : !workspaceId ? <div className="cw-welcome"><span className="cw-welcome-icon"><CloudIcon kind="folder" size={38} /></span><h2>从你的第一个项目开始</h2><p>一个工作空间，收纳文件版本、处理记录和最终产物。</p><button type="button" className="cw-button cw-button-primary" onClick={() => workspaceInputRef.current?.focus()}>创建工作空间 <CloudIcon kind="arrow" size={16} /></button><div className="cw-welcome-steps"><span>01 上传文件</span><i /> <span>02 运行流程</span><i /> <span>03 保存成果</span></div></div> : <div className="cw-board" aria-busy={workspaceLoading}>
             <section className="cw-card cw-files-card" aria-labelledby="cw-files-title"><div className="cw-card-heading"><div><span className="cw-step">01</span><h2 id="cw-files-title">文件与版本</h2></div><span className="cw-count">{files.length}</span></div><div className="cw-file-content">
-              <label className={`cw-upload-zone${upload ? ' cw-upload-ready' : ''}`} htmlFor="cloud-file-input"><span className="cw-upload-icon"><CloudIcon kind="upload" size={23} /></span><strong>{upload ? upload.name : '选择一份工作材料'}</strong><small>{upload ? `${formatBytes(upload.size)} · 准备上传` : '所有文件格式 · 原始字节保存 · 最大 2 MiB'}</small><input id="cloud-file-input" ref={fileInputRef} type="file" data-testid="file-input" onChange={event => { setUpload(event.target.files?.[0] || null); setError(''); }} disabled={Boolean(busy || taskBusy)} /></label>
-              {upload && <button className="cw-button cw-button-primary cw-full-width" type="button" data-testid="upload-file" disabled={Boolean(busy || taskBusy)} onClick={uploadFile}>{busy === 'upload' ? '正在保存…' : files.some(file => file.name === upload.name) ? '保存为新版本' : '上传并保存'}<CloudIcon kind="arrow" size={15} /></button>}
-              <p className="cw-helper">上传同名文件会新增版本，历史版本不会被覆盖。</p>
+              <CloudUploads key={`${storageKey}:${workspaceId}`} workspaceId={workspaceId} client={client} health={health} files={files} disabled={Boolean(busy || taskBusy)} onSaved={(savedFile, savedVersion, existing) => {
+                dataRevisionRef.current += 1;
+                setFiles(current => [savedFile, ...current.filter(file => file.id !== savedFile.id)]);
+                setFileId(savedFile.id); setVersionId(savedVersion.id);
+                setNotice(existing ? '新版本已保存，原版本仍可读取。' : '文件已保存；文本文件可开始处理。');
+              }} />
               <div className="cw-file-list" aria-label="已保存文件">{workspaceLoading && !files.length ? <p className="cw-empty-small">正在读取文件…</p> : !files.length ? <div className="cw-empty-small"><CloudIcon kind="file" size={25} /><p>还没有文件<br /><small>先上传一份材料，再开始处理</small></p></div> : files.map(file => <button type="button" data-testid="file-select" className={`cw-file-row${fileId === file.id ? ' cw-selected' : ''}`} key={file.id} onClick={() => setFileId(file.id)} aria-pressed={fileId === file.id} disabled={Boolean(busy || taskBusy)}><span className="cw-file-icon"><CloudIcon kind="file" size={18} /></span><span><strong>{file.name}</strong><small>{formatBytes(file.size)} · {file.version_count} 个版本</small></span><span className="cw-selection-dot" /></button>)}</div>
               {selectedFile && <div className="cw-version-details"><label htmlFor="cloud-version">处理版本</label><select className="cw-select" id="cloud-version" data-testid="version-select" value={versionId} onChange={event => setVersionId(event.target.value)} disabled={!versions.length || Boolean(busy || taskBusy)}>{!versions.length && <option value="">读取版本…</option>}{versions.map(version => <option key={version.id} value={version.id}>{version.id === selectedFile.current_version ? '最新版本' : `历史版本 ${version.id.slice(0, 8)}`} · {shortDate(version.created_at)}</option>)}</select><div className="cw-version-meta"><span>SHA-256</span><code title={versions.find(version => version.id === versionId)?.sha256}>{versions.find(version => version.id === versionId)?.sha256.slice(0, 16) || '—'}…</code></div>{versionId && <a className="cw-text-link" href={cloudContentUrl(versionId, true)} download={selectedFile.name} onClick={event => download(event, versionId, selectedFile.name)}>下载此版本 ↗</a>}{versionId && <details className="cw-input-preview"><summary>文件预览</summary>{!inputInspection ? <p role="status">正在检查文件内容…</p> : inputInspection.kind === 'text' ? <pre data-testid="input-file-preview">{inputInspection.text.slice(0, 20000)}{inputInspection.text.length > 20000 ? '\n…预览已截断，可下载完整文件。' : ''}</pre> : <p data-testid="input-binary-note">{inputInspection.kind === 'empty' ? '文件为空。' : '此文件不可文本预览。'}可下载原文件；文档检查与 AI 摘要仅支持 UTF-8 文本。</p>}</details>}</div>}
             </div></section>
-            <section ref={taskSectionRef} className="cw-card cw-task-card" aria-labelledby="cw-task-title"><div className="cw-card-heading"><div><span className="cw-step">02</span><h2 id="cw-task-title">任务工作台</h2></div><span className="cw-subtle-label">版本锁定</span></div><div className="cw-task-composer"><div className="cw-operation-heading"><span className="cw-operation-icon"><CloudIcon kind="activity" size={22} /></span><div><h3>{cloudOperationLabel(operation)}</h3><span>版本锁定 · 可追溯执行</span></div></div><label className="cw-operation-label" htmlFor="cloud-operation">处理方式</label><select id="cloud-operation" data-testid="operation-select" className="cw-select cw-operation-select" value={operation} onChange={event => setOperation(event.target.value as CloudOperation)} disabled={Boolean(busy || taskBusy)}><option value="document-summary">文档检查与摘要（无需 AI）</option><option value="agent-summary">AI 文档摘要</option></select>{operation === 'agent-summary' && !agentAvailable && <p className="cw-ai-unavailable" role="status">{health?.executorUnavailableReason === 'model_not_configured' ? '尚未配置模型，请在设置中添加 AI 服务商和模型后刷新。' : 'AI 执行器暂不可用，请检查服务配置后刷新。'}文档检查仍可使用。</p>}<label className="cw-sr-only" htmlFor="cloud-task-description">流程任务说明</label><textarea id="cloud-task-description" data-testid="task-prompt" readOnly value={operation === 'agent-summary' ? '使用已配置的 AI 模型阅读选定文件版本，生成摘要并保存为独立产物。文件文本会发送给你配置的模型服务商。' : '读取选定文件版本，统计文档元数据并提取文本摘要，将结果保存为独立产物。'} /><div className="cw-task-input"><CloudIcon kind="file" size={14} /><span>{selectedFile ? `${selectedFile.name} · ${versionId === selectedFile.current_version ? '最新版本' : '历史版本'}` : '等待选择输入文件'}</span></div><button className="cw-button cw-button-primary cw-full-width" type="button" data-testid="submit-task" onClick={submitRun} disabled={!versionId || !selectedFile || !inputTextReady || Boolean(busy || taskBusy) || !operationAvailable}>{busy === 'run' ? '正在提交…' : '开始处理'}<CloudIcon kind="arrow" size={17} /></button>{versionId && !inputInspection && <p className="cw-composer-note" role="status">正在检查选定版本的文件内容…</p>}{inputInspection && inputInspection.kind !== 'text' && <p className="cw-ai-unavailable">选定文件不可进行文本处理；仍可保存版本和下载原文件。</p>}<p className="cw-composer-note">仅可处理 UTF-8 文本；文件后续更新不会改变任务输入。</p></div>
+            <section ref={taskSectionRef} className="cw-card cw-task-card" aria-labelledby="cw-task-title"><div className="cw-card-heading"><div><span className="cw-step">02</span><h2 id="cw-task-title">任务工作台</h2></div><span className="cw-subtle-label">版本锁定</span></div><div className="cw-task-composer"><div className="cw-operation-heading"><span className="cw-operation-icon"><CloudIcon kind="activity" size={22} /></span><div><h3>{cloudOperationLabel(operation)}</h3><span>版本锁定 · 可追溯执行</span></div></div><label className="cw-operation-label" htmlFor="cloud-operation">处理方式</label><select id="cloud-operation" data-testid="operation-select" className="cw-select cw-operation-select" value={operation} onChange={event => setOperation(event.target.value as CloudOperation)} disabled={Boolean(busy || taskBusy)}><option value="document-summary">文档检查与摘要（无需 AI）</option><option value="agent-summary">AI 文档摘要</option></select>{operation === 'agent-summary' && !agentAvailable && <p className="cw-ai-unavailable" role="status">{health?.executorUnavailableReason === 'model_not_configured' ? '尚未配置模型，请在设置中添加 AI 服务商和模型后刷新。' : 'AI 执行器暂不可用，请检查服务配置后刷新。'}文档检查仍可使用。</p>}<label className="cw-sr-only" htmlFor="cloud-task-description">流程任务说明</label><textarea id="cloud-task-description" data-testid="task-prompt" readOnly value={operation === 'agent-summary' ? '使用已配置的 AI 模型阅读选定文件版本，生成摘要并保存为独立产物。文件文本会发送给你配置的模型服务商。' : '读取选定文件版本，统计文档元数据并提取文本摘要，将结果保存为独立产物。'} /><div className="cw-task-input"><CloudIcon kind="file" size={14} /><span>{selectedFile ? `${selectedFile.name} · ${versionId === selectedFile.current_version ? '最新版本' : '历史版本'}` : '等待选择输入文件'}</span></div><button className="cw-button cw-button-primary cw-full-width" type="button" data-testid="submit-task" onClick={submitRun} disabled={!versionId || !selectedFile || !inputTextReady || Boolean(busy || taskBusy) || !operationAvailable}>{busy === 'run' ? '正在提交…' : '开始处理'}<CloudIcon kind="arrow" size={17} /></button>{versionId && !inputInspection && <p className="cw-composer-note" role="status">正在检查选定版本的文件内容…</p>}{inputInspection && inputInspection.kind !== 'text' && <p className="cw-ai-unavailable">选定文件不可进行文本处理；仍可保存版本和下载原文件。</p>}<p className="cw-composer-note">仅可处理 UTF-8 文本；文档检查最大 2 MiB，AI 任务最大 128 KiB。更大的文件仅保存和下载。文件后续更新不会改变任务输入。</p>{inputTooLarge && <p className="cw-ai-unavailable">选定版本超过当前处理上限，可保存和下载，但不能执行此任务。</p>}</div>
               <div className="cw-runs-heading"><h3>运行记录</h3><span>{runs.length} 次</span></div><div className="cw-runs-list">{!runs.length ? <div className="cw-empty-small"><CloudIcon kind="activity" size={26} /><p>准备好时，开始第一个任务<br /><small>进度和结果会自动出现在这里</small></p></div> : runs.map(run => <button type="button" className={`cw-run-row${runId === run.id ? ' cw-selected' : ''}`} data-testid="task-select" key={run.id} onClick={() => setRunId(run.id)} aria-pressed={runId === run.id}><span className={`cw-run-dot cw-state-${run.status}`} /><span><strong>{cloudOperationLabel(run.operation)}</strong><small>{shortDate(run.created_at)} · {run.id.slice(0, 8)}</small></span><span className={`cw-status cw-state-${run.status}`}>{cloudStatusLabel(run.error === 'cancelled' ? 'cancelled' : run.status)}</span></button>)}</div>
-              {detail && <div className="cw-run-detail"><div className="cw-detail-label">执行轨迹 <span>{detail.events.length} 条事件</span></div>{detail.run.error && detail.run.error !== 'cancelled' && <p className="cw-run-error" role="alert">{detail.run.error}</p>}<ol className="cw-timeline">{detail.events.map(event => <li key={event.id}><span className="cw-timeline-dot" /><div><strong>{eventLabel(event.kind)}</strong><time>{shortDate(event.created_at)}</time></div></li>)}</ol><CloudTaskRunDetail run={detail.run} client={client} onRunUpdated={nextRun => { dataRevisionRef.current += 1; setDetail(current => current?.run.id === nextRun.id ? { ...current, run: nextRun } : current); setRuns(current => current.map(run => run.id === nextRun.id ? nextRun : run)); }} /></div>}
+              {detail && <div className="cw-run-detail"><div className="cw-detail-label">执行轨迹 <span>{detail.events.length} 条事件</span></div>{detail.run.error && detail.run.error !== 'cancelled' && <p className="cw-run-error" role="alert">{detail.run.error}</p>}<ol className="cw-timeline">{detail.events.map(event => <li key={event.id}><span className="cw-timeline-dot" /><div><strong>{eventLabel(event.kind)}</strong><time>{shortDate(event.created_at)}</time></div></li>)}</ol><CloudTaskRunDetail run={detail.run} client={client} health={health} onRunCreated={nextRun => { dataRevisionRef.current += 1; setRuns(current => [nextRun, ...current.filter(item => item.id !== nextRun.id)]); setRunId(nextRun.id); }} onRunUpdated={nextRun => { dataRevisionRef.current += 1; setDetail(current => current?.run.id === nextRun.id ? { ...current, run: nextRun } : current); setRuns(current => current.map(run => run.id === nextRun.id ? nextRun : run)); }} /></div>}
             </section>
             <section className="cw-card cw-artifact-card" aria-labelledby="cw-artifact-title"><div className="cw-card-heading"><div><span className="cw-step">03</span><h2 id="cw-artifact-title">产物预览</h2></div><span className="cw-subtle-label">TEXT</span></div>{artifact ? <><div className="cw-artifact-meta"><span className="cw-file-icon"><CloudIcon kind="file" size={18} /></span><div><strong>{artifact.name}</strong><small>{formatBytes(artifact.size)} · 独立版本</small></div><a className="cw-download" data-testid="artifact-download" href={cloudContentUrl(artifact.version_id, true)} download={artifact.name} onClick={event => download(event, artifact.version_id, artifact.name)} aria-label={`下载 ${artifact.name}`}>↓</a></div>{detail && detail.artifacts.length > 1 && <select className="cw-select cw-artifact-select" aria-label="选择产物" value={artifact.id} onChange={event => setArtifact(detail.artifacts.find(item => item.id === event.target.value) || null)}>{detail.artifacts.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>}<pre className="cw-artifact-preview" data-testid="artifact-preview" aria-busy={previewLoading}>{previewLoading ? '正在读取产物…' : preview}</pre><div className="cw-artifact-foot"><CloudIcon kind="check" size={14} />已保存到工作空间</div></> : <div className="cw-artifact-empty"><div className="cw-document-illustration"><CloudIcon kind="file" size={44} /><span /><span /><span /></div><h3>{detail && isActiveCloudRun(detail.run.status) ? '正在准备你的结果' : '成果，即将就位'}</h3><p>{detail?.run.status === 'failed' ? '任务未完成，请查看执行轨迹中的错误信息。' : '任务完成后，结果会保存在这里，随时预览和下载。'}</p><span className="cw-empty-tag">可追溯 · 可下载 · 持久保存</span></div>}</section>
           </div>}

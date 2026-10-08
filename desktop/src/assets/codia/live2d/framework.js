@@ -11193,6 +11193,7 @@ var s_renderTargetReverseUvArray = new Float32Array([
 var CubismShader_WebGL = class {
   _codiaRequest = new AbortController();
   codiaLoadError = null;
+  codiaShaderSources = null;
   /**
    * 非同期でシェーダーをパスから読み込む
    *
@@ -11201,6 +11202,11 @@ var CubismShader_WebGL = class {
    * @return シェーダーのソースコード
    */
   async loadShader(url) {
+    if (this.codiaShaderSources) {
+      const source = this.codiaShaderSources[url];
+      if (typeof source !== "string") throw new Error(`Missing bundled Cubism shader: ${url}`);
+      return source;
+    }
     const response = await fetch(url, { signal: this._codiaRequest.signal });
     if (!response.ok) throw new Error(`Cubism shader HTTP ${response.status}`);
     return await response.text();

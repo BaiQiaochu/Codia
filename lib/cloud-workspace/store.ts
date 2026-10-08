@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import { normalizeUpload, sameUpload, uploadRequestKey, uploadManifest, publicUpload, activeUpload, assertUploadActive, validateUploadChunk, CLOUD_UPLOAD_TTL, CLOUD_UPLOAD_ACTIVE_LIMIT, CLOUD_UPLOAD_ACTIVE_BYTES, CLOUD_UPLOAD_RETAINED_LIMIT, CLOUD_UPLOAD_RETAINED_BYTES, type CreateCloudUpload, type CloudUploadChunk, type CloudUploadState } from './uploads.ts';
+import { CLOUD_DOCUMENT_INPUT_LIMIT, CLOUD_AGENT_INPUT_LIMIT } from './input-limits.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { CloudOperation, CreateCloudSchedule, EnqueueCloudRun } from './repository.ts';
@@ -59,6 +61,171 @@ export class CloudWorkspaceStore {
       CREATE TABLE IF NOT EXISTS cw_outbox (id INTEGER PRIMARY KEY AUTOINCREMENT, workspace_id TEXT NOT NULL REFERENCES cw_workspaces(id), run_id TEXT, kind TEXT NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL, published INTEGER NOT NULL DEFAULT 0);
       CREATE TABLE IF NOT EXISTS cw_events (id INTEGER PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES cw_workspaces(id), run_id TEXT, kind TEXT NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL);
     `);
+    this.transaction(() => {
+      if (!this.db.prepare('PRAGMA table_info(cw_runs)').all().some((column: CloudRow) => column.name === 'retry_of')) this.db.exec('ALTER TABLE cw_runs ADD COLUMN retry_of TEXT REFERENCES cw_runs(id)');
+    });
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS cw_uploads (
+        id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES cw_workspaces(id), name TEXT NOT NULL,
+        size INTEGER NOT NULL CHECK(size BETWEEN 0 AND 33554432), sha256 TEXT NOT NULL CHECK(length(sha256)=64), request_key TEXT NOT NULL,
+        creation_spec TEXT NOT NULL, file_id TEXT NOT NULL REFERENCES cw_files(id), expected_version TEXT REFERENCES cw_versions(id),
+        version_id TEXT NOT NULL UNIQUE REFERENCES cw_versions(id), state TEXT NOT NULL CHECK(state IN ('uploading','completing','completed','cancelled','expired')),
+        expires_at INTEGER NOT NULL, revision INTEGER NOT NULL CHECK(revision>0), manifest_sha256 TEXT CHECK(manifest_sha256 IS NULL OR length(manifest_sha256)=64),
+        created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(workspace_id,request_key),
+        CHECK(state NOT IN ('completing','completed') OR manifest_sha256 IS NOT NULL)
+      );
+      CREATE TRIGGER IF NOT EXISTS cw_retry_link BEFORE UPDATE ON cw_runs
+        WHEN (OLD.retry_of IS NOT NULL AND NEW.retry_of IS NOT OLD.retry_of) OR
+          (NEW.retry_of IS NOT NULL AND NOT EXISTS(SELECT 1 FROM cw_runs source WHERE source.id=NEW.retry_of AND source.id<>NEW.id
+            AND source.workspace_id=NEW.workspace_id AND source.input_version=NEW.input_version AND source.operation=NEW.operation
+            AND source.operation<>'agent-conversation' AND source.status='failed'))
+        BEGIN SELECT RAISE(ABORT,'Retry source is immutable and must match a failed run'); END;
+      CREATE TRIGGER IF NOT EXISTS cw_upload_scope BEFORE INSERT ON cw_uploads
+        WHEN NEW.state<>'uploading' OR NEW.manifest_sha256 IS NOT NULL OR NOT EXISTS(
+          SELECT 1 FROM cw_versions v JOIN cw_files f ON f.id=v.file_id WHERE v.id=NEW.version_id AND f.id=NEW.file_id
+            AND f.workspace_id=NEW.workspace_id AND v.size=NEW.size AND v.sha256=NEW.sha256 AND v.status='staging'
+            AND f.current_version IS NEW.expected_version)
+        BEGIN SELECT RAISE(ABORT,'Upload scope or reserved version is invalid'); END;
+      CREATE TRIGGER IF NOT EXISTS cw_upload_manifest_count BEFORE UPDATE ON cw_uploads
+        WHEN NEW.state IN ('completing','completed') AND
+          (SELECT COUNT(*) FROM cw_upload_chunks WHERE upload_id=NEW.id)<>(NEW.size+1048575)/1048576
+        BEGIN SELECT RAISE(ABORT,'Upload manifest is incomplete'); END;
+      CREATE INDEX IF NOT EXISTS cw_upload_active ON cw_uploads(workspace_id,state,expires_at);
+      CREATE TABLE IF NOT EXISTS cw_upload_chunks (
+        upload_id TEXT NOT NULL REFERENCES cw_uploads(id), chunk_index INTEGER NOT NULL CHECK(chunk_index BETWEEN 0 AND 31),
+        size INTEGER NOT NULL CHECK(size BETWEEN 1 AND 1048576), sha256 TEXT NOT NULL CHECK(length(sha256)=64), PRIMARY KEY(upload_id,chunk_index)
+      );
+      CREATE TRIGGER IF NOT EXISTS cw_upload_immutable BEFORE UPDATE ON cw_uploads
+        WHEN NEW.id<>OLD.id OR NEW.workspace_id<>OLD.workspace_id OR NEW.name<>OLD.name OR NEW.size<>OLD.size OR NEW.sha256<>OLD.sha256
+          OR NEW.request_key<>OLD.request_key OR NEW.creation_spec<>OLD.creation_spec OR NEW.file_id<>OLD.file_id
+          OR NEW.expected_version IS NOT OLD.expected_version OR NEW.version_id<>OLD.version_id OR NEW.expires_at<>OLD.expires_at
+          OR NEW.created_at<>OLD.created_at OR NEW.revision<>OLD.revision+1
+          OR (OLD.manifest_sha256 IS NOT NULL AND NEW.manifest_sha256 IS NOT OLD.manifest_sha256)
+          OR (OLD.state NOT IN ('uploading','completing')) OR (OLD.state='completing' AND NEW.state='uploading')
+          OR (OLD.state='uploading' AND NEW.state='completed')
+          OR (OLD.manifest_sha256 IS NULL AND NEW.manifest_sha256 IS NOT NULL AND NEW.state<>'completing')
+        BEGIN SELECT RAISE(ABORT,'Upload specification, manifest and terminal states are immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS cw_upload_chunk_scope BEFORE INSERT ON cw_upload_chunks
+        WHEN NOT EXISTS(SELECT 1 FROM cw_uploads WHERE id=NEW.upload_id AND state='uploading' AND NEW.chunk_index*1048576<size AND NEW.size=MIN(1048576,size-NEW.chunk_index*1048576))
+        BEGIN SELECT RAISE(ABORT,'Invalid upload chunk'); END;
+      CREATE TRIGGER IF NOT EXISTS cw_upload_chunk_immutable BEFORE UPDATE ON cw_upload_chunks BEGIN SELECT RAISE(ABORT,'Upload chunks are immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS cw_upload_chunk_nodelete BEFORE DELETE ON cw_upload_chunks BEGIN SELECT RAISE(ABORT,'Upload chunks are immutable'); END;
+    `);
+  }
+  #uploadState(actor: CloudActor, uploadId: string): CloudUploadState {
+    this.assertActor(actor);
+    const session = this.db.prepare('SELECT * FROM cw_uploads WHERE id=?').get(uploadId);
+    if (!session) throw new CloudWorkspaceError('not_found', 404);
+    this.workspace(actor, session.workspace_id);
+    const chunks = this.db.prepare('SELECT chunk_index AS "index",size,sha256 FROM cw_upload_chunks WHERE upload_id=? ORDER BY chunk_index').all(uploadId);
+    const version = this.db.prepare('SELECT * FROM cw_versions WHERE id=?').get(session.version_id);
+    return { session, chunks, version };
+  }
+  #expireUploads(actor: CloudActor) {
+    const expired = this.db.prepare("SELECT u.id,u.version_id FROM cw_uploads u JOIN cw_workspaces w ON w.id=u.workspace_id WHERE w.owner_user=? AND w.studio_id=? AND u.state IN ('uploading','completing') AND u.expires_at<=?").all(actor.userId, actor.studioId, Date.now());
+    for (const row of expired) {
+      this.db.prepare("UPDATE cw_uploads SET state='expired',revision=revision+1,updated_at=? WHERE id=?").run(now(), row.id);
+      this.rejectVersion(row.version_id);
+    }
+  }
+  createUpload(actor: CloudActor, workspaceId: string, input: CreateCloudUpload) {
+    const spec = normalizeUpload(input);
+    return this.transaction(() => {
+      this.workspace(actor, workspaceId); this.#expireUploads(actor);
+      const old = this.db.prepare('SELECT * FROM cw_uploads WHERE workspace_id=? AND request_key=?').get(workspaceId, input.requestKey);
+      if (old) {
+        if (!sameUpload(old.creation_spec, spec)) throw new CloudWorkspaceError('idempotency_conflict', 409);
+        return this.#uploadState(actor, old.id);
+      }
+      const quota = this.db.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(u.size),0) AS bytes FROM cw_uploads u JOIN cw_workspaces w ON w.id=u.workspace_id WHERE w.owner_user=? AND w.studio_id=? AND u.state IN ('uploading','completing')").get(actor.userId, actor.studioId);
+      if (quota.count >= CLOUD_UPLOAD_ACTIVE_LIMIT || quota.bytes + spec.size > CLOUD_UPLOAD_ACTIVE_BYTES) throw new CloudWorkspaceError('upload_quota_exceeded', 429);
+      const retained = this.db.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(u.size),0) AS bytes FROM cw_uploads u JOIN cw_workspaces w ON w.id=u.workspace_id WHERE w.owner_user=? AND w.studio_id=? AND u.expires_at>?").get(actor.userId,actor.studioId,Date.now());
+      if (retained.count >= CLOUD_UPLOAD_RETAINED_LIMIT || retained.bytes + spec.size > CLOUD_UPLOAD_RETAINED_BYTES) throw new CloudWorkspaceError('upload_retention_quota_exceeded',429);
+      const staged = this.stageVersion(actor, workspaceId, spec.name, spec.size, spec.sha256, spec.fileId ?? undefined, spec.expectedVersion ?? undefined);
+      if (staged.file.name !== spec.name) throw new CloudWorkspaceError('upload_name_mismatch');
+      const uploadId = id();
+      this.db.prepare(`INSERT INTO cw_uploads(id,workspace_id,name,size,sha256,request_key,creation_spec,file_id,expected_version,version_id,state,expires_at,revision,created_at,updated_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,'uploading',?,1,?,?)`).run(uploadId,workspaceId,spec.name,spec.size,spec.sha256,input.requestKey,JSON.stringify(spec),staged.file.id,staged.expected,staged.version.id,Date.now()+CLOUD_UPLOAD_TTL,now(),now());
+      return this.#uploadState(actor, uploadId);
+    });
+  }
+  uploadSession(actor: CloudActor, uploadId: string) {
+    return this.transaction(() => { this.#uploadState(actor, uploadId); this.#expireUploads(actor); return this.#uploadState(actor, uploadId); });
+  }
+  listUploads(actor: CloudActor, workspaceId: string) {
+    return this.transaction(() => {
+      this.workspace(actor, workspaceId); this.#expireUploads(actor);
+      return this.db.prepare('SELECT id FROM cw_uploads WHERE workspace_id=? ORDER BY created_at DESC,id LIMIT 100').all(workspaceId).map((row: CloudRow) => this.#uploadState(actor, row.id));
+    });
+  }
+  recordUploadChunk(actor: CloudActor, uploadId: string, chunk: CloudUploadChunk) {
+    // Expiry commits separately so a rejected late request cannot roll it back.
+    this.uploadSession(actor, uploadId);
+    return this.transaction(() => {
+      const state = this.#uploadState(actor, uploadId); assertUploadActive(state.session); validateUploadChunk(state.session, chunk);
+      if (Number(state.session.expires_at) <= Date.now()) throw new CloudWorkspaceError('upload_expired', 410);
+      const old = state.chunks.find(item => item.index === chunk.index);
+      if (old) { if (old.size !== chunk.size || old.sha256 !== chunk.sha256) throw new CloudWorkspaceError('chunk_conflict', 409); return state; }
+      if (state.session.state !== 'uploading') throw new CloudWorkspaceError('upload_not_pending', 409);
+      this.db.prepare('INSERT INTO cw_upload_chunks(upload_id,chunk_index,size,sha256) VALUES(?,?,?,?)').run(uploadId,chunk.index,chunk.size,chunk.sha256);
+      this.db.prepare('UPDATE cw_uploads SET revision=revision+1,updated_at=? WHERE id=?').run(now(),uploadId);
+      return this.#uploadState(actor, uploadId);
+    });
+  }
+  beginUploadCompletion(actor: CloudActor, uploadId: string) {
+    this.uploadSession(actor, uploadId);
+    return this.transaction(() => {
+      const state = this.#uploadState(actor, uploadId);
+      if (state.session.state === 'completed') return state;
+      assertUploadActive(state.session);
+      if (Number(state.session.expires_at) <= Date.now()) throw new CloudWorkspaceError('upload_expired', 410);
+      const manifest = uploadManifest(state.session, state.chunks);
+      if (state.session.state === 'uploading') this.db.prepare("UPDATE cw_uploads SET state='completing',manifest_sha256=?,revision=revision+1,updated_at=? WHERE id=?").run(manifest,now(),uploadId);
+      else if (state.session.manifest_sha256 !== manifest) throw new CloudWorkspaceError('upload_manifest_mismatch', 409);
+      return this.#uploadState(actor, uploadId);
+    });
+  }
+  finalizeUpload(actor: CloudActor, uploadId: string, manifest: string) {
+    this.uploadSession(actor, uploadId);
+    return this.transaction(() => {
+      const state = this.#uploadState(actor, uploadId), row = state.session;
+      if (row.manifest_sha256 !== manifest || uploadManifest(row,state.chunks) !== manifest) throw new CloudWorkspaceError('upload_manifest_mismatch', 409);
+      if (row.state === 'completed') return {file: this.fileSummary(actor,row.file_id),version:publicVersion(state.version),upload:publicUpload(state)};
+      assertUploadActive(row);
+      if (row.state !== 'completing') throw new CloudWorkspaceError('upload_not_pending', 409);
+      if (Number(row.expires_at) <= Date.now()) throw new CloudWorkspaceError('upload_expired', 410);
+      // This transaction publishes the reserved version and terminal session together.
+      const result = this.finalizeVersion(actor,row.version_id,row.expected_version);
+      this.db.prepare("UPDATE cw_uploads SET state='completed',revision=revision+1,updated_at=? WHERE id=?").run(now(),uploadId);
+      return {...result,upload:publicUpload(this.#uploadState(actor,uploadId))};
+    });
+  }
+  cancelUpload(actor: CloudActor, uploadId: string) {
+    this.uploadSession(actor, uploadId);
+    return this.transaction(() => {
+      const state = this.#uploadState(actor, uploadId);
+      if (activeUpload(state.session)) {
+        this.db.prepare("UPDATE cw_uploads SET state='cancelled',revision=revision+1,updated_at=? WHERE id=?").run(now(),uploadId);
+        this.rejectVersion(state.session.version_id);
+      }
+      return this.#uploadState(actor,uploadId);
+    });
+  }
+  retryRun(actor: CloudActor, runId: string, requestKey: string) {
+    uploadRequestKey(requestKey);
+    return this.transaction(() => {
+      const source = this.db.prepare('SELECT * FROM cw_runs WHERE id=?').get(runId);
+      if (!source) throw new CloudWorkspaceError('not_found',404);
+      this.workspace(actor,source.workspace_id);
+      if (source.operation === 'agent-conversation') throw new CloudWorkspaceError('run_not_retryable',409);
+      const old = this.db.prepare('SELECT * FROM cw_runs WHERE workspace_id=? AND request_key=?').get(source.workspace_id,requestKey);
+      if (old) { if (old.retry_of !== runId || old.input_version !== source.input_version || old.operation !== source.operation) throw new CloudWorkspaceError('idempotency_conflict',409); return publicRun(old); }
+      if (source.status !== 'failed') throw new CloudWorkspaceError('run_not_retryable',409);
+      const run = this.createRun(actor,source.workspace_id,source.input_version,requestKey,source.operation);
+      this.db.prepare('UPDATE cw_runs SET retry_of=? WHERE id=?').run(runId,run.id);
+      this.event(source.workspace_id,run.id,'run.retried',{runId:run.id,retryOf:runId});
+      return publicRun(this.db.prepare('SELECT * FROM cw_runs WHERE id=?').get(run.id));
+    });
   }
   close() { this.db.close(); }
   transaction<T>(fn: () => T): T { return this.db.transaction(fn).immediate(); }
@@ -144,7 +311,7 @@ export class CloudWorkspaceStore {
   // Bounded uploads retain five-minute in-flight grace; crash leftovers preserve bytes.
   reconcileStaging(timestamp = Date.now(), graceMs = 5 * 60 * 1000) {
     const cutoff = new Date(timestamp - graceMs).toISOString();
-    const stale = this.db.prepare("SELECT id FROM cw_versions WHERE status='staging' AND created_at<?").all(cutoff);
+    const stale = this.db.prepare("SELECT id FROM cw_versions v WHERE status='staging' AND created_at<? AND NOT EXISTS(SELECT 1 FROM cw_uploads u WHERE u.version_id=v.id AND u.state IN ('uploading','completing'))").all(cutoff);
     for (const row of stale) this.rejectVersion(row.id);
     return stale.length;
   }
@@ -166,6 +333,7 @@ export class CloudWorkspaceStore {
       if (!['document-summary', 'agent-summary', 'agent-conversation', 'agent-task'].includes(operation)) throw new CloudWorkspaceError('unsupported_operation');
       const input = this.version(actor, inputVersion);
       if (input.workspace_id !== workspaceId) throw new CloudWorkspaceError('not_found', 404);
+      if (input.size > (operation === 'document-summary' ? CLOUD_DOCUMENT_INPUT_LIMIT : CLOUD_AGENT_INPUT_LIMIT)) throw new CloudWorkspaceError(operation === 'document-summary' ? 'document_input_too_large' : 'agent_input_too_large',413);
       if (!/^[A-Za-z0-9_-]{8,128}$/.test(requestKey || '')) throw new CloudWorkspaceError('invalid_request_key');
       const old = this.db.prepare('SELECT * FROM cw_runs WHERE workspace_id=? AND request_key=?').get(workspaceId, requestKey);
       if (old) {
@@ -173,7 +341,7 @@ export class CloudWorkspaceStore {
         return publicRun(old);
       }
       const run = { id: id(), workspace_id: workspaceId, input_version: inputVersion, operation, request_key: requestKey, status: 'queued', attempt: 0, lease_until: null, artifact_file_id: null, error: null, created_at: now(), updated_at: now() };
-      this.db.prepare('INSERT INTO cw_runs VALUES (@id,@workspace_id,@input_version,@operation,@request_key,@status,@attempt,@lease_until,@artifact_file_id,@error,@created_at,@updated_at)').run(run);
+      this.db.prepare('INSERT INTO cw_runs(id,workspace_id,input_version,operation,request_key,status,attempt,lease_until,artifact_file_id,error,created_at,updated_at) VALUES (@id,@workspace_id,@input_version,@operation,@request_key,@status,@attempt,@lease_until,@artifact_file_id,@error,@created_at,@updated_at)').run(run);
       this.event(workspaceId, run.id, 'run.queued', { runId: run.id });
       return publicRun(run);
     });
@@ -208,6 +376,7 @@ export class CloudWorkspaceStore {
       const spec = normalizeSchedule(input);
       const version = this.version(actor, spec.inputVersion);
       if (version.workspace_id !== workspaceId) throw new CloudWorkspaceError('not_found', 404);
+      if (version.size > (spec.operation === 'document-summary' ? CLOUD_DOCUMENT_INPUT_LIMIT : CLOUD_AGENT_INPUT_LIMIT)) throw new CloudWorkspaceError(spec.operation === 'document-summary' ? 'document_input_too_large' : 'agent_input_too_large',413);
       const old = this.db.prepare('SELECT * FROM cw_schedules WHERE workspace_id=? AND request_key=?').get(workspaceId, input.requestKey);
       if (old) {
         if (!sameScheduleSpecification(old.creation_spec, spec)) throw new CloudWorkspaceError('idempotency_conflict', 409);

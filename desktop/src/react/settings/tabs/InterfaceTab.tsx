@@ -304,6 +304,10 @@ function formatBodyFontSizeOffset(offset: number): string {
   return offset > 0 ? `+${offset}` : String(offset);
 }
 
+// These legacy controls stay hidden while the unified appearance editor owns
+// theme selection. Keep the feature gate named instead of a constant JSX guard.
+const LEGACY_APPEARANCE_SECTIONS_ENABLED = false;
+
 export function InterfaceTab({ embedded = false }: { embedded?: boolean } = {}) {
   return (
     <div
@@ -552,7 +556,7 @@ export function InterfaceSettingsSections() {
 
   return (
     <>
-      {false && <SettingsSection title={t('settings.appearance.theme')} variant="flush">
+      {LEGACY_APPEARANCE_SECTIONS_ENABLED && <SettingsSection title={t('settings.appearance.theme')} variant="flush">
         <div className={styles['theme-options']}>
           {VALID_THEMES.map(theme => {
             return (
@@ -613,7 +617,7 @@ export function InterfaceSettingsSections() {
         </SettingsSection.Card>
       </SettingsSection>
 
-      {false && <SettingsSection title={t('settings.appearance.title')}>
+      {LEGACY_APPEARANCE_SECTIONS_ENABLED && <SettingsSection title={t('settings.appearance.title')}>
         <div className={styles['theme-advanced-settings']} data-testid="theme-advanced-settings">
         <div className={styles['theme-preview-comparator']} data-testid="theme-preview-comparator">
           <div className={styles['theme-preview-header']}>

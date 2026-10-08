@@ -174,6 +174,45 @@ describe("server runtime assets", () => {
       .toContain("console.log('mobile')");
   });
 
+  it("copies Vite template imports and local Core URL dependencies transitively", () => {
+    const assets = path.join(rootDir, "desktop", "dist-renderer", "assets");
+    fs.writeFileSync(path.join(assets, "main.js"), [
+      'export const lazy = () => import(`./runtime-test.js`);',
+      'const core = new URL(`live2dcubismcore-test.js`, import.meta.url).href;',
+      'const worker = new URL("worker-test.js", import.meta.url).href;',
+      "const other = new URL('other-test.js', import.meta.url).href;",
+    ].join("\n"));
+    fs.writeFileSync(path.join(assets, "runtime-test.js"), 'export const shader = () => import(`./shader-test.js`);');
+    for (const name of ["live2dcubismcore-test.js", "worker-test.js", "other-test.js", "shader-test.js"]) {
+      fs.writeFileSync(path.join(assets, name), `/* ${name} */`);
+    }
+    copyServerRuntimeAssets({ rootDir, outDir });
+    for (const name of ["runtime-test.js", "live2dcubismcore-test.js", "worker-test.js", "other-test.js", "shader-test.js", "paper.png"]) {
+      expect(fs.readFileSync(path.join(outDir, "desktop", "dist-renderer", "assets", name)))
+        .toEqual(fs.readFileSync(path.join(assets, name)));
+    }
+    expect(fs.existsSync(path.join(outDir, "desktop", "dist-renderer", "assets", "desktop-only.js"))).toBe(false);
+  });
+
+  it("ignores computed, external and escaping asset URL references", () => {
+    const assets = path.join(rootDir, "desktop", "dist-renderer", "assets");
+    fs.writeFileSync(path.join(assets, "main.js"), [
+      'import(`./${name}.js`);',
+      'new URL(`./${name}.js`, import.meta.url);',
+      'new URL("../escape.js", import.meta.url);',
+      'new URL("/absolute.js", import.meta.url);',
+      'new URL("https://remote.test/remote.js", import.meta.url);',
+      'new URL("unrelated.js", externalBase);',
+    ].join("\n"));
+    for (const name of ["${name}.js", "escape.js", "absolute.js", "remote.js", "unrelated.js"]) {
+      fs.writeFileSync(path.join(assets, name), "not a dependency");
+    }
+    copyServerRuntimeAssets({ rootDir, outDir });
+    for (const name of ["${name}.js", "escape.js", "absolute.js", "remote.js", "unrelated.js"]) {
+      expect(fs.existsSync(path.join(outDir, "desktop", "dist-renderer", "assets", name))).toBe(false);
+    }
+  });
+
   it("excludes source maps and desktop-only renderer files from the server runtime", () => {
     copyServerRuntimeAssets({ rootDir, outDir });
 

@@ -1,5 +1,7 @@
 # Codia cloud workspace: integrated local and remote modes
 
+> Current upload and recovery extension: [cloud-resumable-uploads-and-recovery.md](cloud-resumable-uploads-and-recovery.md). Historical limits/schema requirements below describe their original stage.
+
 > This document describes the phase-two boundary. The subsequent capability-scoped tool Agent and durable scheduler are documented in [cloud-agent-tasks-and-schedules.md](cloud-agent-tasks-and-schedules.md). Earlier no-tools/no-schedules statements below are historical to phase two.
 
 This change edits the original Codia application. It is not a separate replacement app and does not create a hosted project, bucket, account, key, or public endpoint.

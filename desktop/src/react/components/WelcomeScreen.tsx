@@ -1,11 +1,11 @@
 import type { QuickActionId } from '../../../../shared/quick-actions';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Flower, Lightbulb, Code, Heart, ArrowRight, GearSix } from '@phosphor-icons/react';
-import codiaMascotGazeStrip from '../../assets/codia/codia-mascot-gaze-strip.png';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Flower, Lightbulb, Code, Heart } from '@phosphor-icons/react';
+import { CodiaStaticMascot } from './CodiaStaticMascot';
 import { useStore } from '../stores';
 import { gsapFetch } from '../hooks/use-gsap-fetch';
 import { useI18n } from '../hooks/use-i18n';
-import { loadModels } from '../utils/ui-helpers';
+import { loadModels, showError } from '../utils/ui-helpers';
 import {
   activateWorkspaceDesk,
   addWorkspaceFolder,
@@ -17,16 +17,15 @@ import {
   removeStudioWorkspace,
   removeWorkspaceFolder,
 } from '../stores/desk-actions';
-import { openSettingsModal } from '../stores/settings-modal-actions';
 import type { Agent, StudioWorkspace } from '../types';
-import { AgentAvatar, refreshAgentAvatarVersion, resolveAgentDisplayInfo, type AgentDisplayInfo } from '../utils/agent-display';
+import { AgentAvatar, refreshAgentAvatarVersion, resolveAgentDisplayInfo } from '../utils/agent-display';
 import styles from './Welcome.module.css';
 import { buildWorkspacePickerItems, normalizeWorkspacePath } from '../../../../shared/workspace-history.ts';
-import { switchTab } from './channels/tab-router';
 import { requestInputDraft } from '../utils/input-draft-events';
 import { getDesktopApi } from '../utils/desktop-api';
 import { resolveCodiaLive2DAssets } from '../live2d/assets';
 import { CodiaLive2DMascot } from './CodiaLive2DMascot';
+import { AnchoredPortal } from '../ui/AnchoredPortal';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- store callbacks and extended agent metadata */
 
@@ -40,17 +39,15 @@ type WelcomeAgent = Agent & {
 
 export function refreshAvatarTs() { refreshAgentAvatarVersion(); }
 
-export function WelcomeScreen({ enableSettings = true }: { enableSettings?: boolean } = {}) {
-  return <WelcomeInner enableSettings={enableSettings} />;
+export function WelcomeScreen() {
+  return <WelcomeInner />;
 }
 
-function WelcomeInner({ enableSettings }: { enableSettings: boolean }) {
+function WelcomeInner() {
   const { t } = useI18n();
   const welcomeVisible = useStore(s => s.welcomeVisible);
+  const hasAIModels = useStore(s => s.models.length > 0);
   const agents = useStore(s => s.agents);
-  const agentName = useStore(s => s.agentName);
-  const agentAvatarUrl = useStore(s => s.agentAvatarUrl);
-  const agentYuan = useStore(s => s.agentYuan);
   const currentAgentId = useStore(s => s.currentAgentId);
   const selectedAgentId = useStore(s => s.selectedAgentId);
   const memoryEnabled = useStore(s => s.memoryEnabled);
@@ -62,8 +59,7 @@ function WelcomeInner({ enableSettings }: { enableSettings: boolean }) {
   const homeFolder = useStore(s => s.homeFolder);
   const workspaceFolders = useStore(s => s.workspaceFolders);
   const cwdHistory = useStore(s => s.cwdHistory);
-  const serverPort = useStore(s => s.serverPort);
-  const live2DAssets = useMemo(() => resolveCodiaLive2DAssets(window.location.href, serverPort ? Number(serverPort) : null), [serverPort]);
+  const live2DAssets = useMemo(() => resolveCodiaLive2DAssets(window.location.href), []);
   const [gpuRuntime, setGpuRuntime] = useState<{ gpuSafeMode: boolean; hardwareAccelerationEnabled: boolean } | null>(() => (
     getDesktopApi()?.getGpuRuntimeState ? null : { gpuSafeMode: false, hardwareAccelerationEnabled: true }
   ));
@@ -83,29 +79,54 @@ function WelcomeInner({ enableSettings }: { enableSettings: boolean }) {
     return () => { active = false; };
   }, []);
 
-  const prefillPrompt = useCallback((prompt: string) => {
-    const state = useStore.getState();
-    if (state.currentTab !== 'chat') switchTab('chat');
-    state.setDraft(state.currentSessionPath || '__new', prompt);
-    requestInputDraft({ text: prompt, mode: 'replace', focus: true, source: 'welcome-quick-action' });
-    state.requestInputFocus();
-    window.requestAnimationFrame(() => {
-      document.querySelector<HTMLElement>('.input-area:not(.hidden)')?.scrollIntoView({ block: 'end' });
-    });
+  const mountedRef = useRef(true);
+  const codePendingRef = useRef(false);
+  const actionVersionRef = useRef(0);
+  const [codePending, setCodePending] = useState(false);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; actionVersionRef.current += 1; };
   }, []);
+
   const selectQuickAction = useCallback((quickAction: QuickActionId) => {
+    actionVersionRef.current += 1;
+    if (useStore.getState().models.length === 0) return;
     requestInputDraft({ quickAction, focus: true, source: 'welcome-quick-action' });
   }, []);
   const startCodeTask = useCallback(async () => {
-    if (!selectedFolder && !selectedWorkspaceMountId) {
-      const folder = await window.platform?.selectFolder?.();
-      if (folder) await applyFolder(folder);
+    if (codePendingRef.current || useStore.getState().models.length === 0) return;
+    const version = ++actionVersionRef.current;
+    const origin = welcomeContextKey();
+    const isCurrent = (context = origin) => mountedRef.current
+      && version === actionVersionRef.current
+      && context === welcomeContextKey()
+      && useStore.getState().welcomeVisible
+      && useStore.getState().currentTab === 'chat'
+      && useStore.getState().models.length > 0;
+    const canChooseLocalFolder = document.documentElement.dataset.platform !== 'web'
+      && typeof window.platform?.selectFolder === 'function';
+    if (!selectedFolder && !selectedWorkspaceMountId && canChooseLocalFolder) {
+      codePendingRef.current = true;
+      setCodePending(true);
+      try {
+        const folder = await window.platform?.selectFolder?.();
+        if (!folder || !isCurrent()) return;
+        // applyFolder may intentionally start a fresh session; guard later navigation
+        // against that new context rather than the context before the selection.
+        const applying = applyFolder(folder);
+        const appliedContext = welcomeContextKey();
+        await applying;
+        if (!isCurrent(appliedContext)) return;
+      } catch {
+        if (isCurrent()) showError('无法打开工作空间，请重试。');
+        return;
+      } finally {
+        codePendingRef.current = false;
+        if (mountedRef.current) setCodePending(false);
+      }
     }
     selectQuickAction('code');
   }, [selectQuickAction, selectedFolder, selectedWorkspaceMountId]);
-  const openWorkflow = useCallback(() => {
-    selectQuickAction('workflow');
-  }, [selectQuickAction]);
 
   const displayAgent = useMemo(() => {
     const selected = selectedAgentId || currentAgentId;
@@ -124,7 +145,6 @@ function WelcomeInner({ enableSettings }: { enableSettings: boolean }) {
             <div className={styles.codiaEyebrow}>YOUR AI COMPANION · CODIA</div>
             <h2>嗨，我是小豆蔻 <Flower weight="fill" aria-hidden="true" /></h2>
             <p>可以帮你写代码、整理灵感，也可以一起把复杂任务拆成小步骤。</p>
-            <button type="button" onClick={() => prefillPrompt('你好小豆蔻，我想开始一段新的对话。')}>开始一段对话 <ArrowRight weight="bold" /></button>
           </div>
           <div className={styles.codiaHeroArt}>
             <CodiaLive2DMascot
@@ -134,31 +154,22 @@ function WelcomeInner({ enableSettings }: { enableSettings: boolean }) {
               gpuSafeMode={gpuRuntime?.gpuSafeMode}
               hardwareAccelerationEnabled={gpuRuntime?.hardwareAccelerationEnabled}
               fallback={(
-                <div className={styles.codiaMascotFallback}>
-                  <span className={styles.codiaHeroHalo} aria-hidden="true" />
-                  <div className={styles.codiaMascotFrame} role="img" aria-label="Codia 吉祥物探出圆框" data-codia-mascot-frame>
-                    <div className={styles.codiaMascotMotion}>
-                      <div className={styles.codiaMascotViewport}>
-                        <img className={styles.codiaMascotSprite} src={codiaMascotGazeStrip} alt="" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <CodiaStaticMascot />
               )}
             />
           </div>
         </section>
       </div>
       <div className={styles.codiaActionDock}>
-        <section className={styles.codiaQuickSection} aria-label="快捷任务">
+        {hasAIModels && <section className={styles.codiaQuickSection} aria-label="快捷任务">
           <h3>给灵感一个小小入口</h3>
           <div className={styles.codiaQuickGrid}>
             <button type="button" onClick={() => selectQuickAction('ideas')}><span className={styles.codiaQuickIcon}><Lightbulb weight="fill" /></span><span className={styles.codiaQuickCopy}><strong>整理我的想法</strong><small>把零散灵感变成清晰计划</small></span></button>
-            <button type="button" onClick={() => void startCodeTask()}><span className={styles.codiaQuickIcon}><Code weight="bold" /></span><span className={styles.codiaQuickCopy}><strong>开始编程协作</strong><small>一起理解、编写和检查代码</small></span></button>
-            <button type="button" onClick={() => void openWorkflow()}><span className={styles.codiaQuickIcon}><Flower weight="fill" /></span><span className={styles.codiaQuickCopy}><strong>搭建一个工作流</strong><small>把重复任务交给自动化</small></span></button>
+            <button type="button" disabled={codePending} aria-busy={codePending} onClick={() => void startCodeTask()}><span className={styles.codiaQuickIcon}><Code weight="bold" /></span><span className={styles.codiaQuickCopy}><strong>开始编程协作</strong><small>一起理解、编写和检查代码</small></span></button>
+            <button type="button" onClick={() => selectQuickAction('workflow')}><span className={styles.codiaQuickIcon}><Flower weight="fill" /></span><span className={styles.codiaQuickCopy}><strong>搭建一个工作流</strong><small>把重复任务交给自动化</small></span></button>
             <button type="button" onClick={() => selectQuickAction('agents')}><span className={styles.codiaQuickIcon}><Heart weight="fill" /></span><span className={styles.codiaQuickCopy}><strong>问问我的 Agent</strong><small>叫上擅长不同事情的伙伴</small></span></button>
           </div>
-        </section>
+        </section>}
         {agents.length >= 2 && (
           <AgentChips
             agents={agents}
@@ -167,7 +178,6 @@ function WelcomeInner({ enableSettings }: { enableSettings: boolean }) {
         )}
         <div className={styles.codiaContextControls}>
           <FolderPicker
-            enableSettings={enableSettings}
             agents={agents}
             currentAgentId={currentAgentId}
             selectedFolder={selectedFolder}
@@ -183,6 +193,14 @@ function WelcomeInner({ enableSettings }: { enableSettings: boolean }) {
       </div>
     </div>
   );
+}
+
+function welcomeContextKey(): string {
+  const state = useStore.getState();
+  return JSON.stringify([
+    state.currentTab, state.currentSessionPath, state.currentAgentId,
+    state.selectedAgentId, state.selectedFolder, state.selectedWorkspaceMountId,
+  ]);
 }
 
 function getFolderDisplayName(folder: string): string {
@@ -259,6 +277,7 @@ function AgentChip({ agent, isSelected, onClick }: {
       type="button"
       className={`${styles.welcomeAgentChip}${isSelected ? ` ${styles.welcomeAgentChipSelected}` : ''}`}
       onClick={handleClick}
+      aria-pressed={isSelected}
     >
       <AgentAvatar
         info={info}
@@ -270,7 +289,6 @@ function AgentChip({ agent, isSelected, onClick }: {
 }
 
 function FolderPicker({
-  enableSettings,
   agents,
   currentAgentId,
   selectedFolder,
@@ -281,7 +299,6 @@ function FolderPicker({
   workspaceFolders,
   cwdHistory,
 }: {
-  enableSettings: boolean;
   agents: Agent[];
   currentAgentId: string | null;
   selectedFolder: string | null;
@@ -295,6 +312,15 @@ function FolderPicker({
   const { t } = useI18n();
   const [showHistory, setShowHistory] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const historyId = useId();
+  const mountedRef = useRef(true);
+  const folderPendingRef = useRef(false);
+  const [folderPending, setFolderPending] = useState(false);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
   const agentHomeFolders = useMemo(() => collectAgentHomeFolders(agents), [agents]);
 
   useEffect(() => {
@@ -304,34 +330,56 @@ function FolderPicker({
   useEffect(() => {
     if (!showHistory) return;
     const close = (event: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (wrapRef.current && !wrapRef.current.contains(target) && !document.getElementById(historyId)?.contains(target)) {
         setShowHistory(false);
       }
     };
-    const timer = setTimeout(() => document.addEventListener('click', close, true), 0);
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('click', close, true);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopPropagation();
+      setShowHistory(false);
+      triggerRef.current?.focus();
     };
-  }, [showHistory]);
+    document.addEventListener('mousedown', close, true);
+    document.addEventListener('keydown', onKeyDown, true);
+    document.getElementById(historyId)?.querySelector<HTMLButtonElement>('button')?.focus();
+    return () => {
+      document.removeEventListener('mousedown', close, true);
+      document.removeEventListener('keydown', onKeyDown, true);
+    };
+  }, [historyId, showHistory]);
 
-  const handleBrowse = useCallback(async () => {
+  const chooseFolder = useCallback(async (kind: 'workspace' | 'extra') => {
+    if (folderPendingRef.current) return;
+    folderPendingRef.current = true;
+    setFolderPending(true);
     setShowHistory(false);
-    const folder = await window.platform?.selectFolder?.();
-    if (!folder) return;
-    const workspace = await createLocalStudioWorkspaceFromFolder(folder);
-    if (workspace) {
-      await applyStudioWorkspace(workspace);
-    } else {
-      void applyFolder(folder);
+    triggerRef.current?.focus();
+    const origin = welcomeContextKey();
+    const isCurrent = () => mountedRef.current && origin === welcomeContextKey()
+      && useStore.getState().welcomeVisible && useStore.getState().currentTab === 'chat';
+    try {
+      const folder = await window.platform?.selectFolder?.();
+      if (!folder || !isCurrent()) return;
+      if (kind === 'extra') {
+        addWorkspaceFolder(folder);
+        return;
+      }
+      const workspace = await createLocalStudioWorkspaceFromFolder(folder);
+      if (!isCurrent()) return;
+      if (workspace) await applyStudioWorkspace(workspace);
+      else await applyFolder(folder);
+    } catch {
+      if (isCurrent()) showError('无法打开工作空间，请重试。');
+    } finally {
+      folderPendingRef.current = false;
+      if (mountedRef.current) setFolderPending(false);
     }
   }, []);
-
-  const handleAddWorkspaceFolder = useCallback(async () => {
-    const folder = await window.platform?.selectFolder?.();
-    if (!folder) return;
-    addWorkspaceFolder(folder);
-  }, []);
+  const handleBrowse = useCallback(() => chooseFolder('workspace'), [chooseFolder]);
+  const handleAddWorkspaceFolder = useCallback(() => chooseFolder('extra'), [chooseFolder]);
 
   const handleButtonClick = useCallback(() => {
     if (selectedWorkspaceMountId || selectedFolder || studioWorkspaces.length > 0 || cwdHistory.length > 0 || workspaceFolders.length > 0 || agentHomeFolders.length > 0) {
@@ -343,6 +391,7 @@ function FolderPicker({
 
   const handleSelectWorkspace = useCallback((workspace: StudioWorkspace) => {
     setShowHistory(false);
+    triggerRef.current?.focus();
     void applyStudioWorkspace(workspace);
   }, []);
 
@@ -352,6 +401,7 @@ function FolderPicker({
 
   const handleSelectHistory = useCallback((folder: string) => {
     setShowHistory(false);
+    triggerRef.current?.focus();
     const agent = findAgentByHomeFolder(agents, folder);
     if (agent) {
       const agentHomeFolder = normalizeAgentHomeFolder(agent) || folder;
@@ -391,11 +441,16 @@ function FolderPicker({
   return (
     <div className={styles.workspaceControls}>
       <div
-        className={`${styles.folderSelectWrap}${showHistory ? ` ${styles.folderSelectWrapShowHistory}` : ''}`}
+        className={styles.folderSelectWrap}
         ref={wrapRef}
       >
       <button
         type="button"
+        ref={triggerRef}
+        aria-expanded={showHistory}
+        aria-busy={folderPending}
+        disabled={folderPending}
+        aria-controls={showHistory ? historyId : undefined}
         className={`${styles.folderSelectBtn}${(selectedFolder || selectedWorkspaceMountId) ? ` ${styles.folderSelectBtnHasFolder}` : ''}`}
         onClick={handleButtonClick}
         title={folderPath || selectedWorkspaceMountId ? `点击更换工作空间：${folderPath || selectedWorkspaceLabel || selectedWorkspaceMountId}` : t('input.selectWorkspace')}
@@ -411,8 +466,9 @@ function FolderPicker({
           <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
         </svg>
       </button>
-      {showHistory && (
+      <AnchoredPortal open={showHistory} anchorRef={triggerRef} align="start" minWidth={240} viewportPadding={8}>
         <FolderHistory
+          id={historyId}
           cwdHistory={cwdHistory}
           agentHomeFolders={agentHomeFolders}
           selectedFolder={selectedFolder}
@@ -428,24 +484,15 @@ function FolderPicker({
           onRemoveStudioWorkspace={handleRemoveWorkspace}
           onRemoveWorkspaceFolder={removeWorkspaceFolder}
         />
-      )}
+      </AnchoredPortal>
       </div>
-      {enableSettings && (
-        <button
-          type="button"
-          className={styles.workspaceSettingsButton}
-          title={t('settings.title')}
-          aria-label={t('settings.title')}
-          onClick={() => openSettingsModal('agent')}
-        >
-          <GearSix size={17} weight="regular" aria-hidden="true" />
-        </button>
-      )}
+
     </div>
   );
 }
 
 function FolderHistory({
+  id,
   cwdHistory,
   agentHomeFolders,
   selectedFolder,
@@ -461,6 +508,7 @@ function FolderHistory({
   onRemoveStudioWorkspace,
   onRemoveWorkspaceFolder,
 }: {
+  id: string;
   cwdHistory: string[];
   agentHomeFolders: string[];
   selectedFolder: string | null;
@@ -487,7 +535,7 @@ function FolderHistory({
   const removableHistory = new Set(cwdHistory.map(normalizeWorkspacePath).filter(Boolean));
   const t = window.t ?? ((p: string) => p);
   return (
-    <div className={styles.folderHistory}>
+    <div className={styles.folderHistory} id={id}>
       <div className={styles.folderHistorySectionLabel}>
         {t('input.currentWorkspace')}
       </div>
@@ -502,15 +550,16 @@ function FolderHistory({
             <div
               key={`studio:${workspace.mountId}`}
               className={`${styles.folderHistoryItem}${isActive ? ` ${styles.folderHistoryItemActive}` : ''}`}
-              title={workspace.label}
-              onClick={(event) => { event.stopPropagation(); onSelectWorkspace(workspace); }}
             >
+              <button type="button" className={styles.folderHistorySelect} title={workspace.label} aria-pressed={isActive}
+                onClick={(event) => { event.stopPropagation(); onSelectWorkspace(workspace); }}>
               <span className={styles.folderHistoryItemIcon}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                 </svg>
               </span>
               <span className={styles.folderHistoryItemName}>{workspace.label}</span>
+              </button>
               {!workspace.isDefault && (
                 <button
                   type="button"
@@ -530,20 +579,21 @@ function FolderHistory({
         })}
         {primaryItems.map(path => {
           const name = getFolderDisplayName(path);
-          const isActive = path === selectedFolder;
+          const isActive = path === normalizeWorkspacePath(selectedFolder);
           return (
             <div
               key={path}
               className={`${styles.folderHistoryItem}${isActive ? ` ${styles.folderHistoryItemActive}` : ''}`}
-              title={path}
-              onClick={(event) => { event.stopPropagation(); onSelect(path); }}
             >
+              <button type="button" className={styles.folderHistorySelect} title={path} aria-pressed={isActive}
+                onClick={(event) => { event.stopPropagation(); onSelect(path); }}>
               <span className={styles.folderHistoryItemIcon}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                 </svg>
               </span>
               <span className={styles.folderHistoryItemName}>{name}</span>
+              </button>
               {removableHistory.has(normalizeWorkspacePath(path)) && (
                 <button
                   type="button"
@@ -563,7 +613,7 @@ function FolderHistory({
         })}
       </div>
       <div className={styles.folderHistoryDivider} />
-      <div className={styles.folderHistoryBrowse} onClick={(event) => { event.stopPropagation(); onBrowse(); }}>
+      <button type="button" className={styles.folderHistoryBrowse} onClick={(event) => { event.stopPropagation(); onBrowse(); }}>
         <span className={styles.folderHistoryItemIcon}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -572,7 +622,7 @@ function FolderHistory({
           </svg>
         </span>
         <span>{t('input.selectOtherFolder')}</span>
-      </div>
+      </button>
       <div className={styles.folderHistoryDivider} />
       <div className={styles.folderHistorySectionLabel}>
         {t('input.extraFolders')}
@@ -589,14 +639,15 @@ function FolderHistory({
               key={path}
               className={styles.folderHistoryItem}
               title={path}
-              onClick={(event) => { event.stopPropagation(); }}
             >
+              <span className={styles.folderHistoryLabel}>
               <span className={styles.folderHistoryItemIcon}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                 </svg>
               </span>
               <span className={styles.folderHistoryItemName}>{name}</span>
+              </span>
               <button
                 type="button"
                 className={styles.folderHistoryRemove}
@@ -605,6 +656,7 @@ function FolderHistory({
                   onRemoveWorkspaceFolder(path);
                 }}
                 title={t('common.remove')}
+                aria-label={`${t('common.remove')}: ${name}`}
               >
                 x
               </button>
@@ -612,7 +664,7 @@ function FolderHistory({
           );
         })}
       </div>
-      <div className={styles.folderHistoryBrowse} onClick={(event) => { event.stopPropagation(); onAddWorkspaceFolder(); }}>
+      <button type="button" className={styles.folderHistoryBrowse} onClick={(event) => { event.stopPropagation(); onAddWorkspaceFolder(); }}>
         <span className={styles.folderHistoryItemIcon}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 5v14"></path>
@@ -620,7 +672,7 @@ function FolderHistory({
           </svg>
         </span>
         <span>{t('input.addExternalFolder')}</span>
-      </div>
+      </button>
     </div>
   );
 }
@@ -661,6 +713,7 @@ function MemoryToggle({ enabled, masterEnabled, t }: {
       className={`${styles.memoryToggleBtn}${enabled && !disabled ? ` ${styles.memoryToggleBtnActive}` : ''}${disabled ? ` ${styles.memoryToggleBtnDisabled}` : ''}`}
       onClick={handleClick}
       disabled={disabled}
+      aria-pressed={enabled && !disabled}
       title={disabled ? t('welcome.memoryDisabled') : undefined}
     >
       <svg className={styles.memoryToggleIcon} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

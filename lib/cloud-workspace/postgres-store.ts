@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { normalizeUpload, sameUpload, uploadRequestKey, uploadManifest, publicUpload, activeUpload, assertUploadActive, validateUploadChunk, CLOUD_UPLOAD_TTL, CLOUD_UPLOAD_ACTIVE_LIMIT, CLOUD_UPLOAD_ACTIVE_BYTES, CLOUD_UPLOAD_RETAINED_LIMIT, CLOUD_UPLOAD_RETAINED_BYTES, type CreateCloudUpload, type CloudUploadChunk, type CloudUploadState } from './uploads.ts';
+import { CLOUD_DOCUMENT_INPUT_LIMIT, CLOUD_AGENT_INPUT_LIMIT } from './input-limits.ts';
 import { CloudWorkspaceError, validName, type CloudActor, type CloudRow } from './store.ts';
 import { PostgresWorkspaceDatabase, type PgPool, type PgQueryable } from './postgres.ts';
 import type { CloudOperation, CloudOutput, CloudWorkspaceRepository, StagedCloudVersion, EnqueueCloudRun, CreateCloudSchedule } from './repository.ts';
@@ -38,6 +40,146 @@ export class PostgresWorkspaceStore implements CloudWorkspaceRepository {
   readonly database: PostgresWorkspaceDatabase;
   readonly #close?: () => Promise<void>;
   constructor(pool: PgPool, options: {closePool?: () => Promise<void>} = {}) { this.database = new PostgresWorkspaceDatabase(pool); this.#close = options.closePool; }
+  async #uploadsReady(tx: PgQueryable) {
+    try {
+      const result = await tx.query(`SELECT version FROM ${schema}.schema_version WHERE version=5 AND to_regclass('${schema}.uploads') IS NOT NULL AND to_regclass('${schema}.upload_chunks') IS NOT NULL`);
+      if (result.rows.length !== 1) throw new CloudWorkspaceError('cloud_database_migration_required', 503);
+    } catch (error) {
+      if (['42P01','3F000'].includes(String((error as {code?:string}).code))) throw new CloudWorkspaceError('cloud_database_migration_required',503);
+      throw error;
+    }
+  }
+  async #uploadState(tx: PgQueryable, actor: CloudActor, uploadId: string, lock = false): Promise<CloudUploadState> {
+    await this.#uploadsReady(tx);
+    const session = (await tx.query(`SELECT * FROM ${schema}.uploads WHERE id=$1 AND owner_user=$2 AND studio_id=$3${lock ? ' FOR UPDATE' : ''}`, [uuid(uploadId),actor.userId,actor.studioId])).rows[0];
+    if (!session) throw new CloudWorkspaceError('not_found',404);
+    const chunks = (await tx.query(`SELECT chunk_index AS index,size,sha256 FROM ${schema}.upload_chunks WHERE upload_id=$1 ORDER BY chunk_index`,[uploadId])).rows.map(row => ({index:Number(row.index),size:Number(row.size),sha256:String(row.sha256)}));
+    const version = (await tx.query(`SELECT * FROM ${schema}.versions WHERE id=$1`,[session.version_id])).rows[0];
+    return {session:stripScope(session),chunks,version:stripScope(version)};
+  }
+  async #expireUploads(tx: PgQueryable, actor: CloudActor) {
+    const expired = (await tx.query(`SELECT id,version_id FROM ${schema}.uploads WHERE owner_user=$1 AND studio_id=$2 AND state IN ('uploading','completing') AND expires_at<=floor(extract(epoch from clock_timestamp())*1000)::bigint ORDER BY id FOR UPDATE SKIP LOCKED`,[actor.userId,actor.studioId])).rows;
+    for (const row of expired) {
+      await tx.query(`UPDATE ${schema}.uploads SET state='expired',revision=revision+1,updated_at=clock_timestamp() WHERE id=$1`,[row.id]);
+      await this.#reject(tx,String(row.version_id));
+    }
+  }
+  async createUpload(actor: CloudActor, workspaceId: string, input: CreateCloudUpload) {
+    const spec = normalizeUpload(input);
+    try {
+      return await this.#tx(actor, async tx => {
+        await this.#uploadsReady(tx);
+        const workspace = await this.#workspace(tx,actor,workspaceId);
+        // Owner-wide reservation fence applies across different workspaces.
+        await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[JSON.stringify(['codia-upload-quota',actor.studioId,actor.userId])]);
+        await this.#expireUploads(tx,actor);
+        const old = (await tx.query(`SELECT * FROM ${schema}.uploads WHERE workspace_id=$1 AND request_key=$2`,[workspaceId,input.requestKey])).rows[0];
+        if (old) { if (!sameUpload(old.creation_spec,spec)) throw new CloudWorkspaceError('idempotency_conflict',409); return this.#uploadState(tx,actor,String(old.id)); }
+        const quota = (await tx.query(`SELECT COUNT(*) AS count,COALESCE(SUM(size),0) AS bytes FROM ${schema}.uploads WHERE owner_user=$1 AND studio_id=$2 AND state IN ('uploading','completing')`,[actor.userId,actor.studioId])).rows[0];
+        if (Number(quota.count)>=CLOUD_UPLOAD_ACTIVE_LIMIT || Number(quota.bytes)+spec.size>CLOUD_UPLOAD_ACTIVE_BYTES) throw new CloudWorkspaceError('upload_quota_exceeded',429);
+        const retained=(await tx.query(`SELECT COUNT(*) AS count,COALESCE(SUM(size),0) AS bytes FROM ${schema}.uploads WHERE owner_user=$1 AND studio_id=$2 AND expires_at>floor(extract(epoch from clock_timestamp())*1000)::bigint`,[actor.userId,actor.studioId])).rows[0];
+        if (Number(retained.count)>=CLOUD_UPLOAD_RETAINED_LIMIT || Number(retained.bytes)+spec.size>CLOUD_UPLOAD_RETAINED_BYTES) throw new CloudWorkspaceError('upload_retention_quota_exceeded',429);
+        let file: CloudRow;
+        if (spec.fileId) {
+          file = await this.#file(tx,actor,spec.fileId,true);
+          if (file.workspace_id !== workspaceId) throw new CloudWorkspaceError('not_found',404);
+          if (file.current_version !== spec.expectedVersion) throw new CloudWorkspaceError('version_conflict',409);
+          if (file.name !== spec.name) throw new CloudWorkspaceError('upload_name_mismatch');
+        } else file = (await tx.query(`INSERT INTO ${schema}.files(id,workspace_id,owner_user,studio_id,name) VALUES($1,$2,$3,$4,$5) RETURNING *`,[id(),workspaceId,workspace.owner_user,workspace.studio_id,spec.name])).rows[0];
+        const versionId=id(),uploadId=id(),objectKey=`workspaces/${workspaceId}/files/${file.id}/versions/${versionId}`;
+        await tx.query(`INSERT INTO ${schema}.versions(id,file_id,workspace_id,owner_user,studio_id,object_key,size,sha256,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8,'staging')`,[versionId,file.id,workspaceId,actor.userId,actor.studioId,objectKey,spec.size,spec.sha256]);
+        await tx.query(`INSERT INTO ${schema}.uploads(id,workspace_id,owner_user,studio_id,name,size,sha256,request_key,creation_spec,file_id,expected_version,version_id,state,expires_at)
+          VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,'uploading',floor(extract(epoch from clock_timestamp())*1000)::bigint+$13)`,
+        [uploadId,workspaceId,actor.userId,actor.studioId,spec.name,spec.size,spec.sha256,input.requestKey,JSON.stringify(spec),file.id,file.current_version,versionId,CLOUD_UPLOAD_TTL]);
+        return this.#uploadState(tx,actor,uploadId);
+      });
+    } catch (error) { if ((error as {code?:string}).code==='23505') throw new CloudWorkspaceError('file_name_exists',409); throw error; }
+  }
+  async uploadSession(actor: CloudActor, uploadId: string) {
+    return this.#tx(actor,async tx => { await this.#uploadState(tx,actor,uploadId); await this.#expireUploads(tx,actor); return this.#uploadState(tx,actor,uploadId); });
+  }
+  async listUploads(actor: CloudActor, workspaceId: string) {
+    return this.#tx(actor,async tx => {
+      await this.#uploadsReady(tx); await this.#workspace(tx,actor,workspaceId); await this.#expireUploads(tx,actor);
+      const rows = (await tx.query(`SELECT id FROM ${schema}.uploads WHERE workspace_id=$1 ORDER BY created_at DESC,id LIMIT 100`,[workspaceId])).rows;
+      const result: CloudUploadState[]=[]; for (const row of rows) result.push(await this.#uploadState(tx,actor,String(row.id))); return result;
+    });
+  }
+  async recordUploadChunk(actor: CloudActor, uploadId: string, chunk: CloudUploadChunk) {
+    await this.uploadSession(actor,uploadId);
+    return this.#tx(actor,async tx => {
+      const state=await this.#uploadState(tx,actor,uploadId,true); assertUploadActive(state.session); validateUploadChunk(state.session,chunk);
+      if (Number(state.session.expires_at)<=await this.#now(tx)) throw new CloudWorkspaceError('upload_expired',410);
+      const old=state.chunks.find(item=>item.index===chunk.index);
+      if (old) { if (old.size!==chunk.size || old.sha256!==chunk.sha256) throw new CloudWorkspaceError('chunk_conflict',409); return state; }
+      if (state.session.state!=='uploading') throw new CloudWorkspaceError('upload_not_pending',409);
+      await tx.query(`INSERT INTO ${schema}.upload_chunks(upload_id,workspace_id,owner_user,studio_id,chunk_index,size,sha256) VALUES($1,$2,$3,$4,$5,$6,$7)`,[uploadId,state.session.workspace_id,actor.userId,actor.studioId,chunk.index,chunk.size,chunk.sha256]);
+      await tx.query(`UPDATE ${schema}.uploads SET revision=revision+1,updated_at=clock_timestamp() WHERE id=$1`,[uploadId]);
+      return this.#uploadState(tx,actor,uploadId);
+    });
+  }
+  async beginUploadCompletion(actor: CloudActor, uploadId: string) {
+    await this.uploadSession(actor,uploadId);
+    return this.#tx(actor,async tx => {
+      const state=await this.#uploadState(tx,actor,uploadId,true);
+      if (state.session.state==='completed') return state;
+      assertUploadActive(state.session);
+      if (Number(state.session.expires_at)<=await this.#now(tx)) throw new CloudWorkspaceError('upload_expired',410);
+      const manifest=uploadManifest(state.session,state.chunks);
+      if (state.session.state==='uploading') await tx.query(`UPDATE ${schema}.uploads SET state='completing',manifest_sha256=$1,revision=revision+1,updated_at=clock_timestamp() WHERE id=$2`,[manifest,uploadId]);
+      else if (state.session.manifest_sha256!==manifest) throw new CloudWorkspaceError('upload_manifest_mismatch',409);
+      return this.#uploadState(tx,actor,uploadId);
+    });
+  }
+  async finalizeUpload(actor: CloudActor, uploadId: string, manifest: string) {
+    await this.uploadSession(actor,uploadId);
+    return this.#tx(actor,async tx => {
+      const state=await this.#uploadState(tx,actor,uploadId,true),row=state.session;
+      if (row.manifest_sha256!==manifest || uploadManifest(row,state.chunks)!==manifest) throw new CloudWorkspaceError('upload_manifest_mismatch',409);
+      if (row.state==='completed') return {file:await this.#summary(tx,actor,String(row.file_id)),version:publicVersion(state.version),upload:publicUpload(state)};
+      assertUploadActive(row);
+      if (row.state!=='completing') throw new CloudWorkspaceError('upload_not_pending',409);
+      if (Number(row.expires_at)<=await this.#now(tx)) throw new CloudWorkspaceError('upload_expired',410);
+      const file=await this.#file(tx,actor,String(row.file_id),true);
+      const version=(await tx.query(`SELECT * FROM ${schema}.versions WHERE id=$1 FOR UPDATE`,[row.version_id])).rows[0];
+      if (!version || version.status!=='staging') throw new CloudWorkspaceError('upload_not_pending',409);
+      if (file.current_version!==row.expected_version) throw new CloudWorkspaceError('version_conflict',409);
+      const changed=await tx.query(`UPDATE ${schema}.files SET current_version=$1 WHERE id=$2 AND current_version IS NOT DISTINCT FROM $3::uuid RETURNING id`,[row.version_id,row.file_id,row.expected_version]);
+      if (changed.rowCount!==1) throw new CloudWorkspaceError('version_conflict',409);
+      await tx.query(`UPDATE ${schema}.versions SET status='ready' WHERE id=$1`,[row.version_id]);
+      await tx.query(`UPDATE ${schema}.uploads SET state='completed',revision=revision+1,updated_at=clock_timestamp() WHERE id=$1`,[uploadId]);
+      await this.#event(tx,file,null,'file.version_ready',{fileId:row.file_id,versionId:row.version_id});
+      return {file:await this.#summary(tx,actor,String(row.file_id)),version:publicVersion(version),upload:publicUpload(await this.#uploadState(tx,actor,uploadId))};
+    });
+  }
+  async cancelUpload(actor: CloudActor, uploadId: string) {
+    await this.uploadSession(actor,uploadId);
+    return this.#tx(actor,async tx => {
+      const state=await this.#uploadState(tx,actor,uploadId,true);
+      if (activeUpload(state.session)) {
+        await tx.query(`UPDATE ${schema}.uploads SET state='cancelled',revision=revision+1,updated_at=clock_timestamp() WHERE id=$1`,[uploadId]);
+        await this.#reject(tx,String(state.session.version_id));
+      }
+      return this.#uploadState(tx,actor,uploadId);
+    });
+  }
+  async retryRun(actor: CloudActor, runId: string, requestKey: string) {
+    uploadRequestKey(requestKey);
+    return this.#tx(actor,async tx => {
+      await this.#uploadsReady(tx);
+      const source=(await tx.query(`SELECT * FROM ${schema}.runs WHERE id=$1 AND owner_user=$2 AND studio_id=$3 FOR UPDATE`,[uuid(runId),actor.userId,actor.studioId])).rows[0];
+      if (!source) throw new CloudWorkspaceError('not_found',404);
+      if (source.operation==='agent-conversation') throw new CloudWorkspaceError('run_not_retryable',409);
+      await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[`codia-run:${source.workspace_id}:${requestKey}`]);
+      const old=(await tx.query(`SELECT * FROM ${schema}.runs WHERE workspace_id=$1 AND request_key=$2`,[source.workspace_id,requestKey])).rows[0];
+      if (old) { if (old.retry_of!==runId || old.input_version!==source.input_version || old.operation!==source.operation) throw new CloudWorkspaceError('idempotency_conflict',409); return publicRun(old); }
+      if (source.status!=='failed') throw new CloudWorkspaceError('run_not_retryable',409);
+      const run=await this.#createRun(tx,actor,String(source.workspace_id),String(source.input_version),requestKey,source.operation as CloudOperation);
+      const retried=(await tx.query(`UPDATE ${schema}.runs SET retry_of=$1 WHERE id=$2 RETURNING *`,[runId,run.id])).rows[0];
+      await this.#event(tx,source,String(run.id),'run.retried',{runId:run.id,retryOf:runId});
+      return publicRun(retried);
+    });
+  }
   async close() { await this.#close?.(); }
   async #tx<T>(actor: CloudActor | null, work: (tx: PgQueryable) => Promise<T>): Promise<T> {
     const context = actor ? actorContext(actor) : { tenantId: '__internal_worker__', actorId: '__internal_worker__' };
@@ -51,6 +193,7 @@ export class PostgresWorkspaceStore implements CloudWorkspaceRepository {
   async verifySchema() {
     await this.#tx(null, async tx => {
       await this.#schedulesReady(tx);
+      await this.#uploadsReady(tx);
       const role = (await tx.query('SELECT rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user')).rows[0];
       if (!role || role.rolsuper || role.rolbypassrls) throw new CloudWorkspaceError('cloud_database_runtime_role_must_enforce_rls', 503);
     });
@@ -118,7 +261,7 @@ export class PostgresWorkspaceStore implements CloudWorkspaceRepository {
     try {
       return await this.#tx(actor, async tx => {
         const workspace = await this.#workspace(tx, actor, workspaceId);
-        const stale = (await tx.query(`SELECT id FROM ${schema}.versions WHERE status='staging' AND created_at<clock_timestamp()-interval '5 minutes' ORDER BY file_id,id LIMIT 200`)).rows;
+        const stale = (await tx.query(`SELECT id FROM ${schema}.versions v WHERE status='staging' AND NOT EXISTS(SELECT 1 FROM ${schema}.uploads u WHERE u.version_id=v.id AND u.state IN ('uploading','completing')) AND created_at<clock_timestamp()-interval '5 minutes' ORDER BY file_id,id LIMIT 200`)).rows;
         for (const row of stale) await this.#reject(tx, String(row.id));
         let file: CloudRow;
         if (fileId) {
@@ -163,7 +306,7 @@ export class PostgresWorkspaceStore implements CloudWorkspaceRepository {
     if (!Number.isSafeInteger(graceMs) || graceMs < 0) throw new CloudWorkspaceError('invalid_staging_grace');
     return this.#tx(null, async tx => {
       const now = await this.#now(tx, timestamp);
-      const stale = (await tx.query(`SELECT id FROM ${schema}.versions WHERE status='staging' AND created_at<to_timestamp($1/1000.0) ORDER BY file_id,id LIMIT 200`, [now - graceMs])).rows;
+      const stale = (await tx.query(`SELECT id FROM ${schema}.versions v WHERE status='staging' AND NOT EXISTS(SELECT 1 FROM ${schema}.uploads u WHERE u.version_id=v.id AND u.state IN ('uploading','completing')) AND created_at<to_timestamp($1/1000.0) ORDER BY file_id,id LIMIT 200`, [now - graceMs])).rows;
       for (const row of stale) await this.#reject(tx, String(row.id));
       return stale.length;
     });
@@ -180,6 +323,7 @@ export class PostgresWorkspaceStore implements CloudWorkspaceRepository {
       const workspace = await this.#workspace(tx, actor, workspaceId);
       const input = await this.#version(tx, actor, inputVersion);
       if (input.workspace_id !== workspaceId) throw new CloudWorkspaceError('not_found', 404);
+      if (Number(input.size) > (operation === 'document-summary' ? CLOUD_DOCUMENT_INPUT_LIMIT : CLOUD_AGENT_INPUT_LIMIT)) throw new CloudWorkspaceError(operation === 'document-summary' ? 'document_input_too_large' : 'agent_input_too_large',413);
       // Serialize only this idempotency key, without serializing the entire queue.
       await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [`codia-run:${workspaceId}:${requestKey}`]);
       const old = (await tx.query(`SELECT * FROM ${schema}.runs WHERE workspace_id=$1 AND request_key=$2`, [workspaceId, requestKey])).rows[0];
@@ -220,6 +364,7 @@ export class PostgresWorkspaceStore implements CloudWorkspaceRepository {
       const spec = normalizeSchedule(input);
       const version = await this.#version(tx, actor, spec.inputVersion);
       if (version.workspace_id !== workspaceId) throw new CloudWorkspaceError('not_found', 404);
+      if (Number(version.size) > (spec.operation === 'document-summary' ? CLOUD_DOCUMENT_INPUT_LIMIT : CLOUD_AGENT_INPUT_LIMIT)) throw new CloudWorkspaceError(spec.operation === 'document-summary' ? 'document_input_too_large' : 'agent_input_too_large',413);
       await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [`codia-schedule:${workspaceId}:${input.requestKey}`]);
       const old = (await tx.query(`SELECT * FROM ${schema}.schedules WHERE workspace_id=$1 AND request_key=$2`, [workspaceId, input.requestKey])).rows[0];
       if (old) {

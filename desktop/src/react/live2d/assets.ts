@@ -1,18 +1,15 @@
 export interface CodiaLive2DAssets { modelUrl: string; shaderPath: string; }
 
-/** Fetch cannot read file:// in a packaged renderer. Only data uses the existing
- * loopback static route; executable SDK code stays in the renderer bundle. */
-export function resolveCodiaLive2DAssets(pageUrl: string, localServerPort?: number | null): CodiaLive2DAssets | null {
+/** These virtual paths address data embedded in the renderer's lazy SDK chunk.
+ * They are never requested over HTTP or file://, and need no local server. */
+export const CODIA_BUNDLED_ASSETS: CodiaLive2DAssets = {
+  modelUrl: 'codia-bundled:/model/Codia.model3.json',
+  shaderPath: 'codia-bundled:/shaders/',
+};
+export function resolveCodiaLive2DAssets(pageUrl: string, _localServerPort?: number | null): CodiaLive2DAssets | null {
   const page = new URL(pageUrl);
-  let base: URL;
-  if (page.protocol === 'file:') {
-    if (!Number.isInteger(localServerPort) || !localServerPort || localServerPort < 1 || localServerPort > 65535) return null;
-    base = new URL(`http://127.0.0.1:${localServerPort}/desktop/assets/codia/live2d/`);
-  } else if (page.protocol === 'http:' || page.protocol === 'https:') {
-    if (page.pathname === '/desktop' || page.pathname === '/mobile') page.pathname += '/';
-    base = new URL('./assets/codia/live2d/', page);
-  } else return null;
-  return { modelUrl: new URL('model/Codia.model3.json', base).href, shaderPath: new URL('shaders/', base).href };
+  if (!['file:', 'http:', 'https:'].includes(page.protocol)) return null;
+  return { ...CODIA_BUNDLED_ASSETS };
 }
 
 export function resolveModelAsset(reference: string, modelUrl: string): string {

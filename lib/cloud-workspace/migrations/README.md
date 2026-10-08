@@ -1,7 +1,7 @@
 # Workspace database deployment and verification
 
 The running cloud-workspace service uses **002-workspace-runtime.sql** plus
-**004-cloud-agent-tasks.sql**, schema `codia_workspace`. The earlier
+**004-cloud-agent-tasks.sql** and **005-resumable-uploads.sql**, schema `codia_workspace`. The earlier
 `001-cloud-workspaces.sql` is a standalone design
 schema; it is not a prerequisite, and its tables are not the runtime authority.
 No SQLite records are silently copied when a backend changes.
@@ -14,6 +14,8 @@ No SQLite records are silently copied when a backend changes.
    It extends existing run operations and adds schedules without rewriting prior
    files, versions, runs, artifacts, events, or legacy import metadata. Apply each
    migration once; the runtime never auto-applies PostgreSQL migrations.
+   Apply `005-resumable-uploads.sql` after `004` for resumable uploads and linked
+   retries; existing files, versions, runs and schedules are retained.
 3. Configure an existing trusted-server runtime role with schema `USAGE`, table
    `SELECT, INSERT, UPDATE`, and sequence `USAGE, SELECT`. It must not be a
    superuser or `BYPASSRLS` role. The migrator also needs the privileges documented
@@ -34,11 +36,11 @@ Startup validates the configuration and migration marker. It never applies
 migrations, provisions resources, creates credentials, modifies database security,
 or silently falls back to local persistence after an error. A missing migration
 or unavailable database prevents cloud-runtime initialization.
-The required marker is now version **4** (version 2 remains recorded as history).
+The required marker is now version **5** (version 2 remains recorded as history).
 Schedule methods also explicitly reject a missing v4 migration with
 `cloud_database_migration_required`, before accessing schedule tables. Existing
 runtime identities need their authorized table privileges to include the new
-`schedules` table. The migration grants no new roles or permissions itself.
+`schedules`, `uploads`, and `upload_chunks` tables. The migrations grant no new roles or permissions themselves.
 
 `NODE_ENV=production` by itself does not select hosted cloud mode because packaged
 local desktop builds also use it. Without the hosted mode flag or cloud selectors,
@@ -67,6 +69,33 @@ Outbox sequence allocation is serialized per workspace, preventing lower event
 IDs from becoming visible after a reconnect cursor advances past them. Concurrent
 publishers serialize their visibility boundary and publish at most 2,000 records
 per call; further calls drain the backlog.
+
+## Resumable uploads and explicit retry (schema 005)
+
+The runtime now requires schema marker 5 as well as the prior schedule marker.
+Owner-scoped uploads and immutable upload chunks use forced RLS and scoped foreign
+keys. The runtime role needs SELECT/INSERT/UPDATE on these two new tables; no role,
+credential, DELETE privilege, or bucket policy is created by the migration.
+`runs.retry_of` links a new explicit retry to its failed/cancelled source and
+preserves its input/operation. Foreign keys and triggers reject cross-scope or
+mutable lineage. Existing rows acquire a NULL retry link and remain readable.
+
+Uploads accept 32 MiB through exact 1 MiB raw chunks, retain their original intent
+for idempotency, and expire after 24 hours. Final assembly is bounded and buffered.
+Owner/studio budgets span all workspaces: eight active sessions/128 MiB, plus a
+rolling 24-hour retained budget of 32 sessions/512 MiB over every state. Cancel and
+completion do not refund the retained budget. At most two session completions
+assemble buffers concurrently per API process; database finalization fences
+independent servers and restarts. Cancel never rolls back an already committed
+version. Uncertain PUT/complete results verify the original immutable bytes and
+reuse the same reserved version before publishing.
+
+Temporary immutable objects and orphaned final writes are retained; expiry does
+not delete bytes. Hosted operators need a separately reviewed, temporary-prefix
+lifecycle with grace beyond the upload window. Local key-hashed object envelopes
+need metadata-aware collection, not a blind mtime sweep. See
+[the full upload/recovery contract](../../../docs/cloud-resumable-uploads-and-recovery.md)
+for API, memory, resumption, retention, processing limits and rollback boundaries.
 
 ## Durable schedule semantics
 

@@ -46,3 +46,8 @@ declare module 'markdown-it-task-lists' {
   const taskLists: MarkdownIt.PluginWithOptions<TaskListsOptions>;
   export default taskLists;
 }
+// Explicit inlining for portable binary data in the lazy Live2D chunk.
+declare module '*?inline&url' {
+  const dataUrl: string;
+  export default dataUrl;
+}

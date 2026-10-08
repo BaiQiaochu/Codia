@@ -3,7 +3,7 @@
   "editorCompatibility": "5.3",
   "source": "https://www.live2d.com/en/sdk/download/web/",
   "frameworkSource": "https://github.com/Live2D/CubismWebFramework",
-  "adapter": "Abort shader loading on disposal; release individual WebGL contexts.",
+  "adapter": "Inject bundled shader sources without network; abort shader loading on disposal; release individual WebGL contexts.",
   "upstreamFiles": {
     "CHANGELOG.md": "5e7279053a041b32ee25210cb2b1cd4972e42cb338a9b3c0fc728fc0324ef080",
     "Core/CHANGELOG.md": "21556a2d10d8fe8aa5f9ff61786eed77b02f9595a8d8e713ba12de4e291c8327",
@@ -92,7 +92,7 @@
     "README.md": "86272765f67de6cc527ea2e6bd4a0006681a1326c5de927475a50c2741857772"
   },
   "files": {
-    "framework.js": "83ae148253976bb24936b4470586d93bedc1f321c95f61b6d8a88baf5be3a9f4",
+    "framework.js": "c05e7cbc1aa4f413f66a51f8f014e2bc85c33f77356f2005e59018c001bddf71",
     "core/live2dcubismcore.js": "3ba426cc788d74f276598e98fe97983214f2a95758b48dafb1e606d041db1ba7",
     "core/live2dcubismcore.d.ts": "25fcaa2a6dfe311db95ad1795a2a7e6286d9192719df4e2c3e634915dc050334",
     "shaders/fragshadersrcalphablend.frag": "855b247f02042a808a41e282ee4d7de7cc4533abeb5032b4ab8fe84f7dec107f",
