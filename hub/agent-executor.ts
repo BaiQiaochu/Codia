@@ -16,7 +16,6 @@ import {
   getAgentPhoneActiveToolNames,
   getAgentPhonePermissionMode,
   getAgentPhoneSessionDir,
-  shouldCompactAgentPhoneSession,
   shouldReuseAgentPhoneSession,
 } from "../lib/conversations/agent-phone-session.ts";
 import {
@@ -224,40 +223,6 @@ export async function runAgentSession(agentId, rounds, { engine, signal, session
 
 function storedRelativePath(agentDir, filePath) {
   return path.relative(agentDir, filePath).split(path.sep).join("/");
-}
-
-async function maybeCompactPhoneSession(session, { isActive = false, onActivity } = {}) {
-  if (typeof session.getContextUsage !== "function" || typeof session.compact !== "function") return null;
-  const usage = session.getContextUsage?.() ?? null;
-  const reason = shouldCompactAgentPhoneSession({
-    tokens: usage?.tokens,
-    isActive,
-  });
-  if (!reason) return null;
-  if (session.isCompacting) return null;
-
-  await onActivity?.(
-    "compacting",
-    reason === "hard" ? "正在压缩手机会话（180K 硬上限）" : "正在空闲压缩手机会话",
-    {
-      reason,
-      tokensBefore: usage?.tokens ?? null,
-      contextWindow: usage?.contextWindow ?? null,
-    },
-  );
-  await session.compact();
-  const after = session.getContextUsage?.() ?? null;
-  await onActivity?.(
-    "idle",
-    "手机会话压缩完成",
-    {
-      reason,
-      tokensBefore: usage?.tokens ?? null,
-      tokensAfter: after?.tokens ?? null,
-      contextWindow: after?.contextWindow ?? usage?.contextWindow ?? null,
-    },
-  );
-  return { reason, before: usage, after };
 }
 
 async function maybeFreshCompactPhoneSession(session, {
