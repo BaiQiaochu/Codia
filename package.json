@@ -1,0 +1,333 @@
+{
+  "name": "g-sap-professional",
+  "version": "0.2.0",
+  "type": "module",
+  "description": "Codia - a thoughtful AI workspace for chat, documents, workflows, and teams",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "kskooo"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "main": "desktop/bootstrap.cjs",
+  "bin": {
+    "gsap": "scripts/gsapctl.mjs",
+    "g-sap": "scripts/gsapctl.mjs",
+    "gsap-cli": "scripts/gsapctl.mjs",
+    "gsapctl": "scripts/gsapctl.mjs"
+  },
+  "scripts": {
+    "start": "node scripts/launch.js electron",
+    "start:dev": "node scripts/launch.js electron-dev",
+    "start:vite": "node scripts/launch.js electron-vite",
+    "start:local": "npm run build:client && npm run start:built",
+    "start:built": "node scripts/launch.js electron-built",
+    "dev:renderer": "vite --config vite.config.ts",
+    "dev:web": "node scripts/dev-web.js",
+    "build:renderer": "npm run build:packages && vite build --config vite.config.ts",
+    "sync:theme-runtime": "node scripts/sync-theme-runtime.mjs",
+    "build:theme": "node scripts/sync-theme-runtime.mjs && vite build --config vite.config.theme.js",
+    "build:preload": "vite build --config vite.config.preload.js",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "build:packages": "npm run build --workspaces --if-present",
+    "cli": "node scripts/launch.js cli",
+    "ctl": "node scripts/gsapctl.mjs",
+    "server": "node scripts/launch.js server",
+    "build:main": "vite build --config vite.config.main.js",
+    "build:computer-use-helper": "node scripts/build-computer-use-helper.mjs",
+    "build:windows-sandbox-helper": "node scripts/build-windows-sandbox-helper.mjs",
+    "generate:professional-icon": "node scripts/generate-professional-icon.cjs",
+    "generate:windows-icon": "node scripts/generate-windows-icon.cjs",
+    "install:playwright-cn": "node scripts/install-playwright-cn.mjs",
+    "build:client": "npm run build:main && npm run build:preload && npm run build:renderer && npm run build:theme",
+    "build": "npm run build:client && npm run build:server",
+    "bump:package-version": "node scripts/bump-package-version.mjs",
+    "build:win-release-resources": "npm run build:computer-use-helper && node scripts/download-git-portable.js && node scripts/prepare-ocr-runtime.mjs && npm run build:windows-sandbox-helper && npm run generate:professional-icon",
+    "pack": "npm run bump:package-version && npm run audit:source-tree -- --strict && npm run clean:artifacts -- --apply && npm run build:computer-use-helper && npm run build:win-release-resources && npm run build:client && npm run build:server && electron-builder --win nsis dir",
+    "dist": "npm run bump:package-version && npm run audit:source-tree -- --strict && npm run clean:artifacts -- --apply && npm run generate:professional-icon && npm run build:computer-use-helper && npm run build:client && npm run build:server && electron-builder --mac dmg",
+    "dist:win": "npm run bump:package-version && npm run audit:source-tree -- --strict && npm run build:win-release-resources && npm run build:client && npm run build:server && electron-builder --win nsis dir",
+    "dist:linux": "npm run bump:package-version && npm run audit:source-tree -- --strict && npm run clean:artifacts -- --apply && npm run generate:professional-icon && npm run build:client && npm run build:server && electron-builder --linux deb AppImage",
+    "package:win": "node scripts/package-gsap-win.mjs",
+    "package:surfaces": "node scripts/package-surface-artifacts.mjs",
+    "package:size-trend": "node scripts/package-size-trend.mjs",
+    "prune:git-portable": "node scripts/prune-git-portable.js",
+    "smoke:git-portable": "node scripts/smoke-git-portable.mjs",
+    "check:release": "node scripts/release-preflight.mjs",
+    "check:local": "node scripts/local-health-check.mjs",
+    "check:locales": "node scripts/check-locales.mjs",
+    "clean:artifacts": "node scripts/clean-artifacts.mjs",
+    "audit:html": "node scripts/html-surface-audit.mjs",
+    "audit:mojibake": "node scripts/mojibake-audit.mjs",
+    "audit:theme": "node scripts/theme-token-audit.mjs",
+    "audit:theme-visual": "node scripts/theme-visual-audit.mjs",
+    "audit:theme-screenshots": "node scripts/theme-screenshot-audit.mjs",
+    "audit:react-buttons": "node scripts/react-button-type-audit.mjs",
+    "audit:react-action-buttons": "node scripts/react-action-button-audit.mjs",
+    "audit:pwa-theme-behavior": "node scripts/pwa-theme-behavior-audit.mjs",
+    "audit:surfaces": "node scripts/surface-feature-audit.mjs",
+    "audit:source-tree": "node scripts/source-tree-audit.mjs",
+    "e2e:media-settings": "node scripts/e2e-media-settings-defaults.mjs",
+    "e2e:ui-overlap": "node scripts/ui-overlap-regression.mjs",
+    "e2e:desktop-smoke": "node scripts/desktop-e2e-smoke.mjs",
+    "e2e:desktop-window-visibility": "node scripts/e2e-desktop-window-visibility.mjs",
+    "e2e:desktop-packaged-smoke": "node scripts/desktop-e2e-packaged-smoke.mjs",
+    "e2e:packaged-runtime-smoke": "node scripts/packaged-runtime-smoke.mjs",
+    "smoke:skipped-contracts": "node scripts/run-skipped-contract-smoke.mjs",
+    "test": "vitest run",
+    "test:gsap-regressions": "node scripts/test-gsap-regressions.mjs",
+    "test:core": "vitest run tests/session-coordinator.test.ts tests/desktop-session-submit.test.ts tests/visual-context-pipeline.test.ts tests/bridge-media-capabilities.test.ts tests/bridge-media-delivery-service.test.ts tests/bridge-manager-session-file-media.test.ts tests/bridge-manager-status-meta.test.ts tests/bridge-status-route.test.ts tests/upload-route.test.ts tests/bridge-session-model-compat.test.ts tests/engine-resource-loader-options.test.ts tests/filename-sanitizer.test.ts tests/local-user-account.test.ts tests/package-build-order.test.ts tests/audit-scripts.test.ts tests/clean-artifacts.test.ts tests/build-server-runtime-assets.test.ts tests/build-windows-sandbox-helper.test.ts tests/win32-policy.test.ts tests/win32-sandbox-helper.test.ts tests/win32-exec.test.ts tests/sandbox-tool-wrapper.test.ts tests/renderer-build-contract.test.ts tests/mobile-static-route.test.ts tests/pwa-branding-contract.test.ts tests/professional-edition-contract.test.ts desktop/src/react/__tests__/mobile/MobileEntrySplit.test.ts tests/release-preflight-contract.test.ts",
+    "build:server": "node scripts/build-server.mjs",
+    "lint": "eslint .",
+    "test:watch": "vitest",
+    "postinstall": "node scripts/patch-pi-sdk.cjs"
+  },
+  "engines": {
+    "node": ">=24.12.0 <25"
+  },
+  "dependencies": {
+    "@codemirror/lang-css": "^6.3.1",
+    "@codemirror/lang-html": "^6.4.11",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@codemirror/lang-python": "^6.2.1",
+    "@codemirror/lang-sql": "^6.10.0",
+    "@codemirror/lang-xml": "^6.1.0",
+    "@codemirror/lang-yaml": "^6.1.2",
+    "@codemirror/view": "6.39.16",
+    "@earendil-works/pi-agent-core": "1.0.1",
+    "@earendil-works/pi-ai": "1.0.1",
+    "@earendil-works/pi-coding-agent": "1.0.1",
+    "@hono/node-server": "^1.19.13",
+    "@hono/node-ws": "^1.3.0",
+    "@larksuiteoapi/node-sdk": "1.68.0",
+    "@paddleocr/paddleocr-js": "^0.3.2",
+    "@phosphor-icons/react": "2.1.10",
+    "@silvia-odwyer/photon-node": "0.3.4",
+    "@sinclair/typebox": "^0.34.0",
+    "@tiptap/core": "^3.22.0",
+    "@tiptap/extension-bold": "^3.22.0",
+    "@tiptap/extension-placeholder": "^3.22.0",
+    "@tiptap/pm": "^3.22.0",
+    "@tiptap/react": "^3.22.0",
+    "@tiptap/starter-kit": "^3.22.0",
+    "@traptitech/markdown-it-katex": "^3.6.0",
+    "better-sqlite3": "^12.9.0",
+    "chokidar": "^5.0.0",
+    "codemirror": "^6.0.2",
+    "electron-updater": "^6.8.3",
+    "exceljs": "4.4.0",
+    "extract-zip": "^2.0.1",
+    "hono": "4.12.27",
+    "js-yaml": "4.2.0",
+    "jsdom": "^29.0.2",
+    "katex": "^0.16.39",
+    "mammoth": "^1.11.0",
+    "markdown-it": "14.2.0",
+    "markdown-it-task-lists": "^2.1.1",
+    "mermaid": "^11.10.1",
+    "node-pty": "^1.1.0",
+    "proxy-agent": "^6.5.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "read-excel-file": "^9.0.6",
+    "undici": "7.28.0",
+    "unpdf": "1.6.2",
+    "whatsapp-web.js": "^1.34.6",
+    "ws": "8.21.0",
+    "zustand": "^5.0.11"
+  },
+  "overrides": {
+    "@xmldom/xmldom": "^0.8.12",
+    "axios": "^1.15.2",
+    "basic-ftp": "^5.3.1",
+    "minimatch@3.1.5": {
+      "brace-expansion": "^2.0.3"
+    },
+    "follow-redirects": "^1.16.0",
+    "form-data": "^4.0.0",
+    "fast-xml-parser": "^5.7.1",
+    "ip-address": "^10.2.0",
+    "lodash": "^4.18.1",
+    "protobufjs": "^7.5.5",
+    "qs": "^6.14.1",
+    "tough-cookie": "^4.1.3",
+    "yaml": "^2.8.3",
+    "exceljs": {
+      "uuid": "11.1.1"
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/markdown-it": "^14.1.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vercel/nft": "^1.5.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "electron": "42.3.0",
+    "electron-builder": "^26.8.1",
+    "esbuild": "0.28.1",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "playwright": "^1.59.1",
+    "pngjs": "^5.0.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.2",
+    "vite": "8.1.0",
+    "vitest": "4.1.9"
+  },
+  "build": {
+    "appId": "cn.edu.njust.byoung",
+    "productName": "Codia",
+    "npmRebuild": false,
+    "asar": true,
+    "asarUnpack": [
+      "desktop/src/icon.ico",
+      "desktop/src/icon.png",
+      "desktop/src/assets/tray*.ico",
+      "desktop/src/assets/tray*.png",
+      "desktop/src/tray*.ico"
+    ],
+    "afterPack": "./scripts/fix-modules.cjs",
+    "extraMetadata": {
+      "main": "desktop/bootstrap.cjs"
+    },
+    "files": [
+      "desktop/bootstrap.cjs",
+      "desktop/gsap-home.cjs",
+      "desktop/main.bundle.cjs",
+      "desktop/src/office-pdf-fonts.cjs",
+      "desktop/src/office-pdf-helper.cjs",
+      "desktop/src/shared/launch-integrity.cjs",
+      "desktop/preload.bundle.cjs",
+      "desktop/dist-renderer/**",
+      "desktop/src/**/*.{html,icns,ico,png,svg,json}",
+      "desktop/src/assets/**",
+      "scripts/gsapctl.mjs",
+      "lib/cli/**",
+      "shared/model-capabilities.ts",
+      "shared/known-models.ts",
+      "shared/app-root.ts",
+      "shared/gsap-root.ts",
+      "shared/design-document-preview.ts",
+      "shared/workspace-output.ts",
+      "shared/workspace-output.cjs",
+      "lib/known-models.json",
+      "lib/known-model-fallbacks.json",
+      "package.json",
+      "!**/node_modules/**",
+      "!packages/**",
+      "node_modules/ws/**"
+    ],
+    "extraResources": [
+      {
+        "from": "dist-server/${os}-${arch}/",
+        "to": "server/"
+      },
+      {
+        "from": "desktop/src/screenshot-themes/",
+        "to": "screenshot-themes/"
+      },
+      {
+        "from": "vendor/ocr-runtime/",
+        "to": "ocr-runtime/"
+      }
+    ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "desktop/src/icon.icns",
+      "artifactName": "${productName}-${version}-macOS-${arch}.${ext}",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "desktop/entitlements.mac.plist",
+      "entitlementsInherit": "desktop/entitlements.mac.plist",
+      "extraResources": [
+        {
+          "from": "dist-computer-use/mac-${arch}/",
+          "to": "computer-use/macos/"
+        }
+      ]
+    },
+    "dmg": {
+      "title": "Codia",
+      "contents": [
+        {
+          "x": 180,
+          "y": 220
+        },
+        {
+          "x": 420,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "desktop/src/icon.ico",
+      "executableName": "Codia",
+      "artifactName": "${productName}-${version}-Windows-${arch}.${ext}",
+      "signtoolOptions": {
+        "publisherName": "kskooo"
+      },
+      "requestedExecutionLevel": "asInvoker",
+      "extraResources": [
+        {
+          "from": "vendor/git-portable",
+          "to": "git"
+        },
+        {
+          "from": "dist-sandbox/win-${arch}/",
+          "to": "sandbox/windows/"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "deb",
+        "AppImage"
+      ],
+      "icon": "desktop/src/icon.png",
+      "category": "Utility",
+      "artifactName": "${productName}-${version}-Linux-${arch}.${ext}",
+      "maintainer": "Codia <support@codia.local>"
+    },
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1",
+        "xdotool",
+        "gnome-screenshot"
+      ]
+    },
+    "nsis": {
+      "guid": "ed42e0a7-d7b7-59de-b48f-420bf3932f92",
+      "artifactName": "${productName}-${version}-Windows-${arch}.${ext}",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": false,
+      "shortcutName": "Codia",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "include": "build/installer.nsh",
+      "installerIcon": "desktop/src/icon.ico",
+      "uninstallerIcon": "desktop/src/icon.ico"
+    }
+  }
+}

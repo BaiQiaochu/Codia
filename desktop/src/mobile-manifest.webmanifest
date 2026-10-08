@@ -1,0 +1,16 @@
+{
+  "name": "Codia · 小豆蔻",
+  "short_name": "Codia",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F8F4FF",
+  "theme_color": "#F8F4FF",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

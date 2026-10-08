@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' file:; font-src 'self' data:;">
+    <title>Codia · 小豆蔻</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            font-family: 'Inter', 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
+            color: #342A45;
+            background: #F8F4FF;
+            border: 1px solid #E8DDF4;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+            -webkit-app-region: drag;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .splash-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.9rem;
+        }
+        .splash-avatar {
+            width: 76px; height: 76px;
+            border-radius: 8px;
+            object-fit: contain;
+            pointer-events: none;
+            user-select: none;
+        }
+        .splash-brand {
+            color: #65488F;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+        }
+        .splash-text-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .splash-text {
+            font-size: 0.78rem;
+            color: #756A86;
+            letter-spacing: 0.04em;
+            line-height: 1.5;
+            transition: opacity 0.5s ease;
+            white-space: nowrap;
+        }
+        .splash-text.switching { opacity: 0; }
+        .splash-fallback { display:flex; flex-direction:column; align-items:center; gap:12px; color:#65488F; font:700 14px/1.5 'Segoe UI','Microsoft YaHei',sans-serif; }
+        .splash-fallback img { width:76px; height:76px; object-fit:contain; }
+    </style>
+</head>
+<body>
+    <div id="react-root"><div class="splash-fallback"><img src="assets/codia/codia-brand-emblem.png" alt=""><span>Codia · 小豆蔻</span><small>正在初始化…</small></div></div>
+    <script type="module" src="./splash-main.tsx"></script>
+</body>
+</html>
+

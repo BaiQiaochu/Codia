@@ -1,0 +1,9 @@
+{
+  "id": "knowledge-graph",
+  "name": "知识图谱",
+  "version": "0.2.0",
+  "description": "从文本、笔记或对话中提取概念与关系，生成本地知识图谱。",
+  "trust": "full-access",
+  "hidden": false,
+  "contributes": {}
+}

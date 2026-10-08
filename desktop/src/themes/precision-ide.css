@@ -1,0 +1,91 @@
+/*
+ * Theme: Precision IDE
+ * Graphite IDE theme tuned for dense coding, terminals, and long agent sessions.
+ */
+
+[data-theme="precision-ide"] {
+    --bg:           #1B1D20;
+    --bg-main:      #1B1D20;
+    --bg-card:      #24272B;
+    --bg-card-alt:  #202327;
+    --bg-input:     #1B1D20;
+    --bg-glass:     rgba(36, 39, 43, 0.92);
+
+    --accent:       #8BBFA4;
+    --accent-bg:    rgba(139, 191, 164, 0.13);
+    --accent-hover: #A3D0B8;
+    --accent-light: rgba(139, 191, 164, 0.13);
+    --accent-contrast: #17211D;
+
+    --text:         #E7EAED;
+    --text-light:   #B9C1C8;
+    --text-muted:   #919AA3;
+    --text-link:    #A3D0B8;
+    --text-error:   #E08787;
+
+    --border:       rgba(139, 191, 164, 0.21);
+    --border-light: rgba(255, 255, 255, 0.07);
+    --border-muted: rgba(139, 191, 164, 0.13);
+    --shadow:       rgba(0, 0, 0, 0.40);
+
+    --green:        #8BCB88;
+    --green-rgb:    139, 203, 136;
+    --success:      #8BCB88;
+    --coral:        #D7A45A;
+    --danger:       #E08787;
+    --danger-rgb:   224, 135, 135;
+    --danger-contrast: #241A1A;
+    --error:        #E08787;
+
+    --sidebar-bg:   #17191C;
+    --jian-note-bg: #30312A;
+    --jian-note-border: rgba(215, 164, 90, 0.26);
+
+    --gsap-text:    #DDECE5;
+    --mood-bg:      rgba(215, 164, 90, 0.11);
+    --mood-text:    #E0BD7B;
+    --mood-border:  rgba(215, 164, 90, 0.28);
+    --tool-bg:      rgba(139, 191, 164, 0.10);
+    --tool-text:    #B9C1C8;
+    --user-bg:      rgba(139, 191, 164, 0.12);
+    --drop-overlay-bg: rgba(27, 29, 32, 0.90);
+    --attach-bg:    rgba(255, 255, 255, 0.07);
+
+    --accent-rgb:   139, 191, 164;
+    --coral-rgb:    215, 164, 90;
+    --overlay-subtle: rgba(255, 255, 255, 0.035);
+    --overlay-light:  rgba(255, 255, 255, 0.07);
+    --overlay-medium: rgba(255, 255, 255, 0.12);
+    --overlay-strong: rgba(255, 255, 255, 0.20);
+    --bg-secondary: rgba(255, 255, 255, 0.035);
+    --bg-tertiary: rgba(255, 255, 255, 0.12);
+    --surface-raised: #24272B;
+    --scrim-subtle: rgba(0, 0, 0, 0.22);
+    --scrim: rgba(0, 0, 0, 0.42);
+    --scrim-strong: rgba(0, 0, 0, 0.58);
+    --scrim-contrast: #FFFFFF;
+    --tab-slider-bg: rgba(139, 191, 164, 0.13);
+    --tab-slider-shadow: inset 0 0 0 1px rgba(139, 191, 164, 0.17);
+
+    --focus-ring: #A3D0B8;
+    --control-bg: #24272B;
+    --control-bg-hover: #2D3236;
+    --control-bg-active: #343B36;
+    --control-border: #3A4347;
+    --control-text: #E7EAED;
+    --control-muted: #B9C1C8;
+    --primary-button-bg: #8BBFA4;
+    --primary-button-hover: #A3D0B8;
+    --primary-button-text: #14211C;
+    --danger-button-bg: #E08787;
+    --danger-button-hover: #ECA1A1;
+    --danger-button-text: #241A1A;
+    --chrome-bg: rgba(23, 25, 28, 0.92);
+    --chrome-bg-solid: #17191C;
+    --chrome-border: rgba(255, 255, 255, 0.10);
+    --panel-bg: #17191C;
+    --panel-bg-muted: #1F2226;
+    --panel-shadow: 0 16px 42px rgba(0, 0, 0, 0.44);
+
+    --select-arrow: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23919AA3' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+}

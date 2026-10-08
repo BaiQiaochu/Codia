@@ -1,0 +1,9 @@
+{
+  "id": "jimeng-cli",
+  "name": "Jimeng CLI",
+  "version": "0.1.0",
+  "description": "Optional Dreamina CLI bridge for Jimeng image and video generation.",
+  "trust": "full-access",
+  "hidden": true,
+  "activationEvents": ["onStartup"]
+}

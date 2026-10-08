@@ -1,0 +1,182 @@
+name: Build release artifacts (manual only)
+run-name: Codia packages · ${{ github.ref_name }} · run ${{ github.run_number }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: Publish all packages to GitHub Releases after every platform succeeds
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codia-packages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  runtime-resources:
+    # Reuse checksum-pinned OCR inputs; upstream downloads are unreliable from CI.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      # GitHub requires push access to read assets of an unpublished release.
+      contents: write
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: npm
+      - run: npm ci
+      - name: Download pinned OCR model inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p vendor/ocr-runtime/models
+          gh release download v0.2.0 --repo "$GITHUB_REPOSITORY" --pattern 'PP-OCRv5_mobile_*.tar' --dir vendor/ocr-runtime/models
+          sha256sum --check scripts/ocr-runtime.sha256
+      - run: node scripts/prepare-ocr-runtime.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ocr-runtime-resources
+          path: vendor/ocr-runtime/
+          if-no-files-found: error
+          retention-days: 7
+
+  build:
+    needs: runtime-resources
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows-x64
+            arch: x64
+            command: npx electron-builder --config scripts/electron-builder.cloud.cjs --win nsis --x64 --publish never
+          - os: ubuntu-latest
+            name: linux-x64
+            arch: x64
+            command: npx electron-builder --config scripts/electron-builder.cloud.cjs --linux deb --x64 --publish never
+          - os: macos-15
+            name: macos-arm64
+            arch: arm64
+            command: npx electron-builder --config scripts/electron-builder.cloud.cjs --mac dmg zip --arm64 --publish never
+          - os: macos-15-intel
+            name: macos-x64
+            arch: x64
+            command: npx electron-builder --config scripts/electron-builder.cloud.cjs --mac dmg zip --x64 --publish never
+    runs-on: ${{ matrix.os }}
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          architecture: ${{ matrix.arch }}
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Verify runner architecture and bundled Live2D resources
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          node -e "if (process.arch !== process.env.EXPECTED_ARCH) throw new Error('Wrong build architecture'); console.log(process.platform, process.arch)"
+          node scripts/prepare-codia-live2d.mjs --check
+      - name: Prepare offline OCR resources
+        uses: actions/download-artifact@v4
+        with:
+          name: ocr-runtime-resources
+          path: vendor/ocr-runtime/
+      - name: Prepare Windows Git and sandbox runtime
+        if: runner.os == 'Windows'
+        run: |
+          node scripts/download-git-portable.js
+          npm run build:windows-sandbox-helper
+      - name: Compile macOS computer-use helper
+        if: runner.os == 'macOS'
+        run: node scripts/build-computer-use-helper.mjs
+      - name: Compile client and bundled server
+        run: npm run build
+      # Use electron-builder directly: local dist scripts increment the version.
+      - name: Package application without changing the version
+        run: ${{ matrix.command }}
+      - name: Separate macOS update metadata by architecture
+        if: runner.os == 'macOS'
+        run: mv dist/latest-mac.yml dist/latest-mac-${{ matrix.arch }}.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Codia-${{ matrix.name }}
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+          path: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/*.dmg
+            dist/*.zip
+            dist/*.AppImage
+            dist/*.deb
+            dist/latest*.yml
+      - name: Save packaging diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaging-diagnostics-${{ matrix.name }}
+          if-no-files-found: ignore
+          path: |
+            dist/builder-debug.yml
+            dist/builder-effective-config.yaml
+
+  release-metadata:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: Codia-*
+          path: artifacts
+          merge-multiple: true
+      - name: Merge macOS metadata and verify release files
+        run: |
+          node scripts/merge-latest-mac-yml.cjs artifacts latest-mac.yml
+          mv latest-mac.yml artifacts/latest-mac.yml
+          node scripts/prepare-cloud-release.mjs artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Codia-release-manifest
+          path: |
+            artifacts/latest-mac.yml
+            artifacts/SHA256SUMS.txt
+            artifacts/RELEASE-NOTES.md
+      - name: Publish complete GitHub Release
+        if: inputs.publish_release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_TAG="v$(node -p "require('./package.json').version")"
+          if gh release view "$RELEASE_TAG" --json isDraft > release-state.json 2>/dev/null; then
+            node -e "if (!JSON.parse(require('fs').readFileSync('release-state.json')).isDraft) throw new Error('Release already published; use a new version')"
+          else
+            gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Codia $RELEASE_TAG" --notes-file artifacts/RELEASE-NOTES.md --draft
+          fi
+          gh release upload "$RELEASE_TAG" artifacts/* --clobber
+          gh release edit "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Codia $RELEASE_TAG" --notes-file artifacts/RELEASE-NOTES.md --draft=false --latest

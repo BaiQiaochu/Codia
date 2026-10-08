@@ -1,0 +1,32 @@
+.interactiveCard {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: var(--space-8, 8px) 0;
+  background: var(--bg-card, var(--bg, #fff));
+  border: 0.5px solid var(--border, rgba(0, 0, 0, 0.08));
+  border-radius: var(--radius-chat-card, 8px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.interactiveCardFrame {
+  position: relative;
+  width: 100%;
+  min-height: 48px;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.interactiveCardFrame > iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: inherit;
+}
+
+.interactiveCardFrameScrollable > iframe {
+  overflow-y: auto;
+}

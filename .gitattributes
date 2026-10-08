@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Cubism manifests verify exact upstream/runtime bytes, including line endings.
+third_party/live2d/cubism-web-5-r.5/** -text
+desktop/src/assets/codia/live2d/** -text

@@ -1,0 +1,110 @@
+.tabBar {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px 2px;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.tabList {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow-x: auto;
+    flex: 1;
+    min-width: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--overlay-medium) transparent;
+}
+
+.tabList::-webkit-scrollbar {
+    height: 4px;
+}
+
+.tabList::-webkit-scrollbar-thumb {
+    background: var(--overlay-medium);
+    border-radius: 999px;
+}
+
+.tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.55rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    white-space: nowrap;
+    max-width: 160px;
+    flex-shrink: 0;
+    transition: color 0.12s, background 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+
+.tab:hover {
+    color: var(--text);
+    background: var(--overlay-subtle);
+}
+
+.tabActive {
+    color: var(--text);
+    background: var(--bg-card);
+    border-color: var(--overlay-light);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--shadow) 35%, transparent);
+}
+
+.tabTitle {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 110px;
+}
+
+.tabClose {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: -4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    opacity: 0.35;
+    flex-shrink: 0;
+    border-radius: calc(var(--radius-md) - 2px);
+    transition: opacity 0.12s, background 0.12s, color 0.12s;
+}
+
+.tabClose:hover {
+    opacity: 1;
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.tabActive .tabClose {
+    opacity: 0.5;
+}
+
+.closePanel {
+    margin-left: auto;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    color: var(--text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    border: none;
+    background: none;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5;
+    transition: opacity 0.12s, background 0.12s;
+}
+
+.closePanel:hover {
+    opacity: 1;
+    background: var(--overlay-light);
+}

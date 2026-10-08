@@ -1,0 +1,4 @@
+/* Font-face declarations are intentionally omitted in application builds.
+ * The upstream theme ships several megabytes of bundled fonts; using local
+ * system fallbacks keeps portable packages smaller and startup lighter.
+ */

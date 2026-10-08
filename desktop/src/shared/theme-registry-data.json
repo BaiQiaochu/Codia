@@ -1,0 +1,37 @@
+{
+  "storageKey": "gsap-theme",
+  "legacyStorageKey": "gsap-theme",
+  "defaultTheme": "codia-lilac",
+  "autoLightDefault": "codia-lilac",
+  "autoDarkDefault": "codia-lilac",
+  "paperTextureBlockedThemeIds": ["codia-lilac"],
+  "legacyThemeAliases": {
+    "studio-light": "codia-lilac", "nocturne": "codia-lilac", "midnight": "codia-lilac",
+    "midnight-contrast": "codia-lilac", "workbench": "codia-lilac", "precision-ide": "codia-lilac",
+    "coral": "codia-lilac", "auto": "codia-lilac", "claude-design": "codia-lilac",
+    "warm-paper": "codia-lilac", "new-warm-paper": "codia-lilac", "high-contrast": "codia-lilac",
+    "grass-aroma": "codia-lilac", "contemplation": "codia-lilac", "absolutely": "codia-lilac",
+    "delve": "codia-lilac", "deep-think": "codia-lilac", "clear-sky": "codia-lilac",
+    "quiet-ink": "codia-lilac", "rose-dusk": "codia-lilac", "terminal-soft": "codia-lilac",
+    "ember-ink": "codia-lilac", "sage-workbench": "codia-lilac"
+  },
+  "autoOption": {
+    "id": "auto",
+    "i18nName": "settings.appearance.auto",
+    "i18nMode": "settings.appearance.autoMode"
+  },
+  "themes": {
+    "codia-lilac": {
+      "cssPath": "themes/codia-lilac.css",
+      "backgroundColor": "#F8F4FF",
+      "preview": {
+        "surface": "#FFFFFF",
+        "text": "#342A45",
+        "muted": "#756A86",
+        "accent": "#A984E8"
+      },
+      "i18nName": "settings.appearance.codiaLilac",
+      "i18nMode": "settings.appearance.codiaLilacMode"
+    }
+  }
+}

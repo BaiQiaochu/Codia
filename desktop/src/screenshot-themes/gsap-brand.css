@@ -1,0 +1,167 @@
+/* Codia lilac theme for mobile Markdown rendering. */
+
+:root {
+  --gsap-bg: #FBF9FE;
+  --gsap-text: #342A45;
+  --gsap-muted: #756A86;
+  --gsap-border: #E8DDF4;
+  --gsap-accent: #8C68B8;
+  --gsap-accent-soft: rgba(180, 145, 222, 0.14);
+  --gsap-code-bg: #342A45;
+  --gsap-code-text: #F8F4FF;
+  --gsap-link: #65488F;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: "Inter", "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  font-size: 1rem;
+  line-height: 1.68;
+  color: var(--gsap-text);
+  background: var(--gsap-bg);
+  margin: 0;
+  padding: 0 0 4rem 0;
+  position: relative;
+  min-height: 100vh;
+}
+
+body::before {
+  content: "Codia";
+  position: absolute;
+  top: 1.2rem;
+  right: 1.1rem;
+  color: rgba(23, 24, 28, 0.1);
+  font: 700 2.8rem/1 "Inter", "Segoe UI", sans-serif;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+
+article {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 4.75rem 1rem 0.75rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--gsap-text);
+  margin-top: 1.8em;
+  margin-bottom: 0.75em;
+  line-height: 1.35;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  border-bottom: 2px solid var(--gsap-accent);
+  padding-bottom: 0.45em;
+  margin-top: 0;
+}
+
+h2 {
+  font-size: 1.45rem;
+}
+
+h3 {
+  font-size: 1.22rem;
+}
+
+p {
+  margin-bottom: 1.1em;
+  text-align: justify;
+}
+
+a {
+  color: var(--gsap-link);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(216, 41, 47, 0.35);
+}
+
+ul, ol {
+  margin-bottom: 1.1em;
+  padding-left: 1.8em;
+}
+
+li {
+  margin-bottom: 0.35em;
+}
+
+blockquote {
+  margin: 1.4em 0;
+  padding: 0.85em 1.1em;
+  border-left: 4px solid var(--gsap-accent);
+  background: var(--gsap-accent-soft);
+  color: var(--gsap-text);
+}
+
+code {
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Consolas", monospace;
+  font-size: 0.9em;
+  background: var(--gsap-accent-soft);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+
+pre {
+  background: var(--gsap-code-bg);
+  color: var(--gsap-code-text);
+  padding: 1.1em 1.25em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1.4em 0;
+  line-height: 1.55;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: 0.82em;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.4em 0;
+  font-size: 0.92em;
+}
+
+th, td {
+  border: 1px solid var(--gsap-border);
+  padding: 0.55em 0.8em;
+  text-align: left;
+}
+
+th {
+  background: var(--gsap-accent-soft);
+  font-weight: 700;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--gsap-border);
+  margin: 2em 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1em 0;
+}
+
+strong {
+  font-weight: 700;
+}
+
+em {
+  font-style: italic;
+}

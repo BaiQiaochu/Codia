@@ -1,0 +1,2 @@
+export const DEFAULT_WORKSPACE_DIRNAME: string;
+export const DEFAULT_HEARTBEAT_INTERVAL_MINUTES: number;

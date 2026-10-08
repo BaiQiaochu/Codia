@@ -1,0 +1,53 @@
+import { Hono } from "hono";
+
+type UsageFilter = {
+  since?: string;
+  until?: string;
+  attributionKind?: string;
+  sessionPath?: string;
+  agentId?: string;
+  subsystem?: string;
+  operation?: string;
+  modelId?: string;
+  provider?: string;
+  status?: string;
+  limit?: number;
+};
+
+export function createUsageRoute(engine) {
+  const route = new Hono();
+
+  route.get("/usage/llm", (c) => {
+    const query = c.req.query();
+    const filter: UsageFilter = {};
+    for (const key of [
+      "since",
+      "until",
+      "attributionKind",
+      "sessionPath",
+      "agentId",
+      "subsystem",
+      "operation",
+      "modelId",
+      "provider",
+      "status",
+    ]) {
+      if (typeof query[key] === "string" && query[key].trim()) filter[key] = query[key].trim();
+    }
+    const hasDateWindow = !!filter.since || !!filter.until;
+    if (typeof query.limit === "string" && query.limit.trim()) {
+      const rawLimit = query.limit.trim().toLowerCase();
+      if (rawLimit !== "all") {
+        const limit = Number(rawLimit);
+        filter.limit = Number.isFinite(limit) && limit > 0
+          ? Math.min(Math.floor(limit), 2_000)
+          : 500;
+      }
+    } else if (!hasDateWindow) {
+      filter.limit = 500;
+    }
+    return c.json(engine.usageLedger.list(filter));
+  });
+
+  return route;
+}

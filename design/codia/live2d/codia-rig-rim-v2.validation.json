@@ -1,0 +1,148 @@
+{
+  "status": "independent lower-opening mask candidate, no Editor or runtime acceptance",
+  "input": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v1.psd",
+  "output": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v2.psd",
+  "inputSha256": "7ae3d643e10b0b63a780e918d0c3b6285ded3a2eb3524ecffab786cd7119bf0a",
+  "outputSha256": "cfb196f3a37511d36aa4d1bcdc0678537f2505684193efad7dc7e1c0c67f4f0b",
+  "width": 1254,
+  "height": 1254,
+  "originalLayerCount": 20,
+  "outputLayerCount": 22,
+  "original20LayersRgbaPropertiesParentsAndRelativeOrderPreserved": true,
+  "originalOpeningMaskUnchanged": true,
+  "newRootLayers": [
+    {
+      "name": "HeadOpeningMask",
+      "left": 0,
+      "top": 0,
+      "right": 1254,
+      "bottom": 1254,
+      "opacity": 0,
+      "hidden": false,
+      "blendMode": "normal"
+    },
+    {
+      "name": "HandOpeningMask",
+      "left": 0,
+      "top": 0,
+      "right": 1254,
+      "bottom": 1254,
+      "opacity": 0,
+      "hidden": false,
+      "blendMode": "normal"
+    }
+  ],
+  "neutralCompositeRgbaChanges": 0,
+  "canonicalNeutralPngUnchanged": true,
+  "mergedImagePackaging": "Canonical original v1 PNG reused to avoid a second lossy white-matte/unmatte conversion in ag-psd; decoded merged-image RGBA also matches v1 exactly.",
+  "geometry": {
+    "canvas": [
+      1254,
+      1254
+    ],
+    "maxPixelCoordinate": [
+      1253,
+      1253
+    ],
+    "center": [
+      653.8333387376795,
+      622.07392845697
+    ],
+    "radius": 575,
+    "algorithm": "For source pixel center y+0.5 < cy, alpha=255 across the full canvas width; otherwise copy the exact alpha byte from existing OpeningMask. Nontransparent RGB is white; transparent RGB is zero.",
+    "split": {
+      "topRows": [
+        0,
+        621
+      ],
+      "bottomRows": [
+        622,
+        1253
+      ]
+    },
+    "fullTopPixels": 779988,
+    "copiedBottomPixels": 792528,
+    "bottomAlphaDifferences": 0,
+    "vectorSource": "HeadOpeningMask.svg",
+    "pngSource": "HeadOpeningMask.png",
+    "rasterizationNote": "SVG records continuous geometry; PNG uses pixel-center split and preserves existing lower-circle alpha exactly.",
+    "intendedUsage": {
+      "part": "HeadGroup",
+      "offscreenDrawing": true,
+      "clippingId": "Actual ArtMesh ID of HeadOpeningMask, not this display name",
+      "maskOpacity": 0,
+      "maskVisible": true,
+      "maskParent": "Root stationary, outside BodyRise and HeadGroup",
+      "irisClips": "Keep each existing Eye Opening mask; do not append HeadOpeningMask to iris clip ID lists."
+    },
+    "hands": {
+      "name": "HandOpeningMask",
+      "center": [
+        653.8333387376795,
+        622.07392845697
+      ],
+      "radius": 595.7125184845703,
+      "maximumOriginalNontransparentPixelRadius": 593.7125184845703,
+      "radiusPadding": 2,
+      "farthestPixel": {
+        "layer": "HandLeft_Visible",
+        "x": 924,
+        "y": 1150,
+        "alpha": 252,
+        "distance": 593.7125184845703
+      },
+      "pixelPositionConvention": "pixel centers x+0.5,y+0.5; all alpha>0 pixels, including antialias edges",
+      "neutralVerification": [
+        {
+          "layer": "HandLeft_Visible",
+          "nontransparentPixels": 13607,
+          "minMaskAlpha": 255,
+          "partiallyClippedPixels": 0,
+          "fullyClippedPixels": 0
+        },
+        {
+          "layer": "HandRight_Visible",
+          "nontransparentPixels": 15167,
+          "minMaskAlpha": 255,
+          "partiallyClippedPixels": 0,
+          "fullyClippedPixels": 0
+        }
+      ],
+      "clippingTargets": [
+        "HandLeft_Visible",
+        "HandRight_Visible"
+      ],
+      "drawOrders": {
+        "HandRight_Visible": 610,
+        "HandLeft_Visible": 611
+      },
+      "opacity": 0,
+      "hidden": false,
+      "stationaryAtRoot": true
+    }
+  },
+  "modifiedCmo3": false,
+  "editorImportVerified": false,
+  "offscreenConfigured": false,
+  "clippingAssigned": false,
+  "visualAcceptance": false,
+  "exportReady": false,
+  "limitations": [
+    "Mask must remain root-stationary; moving it with the head defeats the lower opening.",
+    "PSD does not store Cubism Offscreen drawing or Clipping ID configuration. HeadGroup must render to offscreen, then be clipped by this new mask in Cubism.",
+    "The entire upper half-plane is allowed intentionally; ears and ahoge can extend outside the upper circle. Lower-half visibility stays inside the original circle.",
+    "The neutral PNG is unchanged raw PSD compositing, not a preview of configured Offscreen clipping or a validated hiding motion.",
+    "Hands remain outside HeadGroup and require their own HandOpeningMask ClipIDs. Neutral alpha is preserved; actual Reach/BodyRise shapes must still be checked for full concealment at zero. Existing eye/body/neck quality limitations are not resolved by these masks."
+  ],
+  "assets": [
+    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\HeadOpeningMask.svg",
+    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\HeadOpeningMask.png",
+    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\HandOpeningMask.svg",
+    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\HandOpeningMask.png",
+    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\geometry.json"
+  ],
+  "previews": [
+    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v2.neutral.png",
+    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v2.mask-comparison.png"
+  ]
+}

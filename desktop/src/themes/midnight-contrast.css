@@ -1,0 +1,96 @@
+/*
+ * Theme: Midnight Contrast
+ * Higher-contrast blue-green surface with bright rose accents.
+ */
+
+[data-theme="midnight-contrast"] {
+    --bg:           #26343D;
+    --bg-main:      #26343D;
+    --bg-card:      #30414B;
+    --bg-card-alt:  #354852;
+    --bg-input:     #202C34;
+    --bg-glass:     rgba(38, 52, 61, 0.94);
+
+    --accent:       #E6B1C4;
+    --accent-bg:    rgba(230, 177, 196, 0.14);
+    --accent-hover: #F0C4D3;
+    --accent-light: rgba(230, 177, 196, 0.14);
+    --accent-contrast: #26323A;
+
+    --text:         #F0F6FA;
+    --text-light:   #D3E0E8;
+    --text-muted:   #B7C8D3;
+    --text-link:    #B9E2FF;
+    --text-error:   #F09A9A;
+
+    --border:       rgba(230, 177, 196, 0.26);
+    --border-light: rgba(255, 255, 255, 0.10);
+    --border-muted: rgba(230, 177, 196, 0.18);
+    --shadow:       rgba(0, 0, 0, 0.44);
+
+    --green:        #A8DDAA;
+    --green-rgb:    168, 221, 170;
+    --success:      #A8DDAA;
+    --coral:        #F1BEAD;
+    --danger:       #E28B8B;
+    --danger-rgb:   226, 139, 139;
+    --danger-contrast: #2B1D20;
+    --error:        #E28B8B;
+
+    --sidebar-bg:   #202C34;
+    --sidebar-bridge-card-text: #26323A;
+    --jian-note-bg: #354852;
+    --jian-note-border: rgba(230, 177, 196, 0.22);
+
+    --gsap-text:    #E8F1F6;
+    --hana-text:    #E8F1F6;
+    --mood-bg:      rgba(241, 190, 173, 0.11);
+    --mood-text:    #F1BEAD;
+    --mood-border:  rgba(241, 190, 173, 0.28);
+    --tool-bg:      rgba(230, 177, 196, 0.12);
+    --tool-text:    #D3E0E8;
+    --user-bg:      rgba(230, 177, 196, 0.15);
+    --drop-overlay-bg: rgba(38, 52, 61, 0.88);
+    --attach-bg:    rgba(255, 255, 255, 0.08);
+
+    --accent-rgb:   230, 177, 196;
+    --coral-rgb:    241, 190, 173;
+    --link:         #B9E2FF;
+    --link-hover:   #D7F0FF;
+    --link-rgb:     185, 226, 255;
+    --overlay-subtle: rgba(255, 255, 255, 0.04);
+    --overlay-light:  rgba(255, 255, 255, 0.07);
+    --overlay-medium: rgba(255, 255, 255, 0.11);
+    --overlay-strong: rgba(255, 255, 255, 0.18);
+    --bg-secondary: rgba(255, 255, 255, 0.04);
+    --bg-tertiary: rgba(255, 255, 255, 0.12);
+    --surface-raised: #30414B;
+    --scrim-subtle: rgba(0, 0, 0, 0.24);
+    --scrim: rgba(0, 0, 0, 0.44);
+    --scrim-strong: rgba(0, 0, 0, 0.60);
+    --scrim-contrast: #FFFFFF;
+    --tab-slider-bg: var(--overlay-strong);
+    --tab-slider-shadow: none;
+
+    --focus-ring: #F0C4D3;
+    --control-bg: #30414B;
+    --control-bg-hover: #394C58;
+    --control-bg-active: #435863;
+    --control-border: rgba(230, 177, 196, 0.34);
+    --control-text: #F0F6FA;
+    --control-muted: #D3E0E8;
+    --primary-button-bg: #E6B1C4;
+    --primary-button-hover: #F0C4D3;
+    --primary-button-text: #26323A;
+    --danger-button-bg: #E28B8B;
+    --danger-button-hover: #F09A9A;
+    --danger-button-text: #2B1D20;
+    --chrome-bg: rgba(32, 44, 52, 0.94);
+    --chrome-bg-solid: #202C34;
+    --chrome-border: rgba(255, 255, 255, 0.11);
+    --panel-bg: #202C34;
+    --panel-bg-muted: #26343D;
+    --panel-shadow: 0 16px 42px rgba(0, 0, 0, 0.46);
+
+    --select-arrow: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23B7C8D3' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+}

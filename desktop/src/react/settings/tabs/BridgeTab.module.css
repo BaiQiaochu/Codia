@@ -1,0 +1,205 @@
+.wechat-logged-in {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) 0;
+}
+
+.wechat-login-info {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.wechat-btn-row {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.wechat-scan-row {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-sm) 0;
+}
+
+.wechat-hints {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.wechat-info-reminder {
+    margin-top: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    color: var(--text-light);
+    background: rgba(var(--accent-rgb, 83, 125, 150), 0.1);
+    border-left: 2px solid rgba(var(--accent-rgb, 83, 125, 150), 0.48);
+}
+
+.agently-mail-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+}
+
+.agently-mail-summary {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-md);
+}
+
+.agently-mail-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-2xs, 3px);
+}
+
+.agently-mail-value {
+    font-size: 0.84rem;
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+.agently-mail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-xs);
+}
+
+.agently-mail-note {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    line-height: 1.45;
+}
+
+.agently-mail-note code {
+    display: block;
+    max-width: 100%;
+    padding: 0.28rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    background: var(--bg-soft);
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.agently-mail-auth {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    border: 1px solid rgba(var(--accent-rgb, 83, 125, 150), 0.24);
+    border-radius: var(--radius-sm);
+    background: rgba(var(--accent-rgb, 83, 125, 150), 0.06);
+    font-size: 0.72rem;
+}
+
+.agently-mail-auth label {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.agently-mail-auth a {
+    color: var(--accent);
+    word-break: break-all;
+}
+
+@media (max-width: 760px) {
+    .agently-mail-summary {
+        flex-direction: column;
+    }
+
+    .agently-mail-actions {
+        justify-content: flex-start;
+    }
+}
+
+.bridge-permission-select {
+    max-width: 180px;
+}
+
+.bridge-permission-trigger {
+    min-width: 152px;
+    padding: 0.32rem 0.55rem;
+    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+}
+
+.bridge-permission-auto {
+    color: var(--permission-auto, var(--accent));
+    border-color: var(--permission-auto-border, rgba(var(--accent-rgb), 0.3));
+    background: var(--permission-auto-bg, rgba(var(--accent-rgb), 0.06));
+}
+
+.bridge-permission-operate {
+    color: var(--danger, #c55);
+    border-color: color-mix(in srgb, var(--danger, #c55) 34%, transparent);
+    background: color-mix(in srgb, var(--danger, #c55) 7%, var(--bg-card));
+}
+
+.bridge-permission-read_only {
+    color: var(--accent);
+    border-color: rgba(var(--accent-rgb), 0.3);
+    background: rgba(var(--accent-rgb), 0.06);
+}
+
+.bridge-permission-value,
+.bridge-permission-option {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.bridge-permission-value {
+    flex: 1;
+}
+
+.bridge-permission-value span,
+.bridge-permission-option span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bridge-permission-arrow {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    color: currentColor;
+    opacity: 0.7;
+    margin-left: var(--space-sm);
+}
+
+.bridge-permission-option svg {
+    flex: 0 0 auto;
+}
+
+.bridge-permission-value svg[data-permission-mode="read_only"],
+.bridge-permission-option svg[data-permission-mode="read_only"] {
+    transform: scale(0.8);
+    transform-origin: center;
+}
+
+.bridge-permission-option-auto {
+    color: var(--permission-auto, var(--accent));
+}
+
+.bridge-permission-option-operate {
+    color: var(--danger, #c55);
+}
+
+.bridge-permission-option-read_only {
+    color: var(--accent);
+}

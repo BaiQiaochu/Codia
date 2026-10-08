@@ -1,0 +1,4 @@
+# Official Paddle OCR ONNX model archives, cached in GitHub Release v0.2.0.
+# Original URLs are retained in scripts/prepare-ocr-runtime.mjs.
+236be1ff426a393717f792b59612bd417e8f8d7650109ffc875fa73eebd2b95a  vendor/ocr-runtime/models/PP-OCRv5_mobile_det.tar
+8ddeeca7015545d5a0e9c21a3ec4b24fff7b3bee15b68f958d737e01b44500d0  vendor/ocr-runtime/models/PP-OCRv5_mobile_rec.tar

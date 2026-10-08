@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Codia · 真实录像检查</title>
+  <style>
+    :root { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; color: #463650; background: #f8f4ff; }
+    * { box-sizing: border-box; }
+    body { max-width: 1120px; margin: auto; padding: 24px; }
+    h1 { margin: 0 0 10px; font-size: 24px; }
+    p { line-height: 1.6; }
+    .caption { color: #786589; font-size: 13px; }
+    .layout { display: grid; grid-template-columns: minmax(300px, 540px) minmax(250px, 1fr); gap: 20px; }
+    .stage { align-self: start; overflow: hidden; border-radius: 24px; border: 1px solid #d7bce4; background: linear-gradient(120deg,#ba9af0,#e6b9d8); }
+    video { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; }
+    .panel { padding: 18px; border-radius: 20px; background: white; border: 1px solid #e7def1; }
+    .actions { display: flex; gap: 7px; flex-wrap: wrap; margin: 12px 0; }
+    button { font: inherit; font-size: 13px; color: #68448f; background: #faf6ff; border: 1px solid #dfcdeb; border-radius: 9px; padding: 8px 11px; cursor: pointer; }
+    button:disabled { opacity: .45; cursor: default; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #b595df; outline-offset: 2px; }
+    #review-status { font-size: 14px; font-weight: 600; }
+    #review-status[data-error=true] { color: #a33d54; }
+    #filename { overflow-wrap: anywhere; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; max-height: 270px; overflow: auto; }
+    details { margin-top: 16px; font-size: 13px; }
+    a { color: #68448f; }
+    @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>Codia · 真实录像检查</h1>
+  <p class="caption">播放已落盘的 WebM；此页不加载模型、不生成动作，也不修改录像。时间以浏览器实际解码结果为准。</p>
+  <p id="filename" class="caption"></p>
+  <div class="layout">
+    <section class="stage" aria-label="已保存录像">
+      <video id="review-video" controls preload="auto" playsinline muted aria-label="Codia 两轮原始录像"></video>
+    </section>
+    <section class="panel" aria-label="录像检查控制">
+      <p id="review-status" role="status">正在读取本地录像…</p>
+      <div class="actions">
+        <button id="review-play" type="button" disabled>播放完整录像</button>
+        <button id="review-pause" type="button" disabled>暂停</button>
+        <button id="review-restart" type="button" disabled>从头播放</button>
+      </div>
+      <div id="seek-buttons" class="actions" aria-label="关键帧时间点"></div>
+      <p class="caption">时间点按钮会暂停并精确请求跳转；若请求超出浏览器测得时长，则停在实际末帧附近。按钮标注不是解码成功的证明，请核对下面的 currentTime 与 presentedFrameTime。</p>
+      <a id="review-download" href="#">下载原始 WebM</a>
+      <details open><summary>浏览器实际视频元数据 / 解码状态</summary><pre id="review-metadata">等待 loadedmetadata…</pre></details>
+      <details><summary>保存时的证据记录（不是浏览器测得时长）</summary><pre id="capture-metadata">读取中…</pre></details>
+      <details open><summary>事件与解码错误</summary><pre id="review-events"></pre></details>
+    </section>
+  </div>
+  <script id="review-state" type="application/json">{"state":"loading"}</script>
+  <script type="module" src="/review.js"></script>
+</body>
+</html>

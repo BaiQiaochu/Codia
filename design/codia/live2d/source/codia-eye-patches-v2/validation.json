@@ -1,0 +1,539 @@
+{
+  "version": 2,
+  "status": "Review package complete; limited gaze range is not yet visually accepted",
+  "canvas": {
+    "width": 1254,
+    "height": 1254
+  },
+  "crop": {
+    "left": 393,
+    "top": 495,
+    "rightExclusive": 878,
+    "bottomExclusive": 708,
+    "width": 485,
+    "height": 213
+  },
+  "polygons": {
+    "Right": [
+      [
+        499,
+        579
+      ],
+      [
+        507,
+        578
+      ],
+      [
+        519,
+        579
+      ],
+      [
+        532,
+        582
+      ],
+      [
+        544,
+        587
+      ],
+      [
+        553,
+        592
+      ],
+      [
+        562,
+        600
+      ],
+      [
+        568,
+        609
+      ],
+      [
+        572,
+        619
+      ],
+      [
+        574,
+        630
+      ],
+      [
+        574,
+        642
+      ],
+      [
+        572,
+        652
+      ],
+      [
+        567,
+        663
+      ],
+      [
+        561,
+        670
+      ],
+      [
+        553,
+        674
+      ],
+      [
+        543,
+        677
+      ],
+      [
+        533,
+        679
+      ],
+      [
+        526,
+        680
+      ],
+      [
+        514,
+        678
+      ],
+      [
+        505,
+        675
+      ],
+      [
+        497,
+        670
+      ],
+      [
+        490,
+        663
+      ],
+      [
+        484,
+        655
+      ],
+      [
+        480,
+        645
+      ],
+      [
+        478,
+        636
+      ],
+      [
+        476,
+        626
+      ],
+      [
+        476,
+        616
+      ],
+      [
+        478,
+        605
+      ],
+      [
+        481,
+        597
+      ],
+      [
+        486,
+        589
+      ],
+      [
+        492,
+        583
+      ]
+    ],
+    "Left": [
+      [
+        738,
+        565
+      ],
+      [
+        750,
+        558
+      ],
+      [
+        763,
+        552
+      ],
+      [
+        780,
+        551
+      ],
+      [
+        790,
+        558
+      ],
+      [
+        800,
+        568
+      ],
+      [
+        808,
+        578
+      ],
+      [
+        814,
+        591
+      ],
+      [
+        817,
+        604
+      ],
+      [
+        817,
+        617
+      ],
+      [
+        814,
+        630
+      ],
+      [
+        807,
+        642
+      ],
+      [
+        800,
+        649
+      ],
+      [
+        789,
+        657
+      ],
+      [
+        775,
+        661
+      ],
+      [
+        752,
+        661
+      ],
+      [
+        741,
+        658
+      ],
+      [
+        731,
+        651
+      ],
+      [
+        725,
+        642
+      ],
+      [
+        720,
+        630
+      ],
+      [
+        717,
+        617
+      ],
+      [
+        717,
+        603
+      ],
+      [
+        720,
+        589
+      ],
+      [
+        725,
+        577
+      ]
+    ]
+  },
+  "openingPolygons": {
+    "Right": [
+      [
+        447,
+        615
+      ],
+      [
+        451,
+        607
+      ],
+      [
+        458,
+        599
+      ],
+      [
+        466,
+        592
+      ],
+      [
+        477,
+        586
+      ],
+      [
+        486,
+        582
+      ],
+      [
+        498,
+        577
+      ],
+      [
+        512,
+        575
+      ],
+      [
+        526,
+        577
+      ],
+      [
+        540,
+        582
+      ],
+      [
+        551,
+        587
+      ],
+      [
+        561,
+        595
+      ],
+      [
+        568,
+        605
+      ],
+      [
+        573,
+        618
+      ],
+      [
+        577,
+        637
+      ],
+      [
+        575,
+        649
+      ],
+      [
+        571,
+        659
+      ],
+      [
+        563,
+        668
+      ],
+      [
+        553,
+        674
+      ],
+      [
+        539,
+        677
+      ],
+      [
+        527,
+        679
+      ],
+      [
+        514,
+        679
+      ],
+      [
+        502,
+        678
+      ],
+      [
+        489,
+        674
+      ],
+      [
+        478,
+        669
+      ],
+      [
+        467,
+        662
+      ],
+      [
+        457,
+        653
+      ],
+      [
+        451,
+        643
+      ],
+      [
+        447,
+        631
+      ]
+    ],
+    "Left": [
+      [
+        712,
+        592
+      ],
+      [
+        720,
+        581
+      ],
+      [
+        731,
+        572
+      ],
+      [
+        743,
+        562
+      ],
+      [
+        755,
+        556
+      ],
+      [
+        768,
+        552
+      ],
+      [
+        784,
+        552
+      ],
+      [
+        801,
+        555
+      ],
+      [
+        815,
+        561
+      ],
+      [
+        829,
+        571
+      ],
+      [
+        837,
+        580
+      ],
+      [
+        842,
+        591
+      ],
+      [
+        843,
+        604
+      ],
+      [
+        839,
+        617
+      ],
+      [
+        832,
+        630
+      ],
+      [
+        823,
+        640
+      ],
+      [
+        812,
+        648
+      ],
+      [
+        799,
+        655
+      ],
+      [
+        786,
+        659
+      ],
+      [
+        766,
+        659
+      ],
+      [
+        750,
+        658
+      ],
+      [
+        737,
+        655
+      ],
+      [
+        728,
+        649
+      ],
+      [
+        721,
+        641
+      ],
+      [
+        715,
+        628
+      ],
+      [
+        712,
+        615
+      ],
+      [
+        712,
+        603
+      ]
+    ]
+  },
+  "openingMaskMethod": "Original-image traced opening polygons; 4x4 subpixel coverage; white RGB with transparent exterior. Does not reuse the skin/lash-bearing Eye layer alpha.",
+  "results": [
+    {
+      "side": "Left",
+      "viewerSide": "right",
+      "movedOriginalEyePixelsToIris": 968,
+      "movedOriginalIrisPixelsToEye": 299,
+      "backgroundRimReturnedToEye": 18,
+      "irisPixels": 8620,
+      "originalPixelChanges": 0,
+      "originalEyeSha256": "e4fa59ef867a199ec0d9164ededff8f0fdf7f43589a39846ffe9ccc588ef179a",
+      "originalIrisSha256": "5debcc704697889e62f3ad35ce485790792add1249377cb3961720f6cf0e1647",
+      "reassignedIrisSha256": "fd6575273d3e5498002f558d88455818136bbe3552e457a43c6d5b5fc9dd0a73"
+    },
+    {
+      "side": "Right",
+      "viewerSide": "left",
+      "movedOriginalEyePixelsToIris": 730,
+      "movedOriginalIrisPixelsToEye": 522,
+      "backgroundRimReturnedToEye": 24,
+      "irisPixels": 8222,
+      "originalPixelChanges": 0,
+      "originalEyeSha256": "c2d8863d07e02121d5d90650e1f4618acd63363f544a0c21d692b9e3e7eeb4c1",
+      "originalIrisSha256": "8145c93ba7d1439298c2886a7e37219119e0d5d13a699e0e34fbb3a1c601efd2",
+      "reassignedIrisSha256": "66a0e379ad49ffa26a325ccd33108fe5275aa764e52dd27c22caa85a9af47099"
+    }
+  ],
+  "originalPixels": {
+    "changedOriginalComposite": 0,
+    "sourcePixelsLost": 0,
+    "originalUnionOverlap": 0
+  },
+  "neutralComposite": {
+    "maxNeutralRgbDifference": 2,
+    "neutralChangedOutsideNewIris": 0,
+    "note": "Underpainting beneath original alpha 254 can raise composite alpha by one; ownership-only union is exact."
+  },
+  "integration": "Use full-canvas patches and explicit ownership transfers with current source. Do not overwrite newer Eye layer restorations. Opening masks are separate clipping ArtMesh source data; keep the rendered skin/lash texture outside the clipping source. No PSD or UI modified.",
+  "visualReview": {
+    "originalPixelTransfer": "Pass: ownership-only original composite is unchanged, no lost or duplicated pixels.",
+    "stationaryIrisOutline": "Pass for the conspicuous fixed lateral black arcs from v1: these no longer remain in either side of the underpaint or movement previews.",
+    "openingMask": "Original-eye-opening trace supplied separately from skin/lash-bearing Eye layers; this is an editable review mask, not a certified final clipping boundary.",
+    "limitedUpwardGaze": {
+      "dx": [
+        -8,
+        8
+      ],
+      "dy": -6,
+      "status": "Not accepted",
+      "reason": "Clipping exposes a thin pale arc at the upper eyelid, especially on the viewer-left eye; viewer-left iris also meets an abrupt right edge at +8/-6. No eye scaling, eyeliner changes or new iris painting were used to conceal this."
+    },
+    "remainingWork": "Refine the clipping boundary at the original lash/iris seam and review the small sclera color seam in Cubism at actual scale. The original iris still lacks hidden artwork beyond the photographed upper edge.",
+    "unimplemented": [
+      "downward gaze",
+      "blink",
+      "closed eyelid artwork",
+      "Cubism keyforms and export"
+    ]
+  },
+  "limitations": [
+    "No closed-eye shape or blink model created.",
+    "Both clipped and unclipped movement diagnostics are supplied."
+  ],
+  "maskLegend": {
+    "cyan": "Original Eye pixels transferred to Iris",
+    "orange": "Original Iris pixels returned to fixed Eye"
+  }
+}

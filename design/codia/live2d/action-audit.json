@@ -1,0 +1,550 @@
+{
+  "date": "2026-10-06",
+  "model": "Codia-rig-repair.cmo3",
+  "workingCopy": "Codia-rig-repair.cmo3",
+  "savedCheckpoint": {
+    "path": "checkpoints/core-loop-webgl-20261006/Codia-rig-repair.cmo3",
+    "bytes": 15254099,
+    "savedAtLocal": "2026-10-06T22:29:30+08:00",
+    "visualAcceptance": true,
+    "exported": true,
+    "exportKind": "runtime export with nine-parameter loop",
+    "continuousLoopAccepted": true
+  },
+  "preservedOcclusionCheckpoint": {
+    "path": "checkpoints/offscreen-occlusion-20261006/Codia-rig-repair.cmo3",
+    "bytes": 13287456,
+    "savedAtLocal": "2026-10-06T22:07:41+08:00"
+  },
+  "previousSavedCheckpoint": {
+    "path": "checkpoints/core-action-groups-20261006/Codia-rig-repair.cmo3",
+    "bytes": 8573366,
+    "savedAtLocal": "2026-10-06T21:37:21+08:00"
+  },
+  "preservedOriginalModel": "Codia-rig.cmo3",
+  "preservedInitialImport": "Codia.cmo3",
+  "preservedOriginalLayeredSource": "codia-rig-source.psd",
+  "workingLayeredSource": "codia-rig-rim-v2.psd",
+  "workingLayeredSourceValidation": "codia-rig-rim-v2.validation.json",
+  "preservedMergedLayeredSource": "codia-rig-repair-source.psd",
+  "pathBase": "All relative paths are under design/codia/live2d.",
+  "embeddedSourceData": {
+    "preservedCount": 5,
+    "deleted": false,
+    "evidence": "Editor operator confirmed original embedded source data was retained."
+  },
+  "savedDeformerNames": {
+    "Warp": "身体升降_含头部",
+    "Warp2": "左手伸出_画面右侧",
+    "Warp3": "右手伸出_画面左侧",
+    "Warp4": "头部左右转向",
+    "Warp5": "左眼视线_画面右侧",
+    "Warp6": "右眼视线_画面左侧",
+    "Warp7": "头部上下抬头",
+    "Warp10": "左手握持_画面右侧",
+    "Warp11": "右手握持_画面左侧"
+  },
+  "workingCopyPreparation": [
+    {
+      "deformer": "Warp7",
+      "name": "头部上下抬头",
+      "parent": "Warp",
+      "child": "Warp4",
+      "parameter": "ParamAngleY",
+      "keyformsBound": true,
+      "visuallyAccepted": true
+    },
+    {
+      "deformer": "Warp4",
+      "name": "头部左右转向",
+      "parent": "Warp7",
+      "parameter": "ParamAngleX",
+      "effectiveKeyformsBound": true,
+      "visuallyAccepted": true
+    },
+    {
+      "deformer": "Warp5",
+      "name": "左眼视线_画面右侧",
+      "role": "left iris horizontal motion",
+      "parent": "Warp9",
+      "child": "IrisLeft_Visible",
+      "parameter": "ParamEyeBallX",
+      "keyformsBound": true,
+      "visuallyAccepted": true
+    },
+    {
+      "deformer": "Warp6",
+      "name": "右眼视线_画面左侧",
+      "role": "right iris horizontal motion",
+      "parent": "Warp8",
+      "child": "IrisRight_Visible",
+      "parameter": "ParamEyeBallX",
+      "keyformsBound": true,
+      "visuallyAccepted": true
+    },
+    {
+      "deformer": "Warp8",
+      "role": "right iris vertical motion",
+      "parent": "Warp4",
+      "child": "Warp6",
+      "parameter": "ParamEyeBallY",
+      "keyformsBound": true,
+      "visuallyAccepted": true
+    },
+    {
+      "deformer": "Warp9",
+      "role": "left iris vertical motion",
+      "parent": "Warp4",
+      "child": "Warp5",
+      "parameter": "ParamEyeBallY",
+      "keyformsBound": true,
+      "visuallyAccepted": true
+    },
+    {
+      "deformer": "Warp10",
+      "name": "左手握持_画面右侧",
+      "parent": "Warp2",
+      "child": "HandLeft",
+      "parameter": "ParamHandLGrip",
+      "keyformsBound": true,
+      "visuallyAccepted": true
+    },
+    {
+      "deformer": "Warp11",
+      "name": "右手握持_画面左侧",
+      "parent": "Warp3",
+      "child": "HandRight",
+      "parameter": "ParamHandRGrip",
+      "keyformsBound": true,
+      "visuallyAccepted": true
+    }
+  ],
+  "headBinding": {
+    "neutralUnchanged": true,
+    "visuallyAccepted": true,
+    "yaw": {
+      "deformer": "Warp4",
+      "parameter": "ParamAngleX",
+      "keyValues": [
+        -30,
+        0,
+        30
+      ],
+      "editedControl": "center Bezier",
+      "initialScreenDisplacementXPixelsAt65Point2PercentZoom": [
+        -8,
+        0,
+        8
+      ],
+      "latestAdditionalEndpointScreenDisplacementXPixelsApproxAt65Point2PercentZoom": [
+        -20,
+        0,
+        20
+      ]
+    },
+    "pitch": {
+      "deformer": "Warp7",
+      "parameter": "ParamAngleY",
+      "keyValues": [
+        -30,
+        0,
+        30
+      ],
+      "editedControl": "center Bezier",
+      "initialScreenDisplacementImageYPixelsAt65Point2PercentZoom": [
+        6,
+        0,
+        -12
+      ],
+      "latestAdditionalPositiveEndpointScreenDisplacementImageYPixelsAt65Point2PercentZoom": -20,
+      "positiveDirection": "up"
+    },
+    "acceptedPoseScope": "Automatic loop amplitudes only"
+  },
+  "gripBinding": {
+    "parameters": [
+      "ParamHandLGrip",
+      "ParamHandRGrip"
+    ],
+    "keyValues": [
+      0,
+      1
+    ],
+    "neutralAtOneUnchanged": true,
+    "zeroKeyEdit": {
+      "control": "center Bezier",
+      "screenDisplacementImageYPixelsAt65Point2PercentZoom": -3
+    },
+    "scope": "Local grip contraction/release only; the original closed-fist artwork is retained, without repainted or separated open fingers.",
+    "physicalRimContactValidated": false,
+    "visuallyAccepted": true,
+    "visualRimContactValidated": true
+  },
+  "eyeBindingSession": {
+    "state": "Core binding and driven WebGL loop poses accepted; originals retained",
+    "savedToNewCheckpoint": true,
+    "exported": true,
+    "exportKind": "candidate only",
+    "neutralUnchanged": true,
+    "visuallyAccepted": true,
+    "horizontal": {
+      "parameter": "ParamEyeBallX",
+      "keyValues": [
+        -1,
+        0,
+        1
+      ],
+      "sourceDisplacementXPixels": [
+        -12,
+        0,
+        12
+      ],
+      "observedScreenDisplacementAt50PercentZoomPixels": [
+        -4,
+        0,
+        4
+      ]
+    },
+    "vertical": {
+      "parameter": "ParamEyeBallY",
+      "keyValues": [
+        -1,
+        0,
+        1
+      ],
+      "sourceDisplacementImageYPixels": [
+        6,
+        0,
+        -6
+      ],
+      "observedScreenDisplacementAt50PercentZoomPixels": [
+        2,
+        0,
+        -2
+      ],
+      "positiveDirection": "up"
+    }
+  },
+  "workingCopyMeshes": [
+    {
+      "name": "Body_Visible",
+      "drawOrder": 490,
+      "clippingSource": "OpeningMask",
+      "mesh": "standard mesh rebuilt in Editor",
+      "remaining": "Full continuous-motion and SDK clipping review remain pending after limited native pose checks."
+    },
+    {
+      "role": "both sleeve meshes",
+      "clippingSource": "OpeningMask"
+    },
+    {
+      "name": "IrisLeft_Visible",
+      "parent": "Warp5",
+      "drawOrder": 510,
+      "clippingSource": "EyeLeft_OpeningMask",
+      "mesh": "standard mesh updated in Editor"
+    },
+    {
+      "name": "IrisRight_Visible",
+      "parent": "Warp6",
+      "drawOrder": 510,
+      "clippingSource": "EyeRight_OpeningMask",
+      "mesh": "standard mesh updated in Editor"
+    },
+    {
+      "name": "EyeLeft_OpeningMask",
+      "parent": "Warp4",
+      "opacity": 0,
+      "variant": "2px eye mask imported with rim-v2",
+      "mesh": "standard automatic mesh rebuilt at neutral; former full-canvas corner mesh did not follow local yaw",
+      "angleXCoreResponseVerified": true,
+      "purpose": "local iris clipping; full endpoint and SDK visual acceptance pending"
+    },
+    {
+      "name": "EyeRight_OpeningMask",
+      "parent": "Warp4",
+      "opacity": 0,
+      "variant": "2px eye mask imported with rim-v2",
+      "mesh": "standard automatic mesh rebuilt at neutral; former full-canvas corner mesh did not follow local yaw",
+      "angleXCoreResponseVerified": true,
+      "purpose": "local iris clipping; full endpoint and SDK visual acceptance pending"
+    },
+    {
+      "name": "OpeningMask",
+      "parent": "Root",
+      "opacity": 0,
+      "purpose": "stationary body and sleeve clipping"
+    },
+    {
+      "name": "HeadOpeningMask",
+      "parent": "Root",
+      "opacity": 0,
+      "purpose": "stationary HeadGroup Offscreen clipping; local iris masks retained"
+    },
+    {
+      "name": "HandOpeningMask",
+      "parent": "Root",
+      "opacity": 0,
+      "purpose": "stationary hand clipping"
+    },
+    {
+      "name": "HandRight_Visible",
+      "drawOrder": 610,
+      "clippingSource": "HandOpeningMask"
+    },
+    {
+      "name": "HandLeft_Visible",
+      "drawOrder": 611,
+      "clippingSource": "HandOpeningMask"
+    },
+    {
+      "role": "back rim",
+      "drawOrder": 450
+    },
+    {
+      "role": "front rim",
+      "drawOrder": 600
+    }
+  ],
+  "savedOffscreenParts": [
+    {
+      "partId": "HeadGroup",
+      "displayName": "头部组合_圆口遮挡",
+      "offscreenDrawing": true,
+      "unifiedDrawing": true,
+      "clippingSource": "HeadOpeningMask",
+      "localIrisClippingRetained": true
+    },
+    {
+      "partId": "HeadGroup2",
+      "offscreenDrawing": false,
+      "unifiedDrawing": false,
+      "note": "The former similarly named part is not the active head Offscreen clipping group."
+    }
+  ],
+  "evidence": "Actual native group identity/parent inspection, real Core response, WebGL2 keyframes and two recorded cycles, real React lifecycle checks and mock-only Electron smoke. See runtimeReview for scope and limits.",
+  "candidateExport": {
+    "model": "export-candidate-v2/Codia.model3.json",
+    "binary": "export-candidate-v2/Codia.moc3",
+    "binaryBytes": 43904,
+    "binarySha256": "22070eaf43ccf29c1bd2989ecffdc24934c76b6d6d1506bfae946b675e26c1af",
+    "texture": "export-candidate-v2/Codia.4096/texture_00.png",
+    "textureSize": [
+      4096,
+      4096
+    ],
+    "modelReferencesComplete": true,
+    "displayInfoPresent": true,
+    "userDataReferenced": false,
+    "exported": true,
+    "final": false,
+    "coreValidation": "validation/export-candidate-v2-bindings.json",
+    "coreVersion": "6.0.1",
+    "mocVersion": 6,
+    "actualParameterCount": 33,
+    "responsiveParameterCount": 9,
+    "noChangeDetectedParameterCount": 24,
+    "angleXChangesBothEyeOpeningMasks": true,
+    "offscreenOwner": "HeadGroup",
+    "offscreenMask": "HeadOpeningMask",
+    "continuousLoopAccepted": true,
+    "webglVisualAccepted": true,
+    "acceptanceScope": "Verified nine-parameter welcome loop only"
+  },
+  "orientation": {
+    "leftHand": "character left, viewer right",
+    "rightHand": "character right, viewer left"
+  },
+  "groups": [
+    {
+      "group": "BodyGroup",
+      "deformer": "Warp",
+      "parameter": "ParamBodyRise",
+      "range": [
+        0,
+        1
+      ],
+      "default": 1,
+      "verified": "Head and torso descend together; at key 0 the entire bounding box was moved a further 35 screen pixels down at 26.2% zoom; key 1 neutral is unchanged",
+      "zeroKeyAdditionalSourceDisplacementPixelsApprox": 200,
+      "zeroKeyTotalSourceSinkPixelsApprox": 1340,
+      "previousSourceSinkPixelsApprox": 1140,
+      "remaining": "Current authored loop accepted; see runtimeReview for original-fist and extreme-pose limitations."
+    },
+    {
+      "group": "ArmLGroup",
+      "deformer": "Warp2",
+      "parameter": "ParamHandLReach",
+      "range": [
+        0,
+        1
+      ],
+      "default": 1,
+      "verified": "Prior endpoint inspection: only viewer-right hand and sleeve descend; child Warp10 now provides a local grip edit",
+      "remaining": "Current authored loop accepted; see runtimeReview for original-fist and extreme-pose limitations."
+    },
+    {
+      "group": "ArmRGroup",
+      "deformer": "Warp3",
+      "parameter": "ParamHandRReach",
+      "range": [
+        0,
+        1
+      ],
+      "default": 1,
+      "verified": "Prior endpoint inspection: only viewer-left hand and sleeve descend; child Warp11 now provides a local grip edit",
+      "remaining": "Current authored loop accepted; see runtimeReview for original-fist and extreme-pose limitations."
+    },
+    {
+      "group": "HeadGroup",
+      "deformer": "Warp4",
+      "parent": "Warp7",
+      "parameter": "ParamAngleX",
+      "range": [
+        -30,
+        30
+      ],
+      "default": 0,
+      "verified": "New restrained center-Bezier edits are bound at -30/0/+30; neutral is unchanged; parent Warp7 now has pitch keyforms",
+      "effectiveKeyformsBound": true,
+      "remaining": "Current authored loop accepted; see runtimeReview for original-fist and extreme-pose limitations."
+    }
+  ],
+  "unboundMeaning": "These four optional extras remain unresponsive and are excluded; acceptance covers only the nine core IDs.",
+  "boundParametersPendingVisualAcceptance": [],
+  "originalArtworkFindings": [
+    "Source visible layers are a disjoint partition, not complete anatomical layers.",
+    "Torso has transparent holes behind both arms and along the neck and hood.",
+    "Eye and face backing has zero visible pixels behind all 7951 left-iris and 8014 right-iris pixels.",
+    "Hair includes foreground and back hair, hair clip, and some forehead or eyebrow fragments.",
+    "Each headphone layer includes separated ear/headphone patches and some overlying hair.",
+    "Hands are closed poses; no separated fingers or open-palm shape exists."
+  ],
+  "materialCandidates": [
+    {
+      "source": "codia-rig-occlusion-v1.psd",
+      "validation": "codia-rig-occlusion-v1.validation.json",
+      "content": "Body/sleeve ownership corrections and hidden torso/neck backing",
+      "visuallyAccepted": false
+    },
+    {
+      "source": "source/codia-eye-patches-v2",
+      "content": "Reassigned iris ownership, sclera backing and provisional eye-opening masks",
+      "visuallyAccepted": false,
+      "failedMovementOffsetsPixels": [
+        [
+          -8,
+          -6
+        ],
+        [
+          8,
+          -6
+        ]
+      ]
+    },
+    {
+      "source": "codia-rig-repair-source.psd",
+      "validation": "codia-rig-repair-source.validation.json",
+      "content": "Merged working-source candidate; 17 layers, 11 non-eye layers unchanged from body candidate; eye ownership union has zero RGBA differences",
+      "visuallyAccepted": false
+    },
+    {
+      "source": "codia-rig-repair-masks-v3.psd",
+      "validation": "codia-rig-repair-masks-v3.validation.json",
+      "content": "Independent 2px eye-mask replacement; all other 15 layers unchanged and neutral composite has zero pixel differences",
+      "visuallyAccepted": false,
+      "editorImportVerified": true,
+      "importedVia": "codia-rig-rim-v2.psd"
+    },
+    {
+      "source": "codia-rig-rim-v2.psd",
+      "validation": "codia-rig-rim-v2.validation.json",
+      "content": "Imported circular rim, stationary body/head/hand opening masks and 2px eye masks",
+      "editorImportVerified": true,
+      "visuallyAccepted": false,
+      "note": "Packaging validation records the earlier pre-import state; this action audit records the later Editor import and limited pose checks."
+    }
+  ],
+  "limitedEditorPoseChecks": {
+    "neutralUnchanged": true,
+    "poses": [
+      {
+        "parameters": {
+          "ParamBodyRise": 0.6
+        },
+        "observed": "Head including eyes is clipped along the circular bottom edge."
+      },
+      {
+        "parameters": {
+          "ParamBodyRise": 0,
+          "ParamHandLReach": 0,
+          "ParamHandRReach": 0
+        },
+        "observed": "Only the circular rim remains visible."
+      },
+      {
+        "parameters": {
+          "ParamHandLReach": 0.8
+        },
+        "observed": "The left hand is partially visible without floating outside the circle."
+      },
+      {
+        "parametersChecked": "head yaw endpoints",
+        "observed": "Both rebuilt eye-opening masks visually follow the head in Editor; neutral is unchanged. Core candidate-v2 sampling independently confirms both masks respond to AngleX."
+      }
+    ],
+    "scope": "Limited native Editor pose checks only; no claim of continuous-loop, physical contact or SDK acceptance.",
+    "continuousLoopAccepted": false,
+    "sdkAccepted": false,
+    "note": "Historical native-only evidence; later runtime acceptance is recorded separately."
+  },
+  "pendingAndRejected": [
+    "Rejected collage/atlas and previous distorted head keyforms are not used.",
+    "Original closed-fist artwork is retained; opening/separated fingers are not authored.",
+    "Head Z, blink and hair remain optional unbound extras, excluded from automatic playback.",
+    "Source alpha-edge remnants remain at large size. Acceptance covers authored poses and welcome-sized rendering, not arbitrary extreme combinations."
+  ],
+  "circularOpening": {
+    "created": true,
+    "rearRimCreated": true,
+    "frontRimCreated": true,
+    "importedIntoSavedModel": true,
+    "clippingBound": true,
+    "headOffscreenPartId": "HeadGroup",
+    "opacityOcclusionBound": false,
+    "limitedNativePosesChecked": true,
+    "continuousLoopAccepted": true,
+    "handContactValidated": false,
+    "sdkAccepted": true,
+    "visualHandContactValidated": true
+  },
+  "approvedNextStep": "Core welcome loop is packaged. Optional expressive keyforms require separate authoring without replacing the neutral face.",
+  "exportReady": true,
+  "runtimeReview": "validation/core-loop-runtime-review.json",
+  "acceptanceScope": "Verified nine-parameter welcome loop only",
+  "finalExport": {
+    "model": "export/Codia.model3.json",
+    "binary": "export/Codia.moc3",
+    "motion": "export/Motions/Codia.peek.motion3.json",
+    "binarySha256": "22070eaf43ccf29c1bd2989ecffdc24934c76b6d6d1506bfae946b675e26c1af",
+    "coreLoopAccepted": true,
+    "scope": "Verified nine-parameter welcome loop only"
+  },
+  "unboundExtraParameters": [
+    "ParamAngleZ",
+    "ParamEyeLOpen",
+    "ParamEyeROpen",
+    "ParamHairSwing"
+  ],
+  "verifiedCoreLoopParameters": [
+    "ParamBodyRise",
+    "ParamHandLReach",
+    "ParamHandRReach",
+    "ParamHandLGrip",
+    "ParamHandRGrip",
+    "ParamAngleX",
+    "ParamAngleY",
+    "ParamEyeBallX",
+    "ParamEyeBallY"
+  ]
+}

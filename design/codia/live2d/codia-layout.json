@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "order": "top-to-bottom",
+  "atlas": "source/codia-parts-atlas.png",
+  "canvas": { "width": 2048, "height": 2048 },
+  "status": "Layered authoring draft. Requires edge cleanup and Cubism mesh/keyform authoring.",
+  "layers": [
+    {
+      "name": "HandLeft",
+      "children": [{ "name": "HandLeft_GripAndSleeve", "crop": { "x": 670, "y": 978, "width": 274, "height": 231 }, "position": { "x": 1150, "y": 1400 }, "size": { "width": 490, "height": 414 } }]
+    },
+    {
+      "name": "HandRight",
+      "children": [{ "name": "HandRight_GripAndSleeve", "crop": { "x": 371, "y": 977, "width": 271, "height": 232 }, "position": { "x": 408, "y": 1400 }, "size": { "width": 486, "height": 416 } }]
+    },
+    {
+      "name": "Head",
+      "children": [
+        { "name": "Ahoge", "crop": { "x": 1007, "y": 109, "width": 238, "height": 217 }, "position": { "x": 916, "y": 288 }, "size": { "width": 225, "height": 205 } },
+        { "name": "HairFront_GClip", "crop": { "x": 309, "y": 65, "width": 321, "height": 295 }, "position": { "x": 512, "y": 430 }, "size": { "width": 1024, "height": 790 } },
+        { "name": "HairSideRight", "crop": { "x": 651, "y": 384, "width": 240, "height": 344 }, "position": { "x": 482, "y": 600 }, "size": { "width": 400, "height": 728 } },
+        { "name": "HairSideLeft", "crop": { "x": 972, "y": 386, "width": 254, "height": 340 }, "position": { "x": 1166, "y": 600 }, "size": { "width": 400, "height": 728 } },
+        { "name": "EyeLeft", "children": [
+          { "name": "EyeLeft_Iris", "crop": { "x": 1006, "y": 739, "width": 174, "height": 170 }, "position": { "x": 1090, "y": 1077 }, "size": { "width": 137, "height": 134 } },
+          { "name": "EyeLeft_WhiteAndLash", "crop": { "x": 378, "y": 743, "width": 247, "height": 156 }, "position": { "x": 1028, "y": 1050 }, "size": { "width": 263, "height": 166 } }
+        ] },
+        { "name": "EyeRight", "children": [
+          { "name": "EyeRight_Iris", "crop": { "x": 701, "y": 739, "width": 176, "height": 170 }, "position": { "x": 821, "y": 1077 }, "size": { "width": 137, "height": 134 } },
+          { "name": "EyeRight_WhiteAndLash", "crop": { "x": 34, "y": 742, "width": 247, "height": 160 }, "position": { "x": 738, "y": 1050 }, "size": { "width": 263, "height": 170 } }
+        ] },
+        { "name": "BrowLeft", "crop": { "x": 1125, "y": 1047, "width": 129, "height": 48 }, "position": { "x": 1048, "y": 1000 }, "size": { "width": 225, "height": 55 } },
+        { "name": "BrowRight", "crop": { "x": 933, "y": 1047, "width": 136, "height": 50 }, "position": { "x": 766, "y": 1000 }, "size": { "width": 225, "height": 55 } },
+        { "name": "FaceBase", "crop": { "x": 24, "y": 65, "width": 284, "height": 284 }, "position": { "x": 624, "y": 598 }, "size": { "width": 800, "height": 800 } },
+        { "name": "HeadphoneRight", "crop": { "x": 75, "y": 369, "width": 186, "height": 338 }, "position": { "x": 459, "y": 350 }, "size": { "width": 417, "height": 757 } },
+        { "name": "HeadphoneLeft", "crop": { "x": 386, "y": 369, "width": 180, "height": 338 }, "position": { "x": 1170, "y": 350 }, "size": { "width": 403, "height": 757 } },
+        { "name": "HairBack", "crop": { "x": 629, "y": 65, "width": 359, "height": 309 }, "position": { "x": 492, "y": 460 }, "size": { "width": 1064, "height": 875 } }
+      ]
+    },
+    {
+      "name": "Body",
+      "children": [{ "name": "Body_HoodieAndNeck", "crop": { "x": 1, "y": 930, "width": 367, "height": 300 }, "position": { "x": 649, "y": 1302 }, "size": { "width": 750, "height": 613 } }]
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+{
+  "status": "geometry-only rim authoring candidate, no Cubism clipping or rig acceptance",
+  "input": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-repair-masks-v3.psd",
+  "output": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v1.psd",
+  "inputSha256": "19782628ab2fa7a1308c30938759af0e0a6a44cb0f35a4cc375b2aa3d12c1601",
+  "outputSha256": "7ae3d643e10b0b63a780e918d0c3b6285ded3a2eb3524ecffab786cd7119bf0a",
+  "sourceArtworkLayersPreserved": 17,
+  "outputLayerCount": 20,
+  "originalCoordinatesPreserved": true,
+  "originalLayerPixelsPropertiesParentsAndRelativeOrderUnchanged": true,
+  "addedLayers": [
+    "RimBack",
+    "RimFront",
+    "OpeningMask"
+  ],
+  "geometry": {
+    "canvas": [
+      1254,
+      1254
+    ],
+    "requested": {
+      "center": [
+        626,
+        590
+      ],
+      "radius": 575
+    },
+    "chosen": {
+      "center": [
+        653.8333387376795,
+        622.07392845697
+      ],
+      "radius": 575,
+      "strokeWidth": 8,
+      "strokeColor": "#C8A0DA",
+      "innerHighlight": {
+        "radius": 572,
+        "width": 2,
+        "color": "#F8E7F5"
+      },
+      "frontArcDegrees": [
+        40,
+        140
+      ],
+      "angles": "degrees clockwise in screen coordinates, positive Y down"
+    },
+    "sourceAnchors": [
+      {
+        "layer": "HandRight_Visible",
+        "x": 392,
+        "y": 1134,
+        "radialError": 0,
+        "lowerArcAngleDegrees": 117.08824948719166,
+        "solidHandPixelsIntersectingFrontStroke": 872,
+        "solidHandPixelsOutsideOpening": 645
+      },
+      {
+        "layer": "HandLeft_Visible",
+        "x": 877,
+        "y": 1152,
+        "radialError": 0,
+        "lowerArcAngleDegrees": 67.16268208130126,
+        "solidHandPixelsIntersectingFrontStroke": 761,
+        "solidHandPixelsOutsideOpening": 893
+      }
+    ],
+    "rejectedApproximateAnchor": {
+      "layer": "HandLeft_Visible",
+      "point": [
+        875,
+        1157
+      ],
+      "reason": "Original alpha=0; closest solid point is [877,1152]."
+    },
+    "adjustmentReason": "Fixed radius circle through two verified source fingertip-edge pixels; no artwork translated or scaled.",
+    "drawOrderRecommendation": {
+      "Transparent_RGB_Retention": 0,
+      "RimBack": 450,
+      "OpeningMask": 460,
+      "Body_Visible": 490,
+      "HeadphoneRight_Visible": 500,
+      "HeadphoneLeft_Visible": 501,
+      "EyeRight_OpeningMask": 505,
+      "EyeLeft_OpeningMask": 506,
+      "Face_Visible": 510,
+      "EyeRight_Visible": 520,
+      "EyeLeft_Visible": 521,
+      "IrisRight_Visible": 530,
+      "IrisLeft_Visible": 531,
+      "Hair_Visible": 540,
+      "Ahoge_Visible": 550,
+      "SleeveRight_Visible": 560,
+      "SleeveLeft_Visible": 570,
+      "RimFront": 600,
+      "HandRight_Visible": 610,
+      "HandLeft_Visible": 611
+    },
+    "clipRecommendation": {
+      "OpeningMask": [
+        "Body_Visible",
+        "SleeveLeft_Visible",
+        "SleeveRight_Visible"
+      ],
+      "unclipped": [
+        "HandRight_Visible",
+        "HandLeft_Visible",
+        "HeadGroup"
+      ]
+    }
+  },
+  "openingMask": {
+    "name": "OpeningMask",
+    "opacity": 0,
+    "hidden": false,
+    "fullWhiteEllipse": true
+  },
+  "contact": [
+    {
+      "layer": "HandRight_Visible",
+      "x": 392,
+      "y": 1134,
+      "radialError": 0,
+      "lowerArcAngleDegrees": 117.08824948719166,
+      "solidHandPixelsIntersectingFrontStroke": 872,
+      "solidHandPixelsOutsideOpening": 645
+    },
+    {
+      "layer": "HandLeft_Visible",
+      "x": 877,
+      "y": 1152,
+      "radialError": 0,
+      "lowerArcAngleDegrees": 67.16268208130126,
+      "solidHandPixelsIntersectingFrontStroke": 761,
+      "solidHandPixelsOutsideOpening": 893
+    }
+  ],
+  "headOutsideOpening": {
+    "solidPixels": 10879,
+    "bounds": [
+      241,
+      10,
+      1020,
+      221
+    ]
+  },
+  "previews": {
+    "neutral": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v1.neutral.png",
+    "targetSimulation": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v1.target-clipped.png",
+    "comparison": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v1.comparison.png"
+  },
+  "modifiedCmo3": false,
+  "clippingAssigned": false,
+  "drawOrdersAssignedInCubism": false,
+  "modelImported": false,
+  "visualAcceptance": false,
+  "limitations": [
+    "The PSD neutral preview is a raw overlay without clipping. The target preview simulates clipping and explicit ArtMesh draw order; it is not a saved or verified Cubism model.",
+    "Hands touch the arc at verified original edge pixels, but the clenched original fingers are not redrawn as a full grip; overlap alone is not a proven grasp pose.",
+    "Head is deliberately unclipped. Ahoge, headphones and outer hair can remain outside the opening; BodyRise must hide them via actual masking/position/opacity as needed.",
+    "Hands are unclipped and above RimFront; hide-state movement must take them below the visible viewport or animate opacity. This PSD does not provide that motion.",
+    "The circular frame stays stationary; do not parent it to BodyRise or the reaching hand deformers.",
+    "Existing body/neck/shoulder and eye limitations remain. Frame clipping does not constitute acceptance of those repairs."
+  ]
+}
