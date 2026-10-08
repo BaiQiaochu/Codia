@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { randomUUID } from 'node:crypto';
 import { AppError } from './errors.ts';
 import { errorBus } from './error-bus.ts';
 
@@ -57,12 +58,24 @@ export function safeReadYAMLSync(filePath: string, fallback: unknown = null, yam
  * Prevents partial writes if the process crashes mid-write.
  */
 export function atomicWriteSync(filePath: string, content: string | NodeJS.ArrayBufferView, { mode }: { mode?: number } = {}) {
-  const tmp = filePath + ".tmp";
-  fs.writeFileSync(tmp, content, mode !== undefined ? { encoding: "utf-8", mode } : "utf-8");
-  if (mode !== undefined) {
-    try { fs.chmodSync(tmp, mode); } catch { /* best effort */ }
+  // Independent processes can save the same target concurrently. Each writer
+  // must own its staging file; the final same-directory rename remains atomic.
+  const tmp = path.join(path.dirname(filePath), `.gsap-write-${randomUUID()}.tmp`);
+  let descriptor: number | null = fs.openSync(tmp, 'wx', mode);
+  try {
+    fs.writeFileSync(descriptor, content, 'utf-8');
+    if (mode !== undefined) {
+      try { fs.fchmodSync(descriptor, mode); } catch { /* best effort */ }
+    }
+    fs.closeSync(descriptor);
+    descriptor = null;
+    fs.renameSync(tmp, filePath);
+  } finally {
+    if (descriptor !== null) {
+      try { fs.closeSync(descriptor); } catch { /* retain the original failure */ }
+    }
+    try { fs.unlinkSync(tmp); } catch { /* renamed, or best effort on failure */ }
   }
-  fs.renameSync(tmp, filePath);
 }
 
 /**
