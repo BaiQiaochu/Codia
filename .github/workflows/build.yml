@@ -38,8 +38,30 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           mkdir -p vendor/ocr-runtime/models
-          gh release download v0.2.0 --repo "$GITHUB_REPOSITORY" --pattern 'PP-OCRv5_mobile_*.tar' --dir vendor/ocr-runtime/models
+          release_log="$(mktemp)"
+          release_tmp="$(mktemp -d vendor/ocr-runtime/models/.release.XXXXXX)"
+          fallback_tmp="$(mktemp -d vendor/ocr-runtime/models/.fallback.XXXXXX)"
+          cleanup() { rm -rf "$release_tmp" "$fallback_tmp" "$release_log"; }
+          trap cleanup EXIT
+          if gh release download v0.2.0 --repo "$GITHUB_REPOSITORY" --pattern 'PP-OCRv5_mobile_*.tar' --dir "$release_tmp" >"$release_log" 2>&1; then
+            mv "$release_tmp/PP-OCRv5_mobile_det.tar" vendor/ocr-runtime/models/
+            mv "$release_tmp/PP-OCRv5_mobile_rec.tar" vendor/ocr-runtime/models/
+          else
+            cat "$release_log"
+            if ! grep -Fq 'no assets match the file pattern' "$release_log"; then
+              echo 'Pinned OCR release download failed for a reason other than missing assets.' >&2
+              exit 1
+            fi
+            echo 'Pinned OCR assets are absent from v0.2.0; using the official Paddle URLs.'
+            curl --fail --location --retry 3 --retry-delay 2 --output "$fallback_tmp/PP-OCRv5_mobile_det.tar" \
+              'https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_det_onnx.tar'
+            curl --fail --location --retry 3 --retry-delay 2 --output "$fallback_tmp/PP-OCRv5_mobile_rec.tar" \
+              'https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_rec_onnx.tar'
+            mv "$fallback_tmp/PP-OCRv5_mobile_det.tar" vendor/ocr-runtime/models/
+            mv "$fallback_tmp/PP-OCRv5_mobile_rec.tar" vendor/ocr-runtime/models/
+          fi
           sha256sum --check scripts/ocr-runtime.sha256
       - run: node scripts/prepare-ocr-runtime.mjs
       - uses: actions/upload-artifact@v4
