@@ -24,7 +24,6 @@ export function renderGraphHtml({ mode = "card", gsapCss = "", token = "" } = {}
   const tokenLiteral = escJsString(token);
   const fixedWidth = 960;
   const fixedHeight = 680;
-  const graphMinHeight = isPage ? 560 : 500;
   const graphViewportHeight = isPage ? 560 : 500;
 
   return `<!DOCTYPE html>
