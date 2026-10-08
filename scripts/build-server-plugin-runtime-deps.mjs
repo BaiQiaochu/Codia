@@ -17,8 +17,8 @@ function isInsideRoot(rootDir, targetPath) {
   return !relative || (!relative.startsWith("..") && !path.isAbsolute(relative));
 }
 
-function isOutsideTracePath(tracePath) {
-  return path.isAbsolute(tracePath) || tracePath === ".." || tracePath.startsWith("../") || tracePath.startsWith("..\\");
+function isOutsideTracePath(tracePath, pathImpl = path) {
+  return pathImpl.isAbsolute(tracePath) || tracePath === ".." || tracePath.startsWith("../") || tracePath.startsWith("..\\");
 }
 
 export function createTraceReadlink(readlinkImpl = fs.promises.readlink) {
@@ -68,9 +68,9 @@ export function createTraceFileSystem(rootDir, fsPromises = fs.promises) {
   };
 }
 
-export function createTraceIgnore({ ignoreNodeModules = false } = {}) {
+export function createTraceIgnore({ ignoreNodeModules = false, pathImpl = path } = {}) {
   return function traceIgnore(tracePath) {
-    if (isOutsideTracePath(tracePath)) return true;
+    if (isOutsideTracePath(tracePath, pathImpl)) return true;
     return ignoreNodeModules && isNodeModulesRelativePath(tracePath);
   };
 }

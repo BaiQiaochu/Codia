@@ -200,4 +200,6 @@ function main() {
   console.log("Generated Codia icon assets from desktop/src/assets/codia/codia-brand-master.png.");
 }
 
-main();
+// Keep deterministic rendering reusable without rewriting checked-in assets on import.
+module.exports = { renderSquare };
+if (require.main === module) main();

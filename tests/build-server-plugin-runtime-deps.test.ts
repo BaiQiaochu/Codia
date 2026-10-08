@@ -496,9 +496,26 @@ describe("bundled plugin runtime dependencies", () => {
   });
 
   it("ignores external absolute paths reported by nft on Windows", () => {
-    const ignore = createTraceIgnore();
+    const ignore = createTraceIgnore({ pathImpl: path.win32 });
 
     expect(ignore("C:\\Users\\ghost\\OneDrive\\locked-file")).toBe(true);
+  });
+
+  it.each([
+    ["win32", path.win32, ["C:\\outside\\file.js", "\\\\server\\share\\file.js", "\\outside\\file.js"]],
+    ["posix", path.posix, ["/outside/file.js", "//server/share/file.js"]],
+  ])("keeps %s trace filtering confined to project-relative files", (_platform, pathImpl, absolutePaths) => {
+    const ignore = createTraceIgnore({ pathImpl });
+    for (const filePath of [...absolutePaths, "..", "../outside.js", "..\\outside.js"]) {
+      expect(ignore(filePath), filePath).toBe(true);
+    }
+    for (const filePath of ["core/runtime.js", "plugins/mcp/index.js", "node_modules/pkg/index.js"]) {
+      expect(ignore(filePath), filePath).toBe(false);
+    }
+    const ignorePackages = createTraceIgnore({ pathImpl, ignoreNodeModules: true });
+    expect(ignorePackages("node_modules/pkg/index.js")).toBe(true);
+    expect(ignorePackages("node_modules\\pkg\\index.js")).toBe(true);
+    expect(ignorePackages("core/node_modules-helper.js")).toBe(false);
   });
 
   it("rejects plugin imports into host paths that are not explicit runtime surfaces", async () => {

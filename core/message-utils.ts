@@ -7,7 +7,14 @@
 
 import fs from "fs/promises";
 import path from "path";
-import { normalizeSessionLocatorPath } from './session-manifest/path-normalizer.ts';
+export {
+  relativePathInsideBase,
+  isValidSessionPath,
+  isActiveDesktopSessionPath,
+  isArchivedDesktopSessionPath,
+  isDesktopSessionPath,
+  isActiveSessionPath,
+} from "./session-paths.ts";
 import { getToolArgs, isToolCallBlock } from "./llm-utils.ts";
 import { SessionManager } from "../lib/pi-sdk/index.ts";
 import { DEFERRED_RESULT_RECORD_TYPE } from "../lib/deferred-result-notification.ts";
@@ -336,59 +343,4 @@ export async function loadLatestAssistantSummaryFromSessionFile(sessionPath, opt
   }
 
   return null;
-}
-
-export function relativePathInsideBase(targetPath, baseDir) {
-  if (typeof targetPath !== "string" || typeof baseDir !== "string") return null;
-  if (!targetPath || !baseDir) return null;
-
-  const resolved = normalizeSessionLocatorPath(targetPath);
-  const base = normalizeSessionLocatorPath(baseDir);
-  const rel = path.relative(base, resolved);
-  if (rel === "") return "";
-  if (!rel || rel.startsWith("..") || path.isAbsolute(rel)) return null;
-  return rel;
-}
-
-/**
- * Validate that sessionPath stays under the allowed baseDir.
- * baseDir can be a single-agent sessionDir or the global agentsDir.
- */
-export function isValidSessionPath(sessionPath, baseDir) {
-  return relativePathInsideBase(sessionPath, baseDir) !== null;
-}
-
-function desktopSessionParts(sessionPath, agentsDir) {
-  const rel = relativePathInsideBase(sessionPath, agentsDir);
-  if (rel === null) return false;
-  const parts = rel.split(path.sep);
-  if (!parts[0] || !parts[1]) return false;
-  return parts;
-}
-
-function isJsonlFileName(name) {
-  return typeof name === "string" && name.endsWith(".jsonl") && path.basename(name) === name;
-}
-
-export function isActiveDesktopSessionPath(sessionPath, agentsDir) {
-  const parts = desktopSessionParts(sessionPath, agentsDir);
-  if (!parts || parts.length !== 3) return false;
-  if (parts[1] !== "sessions") return false;
-  return isJsonlFileName(parts[2]);
-}
-
-export function isArchivedDesktopSessionPath(sessionPath, agentsDir) {
-  const parts = desktopSessionParts(sessionPath, agentsDir);
-  if (!parts || parts.length !== 4) return false;
-  if (parts[1] !== "sessions" || parts[2] !== "archived") return false;
-  return isJsonlFileName(parts[3]);
-}
-
-export function isDesktopSessionPath(sessionPath, agentsDir) {
-  return isActiveDesktopSessionPath(sessionPath, agentsDir)
-    || isArchivedDesktopSessionPath(sessionPath, agentsDir);
-}
-
-export function isActiveSessionPath(sessionPath, agentsDir) {
-  return isActiveDesktopSessionPath(sessionPath, agentsDir);
 }

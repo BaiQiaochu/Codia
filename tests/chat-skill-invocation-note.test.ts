@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import path from "node:path";
 import { buildSkillInvocationNote, resolveSelectedSkillRecords } from "../server/routes/chat.js";
 
 describe("chat skill invocation note", () => {
@@ -25,6 +26,7 @@ describe("chat skill invocation note", () => {
   });
 
   it("resolves selected skill records from the current session agent", () => {
+    const baseDir = path.resolve("test-skills", "wall-of-sighs");
     const engine = {
       currentAgentId: "fallback",
       agentIdFromSessionPath: () => "agent-a",
@@ -34,7 +36,7 @@ describe("chat skill invocation note", () => {
           {
             name: "wall-of-sighs",
             description: "Process emotional overload before action.",
-            baseDir: "C:\\Users\\ghost\\.gsap\\skills\\wall-of-sighs",
+            baseDir,
             source: "user",
             enabled: true,
           },
@@ -46,10 +48,32 @@ describe("chat skill invocation note", () => {
 
     expect(records[0]).toMatchObject({
       name: "wall-of-sighs",
-      filePath: "C:\\Users\\ghost\\.gsap\\skills\\wall-of-sighs\\SKILL.md",
+      filePath: path.join(baseDir, "SKILL.md"),
       description: "Process emotional overload before action.",
     });
     expect(records[1]).toMatchObject({ name: "missing", filePath: "" });
     expect(buildSkillInvocationNote(["missing"], [records[1]])).toContain("do not infer its rules from the name");
+  });
+
+  it.each([
+    "C:\\Users\\ghost\\.gsap\\skills\\example\\SKILL.md",
+    "/home/ghost/.gsap/skills/example/SKILL.md",
+  ])("preserves the explicit skill file path %s and disabled metadata", (filePath) => {
+    const engine = {
+      currentAgentId: "fallback",
+      agentIdFromSessionPath: () => null,
+      getRuntimeSkills: (agentId) => {
+        expect(agentId).toBe("fallback");
+        return [{ name: "example", filePath, baseDir: path.resolve("unused"), enabled: false }];
+      },
+    };
+    expect(resolveSelectedSkillRecords(engine, ["example"], null)).toEqual([
+      { name: "example", description: "", filePath, source: "", enabled: false },
+    ]);
+  });
+
+  it("does not invent a path when a skill has neither a file path nor a base directory", () => {
+    const engine = { currentAgentId: "gsap", getRuntimeSkills: () => [{ name: "unavailable" }] };
+    expect(resolveSelectedSkillRecords(engine, ["unavailable"], null)[0].filePath).toBe("");
   });
 });

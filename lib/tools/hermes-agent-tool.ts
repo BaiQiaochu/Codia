@@ -324,6 +324,7 @@ function getHermesSitePackages(root) {
 export function resolveHermesPythonCandidates(root, {
   env = process.env,
   allowSystem = truthyEnv(env.HERMES_ALLOW_SYSTEM_PYTHON) || truthyEnv(env.HERMES_ALLOW_SYSTEM_HERMES),
+  platform = process.platform,
 } = {}) {
   const candidates = [];
   const push = (command, args = []) => {
@@ -335,9 +336,9 @@ export function resolveHermesPythonCandidates(root, {
   };
 
   push(env.HERMES_AGENT_PYTHON);
-  push(path.join(root, "python", process.platform === "win32" ? "python.exe" : "bin/python"));
-  push(path.join(root, ".venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python"));
-  push(path.join(root, "venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python"));
+  push(path.join(root, "python", platform === "win32" ? "python.exe" : "bin/python"));
+  push(path.join(root, ".venv", platform === "win32" ? "Scripts/python.exe" : "bin/python"));
+  push(path.join(root, "venv", platform === "win32" ? "Scripts/python.exe" : "bin/python"));
 
   if (allowSystem) {
     push("uv", ["run", "--project", root, "python"]);

@@ -2,6 +2,8 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import crypto from "crypto";
+import { createRequire } from "node:module";
+import { PNG } from "pngjs";
 import { Hono } from "hono";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -10,7 +12,12 @@ import { createCharacterCardsRoute } from "../server/routes/character-cards.js";
 import { extractZip } from "../lib/extract-zip.js";
 import { writeZipFromDirectory } from "../lib/zip-writer.js";
 
-const DEFAULT_EXPORT_AVATAR_HASH = "d3310fb275db4e6ca8d8d38162a829713337c7baf5e656a3431cb0b52670cc67";
+const require = createRequire(import.meta.url);
+const { renderSquare } = require("../scripts/generate-professional-icon.cjs");
+// Derive the asset contract from the approved artwork and production renderer,
+// rather than pinning the output of an obsolete branding generation.
+const brandMaster = fs.readFileSync(path.resolve(__dirname, "../desktop/src/assets/codia/codia-brand-master.png"));
+const DEFAULT_EXPORT_AVATAR = PNG.sync.write(renderSquare(PNG.sync.read(brandMaster), 512), { colorType: 6 });
 
 function writeJson(filePath, value) {
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2), "utf-8");
@@ -285,7 +292,7 @@ describe("character-card import/export service", () => {
       .toContain("name: gsap-writer");
   });
 
-  it("uses the debranded export avatar when the agent has no custom avatar", async () => {
+  it("exports the avatar generated from the approved Codia master when the agent has no custom avatar", async () => {
     const agentDir = path.join(agentsDir, "gsap");
     fs.mkdirSync(path.join(agentDir, "memory"), { recursive: true });
     fs.writeFileSync(path.join(agentDir, "config.yaml"), [
@@ -300,7 +307,8 @@ describe("character-card import/export service", () => {
     const service = createCharacterCardService(engine);
     const avatar = service.resolveExportAsset("gsap", "avatar");
     expect(avatar.filePath).toContain(path.join("desktop", "src", "assets", "character-cards"));
-    expect(fileHash(avatar.filePath)).toBe(DEFAULT_EXPORT_AVATAR_HASH);
+    expect(fs.readFileSync(avatar.filePath)).toEqual(DEFAULT_EXPORT_AVATAR);
+    expect(fs.readFileSync(path.resolve(__dirname, "../desktop/src/icon.png"))).toEqual(DEFAULT_EXPORT_AVATAR);
 
     const exported = await service.exportAgentPackage("gsap", { targetDir: tempDir });
     const outDir = path.join(tempDir, "unzipped-default-avatar-export");
@@ -308,7 +316,7 @@ describe("character-card import/export service", () => {
     await extractZip(exported.filePath, outDir);
     const card = JSON.parse(fs.readFileSync(path.join(outDir, "card.json"), "utf-8"));
     expect(card.assets.avatar).toBe("assets/avatar.png");
-    expect(fileHash(path.join(outDir, card.assets.avatar))).toBe(DEFAULT_EXPORT_AVATAR_HASH);
+    expect(fs.readFileSync(path.join(outDir, card.assets.avatar))).toEqual(DEFAULT_EXPORT_AVATAR);
     expect(Object.values(card.assets).join("\n")).not.toMatch(/openhanako|hanako|\bhana\b/i);
   });
 
@@ -331,7 +339,7 @@ describe("character-card import/export service", () => {
     const service = createCharacterCardService(engine);
     const avatar = service.resolveExportAsset("custom-avatar", "avatar");
     expect(avatar.filePath).toBe(customAvatarPath);
-    expect(fileHash(avatar.filePath)).not.toBe(DEFAULT_EXPORT_AVATAR_HASH);
+    expect(fs.readFileSync(avatar.filePath)).toEqual(Buffer.from("custom avatar image"));
   });
 
   it("uses the unified BYOUNG emblem for built-in character-card identity", async () => {

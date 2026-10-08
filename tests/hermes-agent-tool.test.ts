@@ -96,8 +96,8 @@ describe("hermes agent tool normalization", () => {
 
   it("does not use system Python by default", () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-hermes-python-"));
-    const portablePython = path.join(tempDir, "python", "python.exe");
-    const venvPython = path.join(tempDir, ".venv", "Scripts", "python.exe");
+    const portablePython = path.join(tempDir, "python", process.platform === "win32" ? "python.exe" : "bin/python");
+    const venvPython = path.join(tempDir, ".venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
     fs.mkdirSync(path.dirname(portablePython), { recursive: true });
     fs.mkdirSync(path.dirname(venvPython), { recursive: true });
     fs.writeFileSync(portablePython, "");
@@ -114,6 +114,51 @@ describe("hermes agent tool normalization", () => {
     expect(commands).not.toContain("python3");
 
     fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  // Model platform-specific layouts on the real temporary filesystem. This
+  // verifies candidate selection; it does not claim to launch a foreign Python.
+  it.each([
+    { platform: "win32", relativePaths: ["python/python.exe", ".venv/Scripts/python.exe", "venv/Scripts/python.exe"], foreignPath: "python/bin/python" },
+    { platform: "darwin", relativePaths: ["python/bin/python", ".venv/bin/python", "venv/bin/python"], foreignPath: "python/python.exe" },
+    { platform: "linux", relativePaths: ["python/bin/python", ".venv/bin/python", "venv/bin/python"], foreignPath: "python/python.exe" },
+  ])("resolves only existing bundled Python candidates for $platform", ({ platform, relativePaths, foreignPath }) => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-hermes-python-layout-"));
+    try {
+      expect(resolveHermesPythonCandidates(tempDir, { env: {}, platform })).toEqual([]);
+      const expected = relativePaths.map((relativePath) => path.join(tempDir, relativePath));
+      for (const candidate of [...expected, path.join(tempDir, foreignPath)]) {
+        fs.mkdirSync(path.dirname(candidate), { recursive: true });
+        fs.writeFileSync(candidate, "");
+      }
+      const candidates = resolveHermesPythonCandidates(tempDir, { env: {}, platform });
+      expect(candidates).toEqual(expected.map((command) => ({ command, args: [] })));
+      expect(resolveHermesPythonCandidates(tempDir, { env: { HERMES_AGENT_PYTHON: expected[0] }, platform })).toEqual(candidates);
+
+      fs.rmSync(expected[1]);
+      expect(resolveHermesPythonCandidates(tempDir, { env: {}, platform }))
+        .toEqual([expected[0], expected[2]].map((command) => ({ command, args: [] })));
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("honors an explicit Python override without adding implicit system fallbacks", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-hermes-python-override-"));
+    try {
+      const customPython = path.join(tempDir, "custom-python");
+      expect(resolveHermesPythonCandidates(tempDir, { env: { HERMES_AGENT_PYTHON: customPython } })).toEqual([]);
+      fs.writeFileSync(customPython, "");
+      expect(resolveHermesPythonCandidates(tempDir, { env: { HERMES_AGENT_PYTHON: customPython } }))
+        .toEqual([{ command: customPython, args: [] }]);
+      expect(resolveHermesPythonCandidates(tempDir, { env: { HERMES_AGENT_PYTHON: "custom-python" } }))
+        .toEqual([{ command: "custom-python", args: [] }]);
+      expect(resolveHermesPythonCandidates(tempDir, {
+        env: { HERMES_ALLOW_SYSTEM_PYTHON: "1" }, allowSystem: false,
+      })).toEqual([]);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
   });
 
   it("only allows system Python when explicitly enabled", () => {
