@@ -7,6 +7,19 @@ import { DEFAULT_HEARTBEAT_INTERVAL_MINUTES } from '../../../../shared/default-w
 
 export type gsapFetch = (path: string, opts?: RequestInit) => Promise<Response>;
 
+async function saveRequest(fetch: gsapFetch, path: string, options: RequestInit): Promise<void> {
+  const response = await fetch(path, options);
+  if (response.ok) return;
+  let message = `Save failed with HTTP ${response.status}`;
+  try {
+    const data = await response.json();
+    if (typeof data?.error === 'string' && data.error.trim()) message = data.error;
+  } catch {
+    // A server error may return plain text instead of the usual JSON payload.
+  }
+  throw new Error(message);
+}
+
 // ── Test connection ──
 
 interface TestConnectionParams {
@@ -52,7 +65,7 @@ interface SaveProviderParams {
 }
 
 export async function saveProvider({ gsapFetch, providerName, providerUrl, apiKey, providerApi }: SaveProviderParams): Promise<void> {
-  await gsapFetch(`/api/agents/${AGENT_ID}/config`, {
+  await saveRequest(gsapFetch, `/api/agents/${AGENT_ID}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -149,7 +162,7 @@ function compactModelEntry(entry: AddedModelEntry): AddedModelEntry {
 
 export async function saveModel({ gsapFetch, selectedModel, providerName, addedModels, selectedUtility, selectedUtilityLarge }: SaveModelParams): Promise<void> {
   const modelEntries = addedModels.map(compactModelEntry);
-  await gsapFetch(`/api/agents/${AGENT_ID}/config`, {
+  await saveRequest(gsapFetch, `/api/agents/${AGENT_ID}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -163,7 +176,7 @@ export async function saveModel({ gsapFetch, selectedModel, providerName, addedM
     const utilityModels: Record<string, { id: string; provider: string }> = {};
     if (selectedUtility) utilityModels.utility = { id: selectedUtility, provider: providerName };
     if (selectedUtilityLarge) utilityModels.utility_large = { id: selectedUtilityLarge, provider: providerName };
-    await gsapFetch('/api/preferences/models', {
+    await saveRequest(gsapFetch, '/api/preferences/models', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ models: utilityModels }),
@@ -174,7 +187,7 @@ export async function saveModel({ gsapFetch, selectedModel, providerName, addedM
 // ── Save locale ──
 
 export async function saveLocale(gsapFetch: gsapFetch, locale: string): Promise<void> {
-  await gsapFetch(`/api/agents/${AGENT_ID}/config`, {
+  await saveRequest(gsapFetch, `/api/agents/${AGENT_ID}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ locale }),
@@ -205,7 +218,7 @@ export async function saveOnboardingIdentity({
   } = { user: { name: trimmedUserName }, memory: { enabled: memoryEnabled } };
   if (trimmedAgentName) body.agent = { name: trimmedAgentName };
 
-  await gsapFetch(`/api/agents/${AGENT_ID}/config`, {
+  await saveRequest(gsapFetch, `/api/agents/${AGENT_ID}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -217,7 +230,7 @@ export async function saveOnboardingIdentity({
 }
 
 export async function saveUserName(gsapFetch: gsapFetch, name: string): Promise<void> {
-  await gsapFetch(`/api/agents/${AGENT_ID}/config`, {
+  await saveRequest(gsapFetch, `/api/agents/${AGENT_ID}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user: { name } }),
@@ -254,7 +267,7 @@ export async function saveWorkspace({ gsapFetch, workspacePath, defaultPath }: S
     await ensureDefaultWorkspace(gsapFetch);
   }
 
-  await gsapFetch(`/api/agents/${AGENT_ID}/config`, {
+  await saveRequest(gsapFetch, `/api/agents/${AGENT_ID}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
