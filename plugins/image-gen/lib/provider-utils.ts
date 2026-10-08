@@ -165,10 +165,6 @@ function modelsByProvider(models = [], type) {
   return byProvider;
 }
 
-function knownModels(providerId, type) {
-  return KNOWN_MODELS_BY_TYPE[type]?.[providerId] || [];
-}
-
 function providerSupportsType(providerId, type) {
   return !DISABLED_PROVIDER_TYPES[providerId]?.has(type);
 }
