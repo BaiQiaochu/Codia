@@ -4,7 +4,6 @@ import path from "node:path";
 import { McpStdioClient } from "./mcp-stdio-client.ts";
 import {
   McpAutoHttpClient,
-  McpHttpError,
   McpLegacySseClient,
   McpStreamableHttpClient,
   isAuthTerminalError,
