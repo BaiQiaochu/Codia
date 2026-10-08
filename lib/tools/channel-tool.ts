@@ -18,7 +18,6 @@ import {
   addBookmarkEntry,
   getRecentMessages,
   getChannelMeta,
-  getChannelMembers,
   formatMessagesForLLM,
   normalizeChannelMembers,
   readBookmarks,

@@ -271,6 +271,8 @@ export function createWorkflowTool(deps) {
           }, parentSessionPath);
         })
         .catch((err) => {
+          // The script deadline/failure must also stop its still-running agent nodes.
+          controller.abort();
           const reason = err?.message || String(err);
           const finishedAt = Date.now();
           store.fail(taskId, reason);
@@ -362,6 +364,7 @@ function buildAgentEventHandler({ taskId, parentSessionId, parentSessionPath, su
 }
 
 async function _syncRun(deps, params, meta, { agentId, cwd, parentSessionPath }) {
+  const controller = new AbortController();
   const limiter = makeLimiter();
   const ledger = deps.getUsageLedger?.();
   const budget = makeBudget(ledger, null, params.args?.budgetTokens ?? null);
@@ -370,20 +373,21 @@ async function _syncRun(deps, params, meta, { agentId, cwd, parentSessionPath })
     executeIsolated: (prompt, isoOpts) => deps.executeIsolated(prompt, isoOpts),
     baseIsoOpts: { agentId, cwd, parentSessionId, parentSessionPath, subagentContext: true, emitEvents: true },
     limiter,
-    signal: undefined,
+    signal: controller.signal,
     onProgress: (evt) => deps.emitEvent?.({ ...evt, type: "workflow_progress" }, parentSessionPath),
     budget,
     args: params.args,
     resolveAgentId: deps.resolveAgentId,
   });
   try {
-    const { result } = await runWorkflowScript(params.script, hostApi, { deadlineMs: WORKFLOW_DEADLINE_MS });
+    const { result } = await runWorkflowScript(params.script, hostApi, { signal: controller.signal, deadlineMs: WORKFLOW_DEADLINE_MS });
     const text = workflowResultToText(result);
     return toolOk(
       t("tool.workflow.syncComplete", { name: meta.name, count: limiter.totalSpawned, result: text }),
       { workflow: meta.name, agentsSpawned: limiter.totalSpawned, result },
     );
   } catch (err) {
+    controller.abort();
     return toolError(t("tool.workflow.executionFailed", { message: err.message }), { agentsSpawned: limiter.totalSpawned });
   }
 }
