@@ -32,11 +32,12 @@ interface ProviderStepProps {
   gsapFetch: gsapFetch;
   goToStep: (index: number) => void;
   showError: (msg: string) => void;
+  onUseFilesOnly?: () => void;
   onProviderReady: (providerName: string, providerUrl: string, providerApi: string, apiKey: string) => void;
 }
 
 export function ProviderStep({
-  preview, gsapFetch, goToStep, showError, onProviderReady,
+  preview, gsapFetch, goToStep, showError, onProviderReady, onUseFilesOnly,
 }: ProviderStepProps) {
   // ── Provider state ──
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
@@ -275,6 +276,10 @@ export function ProviderStep({
         )}
       </div>
 
+      {onUseFilesOnly && <div className="ob-files-only">
+        <p>{t('onboarding.provider.filesOnlyHint')}</p>
+        <button type="button" className="ob-test-btn" data-testid="use-files-only" onClick={onUseFilesOnly} disabled={testStatus.type === 'loading'}>{t('onboarding.provider.filesOnly')}</button>
+      </div>}
       <div className="onboarding-actions">
         <button type="button" className="ob-btn ob-btn-secondary" onClick={() => goToStep(1)}>
           {t('onboarding.provider.back')}

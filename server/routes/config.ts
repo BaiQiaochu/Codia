@@ -263,6 +263,7 @@ export function createConfigRoute(engine: any) {
 
       // 自动注入全局字段（schema-driven）
       injectGlobalFields(config, engine);
+      config.setupMode = engine.preferences?.getSetupMode?.() || "ai";
       // cwd_history 过滤（agent-scope，但需要 existsSync 验证）
       return c.json(maskObjectSecrets(config));
     } catch (err) {

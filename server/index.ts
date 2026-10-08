@@ -21,6 +21,7 @@ import { AppError } from "../shared/errors.ts";
 import { errorBus } from "../shared/error-bus.ts";
 import { GsapEngine } from "../core/engine.ts";
 import { ensureFirstRun } from "../core/first-run.ts";
+import { ensureLocalIdentityRegistries } from "../core/server-identity.ts";
 import { initDebugLog } from "../lib/debug-log.ts";
 import { redactLogLabel, redactLogText } from "../lib/log-redactor.ts";
 import { safeJson } from "./hono-helpers.ts";
@@ -44,6 +45,11 @@ import { createChatRoute } from "./routes/chat.ts";
 import { createSessionsRoute } from "./routes/sessions.ts";
 import { createSessionProjectsRoute } from "./routes/session-projects.ts";
 import { createStudioWorkspacesRoute } from "./routes/studio-workspaces.ts";
+import { createCloudWorkspacesRoute, verifyCloudLocalBearer } from "./routes/cloud-workspaces.ts";
+import { createCloudWorkspaceRuntime } from "../lib/cloud-workspace/config.ts";
+import { createEngineCloudAgentExecutor } from "../lib/cloud-workspace/agent-executor.ts";
+import { CloudWorkspaceService } from "../lib/cloud-workspace/service.ts";
+import { CloudWorkspaceWorker } from "../lib/cloud-workspace/worker.ts";
 import { createSettingsSnapshotRoute } from "./routes/settings-snapshot.ts";
 import { createModelsRoute } from "./routes/models.ts";
 import { createConfigRoute } from "./routes/config.ts";
@@ -152,6 +158,7 @@ type ServerRuntimeContext = {
   Bindings: HttpBindings;
   Variables: {
     transportConnectionKind: string;
+    cloudLocalBearer: boolean;
     pwaSession: unknown;
     authPrincipal: unknown;
   };
@@ -329,6 +336,9 @@ await bindServerTransportOwnership(server, {
 //
 console.log("[server] ensureFirstRun...");
 ensureFirstRun(gsapHome, productDir);
+// Freeze the persisted owner identity before constructing the engine. Otherwise
+// a pristine home caches fallback IDs until migration #18, then changes on restart.
+ensureLocalIdentityRegistries(gsapHome);
 console.log("[server] ensureFirstRun 完成");
 
 //
@@ -517,7 +527,7 @@ function authenticateLegacyAccessToken(token, connectionKind) {
     return {
       principal: normalizePrincipal({
         kind: "account_user",
-        credentialKind: "user_session",
+        credentialKind: "legacy_pwa_demo",
         connectionKind,
         trustState: connectionKind === "custom_remote" ? "tunnel" : connectionKind,
         userId: pwaSession.userId,
@@ -648,6 +658,7 @@ app.use("*", async (c, next) => {
     }
   }
   c.set("authPrincipal", authPrincipal);
+  c.set("cloudLocalBearer", verifyCloudLocalBearer(serverAuthService, c.req.header("authorization"), transport.connectionKind));
 
   await next();
 });
@@ -802,6 +813,20 @@ app.route("", chatWsRoute);
 app.route("/api", createSessionsRoute(engine));
 app.route("/api", createSessionProjectsRoute(engine));
 app.route("/api", createStudioWorkspacesRoute(engine));
+// One modular backend, explicit database/object-store selection; no automatic provisioning.
+const cloudWorkspaceRuntime = await createCloudWorkspaceRuntime({ localDirectory: path.join(gsapHome, "cloud-workspaces") });
+const cloudWorkspaceService = new CloudWorkspaceService(cloudWorkspaceRuntime.store, cloudWorkspaceRuntime.objects, createEngineCloudAgentExecutor(engine));
+const cloudWorkspaceWorker = new CloudWorkspaceWorker(cloudWorkspaceService);
+const cloudWorkspaceOrigins = [];
+// Only explicit exact origins, never client-supplied Forwarded headers.
+if (serverNetwork.host === "127.0.0.1" && process.env.GSAP_DEV_NODE_BIN && /^\d+$/.test(process.env.GSAP_DEV_WEB_CLIENT_PORT || "")) {
+  cloudWorkspaceOrigins.push(`http://127.0.0.1:${Number(process.env.GSAP_DEV_WEB_CLIENT_PORT)}`);
+}
+if (corsAllowedOrigin && /^https?:\/\//.test(corsAllowedOrigin)) {
+  try { if (new URL(corsAllowedOrigin).origin === corsAllowedOrigin) cloudWorkspaceOrigins.push(corsAllowedOrigin); } catch { /* Invalid origins stay denied. */ }
+}
+app.route("/api", createCloudWorkspacesRoute(cloudWorkspaceService, cloudWorkspaceOrigins));
+cloudWorkspaceWorker.start();
 app.route("/api", createModelsRoute(engine));
 app.route("/api", createConfigRoute(engine));
 app.route("/api", createUploadRoute(engine));
@@ -847,7 +872,7 @@ app.route("/api", createRuntimeDiagnosticsRoute(runtimeDiagnostics));
 app.route("/api", createVoiceRoute(engine));
 app.route("/api", createSpeechRecognitionRoute(engine));
 app.route("/api", createMediaRoute(engine, hub));
-app.route("/api", createResourceIoRoute(engine));
+app.route("/api", createResourceIoRoute(engine, cloudWorkspaceService, cloudWorkspaceOrigins));
 app.route("/api", createAccessRoute({ engine, runtimeState: accessRuntimeState }));
 app.route("/api", createDevicesRoute(engine));
 app.route("/api", createMobileWorkbenchRoute(engine));
@@ -1207,6 +1232,9 @@ async function gracefulShutdown() {
     // 3. Stop external platforms.
     await bridgeManager.stopAll();
     dlog.log("server", "bridge stopped");
+
+    await cloudWorkspaceWorker.stop();
+    await cloudWorkspaceRuntime.close();
 
     // 4. Flush deferred result store.
     engine.deferredResults?.dispose?.();

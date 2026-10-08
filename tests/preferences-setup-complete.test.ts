@@ -61,7 +61,7 @@ describe("PreferencesManager setup completion", () => {
 
     const result = prefs.markSetupComplete();
 
-    expect(result).toEqual({ setupComplete: true });
+    expect(result).toEqual({ setupComplete: true, setupMode: "ai" });
     expect(prefs.getSetupComplete()).toBe(true);
     expect(readPrefsFile(dirs).setupComplete).toBe(true);
   });
@@ -78,7 +78,7 @@ describe("preferences setup completion route", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body).toEqual({ ok: true, setupComplete: true });
+    expect(body).toEqual({ ok: true, setupComplete: true, setupMode: "ai" });
     expect(engine.markSetupComplete).toHaveBeenCalledTimes(1);
   });
 
@@ -95,5 +95,22 @@ describe("preferences setup completion route", () => {
 
     expect(res.status).toBe(500);
     expect(body.error).toMatch(/read-back verification failed/);
+  });
+});
+
+
+describe("explicit offline workspace setup", () => {
+  it("persists files-only mode without writing model or provider configuration", async () => {
+    const dirs = makeDirs(); const prefs = new PreferencesManager(dirs);
+    const app = makeApp({ preferences: prefs });
+    const res = await app.request("/api/preferences/setup-complete", { method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"files-only"}) });
+    expect(res.status).toBe(200); expect((await res.json()).setupMode).toBe("files-only");
+    expect(new PreferencesManager(dirs).getSetupMode()).toBe("files-only");
+    expect(readPrefsFile(dirs).providers).toBeUndefined();
+  });
+  it("rejects unknown setup intent without completing", async () => {
+    const dirs = makeDirs(); const prefs = new PreferencesManager(dirs);
+    const res = await makeApp({preferences:prefs}).request("/api/preferences/setup-complete", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"pretend-provider"})});
+    expect(res.status).toBe(400); expect(prefs.getSetupComplete()).toBe(false);
   });
 });

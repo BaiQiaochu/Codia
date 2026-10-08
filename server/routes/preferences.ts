@@ -530,13 +530,16 @@ export function createPreferencesRoute(engine: any, options: Record<string, any>
 
   route.post("/preferences/setup-complete", async (c) => {
     try {
+      const body = c.req.header("content-type")?.includes("application/json") ? await strictJson(c) : {};
+      const mode = body.mode || "ai";
+      if (!["ai", "files-only"].includes(mode)) return c.json({ error: "invalid_setup_mode" }, 400);
       const result = typeof engine.markSetupComplete === "function"
-        ? engine.markSetupComplete()
-        : engine.preferences?.markSetupComplete?.();
+        ? engine.markSetupComplete(mode)
+        : engine.preferences?.markSetupComplete?.(mode);
       if (result?.setupComplete !== true) {
         throw new Error("setup completion manager is unavailable");
       }
-      return c.json({ ok: true, setupComplete: true });
+      return c.json({ ok: true, setupComplete: true, setupMode: result.setupMode || mode });
     } catch (err) {
       return c.json({ error: err.message }, 500);
     }

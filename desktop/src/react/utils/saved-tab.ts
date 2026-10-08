@@ -7,7 +7,7 @@ const CHAT_EMBEDDED_PLUGIN_TABS = new Set<TabType>([
 
 export function normalizeSavedTab(value: string | null): TabType {
   if (!value || CHAT_EMBEDDED_PLUGIN_TABS.has(value as TabType)) return 'chat';
-  if (value === 'chat' || value === 'channels' || value === 'workflow') return value;
+  if (value === 'chat' || value === 'channels' || value === 'workflow' || value === 'cloud') return value;
   if (value.startsWith('plugin:') && value.length > 'plugin:'.length) return value as TabType;
   return 'chat';
 }

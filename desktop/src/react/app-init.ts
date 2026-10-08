@@ -464,6 +464,9 @@ export async function initApp(): Promise<void> {
       ]);
       const healthData = await healthRes.json();
       const configData = await configRes.json();
+      if (configData.setupMode === 'files-only' && !localStorage.getItem('gsap-tab')) {
+        switchTab('cloud');
+      }
       applyEditorTypography(configData.editor);
       applyChatLayout(configData.chat);
 

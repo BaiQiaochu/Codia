@@ -2,6 +2,7 @@
  * OnboardingApp.tsx - first-run setup orchestration.
  */
 
+import type {} from './onboarding-env';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { TOTAL_STEPS } from './constants';
 import type { gsapFetch } from './onboarding-actions';
@@ -21,6 +22,7 @@ export function OnboardingApp({ preview, skipToTutorial }: OnboardingAppProps) {
   const [serverToken, setServerToken] = useState<string | null>(null);
   const [step, setStep] = useState(skipToTutorial ? 6 : 0);
   const [stepKey, setStepKey] = useState(0);
+  const [setupMode, setSetupMode] = useState<'ai' | 'files-only'>('ai');
   const avatarSrc = codiaBrandEmblem;
   const [locale, setLocale] = useState('zh-CN');
   const [i18nReady, setI18nReady] = useState(false);
@@ -59,6 +61,7 @@ export function OnboardingApp({ preview, skipToTutorial }: OnboardingAppProps) {
   }, []);
 
   const onProviderReady = useCallback((name: string, url: string, api: string, key: string) => {
+    setSetupMode('ai');
     setProviderName(name);
     setProviderUrl(url);
     setProviderApi(api);
@@ -119,11 +122,11 @@ export function OnboardingApp({ preview, skipToTutorial }: OnboardingAppProps) {
 
       {step === 0 && <LocaleStep key={`step-0-${stepKey}`} preview={preview} gsapFetch={gsapFetch} avatarSrc={avatarSrc} initialLocale={locale} goToStep={goToStep} showError={showError} onLocaleChange={onLocaleChange} />}
       {step === 1 && <NameStep key={`step-1-${stepKey}`} preview={preview} gsapFetch={gsapFetch} goToStep={goToStep} showError={showError} />}
-      {step === 2 && <ProviderStep key={`step-2-${stepKey}`} preview={preview} gsapFetch={gsapFetch} goToStep={goToStep} showError={showError} onProviderReady={onProviderReady} />}
+      {step === 2 && <ProviderStep key={`step-2-${stepKey}`} preview={preview} gsapFetch={gsapFetch} goToStep={goToStep} showError={showError} onProviderReady={onProviderReady} onUseFilesOnly={() => { setSetupMode('files-only'); setApiKey(''); goToStep(4); }} />}
       {step === 3 && <ModelStep key={`step-3-${stepKey}`} preview={preview} gsapFetch={gsapFetch} providerName={providerName} providerUrl={providerUrl} providerApi={providerApi} apiKey={apiKey} goToStep={goToStep} showError={showError} />}
-      {step === 4 && <ThemeStep key={`step-4-${stepKey}`} goToStep={goToStep} />}
+      {step === 4 && <ThemeStep key={`step-4-${stepKey}`} backStep={setupMode === 'files-only' ? 2 : 3} goToStep={goToStep} />}
       {step === 5 && <WorkspaceStep key={`step-5-${stepKey}`} preview={preview} gsapFetch={gsapFetch} goToStep={goToStep} showError={showError} />}
-      {step === 6 && <TutorialStep key={`step-6-${stepKey}`} preview={preview} showError={showError} />}
+      {step === 6 && <TutorialStep key={`step-6-${stepKey}`} setupMode={setupMode} preview={preview} showError={showError} />}
 
       {toastMsg && (
         <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: 'var(--coral, #c66)', color: '#fff', padding: '8px 20px', borderRadius: 8, fontSize: '0.82rem', zIndex: 999 }}>

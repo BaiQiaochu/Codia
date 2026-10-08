@@ -160,7 +160,7 @@ export class PreferencesManager {
     if (prefs.setupComplete === true) return prefs;
     try {
       const stored = this._readFromDiskStrict();
-      if (stored?.setupComplete === true) return { ...prefs, setupComplete: true };
+      if (stored?.setupComplete === true) return { ...prefs, setupComplete: true, setupMode: stored.setupMode || 'ai' };
     } catch {}
     return prefs;
   }
@@ -542,14 +542,18 @@ export class PreferencesManager {
     return this._cache.setupComplete === true;
   }
 
-  markSetupComplete() {
+  getSetupMode() { return this._cache.setupMode === 'files-only' ? 'files-only' : 'ai'; }
+
+  markSetupComplete(mode = 'ai') {
+    if (!['ai', 'files-only'].includes(mode)) throw new Error('invalid setup mode');
     const prefs = this._mutableCopy();
     prefs.setupComplete = true;
+    prefs.setupMode = mode;
     this.savePreferences(prefs);
     if (!this.getSetupComplete()) {
       throw new Error("setupComplete read-back verification failed");
     }
-    return { setupComplete: true };
+    return { setupComplete: true, setupMode: this.getSetupMode() };
   }
 
   setLocale(locale) {

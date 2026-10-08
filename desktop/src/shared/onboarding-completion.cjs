@@ -14,14 +14,17 @@ async function parseSetupCompleteError(res) {
 async function submitOnboardingCompleteIntent({
   serverPort,
   serverToken,
+  mode,
   fetchImpl = globalThis.fetch,
 } = {}) {
   if (!serverToken) throw new Error("Server is not ready");
   if (typeof fetchImpl !== "function") throw new Error("fetch is not available");
 
+  if (mode !== undefined && mode !== 'ai' && mode !== 'files-only') throw new Error('Invalid setup mode');
   const res = await fetchImpl(buildSetupCompleteUrl(serverPort), {
     method: "POST",
-    headers: { Authorization: `Bearer ${serverToken}` },
+    headers: { Authorization: `Bearer ${serverToken}`, ...(mode ? { 'Content-Type': 'application/json' } : {}) },
+    ...(mode ? { body: JSON.stringify({ mode }) } : {}),
   });
   if (!res.ok) {
     throw new Error(await parseSetupCompleteError(res));
@@ -37,10 +40,11 @@ async function submitOnboardingCompleteIntent({
 async function completeOnboardingAndOpenMain({
   serverPort,
   serverToken,
+  mode,
   createMainWindow,
   fetchImpl = globalThis.fetch,
 } = {}) {
-  await submitOnboardingCompleteIntent({ serverPort, serverToken, fetchImpl });
+  await submitOnboardingCompleteIntent({ serverPort, serverToken, mode, fetchImpl });
   if (typeof createMainWindow !== "function") {
     throw new Error("createMainWindow is not available");
   }

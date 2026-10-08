@@ -7,6 +7,7 @@ import React, {
   useState,
   type TouchEvent,
 } from 'react';
+import './CloudWorkspace.css';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { RegionalErrorBoundary } from '../components/RegionalErrorBoundary';
 import { MainContent } from '../MainContent';
@@ -44,6 +45,7 @@ type LoginMode = 'device' | 'password';
 const MOBILE_REQUIRED_SCOPES = Object.freeze(['chat', 'resources.read', 'files.read', 'files.write']);
 const MOBILE_UPDATE_AVAILABLE_EVENT = 'gsap-mobile-update-available';
 const MOBILE_APPLY_UPDATE_EVENT = 'gsap-mobile-apply-update';
+const LazyCloudWorkspace = lazy(() => import('./CloudWorkspace').then((module) => ({ default: module.CloudWorkspace })));
 const LazyPreviewPanel = lazy(() => import('../components/PreviewPanel').then((module) => ({ default: module.PreviewPanel })));
 const LazyMediaViewer = lazy(() => import('../components/shared/MediaViewer/MediaViewer').then((module) => ({ default: module.MediaViewer })));
 
@@ -140,6 +142,19 @@ function MobileDesktopShell({ principal }: { principal: MobilePrincipal | null }
   const currentTab = useStore(s => s.currentTab);
   const isNarrow = useNarrowMobileViewport();
   const edgeGestureRef = useRef<MobileEdgeGesture | null>(null);
+  const [cloudActive, setCloudActive] = useState(() => window.location.hash === '#cloud-workspace');
+
+  useEffect(() => {
+    const updateView = () => setCloudActive(window.location.hash === '#cloud-workspace');
+    window.addEventListener('hashchange', updateView);
+    return () => window.removeEventListener('hashchange', updateView);
+  }, []);
+
+  const toggleCloudView = () => {
+    closeMobileDrawers();
+    closePreview();
+    window.location.hash = cloudActive ? 'chat' : 'cloud-workspace';
+  };
   const [mobileUpdateAvailable, setMobileUpdateAvailable] = useState(() => window.__gsapMobileUpdateAvailable === true);
 
   useEffect(() => {
@@ -184,11 +199,11 @@ function MobileDesktopShell({ principal }: { principal: MobilePrincipal | null }
       clientX: touch.clientX,
       clientY: touch.clientY,
       viewportWidth: window.innerWidth || document.documentElement.clientWidth,
-      isNarrow,
+      isNarrow: isNarrow && !cloudActive,
       drawerOpen: sidebarOpen || jianOpen,
       targetIgnored: shouldIgnoreMobileEdgeGestureTarget(event.target),
     });
-  }, [isNarrow, jianOpen, sidebarOpen]);
+  }, [cloudActive, isNarrow, jianOpen, sidebarOpen]);
 
   const handleTouchMove = useCallback((event: TouchEvent<HTMLElement>) => {
     const gesture = edgeGestureRef.current;
@@ -209,11 +224,11 @@ function MobileDesktopShell({ principal }: { principal: MobilePrincipal | null }
     if (edge) openMobileDrawerFromGesture(edge);
   }, [openMobileDrawerFromGesture]);
 
-  const showDrawerScrim = (sidebarOpen || jianOpen) && isNarrow;
+  const showDrawerScrim = !cloudActive && (sidebarOpen || jianOpen) && isNarrow;
 
   return (
     <main
-      className="mobile-desktop-root"
+      className={`mobile-desktop-root${cloudActive ? ' mobile-cloud-mode' : ''}`}
       data-mobile-principal={principal?.credentialKind || 'session'}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -222,6 +237,8 @@ function MobileDesktopShell({ principal }: { principal: MobilePrincipal | null }
     >
       <SidebarLayout />
       <MobileTitlebar
+        cloudActive={cloudActive}
+        onToggleCloud={toggleCloudView}
         sidebarOpen={sidebarOpen}
         jianOpen={jianOpen}
         previewOpen={previewOpen}
@@ -236,6 +253,11 @@ function MobileDesktopShell({ principal }: { principal: MobilePrincipal | null }
         onTogglePreview={toggleMobilePreviewPanel}
       />
       <div className="app mobile-desktop-app">
+        {cloudActive ? (
+          <Suspense fallback={<div role="status" style={{ padding: '80px 24px' }}>正在打开云工作空间…</div>}>
+            <LazyCloudWorkspace principal={principal} />
+          </Suspense>
+        ) : <>
         <MobileChatSidebar
           open={sidebarOpen && currentTab === 'chat'}
           onNewSession={() => void createNewSession()}
@@ -250,6 +272,7 @@ function MobileDesktopShell({ principal }: { principal: MobilePrincipal | null }
           </Suspense>
         )}
         {(!isNarrow || jianOpen) && <MobileWorkspaceRail open={jianOpen} />}
+        </>}
       </div>
       {showDrawerScrim && (
         <button
@@ -278,6 +301,8 @@ function MobileDesktopShell({ principal }: { principal: MobilePrincipal | null }
 }
 
 function MobileTitlebar({
+  cloudActive,
+  onToggleCloud,
   sidebarOpen,
   jianOpen,
   previewOpen,
@@ -285,6 +310,8 @@ function MobileTitlebar({
   onToggleJian,
   onTogglePreview,
 }: {
+  cloudActive: boolean;
+  onToggleCloud: () => void;
   sidebarOpen: boolean;
   jianOpen: boolean;
   previewOpen: boolean;
@@ -299,6 +326,7 @@ function MobileTitlebar({
           type="button"
           className={`tb-toggle tb-toggle-left${sidebarOpen ? ' active' : ''}`}
           id="tbToggleLeft"
+          disabled={cloudActive}
           title={tr('sidebar.toggle', '会话列表')}
           aria-label={tr('sidebar.toggle', '会话列表')}
           aria-pressed={sidebarOpen}
@@ -313,12 +341,14 @@ function MobileTitlebar({
       </div>
       <div className="tb-center-group">
         <span className="mobile-titlebar-label">Codia</span>
+        <button type="button" className="mobile-cloud-switch" data-testid="open-cloud-workspace" aria-pressed={cloudActive} onClick={onToggleCloud}>{cloudActive ? '返回会话' : '云工作空间'}</button>
       </div>
       <div className="tb-right-group">
         <button
           type="button"
           className={`tb-toggle tb-toggle-preview${previewOpen ? ' active' : ''}`}
           id="tbTogglePreview"
+          disabled={cloudActive}
           title={tr('preview.toggle', '预览')}
           aria-label={tr('preview.toggle', '预览')}
           aria-pressed={previewOpen}
@@ -336,6 +366,7 @@ function MobileTitlebar({
           type="button"
           className={`tb-toggle tb-toggle-right${jianOpen ? ' active' : ''}`}
           id="tbToggleRight"
+          disabled={cloudActive}
           title={tr('sidebar.jian', '工作区')}
           aria-label={tr('sidebar.jian', '工作区')}
           aria-pressed={jianOpen}

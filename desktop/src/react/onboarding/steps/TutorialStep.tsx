@@ -2,7 +2,7 @@
  * TutorialStep.tsx — Step 5: Feature tutorial + finish
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { StepContainer, Multiline } from '../onboarding-ui';
 import { getDesktopApi } from '../../utils/desktop-api';
 
@@ -57,40 +57,48 @@ function TutorialCard({ icon, title, desc }: {
 // ── Main component ──
 
 interface TutorialStepProps {
+  setupMode?: 'ai' | 'files-only';
   preview: boolean;
   showError: (msg: string) => void;
 }
 
-export function TutorialStep({ preview, showError }: TutorialStepProps) {
+export function TutorialStep({ preview, showError, setupMode = 'ai' }: TutorialStepProps) {
   const [finishing, setFinishing] = useState(false);
+  const finishingRef = useRef(false);
 
   const onFinish = useCallback(async () => {
     if (preview) { window.close(); return; }
+    if (finishingRef.current) return;
+    finishingRef.current = true;
     setFinishing(true);
     try {
-      await getDesktopApi()?.onboardingComplete?.();
+      const complete = getDesktopApi()?.onboardingComplete;
+      if (!complete) throw new Error('Desktop setup completion is unavailable');
+      await complete({ mode: setupMode });
     } catch (err) {
       console.error('[onboarding] complete failed:', err);
       showError(t('onboarding.error'));
+      finishingRef.current = false;
       setFinishing(false);
     }
-  }, [preview, showError]);
+  }, [preview, showError, setupMode]);
 
   return (
     <StepContainer>
       <h1 className="onboarding-title">{t('onboarding.tutorial.title')}</h1>
 
+      {setupMode === 'files-only' && <p className="onboarding-subtitle" role="status">{t('onboarding.tutorial.filesOnlyHint')}</p>}
       <div className="tutorial-cards">
-        <TutorialCard
+        {setupMode === 'ai' && <TutorialCard
           icon={<MemoryIcon />}
           title={t('onboarding.tutorial.memory.title')}
           desc={t('onboarding.tutorial.memory.desc')}
-        />
-        <TutorialCard
+        />}
+        {setupMode === 'ai' && <TutorialCard
           icon={<SkillsIcon />}
           title={t('onboarding.tutorial.skills.title')}
           desc={t('onboarding.tutorial.skills.desc')}
-        />
+        />}
         <TutorialCard
           icon={<WorkspaceIcon />}
           title={t('onboarding.tutorial.workspace.title')}

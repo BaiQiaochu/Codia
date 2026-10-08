@@ -1467,7 +1467,7 @@ describe("SessionCoordinator", () => {
     expect(fs.existsSync(sessionFile)).toBe(false);
   });
 
-  it("resolves cached sessions even when callers send normalized or basename-only paths", () => {
+  it("resolves cached normalized and basename paths while respecting platform case semantics", () => {
     const coordinator = new SessionCoordinator({});
     const sessionFile = path.join(tempDir, "AgentA", "sessions", "session-123.jsonl");
     const session = { isStreaming: false };
@@ -1477,9 +1477,19 @@ describe("SessionCoordinator", () => {
       _switching: true,
     });
 
-    expect(coordinator.getSessionByPath(sessionFile.toUpperCase())).toBe(session);
+    const normalizedPath = `${path.dirname(sessionFile)}${path.sep}.${path.sep}${path.basename(sessionFile)}`;
+    expect(coordinator.getSessionByPath(sessionFile)).toBe(session);
+    expect(coordinator.getSessionByPath(normalizedPath)).toBe(session);
     expect(coordinator.getSessionByPath("session-123.jsonl")).toBe(session);
-    expect(coordinator.isSessionSwitching(sessionFile.toUpperCase())).toBe(true);
+    expect(coordinator.isSessionSwitching(sessionFile)).toBe(true);
+    expect(coordinator.isSessionSwitching(normalizedPath)).toBe(true);
+    if (process.platform === "win32") {
+      expect(coordinator.getSessionByPath(sessionFile.toUpperCase())).toBe(session);
+      expect(coordinator.isSessionSwitching(sessionFile.toUpperCase())).toBe(true);
+    } else {
+      expect(coordinator.getSessionByPath(sessionFile.toUpperCase())).toBeNull();
+      expect(coordinator.isSessionSwitching(sessionFile.toUpperCase())).toBe(false);
+    }
   });
 
   it("uses normalized session lookup for prompt/steer/abort paths", async () => {
@@ -1502,13 +1512,26 @@ describe("SessionCoordinator", () => {
       lastTouchedAt: 0,
     });
 
-    await coordinator.promptSession(sessionFile.toUpperCase(), "hello");
+    const normalizedPath = `${path.dirname(sessionFile)}${path.sep}.${path.sep}${path.basename(sessionFile)}`;
+    const lookupPath = process.platform === "win32" ? sessionFile.toUpperCase() : normalizedPath;
+    expect(coordinator.getSessionByPath(sessionFile)).toBe(session);
+    if (process.platform !== "win32") {
+      await expect(coordinator.promptSession(sessionFile.toUpperCase(), "wrong case"))
+        .rejects.toThrow("path must be in agents/{id}/sessions/");
+      expect(coordinator.steerSession(sessionFile.toUpperCase(), "wrong case")).toBe(false);
+      expect(await coordinator.abortSession(sessionFile.toUpperCase())).toBe(false);
+      expect(session.prompt).not.toHaveBeenCalled();
+      expect(session.steer).not.toHaveBeenCalled();
+      expect(session.abort).not.toHaveBeenCalled();
+    }
+
+    await coordinator.promptSession(lookupPath, "hello");
     expect(session.prompt).toHaveBeenCalledWith("hello", undefined);
 
     expect(coordinator.steerSession("session-456.jsonl", "wait")).toBe(true);
     expect(session.steer).toHaveBeenCalled();
 
-    await coordinator.abortSession(sessionFile.toUpperCase());
+    await coordinator.abortSession(lookupPath);
     expect(session.abort).toHaveBeenCalled();
   });
 

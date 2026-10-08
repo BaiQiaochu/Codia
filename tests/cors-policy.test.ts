@@ -31,6 +31,28 @@ describe("CORS policy", () => {
     expect(untrusted.headers.get("Access-Control-Allow-Origin")).toBeNull();
   });
 
+  it("allows the cloud mutation header in preflight without running authenticated routes", async () => {
+    const host = new Hono();
+    let routeCalled = false;
+    host.use("*", createCorsMiddleware());
+    host.use("*", async (c) => {
+      routeCalled = true;
+      return c.json({ error: "unauthorized" }, 401);
+    });
+    const response = await host.request("/api/cloud/workspaces/example/tasks", {
+      method: "OPTIONS",
+      headers: {
+        Origin: "http://localhost:5173",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "authorization, content-type, x-requested-with",
+      },
+    });
+    expect(response.status).toBe(204);
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe("http://localhost:5173");
+    expect(response.headers.get("Access-Control-Allow-Headers")).toContain("X-Requested-With");
+    expect(routeCalled).toBe(false);
+  });
+
   it("allows Electron file and loopback browser origins by default", () => {
     expect(isCorsOriginAllowed({ origin: "null" })).toBe(true);
     expect(isCorsOriginAllowed({ origin: "file://" })).toBe(true);

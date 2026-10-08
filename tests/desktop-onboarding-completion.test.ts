@@ -75,3 +75,25 @@ describe("desktop onboarding completion contract", () => {
     expect(createMainWindow).not.toHaveBeenCalled();
   });
 });
+
+describe('file-only onboarding completion intent', () => {
+  it('sends the explicit mode to the authenticated server and opens only after persistence', async () => {
+    const { completeOnboardingAndOpenMain } = await import('../desktop/src/shared/onboarding-completion.cjs');
+    const createMainWindow = vi.fn();
+    const fetchImpl = vi.fn(async () => ({ ok: true, json: async () => ({ ok: true, setupComplete: true, setupMode: 'files-only' }) }));
+    await completeOnboardingAndOpenMain({ serverPort: 14500, serverToken: 'token', mode: 'files-only', createMainWindow, fetchImpl });
+    expect(fetchImpl).toHaveBeenCalledWith('http://127.0.0.1:14500/api/preferences/setup-complete', {
+      method: 'POST', headers: { Authorization: 'Bearer token', 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'files-only' }),
+    });
+    expect(createMainWindow).toHaveBeenCalledOnce();
+  });
+
+  it('rejects unsupported modes without opening a window or sending a request', async () => {
+    const { completeOnboardingAndOpenMain } = await import('../desktop/src/shared/onboarding-completion.cjs');
+    const createMainWindow = vi.fn();
+    const fetchImpl = vi.fn();
+    await expect(completeOnboardingAndOpenMain({ serverPort: 14500, serverToken: 'token', mode: 'fake-auth', createMainWindow, fetchImpl })).rejects.toThrow('Invalid setup mode');
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(createMainWindow).not.toHaveBeenCalled();
+  });
+});

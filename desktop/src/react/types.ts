@@ -274,7 +274,7 @@ export type IdeActivityPanel =
   | 'extensions'
   | 'accounts'
   | 'settings';
-export type TabType = 'chat' | 'channels' | 'workflow' | `plugin:${string}`;
+export type TabType = 'chat' | 'channels' | 'workflow' | 'cloud' | `plugin:${string}`;
 export type RightWorkspaceTab = 'session-files' | 'session-library' | 'workspace' | `plugin-widget:${string}`;
 
 export interface FileVersion {
@@ -506,7 +506,7 @@ export interface PlatformApi {
   getAvatarPath?(role: string): Promise<string | null>;
   getSplashInfo?(): Promise<{ agentName?: string; locale?: string; yuan?: string } | null>;
   reloadMainWindow?(): Promise<unknown> | void;
-  onboardingComplete?(): Promise<void>;
+  onboardingComplete?(options?: { mode: 'ai' | 'files-only' }): Promise<void>;
 
   // ── Notification ──
   showNotification?(title: string, body: string, agentId?: string | null, options?: DesktopNotificationOptions): void;

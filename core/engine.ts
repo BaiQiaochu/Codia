@@ -1298,7 +1298,7 @@ export class GsapEngine {
   setLearnSkills(p) { this._prefs.setLearnSkills(p); }
   getLocale() { return this._prefs.getLocale(); }
   getSetupComplete() { return this._prefs.getSetupComplete(); }
-  markSetupComplete() { return this._prefs.markSetupComplete(); }
+  markSetupComplete(mode = 'ai') { return this._prefs.markSetupComplete(mode); }
   setLocale(l) {
     this._prefs.setLocale(l);
     loadLocale(this.getLocale());

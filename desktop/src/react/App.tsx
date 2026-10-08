@@ -3,12 +3,13 @@
   * */
 
 import { useCallback, useEffect, useRef, useState, lazy, Suspense, type TouchEvent } from 'react';
-import { ChatCircleDots, UsersThree, FlowArrow, Wrench, Flower, Plus } from '@phosphor-icons/react';
+import { ChatCircleDots, UsersThree, FlowArrow, Wrench, Flower, Plus, Cloud } from '@phosphor-icons/react';
 import codiaBrandEmblem from '../assets/codia/codia-brand-emblem.png';
 import { useStore } from './stores';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { RegionalErrorBoundary } from './components/RegionalErrorBoundary';
 
+const DesktopCloudWorkspace = lazy(() => import('./components/DesktopCloudWorkspace').then(m => ({ default: m.DesktopCloudWorkspace })));
 const SkillViewerOverlay = lazy(() => import('./components/SkillViewerOverlay').then(m => ({ default: m.SkillViewerOverlay })));
 const PreviewPanel = lazy(() => import('./components/PreviewPanel').then(m => ({ default: m.PreviewPanel })));
 const ActivityPanel = lazy(() => import('./components/ActivityPanel').then(m => ({ default: m.ActivityPanel })));
@@ -18,6 +19,7 @@ const BridgePanel = lazy(() => import('./components/BridgePanel').then(m => ({ d
 import { RightWorkspacePanel } from './components/right-workspace/RightWorkspacePanel';
 import { PluginPageView } from './components/plugin/PluginPageView';
 import { InputArea } from './components/InputArea';
+import { AIUnavailableNotice } from './components/AIUnavailableNotice';
 import { SessionList } from './components/SessionList';
 import { SidebarNoticeSlot } from './components/notices/SidebarNoticeSlot';
 import { ArchivedChatsButton } from './components/ArchivedChatsButton';
@@ -233,6 +235,7 @@ function App() {
   const currentChannel = useStore(s => s.currentChannel);
   const channels = useStore(s => s.channels);
   const userName = useStore(s => s.userName);
+  const hasAIModels = useStore(s => s.models.length > 0);
   const userAvatarUrl = useStore(s => s.userAvatarUrl);
   const activePanel = useStore(s => s.activePanel);
   const previewOpen = useStore(s => s.previewOpen);
@@ -242,7 +245,7 @@ function App() {
   const sidebarVisible = sidebarOpen && !isPluginTab;
   const currentSessionIdentityKey = currentSessionId || currentSessionPath || '__new';
   const hasPanels = !welcomeVisible && !!currentSessionPath;
-  const rightSidebarOpen = currentTab !== 'workflow' && jianOpen;
+  const rightSidebarOpen = currentTab !== 'workflow' && currentTab !== 'cloud' && jianOpen;
   const { floatCard, show: showFloat, scheduleHide: scheduleFloatHide, cancelHide: cancelFloatHide, hide: hideFloat } = useFloatCard();
   const mobileEdgeGestureRef = useRef<MobileEdgeGesture | null>(null);
   const titlebarModeClass = isChatMode ? ' titlebar-chat-mode' : ' titlebar-workspace-mode';
@@ -450,6 +453,7 @@ function App() {
                 </button>
               </div>
               <button type="button" className={`codia-nav-item${currentTab === 'channels' ? ' active' : ''}`} onClick={() => switchTab('channels')}><UsersThree weight="fill" /><span>Agent 小队</span>{channelTotalUnread > 0 && <span className="codia-nav-badge" aria-label={`${channelTotalUnread} 条未读消息`}>{channelTotalUnread > 99 ? '99+' : channelTotalUnread}</span>}</button>
+              <button type="button" className={`codia-nav-item${currentTab === 'cloud' ? ' active' : ''}`} data-testid="desktop-cloud-nav" onClick={() => { useStore.getState().setActivePanel(null); switchTab('cloud'); }}><Cloud weight="fill" /><span>云工作空间</span></button>
               <button type="button" className={`codia-nav-item${currentTab === 'workflow' ? ' active' : ''}`} onClick={() => void goWorkflow()}><FlowArrow weight="fill" /><span>工作流</span></button>
               <button type="button" className={`codia-nav-item${activePanel === 'activity' ? ' active' : ''}`} onClick={goActivity}><Wrench weight="fill" /><span>活动与插件</span></button>
             </nav>
@@ -524,7 +528,7 @@ function App() {
                 />
               )}
             >
-              <InputArea key={currentSessionIdentityKey} cardRef={inputCardRef} visible={currentTab === 'chat' && activePanel === null} />
+              {hasAIModels ? <InputArea key={currentSessionIdentityKey} cardRef={inputCardRef} visible={currentTab === 'chat' && activePanel === null} /> : <AIUnavailableNotice />}
             </RegionalErrorBoundary>
           </div>
 
@@ -554,6 +558,14 @@ function App() {
             </div>
           )}
 
+          {currentTab === 'cloud' && (
+            <RegionalErrorBoundary region="cloud-workspace" fallback={({ reset }) => <CriticalRegionFallback title="云工作空间暂时无法显示" hint="重试可重新连接，已保存的数据仍在服务端。" onRetry={reset} />}>
+              <Suspense fallback={<div className="workflow-page-loading">正在打开云工作空间…</div>}>
+                <DesktopCloudWorkspace />
+              </Suspense>
+            </RegionalErrorBoundary>
+          )}
+
           {currentTab === 'workflow' && (
             <Suspense fallback={<div className="workflow-page-loading">正在打开工作流…</div>}>
               <ChannelWorkflowWindow open pageMode standalone onClose={() => switchTab('chat')} />
@@ -576,7 +588,7 @@ function App() {
         </MainContent>
 
         <Suspense fallback={null}>
-          {previewOpen && <PreviewPanel />}
+          {previewOpen && currentTab !== 'cloud' && <PreviewPanel />}
         </Suspense>
 
         {/* Right sidebar (Jian) */}

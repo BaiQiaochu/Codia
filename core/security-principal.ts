@@ -14,6 +14,7 @@ const CREDENTIAL_KINDS = new Set([
   "loopback_token",
   "device_credential",
   "user_session",
+  "legacy_pwa_demo",
   "service_token",
   "plugin_surface_session",
   "plugin_iframe_ticket",

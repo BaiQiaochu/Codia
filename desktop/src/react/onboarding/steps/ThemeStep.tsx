@@ -9,10 +9,11 @@ import { StepContainer } from '../onboarding-ui';
 import registry from '../../../shared/theme-registry';
 
 interface ThemeStepProps {
+  backStep?: number;
   goToStep: (index: number) => void;
 }
 
-export function ThemeStep({ goToStep }: ThemeStepProps) {
+export function ThemeStep({ goToStep, backStep = 3 }: ThemeStepProps) {
   const [activeTheme, setActiveTheme] = useState(() =>
     registry.migrateSavedTheme(localStorage.getItem(registry.STORAGE_KEY) || localStorage.getItem(registry.LEGACY_STORAGE_KEY))
   );
@@ -44,7 +45,7 @@ export function ThemeStep({ goToStep }: ThemeStepProps) {
       </div>
 
       <div className="onboarding-actions">
-        <button type="button" className="ob-btn ob-btn-secondary" onClick={() => goToStep(3)}>
+        <button type="button" className="ob-btn ob-btn-secondary" onClick={() => goToStep(backStep)}>
           {t('onboarding.theme.back')}
         </button>
         <button type="button" className="ob-btn ob-btn-primary" onClick={() => goToStep(5)}>

@@ -6336,3 +6336,12 @@ body :where(input, textarea):not([data-byoung-chat-color-scope] *)::placeholder 
 [data-byoung-chat-color-scope] {
     color: var(--text) !important;
 }
+
+.ob-files-only { margin-top: 20px; border-top: 1px solid var(--border-light); padding-top: 15px; text-align: center; }
+.ob-files-only p { color: var(--text-secondary); font-size: 12px; line-height: 1.6; margin: 0 0 8px; }
+.ob-files-only .ob-test-btn { width: 100%; }
+.ai-unavailable-notice { width: min(640px, 100%); margin: 0 auto; padding: 20px; border: 1px solid var(--border-light); border-radius: 12px; background: var(--bg-card); color: var(--text); }
+.ai-unavailable-notice strong { font-size: 14px; }
+.ai-unavailable-notice p { font-size: 12px; line-height: 1.7; color: var(--text-secondary); margin: 8px 0 14px; }
+.ai-unavailable-notice > div { display: flex; flex-wrap: wrap; gap: 9px; }
+.ai-unavailable-notice button { border: 1px solid var(--border); border-radius: 6px; padding: 7px 12px; background: var(--bg); color: var(--text); cursor: pointer; }

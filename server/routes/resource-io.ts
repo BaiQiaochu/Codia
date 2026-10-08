@@ -4,11 +4,18 @@ import { Hono } from "hono";
 import { safeJson } from "../hono-helpers.ts";
 import { createApiResourceOperationContext, requestIdFromHono } from "../http/resource-operation-context.ts";
 
+import { normalizeResourceRef } from "../../lib/resource-io/resource-refs.ts";
+import { CloudWorkspaceError } from "../../lib/cloud-workspace/store.ts";
+import { ResourceIO } from "../../lib/resource-io/resource-io.ts";
+import { CloudWorkspaceProvider } from "../../lib/resource-io/providers/cloud-workspace-provider.ts";
+import { cloudActor, cloudOriginAllowed } from "./cloud-workspaces.ts";
+
 const RESOURCE_WATCH_LEASE_MS = 30 * 60 * 1000;
 const UTF8_DECODER = new TextDecoder("utf-8", { fatal: true });
 const BASE64_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
-export function createResourceIoRoute(engine) {
+export function createResourceIoRoute(engine, cloudWorkspaceService = null, cloudAllowedOrigins: readonly string[] = []) {
+  const resourceJson = (c, currentEngine, handler) => resourceJsonScoped(c, currentEngine, handler, cloudWorkspaceService, cloudAllowedOrigins);
   const route = new Hono();
   const releases = new Map();
 
@@ -225,10 +232,22 @@ function decodeBase64Content(content) {
   return Buffer.from(compact, "base64");
 }
 
-async function resourceJson(c, engine, handler) {
+async function resourceJsonScoped(c, engine, handler, cloudWorkspaceService, cloudAllowedOrigins: readonly string[]) {
   try {
-    const body = await safeJson(c);
-    const resourceIO = engine.resourceIO || engine.getResourceIO?.();
+    const body = await boundedResourceJson(c);
+    const candidates = [body?.resource || body?.ref || body?.target || body, body?.from, body?.to, body?.oldResource, body?.newResource].filter(Boolean);
+    const isCloud = candidates.some((candidate) => {
+      try { const ref = normalizeResourceRef(candidate); return ref.kind === "resource" && ref.resourceId.startsWith("cloud-file:"); }
+      catch { return false; }
+    });
+    let resourceIO = engine.resourceIO || engine.getResourceIO?.();
+    if (isCloud) {
+      if (!cloudWorkspaceService) return c.json({ error: "cloud_workspace_unavailable" }, 503);
+      const actor = cloudActor(c);
+      if (c.req.header("x-requested-with") !== "cloud-studio") return c.json({ error: "request_header_required" }, 403);
+      if (!cloudOriginAllowed(c, cloudAllowedOrigins)) return c.json({ error: "origin_mismatch" }, 403);
+      resourceIO = new ResourceIO({ providers: { resource: new CloudWorkspaceProvider(cloudWorkspaceService, actor) } });
+    }
     if (!resourceIO) return c.json({ error: "resource io unavailable" }, 500);
     const result = await handler(resourceIO, body);
     if (isConflictResult(result)) {
@@ -283,4 +302,19 @@ function resourceContentEncodingError(message) {
   err.status = 400;
   err.safeMessage = message;
   return err;
+}
+
+async function boundedResourceJson(c) {
+  const reader = c.req.raw.body?.getReader();
+  if (!reader) return {};
+  let size = 0;
+  const chunks: Uint8Array[] = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > 3 * 1024 * 1024) { await reader.cancel(); throw new CloudWorkspaceError("request_too_large", 413); }
+    chunks.push(value);
+  }
+  try { return JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { return {}; }
 }

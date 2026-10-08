@@ -94,6 +94,9 @@ export function classifyHttpRoute({ method = "GET", path = "" }: { method?: unkn
   if (routePath === "/" && verb === "GET") return PUBLIC;
   if (routePath === "/api/health") return AUTHENTICATED_ONLY;
   if (routePath === "/api/server/identity") return AUTHENTICATED_ONLY;
+  if (routePath.startsWith("/api/cloud/")) {
+    return (verb === "GET" || verb === "HEAD") ? scoped("files.read") : scoped("files.write");
+  }
   if (isClientLocalOnlyRoute(verb, routePath)) return LOCAL_ONLY;
 
   if (routePath === "/ws") return scoped("chat");

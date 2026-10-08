@@ -4216,8 +4216,9 @@ wrapIpcHandler("debug-open-onboarding-preview", () => {
 });
 
 // After onboarding completes, let the server persist setup state before opening main UI.
-wrapIpcHandler("onboarding-complete", async () => {
+wrapIpcHandler("onboarding-complete", async (_event, options) => {
   await completeOnboardingAndOpenMain({
+    mode: options?.mode,
     serverPort,
     serverToken,
     createMainWindow,

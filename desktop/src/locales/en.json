@@ -2205,7 +2205,9 @@
       "testSuccess": "Connected ⚙",
       "testFailed": "Connection failed",
       "back": "Back",
-      "next": "Next"
+      "next": "Next",
+      "filesOnly": "Use files and workspace first",
+      "filesOnlyHint": "No AI provider yet? Save files and run document checks now. Configure AI later in Settings."
     },
     "model": {
       "title": "Choose a Chat Model",
@@ -2276,7 +2278,8 @@
         "title": "Auto-Learning Instructions",
         "desc": "Place a jian.md in any folder with the long-lived directory rules you want the assistant to follow.\nIt will read them during patrol and apply them automatically."
       },
-      "finish": "Let's Go"
+      "finish": "Let's Go",
+      "filesOnlyHint": "Your file workspace is ready. AI chat, summaries, and memory processing stay unavailable until you configure a provider and model in Settings."
     },
     "error": "Something went wrong. Please try again."
   },
