@@ -112,14 +112,6 @@ function readJson(filePath) {
   }
 }
 
-function exists(filePath) {
-  try {
-    return fs.existsSync(filePath);
-  } catch {
-    return false;
-  }
-}
-
 function slash(value) {
   return String(value || "").replace(/\\/g, "/");
 }
