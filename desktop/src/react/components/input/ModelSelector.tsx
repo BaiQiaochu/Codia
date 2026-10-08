@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../../stores';
 import { sessionScopedValue } from '../../stores/session-slice';
 import { gsapFetch } from '../../hooks/use-gsap-fetch';
@@ -48,6 +48,8 @@ export type ChatVideoMode = {
   mediaType: 'video';
 };
 
+let modelSwitchVersion = 0;
+
 function modelValue(kind: 'chat' | 'video', model: { id: string; provider?: string }) {
   return `${kind}:${model.provider || ''}/${model.id}`;
 }
@@ -78,6 +80,19 @@ export function ModelSelector({
 }) {
   const { t } = useI18n();
   const [loading, setLoading] = useState(false);
+  const mountedRef = useRef(true);
+  const activeSwitchRef = useRef<number | null>(null);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (activeSwitchRef.current === modelSwitchVersion) {
+        modelSwitchVersion += 1;
+        useStore.getState().setModelSwitching(false);
+      }
+      activeSwitchRef.current = null;
+    };
+  }, []);
   const modelLocked = isPwaRuntime();
 
   const notifySwitchWhileStreaming = useCallback(() => {
@@ -129,28 +144,39 @@ export function ModelSelector({
       return;
     }
 
+    const state = useStore.getState();
+    const { currentSessionPath, currentAgentId, activeServerConnectionId, sessionModelsByPath } = state;
+    if (currentSessionPath) {
+      const sm = sessionScopedValue(state, sessionModelsByPath, currentSessionPath);
+      const cur = sm?.id && sm?.provider ? sm : chatModels.find((model) => model.isCurrent);
+      if (cur && modelId === cur.id && (provider || '') === (cur.provider || '')) {
+        onChatVideoModeChange?.(null);
+        return;
+      }
+    }
+
+    const myVersion = ++modelSwitchVersion;
+    activeSwitchRef.current = myVersion;
+    const isCurrent = () => {
+      const latest = useStore.getState();
+      return mountedRef.current
+        && myVersion === modelSwitchVersion
+        && latest.currentSessionPath === currentSessionPath
+        && latest.currentAgentId === currentAgentId
+        && latest.activeServerConnectionId === activeServerConnectionId;
+    };
+    setLoading(true);
+    useStore.getState().setModelSwitching(!!currentSessionPath);
+
     try {
-      const state = useStore.getState();
-      const { currentSessionPath, pendingNewSession, sessionModelsByPath } = state;
-      const shouldSwitchCurrentSession = !!currentSessionPath;
-
-      if (shouldSwitchCurrentSession && currentSessionPath) {
-        const sm = sessionScopedValue(state, sessionModelsByPath, currentSessionPath);
-        const useSessionModel = !!(sm?.id && sm?.provider);
-        const cur = useSessionModel ? sm : chatModels.find((model) => model.isCurrent);
-        if (cur && modelId === cur.id && (provider || '') === (cur.provider || '')) {
-          onChatVideoModeChange?.(null);
-          return;
-        }
-
-        setLoading(true);
-        useStore.getState().setModelSwitching(true);
+      if (currentSessionPath) {
         const res = await gsapFetch('/api/models/switch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionPath: currentSessionPath, modelId, provider }),
         });
         const data = await res.json();
+        if (!isCurrent()) return;
         if (!res.ok) throw new Error(data.error || 'switch failed');
 
         if (data.model) {
@@ -163,6 +189,7 @@ export function ModelSelector({
         useStore.setState({ pendingNewSession: false, welcomeVisible: false });
 
         await loadModels({ sessionPath: currentSessionPath });
+        if (!isCurrent()) return;
 
         if (data.adaptations?.length) {
           const msgs: Record<string, string> = {
@@ -173,7 +200,6 @@ export function ModelSelector({
           useStore.getState().addToast(text, 'info');
         }
       } else {
-        setLoading(true);
         onChatVideoModeChange?.(null);
         const setRes = await gsapFetch('/api/models/set', {
           method: 'POST',
@@ -181,19 +207,15 @@ export function ModelSelector({
           body: JSON.stringify({ modelId, provider }),
         });
         const setData = await setRes.json().catch(() => ({}));
+        if (!isCurrent()) return;
         if (setData.thinkingLevel) {
           useStore.getState().setThinkingLevel(setData.thinkingLevel);
           useStore.getState().setPendingNewSessionThinkingLevel(setData.thinkingLevel);
         }
-        if (currentSessionPath && !pendingNewSession) {
-          const { createNewSession } = await import('../../stores/session-actions');
-          await createNewSession();
-        }
-        const res = await gsapFetch('/api/models');
-        const data = await res.json();
-        useStore.setState({ models: data.models || [] });
+        await loadModels({ sessionPath: null });
       }
     } catch (err) {
+      if (!isCurrent()) return;
       const message = err instanceof Error ? err.message : t('model.switchFailed');
       if (message.includes('cannot switch model while streaming')) {
         notifySwitchWhileStreaming();
@@ -202,8 +224,13 @@ export function ModelSelector({
         useStore.getState().addToast(message || t('model.switchFailed'), 'error');
       }
     } finally {
-      setLoading(false);
-      useStore.getState().setModelSwitching(false);
+      if (mountedRef.current && activeSwitchRef.current === myVersion) {
+        setLoading(false);
+      }
+      if (myVersion === modelSwitchVersion) {
+        useStore.getState().setModelSwitching(false);
+      }
+      if (activeSwitchRef.current === myVersion) activeSwitchRef.current = null;
     }
   }, [chatModels, isStreaming, notifySwitchWhileStreaming, onChatVideoModeChange, t]);
 

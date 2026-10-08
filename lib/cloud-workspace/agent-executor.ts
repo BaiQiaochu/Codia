@@ -77,25 +77,34 @@ export class CodiaDocumentAgentExecutor implements CloudAgentExecutor {
     if (!moduleRoot.endsWith('node_modules')) throw new Error('executor_runtime_unavailable');
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'codia-agent-'));
     try {
+      if (signal.aborted) throw new Error('executor_aborted');
       return await new Promise<Buffer>((resolve, reject) => {
         const child = spawn(process.execPath, ['--permission', `--allow-fs-read=${moduleRoot}`, '--max-old-space-size=256', '--input-type=module', '-e', run.operation === 'agent-task' ? TASK_AGENT_PROGRAM : AGENT_PROGRAM], {
           cwd: directory, env: { LANG: 'C.UTF-8', HOME: directory }, stdio: ['pipe','pipe','pipe'], windowsHide: true,
         });
         let settled = false, size = 0;
+        let stopped: Error | undefined;
         const chunks: Buffer[] = [];
         const finish = (error?: Error) => {
           if (settled) return; settled = true; clearTimeout(timer); signal.removeEventListener('abort', abort);
-          if (error) { child.kill('SIGKILL'); reject(error); } else resolve(Buffer.concat(chunks));
+          if (error) reject(error); else resolve(Buffer.concat(chunks));
         };
-        const abort = () => finish(new Error('executor_aborted'));
-        const timer = setTimeout(() => finish(new Error('executor_timeout')), this.options.timeoutMs ?? 180000);
+        // kill() only requests termination. Keep the work directory and await
+        // close so cancellation/timeout cannot return with live child handles.
+        const stop = (error: Error) => {
+          if (settled || stopped) return;
+          stopped = error;
+          child.kill('SIGKILL');
+        };
+        const abort = () => stop(new Error('executor_aborted'));
+        const timer = setTimeout(() => stop(new Error('executor_timeout')), this.options.timeoutMs ?? 180000);
+        child.stdout.on('data', (chunk: Buffer) => { size += chunk.length; if (size > (run.operation === 'agent-task' ? 1536 * 1024 : 1024 * 1024)) stop(new Error('executor_output_limit')); else if (!stopped) chunks.push(chunk); });
+        child.stderr.resume(); // Never forward provider errors: they can contain credentials or document text.
+        child.on('error', () => { stopped ??= new Error('executor_runtime_unavailable'); });
+        child.on('close', code => finish(stopped || (code === 0 && size > 0 ? undefined : new Error('model_execution_failed'))));
+        child.stdin.on('error', () => {});
         signal.addEventListener('abort', abort, { once: true });
         if (signal.aborted) { abort(); return; }
-        child.stdout.on('data', (chunk: Buffer) => { size += chunk.length; if (size > (run.operation === 'agent-task' ? 1536 * 1024 : 1024 * 1024)) finish(new Error('executor_output_limit')); else chunks.push(chunk); });
-        child.stderr.resume(); // Never forward provider errors: they can contain credentials or document text.
-        child.on('error', () => finish(new Error('executor_runtime_unavailable')));
-        child.on('close', code => finish(code === 0 && size > 0 ? undefined : new Error('model_execution_failed')));
-        child.stdin.on('error', () => {});
         child.stdin.end(JSON.stringify({ ...configured, agentModule, aiModule, runId: run.id, attempt: run.attempt, task, operation: run.operation, name: run.name, versionId: run.input_version, text }));
       });
     } finally { await fs.rm(directory, { recursive: true, force: true }); }

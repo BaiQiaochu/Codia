@@ -498,9 +498,18 @@ export class PostgresWorkspaceStore implements CloudWorkspaceRepository {
       const now = await this.#now(tx, timestamp);
       if (!current || Number(current.lease_until) <= now) throw new CloudWorkspaceError('stale_executor', 409);
       // Persisted run scope is authoritative, never caller-supplied run fields.
-      const fileId = id(), versionId = id(), name = current.operation === 'agent-task' ? `task-session-${current.id}.json` : `检查结果-${String(current.id)}.md`;
+      const fileId = id(), versionId = id();
+      const extension = current.operation === 'agent-task' ? '.json' : '.md';
+      const stem = current.operation === 'agent-task' ? `task-session-${current.id}` : `检查结果-${String(current.id)}`;
       const scope = [current.workspace_id, current.owner_user, current.studio_id];
-      await tx.query(`INSERT INTO ${schema}.files(id,workspace_id,owner_user,studio_id,name,current_version) VALUES($1,$2,$3,$4,$5,$6)`, [fileId, ...scope, name, versionId]);
+      let inserted = false;
+      for (let attempt = 0; attempt < 4 && !inserted; attempt++) {
+        const name = `${stem}${attempt === 0 ? '' : `-${id()}`}${extension}`;
+        // Let the unique constraint arbitrate simultaneous user uploads. A
+        // conflict must not abort this transaction before allocating a new name.
+        inserted = (await tx.query(`INSERT INTO ${schema}.files(id,workspace_id,owner_user,studio_id,name,current_version) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(workspace_id,name) DO NOTHING RETURNING id`, [fileId, ...scope, name, versionId])).rowCount === 1;
+      }
+      if (!inserted) throw new CloudWorkspaceError('artifact_name_conflict', 409);
       await tx.query(`INSERT INTO ${schema}.versions(id,file_id,workspace_id,owner_user,studio_id,object_key,size,sha256,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8,'ready')`, [versionId, fileId, ...scope, output.objectKey, output.size, output.sha256]);
       await tx.query(`INSERT INTO ${schema}.artifacts(id,run_id,file_id,version_id,workspace_id,owner_user,studio_id) VALUES($1,$2,$3,$4,$5,$6,$7)`, [id(), current.id, fileId, versionId, ...scope]);
       const completed = await tx.query(`UPDATE ${schema}.runs SET status='succeeded',artifact_file_id=$1,lease_until=NULL,updated_at=clock_timestamp() WHERE id=$2 AND status='running' AND attempt=$3 AND lease_until>COALESCE($4::bigint,floor(extract(epoch from clock_timestamp())*1000)::bigint) RETURNING id`, [fileId, current.id, run.attempt, timestamp ?? null]);

@@ -3,6 +3,7 @@
  */
 
 import { useStore } from '../stores';
+import { sessionScopedValue } from '../stores/session-slice';
 import { gsapFetch } from '../hooks/use-gsap-fetch';
 import type { Model } from '../types';
 import { errorBus } from '../../../../shared/error-bus.ts';
@@ -22,6 +23,8 @@ export function showError(message: string): void {
 
 // Model loading.
 
+let modelLoadVersion = 0;
+
 function healStaleSessionState(): void {
   const { currentSessionPath, pendingNewSession, welcomeVisible } = useStore.getState();
   if (!currentSessionPath || !pendingNewSession) return;
@@ -33,16 +36,28 @@ function healStaleSessionState(): void {
 }
 
 export async function loadModels(options: { sessionPath?: string | null } = {}): Promise<void> {
+  const myVersion = ++modelLoadVersion;
   try {
     healStaleSessionState();
-    const requestSessionPath = options.sessionPath ?? useStore.getState().currentSessionPath ?? null;
+    const owner = useStore.getState();
+    const requestAgentId = owner.currentAgentId;
+    const requestConnectionId = owner.activeServerConnectionId;
+    const requestSessionPath = options.sessionPath !== undefined
+      ? options.sessionPath
+      : owner.currentSessionPath ?? null;
     const res = await gsapFetch('/api/models');
     const data = await res.json() as { activeModel?: Pick<Model, 'id' | 'provider'> | null; models?: Model[] };
     const state = useStore.getState();
-    if (requestSessionPath && state.currentSessionPath !== requestSessionPath) return;
+    // A welcome draft is also an owner: its null path must not match a saved chat.
+    if (myVersion !== modelLoadVersion
+      || (state.currentSessionPath ?? null) !== requestSessionPath
+      || state.currentAgentId !== requestAgentId
+      || state.activeServerConnectionId !== requestConnectionId) return;
 
     const { pendingNewSession } = state;
-    const sessionModel = requestSessionPath ? state.sessionModelsByPath?.[requestSessionPath] : null;
+    const sessionModel = requestSessionPath
+      ? sessionScopedValue(state, state.sessionModelsByPath, requestSessionPath)
+      : null;
     const activeModel = data.activeModel;
     let models: Model[] = data.models || [];
 

@@ -27,6 +27,7 @@ import type { Session } from '../types';
 //
 
 let _switchVersion = 0;
+let _sessionsLoadVersion = 0;
 let _switchAbortController: AbortController | null = null;
 
 function invalidateSessionSwitches(): void {
@@ -378,12 +379,19 @@ export async function loadMoreMessages(forPath?: string): Promise<void> {
 // ══════════════════════════════════════════════════════
 
 export async function loadSessions(): Promise<void> {
+  const myVersion = ++_sessionsLoadVersion;
+  const owner = useStore.getState();
+  const requestAgentId = owner.currentAgentId;
+  const requestConnectionId = owner.activeServerConnectionId;
   try {
     const res = await gsapFetch('/api/sessions');
     const data = await res.json();
+    const s = useStore.getState();
+    if (myVersion !== _sessionsLoadVersion
+      || s.currentAgentId !== requestAgentId
+      || s.activeServerConnectionId !== requestConnectionId) return;
     const sessions = normalizeSessionListRows(data);
 
-    const s = useStore.getState();
     if (typeof useStore.getState().setSessions === 'function') {
       useStore.getState().setSessions(sessions);
     } else {

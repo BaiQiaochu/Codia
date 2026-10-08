@@ -483,8 +483,16 @@ export class CloudWorkspaceStore {
       const current = this.db.prepare("SELECT * FROM cw_runs WHERE id=? AND status='running' AND attempt=? AND lease_until>?").get(run.id, run.attempt, timestamp);
       if (!current) throw new CloudWorkspaceError('stale_executor', 409);
       const fileId = id(), versionId = id(), created = now();
-      const name = current.operation === 'agent-task' ? `task-session-${current.id}.json` : `检查结果-${current.id.slice(0, 8)}.md`;
-      this.db.prepare('INSERT INTO cw_files VALUES (?,?,?,?,?)').run(fileId, current.workspace_id, name, versionId, created);
+      const extension = current.operation === 'agent-task' ? '.json' : '.md';
+      const stem = current.operation === 'agent-task' ? `task-session-${current.id}` : `检查结果-${current.id.slice(0, 8)}`;
+      let inserted = false;
+      for (let attempt = 0; attempt < 4 && !inserted; attempt++) {
+        const name = `${stem}${attempt === 0 ? '' : `-${id()}`}${extension}`;
+        // A queued run does not reserve its result name. Never overwrite a
+        // legitimate upload that acquired it while execution was in flight.
+        inserted = this.db.prepare('INSERT INTO cw_files VALUES (?,?,?,?,?) ON CONFLICT(workspace_id,name) DO NOTHING').run(fileId, current.workspace_id, name, versionId, created).changes === 1;
+      }
+      if (!inserted) throw new CloudWorkspaceError('artifact_name_conflict', 409);
       this.db.prepare('INSERT INTO cw_versions VALUES (?,?,?,?,?,?,?)').run(versionId, fileId, output.objectKey, output.size, output.sha256, 'ready', created);
       this.db.prepare('INSERT INTO cw_artifacts VALUES (?,?,?,?)').run(id(), run.id, fileId, versionId);
       this.db.prepare("UPDATE cw_runs SET status='succeeded',artifact_file_id=?,lease_until=NULL,updated_at=? WHERE id=?").run(fileId, created, run.id);
