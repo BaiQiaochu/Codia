@@ -3,11 +3,11 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { saveModel, testConnection } from '../onboarding-actions';
+import { saveModel, saveProvider, saveOnboardingIdentity, saveLocale, saveUserName, saveWorkspace, testConnection } from '../onboarding-actions';
 import type { gsapFetch } from '../onboarding-actions';
 
 function jsonResponse(body: unknown): Response {
-  return { json: async () => body } as Response;
+  return new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } });
 }
 
 describe('onboarding actions', () => {
@@ -92,5 +92,36 @@ describe('onboarding actions', () => {
       method: 'PUT',
     }));
     expect(gsapFetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+
+describe('onboarding persistence failures', () => {
+  const saveActions: Array<[string, (fetch: gsapFetch) => Promise<void>]> = [
+    ['provider', fetch => saveProvider({ gsapFetch: fetch, providerName: 'local', providerUrl: 'http://localhost:11434/v1', apiKey: '', providerApi: 'openai-completions' })],
+    ['identity', fetch => saveOnboardingIdentity({ gsapFetch: fetch, userName: 'User', agentName: 'Assistant', memoryEnabled: false })],
+    ['locale', fetch => saveLocale(fetch, 'en')],
+    ['user name', fetch => saveUserName(fetch, 'User')],
+    ['workspace', fetch => saveWorkspace({ gsapFetch: fetch, workspacePath: '/workspace/chosen', defaultPath: '/workspace/default' })],
+    ['model', fetch => saveModel({ gsapFetch: fetch, providerName: 'local', selectedModel: 'chat', addedModels: ['chat'], selectedUtility: 'chat', selectedUtilityLarge: '' })],
+  ];
+
+  it.each(saveActions)('rejects an unsuccessful %s save', async (_name, save) => {
+    const fetch = vi.fn<gsapFetch>(async () => new Response(JSON.stringify({ error: 'config persistence failed' }), { status: 500 }));
+    await expect(save(fetch)).rejects.toThrow('config persistence failed');
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not report model setup complete when the utility preference write fails', async () => {
+    const fetch = vi.fn<gsapFetch>()
+      .mockResolvedValueOnce(jsonResponse({ ok: true }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: 'utility model rejected' }), { status: 400 }));
+    await expect(saveModel({ gsapFetch: fetch, providerName: 'local', selectedModel: 'chat', addedModels: ['chat'], selectedUtility: 'chat', selectedUtilityLarge: '' })).rejects.toThrow('utility model rejected');
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('reports the HTTP failure when the server cannot return JSON', async () => {
+    const fetch = vi.fn<gsapFetch>(async () => new Response('Service unavailable', { status: 503 }));
+    await expect(saveLocale(fetch, 'en')).rejects.toThrow('503');
   });
 });
