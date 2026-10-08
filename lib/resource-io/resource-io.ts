@@ -7,7 +7,6 @@ import type {
   ResourceDeletedEvent,
   ResourceDescriptor,
   ResourceEdit,
-  ResourceEventSource,
   ResourceListResult,
   ResourceMutationResult,
   ResourceMoveResult,
