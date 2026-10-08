@@ -106,6 +106,13 @@ export function buildProbeUrl(baseUrl, api, opts = {}) {
   return { url: buildOpenAiModelsUrl(base), method: "GET" };
 }
 
+function providerProbeResult(status: number) {
+  // Compatibility probes may receive 400/404 for a placeholder model or an
+  // unsupported catalog. Server failures cannot establish a working connection.
+  if (status >= 500) return { ok: false, status, error: `Provider unavailable (HTTP ${status})` };
+  return { ok: status !== 401 && status !== 403, status };
+}
+
 export async function probeProvider({ baseUrl, api, apiKey, modelId, provider, headers: customHeaders }) {
   if (api === "openai-codex-responses") {
     return { ok: true, status: 0, skipped: t("error.codexNoHealthCheck") };
@@ -135,8 +142,7 @@ export async function probeProvider({ baseUrl, api, apiKey, modelId, provider, h
     if (apiKey && (res.status === 401 || res.status === 403)) {
       res = await doProbe("bearer");
     }
-    const authOk = res.status !== 401 && res.status !== 403;
-    return { ok: authOk, status: res.status };
+    return providerProbeResult(res.status);
   }
 
   const headers = buildProviderRequestHeaders({
@@ -148,6 +154,5 @@ export async function probeProvider({ baseUrl, api, apiKey, modelId, provider, h
     allowMissingApiKey: true,
   });
   const res = await fetch(probe.url, { headers, signal: AbortSignal.timeout(10000) });
-  const authOk = res.status !== 401 && res.status !== 403;
-  return { ok: authOk, status: res.status };
+  return providerProbeResult(res.status);
 }
