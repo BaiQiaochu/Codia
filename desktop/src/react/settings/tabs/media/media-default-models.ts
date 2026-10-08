@@ -44,14 +44,6 @@ function actualModelsForType(provider: MediaProviderSummary, type: MediaType): M
   return provider.imageModels || [];
 }
 
-function availableModelsForType(provider: MediaProviderSummary, type: MediaType): MediaModelSummary[] {
-  if (type === 'audio') return provider.availableAudioModels || [];
-  if (type === 'music') return provider.availableMusicModels || [];
-  if (type === 'video') return provider.availableVideoModels || [];
-  if (provider.availableImageModels) return provider.availableImageModels;
-  return (provider.availableModels || []).filter(model => model?.type === 'image');
-}
-
 export function collectActualDefaultModels(
   providers: Record<string, MediaProviderSummary>,
   type: MediaType,
