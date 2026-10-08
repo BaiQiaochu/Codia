@@ -20,7 +20,7 @@ interface LocaleStepProps {
 
 export function LocaleStep({
   preview, gsapFetch, avatarSrc, initialLocale,
-  goToStep, showError: _showError, onLocaleChange,
+  goToStep, showError, onLocaleChange,
 }: LocaleStepProps) {
   const [locale, setLocale] = useState(initialLocale);
 
@@ -37,10 +37,12 @@ export function LocaleStep({
         await saveLocale(gsapFetch, locale);
       } catch (err) {
         console.error('[onboarding] save locale failed:', err);
+        showError(t('onboarding.error'));
+        return;
       }
     }
     goToStep(1);
-  }, [preview, gsapFetch, locale, goToStep]);
+  }, [preview, gsapFetch, locale, goToStep, showError]);
 
   return (
     <StepContainer>

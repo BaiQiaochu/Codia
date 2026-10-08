@@ -2,7 +2,7 @@
   *
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { PROVIDER_PRESETS } from '../constants';
 import type { ProviderPreset } from '../constants';
 import { getProviderPresetLabel } from '../../utils/provider-presets';
@@ -47,6 +47,8 @@ export function ProviderStep({
   const [apiKey, setApiKey] = useState('');
   const [isLocalProvider, setIsLocalProvider] = useState(false);
   const [connectionTested, setConnectionTested] = useState(false);
+  const testRequestVersion = useRef(0);
+  useEffect(() => () => { testRequestVersion.current += 1; }, []);
   const [testStatus, setTestStatus] = useState<{ type: '' | 'loading' | 'success' | 'error'; text: string }>({ type: '', text: '' });
   const [showKey, setShowKey] = useState(false);
   const [providerMenuOpen, setProviderMenuOpen] = useState(false);
@@ -72,6 +74,7 @@ export function ProviderStep({
 
   // ── Preset selection ──
   const selectPreset = useCallback((preset: ProviderPreset) => {
+    testRequestVersion.current += 1;
     setSelectedPreset(preset.value);
     setProviderMenuOpen(false);
     setProviderSearch('');
@@ -98,6 +101,7 @@ export function ProviderStep({
     setCustomUrl(url);
     setCustomApi(api);
     if (selectedPreset === '_custom') {
+      testRequestVersion.current += 1;
       setProviderName(name.trim().toLowerCase().replace(/\s+/g, '-'));
       setProviderUrl(url.trim());
       setProviderApi(api);
@@ -108,6 +112,7 @@ export function ProviderStep({
 
   // ── API key input ──
   const onApiKeyInput = useCallback((val: string) => {
+    testRequestVersion.current += 1;
     const cleaned = val.replace(/[^\x20-\x7E]/g, '').trim();
     setApiKey(cleaned);
     setConnectionTested(false);
@@ -128,9 +133,12 @@ export function ProviderStep({
       setConnectionTested(true);
       return;
     }
+    const requestVersion = ++testRequestVersion.current;
+    setConnectionTested(false);
     setTestStatus({ type: 'loading', text: t('onboarding.provider.testing') });
     try {
       const result = await testConnection({ gsapFetch, providerUrl, providerApi, apiKey });
+      if (requestVersion !== testRequestVersion.current) return;
       if (result.ok) {
         setTestStatus({ type: 'success', text: result.text });
         setConnectionTested(true);
@@ -139,6 +147,7 @@ export function ProviderStep({
         setConnectionTested(false);
       }
     } catch (err: unknown) {
+      if (requestVersion !== testRequestVersion.current) return;
       const msg = err instanceof Error ? err.message : String(err);
       setTestStatus({ type: 'error', text: msg });
       setConnectionTested(false);
