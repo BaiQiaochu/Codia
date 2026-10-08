@@ -42,7 +42,7 @@ describe('NameStep', () => {
   });
 
   it('saves identity and memory settings before moving to provider setup', async () => {
-    const gsapFetchMock = vi.fn<gsapFetch>(async () => ({ json: async () => ({ ok: true }) } as Response));
+    const gsapFetchMock = vi.fn<gsapFetch>(async () => new Response(JSON.stringify({ ok: true })));
     const goToStep = vi.fn();
 
     render(<NameStep preview={false} gsapFetch={gsapFetchMock} goToStep={goToStep} showError={vi.fn()} />);
