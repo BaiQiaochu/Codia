@@ -52,7 +52,7 @@ jobs:
           architecture: ${{ matrix.arch }}
           cache: npm
       - name: Install locked dependencies
-        run: npm ci
+        run: node scripts/ci-install-dependencies.mjs
       - name: Verify runner architecture and bundled Live2D resources
         env:
           EXPECTED_ARCH: ${{ matrix.arch }}
