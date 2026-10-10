@@ -43,7 +43,8 @@ async function connect(port) {
     if (!ticket) return;
     pending.delete(message.id);
     clearTimeout(ticket.timer);
-    message.error ? ticket.reject(new Error(message.error.message)) : ticket.resolve(message.result);
+    if (message.error) ticket.reject(new Error(message.error.message));
+    else ticket.resolve(message.result);
   });
   ws.on('close', () => {
     for (const ticket of pending.values()) { clearTimeout(ticket.timer); ticket.reject(new Error('Inspector closed')); }
@@ -82,6 +83,8 @@ async function checkMode(mode) {
   let inspector;
   const report = { mode, ok: false, checks: [] };
   let userData;
+  let executionError;
+  let cleanupError;
   try {
     // The bundled server performs a clean schema migration and plugin scan in
     // this isolated profile. On slower Windows hosts that cold start can take
@@ -167,9 +170,8 @@ async function checkMode(mode) {
     console.log(`${mode}: ${report.checks.length} native window checks passed`);
   } catch (error) {
     report.error = error.stack || String(error);
-    throw error;
+    executionError = error;
   } finally {
-    fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(report, null, 2));
     if (inspector) {
       await inspector.evaluate(`${electronAPI}.app.quit()`).catch(() => {});
       inspector.close();
@@ -183,20 +185,26 @@ async function checkMode(mode) {
     await mock.close();
     const resolved = path.resolve(home);
     if (path.dirname(resolved) !== path.resolve(os.tmpdir()) || !path.basename(resolved).startsWith('codia-e2e-home-')) {
-      throw new Error('Refusing to clean an unexpected smoke home');
+      cleanupError = new Error('Refusing to clean an unexpected smoke home');
+    } else {
+      removeE2EHome(resolved);
     }
-    removeE2EHome(resolved);
     if (process.platform === 'win32' && userData) {
       const { getUserDataAppName } = createRequire(import.meta.url)('../desktop/src/shared/single-instance-lock.cjs');
       const expected = path.resolve(process.env.APPDATA, getUserDataAppName(home, path.join(os.homedir(), '.codia')));
       if (path.resolve(userData) !== expected || !path.basename(expected).startsWith('Codia-e2e-home-')) {
-        throw new Error('Refusing to clean an unexpected Electron userData directory');
+        cleanupError ??= new Error('Refusing to clean an unexpected Electron userData directory');
+      } else {
+        fs.rmSync(expected, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
       }
-      fs.rmSync(expected, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
     }
     fs.closeSync(stdout);
     fs.closeSync(stderr);
+    if (cleanupError) report.cleanupError = cleanupError.message;
+    fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(report, null, 2));
   }
+  if (executionError) throw executionError;
+  if (cleanupError) throw cleanupError;
 }
 
 const requestedModes = String(process.env.CODIA_E2E_DESKTOP_MODES || '')

@@ -14,10 +14,6 @@ export default defineConfig({
       "@codia/plugin-protocol": path.resolve(cwd, "packages/plugin-protocol/src/index.ts"),
       "@codia/plugin-runtime": path.resolve(cwd, "packages/plugin-runtime/src/index.ts"),
       "@codia/plugin-sdk": path.resolve(cwd, "packages/plugin-sdk/src/index.ts"),
-      "@codia/plugin-components": path.resolve(cwd, "packages/plugin-components/src/index.ts"),
-      "@codia/plugin-protocol": path.resolve(cwd, "packages/plugin-protocol/src/index.ts"),
-      "@codia/plugin-runtime": path.resolve(cwd, "packages/plugin-runtime/src/index.ts"),
-      "@codia/plugin-sdk": path.resolve(cwd, "packages/plugin-sdk/src/index.ts"),
     },
   },
   server: {

@@ -9,7 +9,12 @@ export default [
       'node_modules/',
       'codia-*/**',
       'vendor/**',
+      'third_party/**',
+      '.local-tools/**',
+      '.tmp/**',
       'artifacts/**',
+      'desktop/src/assets/codia/live2d/core/**',
+      'desktop/src/assets/codia/live2d/framework.js',
       '**/dist/**',
       'dist-server/**',
       'dist-server-bundle/**',
@@ -55,6 +60,7 @@ export default [
       'server/**/*.{js,ts}',
       'shared/**/*.{js,ts}',
       'tests/**/*.{js,ts,tsx}',
+      'design/codia/live2d/**/*.mjs',
       'vite.config.*.js',
     ],
     languageOptions: {
@@ -82,12 +88,23 @@ export default [
       'scripts/pwa-theme-behavior-audit.mjs',
       'scripts/theme-screenshot-audit.mjs',
       'scripts/ui-overlap-regression.mjs',
+      'scripts/codia-layout-visual-qa.mjs',
+      'scripts/e2e-quick-action-review.mjs',
     ],
     languageOptions: {
       globals: {
         ...globals.node,
         ...globals.browser,
         fetch: 'readonly',
+      },
+    },
+  },
+
+  {
+    files: ['design/codia/live2d/preview/review.js'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
       },
     },
   },

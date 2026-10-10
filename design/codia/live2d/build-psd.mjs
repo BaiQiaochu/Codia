@@ -219,7 +219,11 @@ async function main() {
         size: { width: targetWidth, height: targetHeight },
         hidden: layer.hidden, visiblePixelCount: nonzeroAlpha, rgbaSha256: hash(imageData.data) });
       if (args['layers-dir']) {
-        const safeName = fullName.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').replace(/[. ]+$/, '');
+        const safeName = [...fullName]
+          .map(character => character.charCodeAt(0) <= 0x1f ? '_' : character)
+          .join('')
+          .replace(/[<>:"/\\|?*]/g, '_')
+          .replace(/[. ]+$/, '');
         pngExports.push({ filename: path.join(args['layers-dir'], `${String(layerCount).padStart(3, '0')}${safeName}.png`), imageData });
       }
     }
