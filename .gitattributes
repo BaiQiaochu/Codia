@@ -1,5 +1,13 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+.gitattributes text eol=lf
+
+# JavaScript tooling relies on LF after shebang lines on every platform.
+*.js text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
 
 # Cubism manifests verify exact upstream/runtime bytes, including line endings.
 third_party/live2d/cubism-web-5-r.5/** -text
