@@ -17,7 +17,38 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      release_tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+      - name: Prepare draft release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_TAG="v$(node -p "require('./package.json').version")"
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          if gh release view "$RELEASE_TAG" --json isDraft > release-state.json 2>/dev/null; then
+            node -e "if (!JSON.parse(require('fs').readFileSync('release-state.json')).isDraft) throw new Error('Release already published; use a new version')"
+            gh release edit "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Codia $RELEASE_TAG"
+          else
+            gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Codia $RELEASE_TAG" --notes "Cloud packages are being assembled." --draft
+          fi
+
   build:
+    needs: prepare-release
+    permissions:
+      contents: write
     timeout-minutes: 90
     strategy:
       fail-fast: false
@@ -75,32 +106,24 @@ jobs:
       - name: Separate macOS update metadata by architecture
         if: runner.os == 'macOS'
         run: mv dist/latest-mac.yml dist/latest-mac-${{ matrix.arch }}.yml
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Codia-${{ matrix.name }}
-          if-no-files-found: error
-          retention-days: 30
-          compression-level: 0
-          path: |
-            dist/*.exe
-            dist/*.blockmap
-            dist/*.dmg
-            dist/*.zip
-            dist/*.AppImage
-            dist/*.deb
-            dist/latest*.yml
-      - name: Save packaging diagnostics
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: packaging-diagnostics-${{ matrix.name }}
-          if-no-files-found: ignore
-          path: |
-            dist/builder-debug.yml
-            dist/builder-effective-config.yaml
+      - name: Upload package files to draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.prepare-release.outputs.release_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(dist/*.exe dist/*.blockmap dist/*.dmg dist/*.zip dist/*.AppImage dist/*.deb dist/latest*.yml)
+          if (( ${#files[@]} == 0 )); then
+            echo "No release files were produced for ${{ matrix.name }}" >&2
+            exit 1
+          fi
+          gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
 
   release-metadata:
-    needs: build
+    needs: [prepare-release, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -109,36 +132,37 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24.15.0
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: Codia-*
-          path: artifacts
-          merge-multiple: true
+      - name: Download packages from draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.prepare-release.outputs.release_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          gh release download "$RELEASE_TAG" --dir artifacts
       - name: Merge macOS metadata and verify release files
         run: |
           node scripts/merge-latest-mac-yml.cjs artifacts latest-mac.yml
           mv latest-mac.yml artifacts/latest-mac.yml
           node scripts/prepare-cloud-release.mjs artifacts
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Codia-release-manifest
-          path: |
-            artifacts/latest-mac.yml
-            artifacts/SHA256SUMS.txt
-            artifacts/RELEASE-NOTES.md
+      - name: Upload release metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.prepare-release.outputs.release_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release upload "$RELEASE_TAG" artifacts/latest-mac.yml artifacts/SHA256SUMS.txt artifacts/RELEASE-NOTES.md --clobber
       - name: Publish complete GitHub Release
         if: inputs.publish_release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.prepare-release.outputs.release_tag }}
         shell: bash
         run: |
           set -euo pipefail
-          RELEASE_TAG="v$(node -p "require('./package.json').version")"
-          if gh release view "$RELEASE_TAG" --json isDraft > release-state.json 2>/dev/null; then
-            node -e "if (!JSON.parse(require('fs').readFileSync('release-state.json')).isDraft) throw new Error('Release already published; use a new version')"
-          else
-            gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Codia $RELEASE_TAG" --notes-file artifacts/RELEASE-NOTES.md --draft
-          fi
-          gh release upload "$RELEASE_TAG" artifacts/* --clobber
           gh release edit "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Codia $RELEASE_TAG" --notes-file artifacts/RELEASE-NOTES.md --draft=false --latest
