@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 const ROOT = path.resolve(__dirname, '../..');
 
 function read(relPath: string) {
-  return fs.readFileSync(path.join(ROOT, relPath), 'utf8');
+  return fs.readFileSync(path.join(ROOT, relPath), 'utf8').replace(/\r\n/g, '\n');
 }
 
 function cssBlock(css: string, selector: string): string {

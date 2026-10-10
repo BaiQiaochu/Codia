@@ -26,10 +26,14 @@ import { writeDiary } from "../lib/diary/diary-writer.js";
 
 let tempRoot;
 
+function localTimestamp(hour, minute) {
+  return new Date(2026, 4, 7, hour, minute, 0).toISOString();
+}
+
 function writeSession(sessionDir, sessionId, messages) {
   const filePath = path.join(sessionDir, `${sessionId}.jsonl`);
   const lines = [
-    { type: "session", id: sessionId, timestamp: "2026-05-07T03:59:00+08:00", cwd: tempRoot },
+    { type: "session", id: sessionId, timestamp: localTimestamp(3, 59), cwd: tempRoot },
     ...messages.map((message, index) => ({
       type: "message",
       id: `${sessionId}-${index}`,
@@ -83,7 +87,7 @@ describe("writeDiary hybrid material collection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-05-07T12:00:00+08:00"));
+    vi.setSystemTime(new Date(2026, 4, 7, 12, 0, 0));
     tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-diary-test-"));
     callText.mockResolvedValue("# 2026-05-07 Test diary\n\nToday had enough material.");
   });
@@ -96,8 +100,8 @@ describe("writeDiary hybrid material collection", () => {
   it("backfills a missing memory-enabled session summary before writing the diary", async () => {
     const opts = createBaseOptions();
     writeSession(opts.sessionDir, "enabled-session", [
-      { role: "user", content: "Please make the diary use session material.", timestamp: "2026-05-07T04:10:00+08:00" },
-      { role: "assistant", content: "I will backfill the missing summary.", timestamp: "2026-05-07T04:12:00+08:00" },
+      { role: "user", content: "Please make the diary use session material.", timestamp: localTimestamp(4, 10) },
+      { role: "assistant", content: "I will backfill the missing summary.", timestamp: localTimestamp(4, 12) },
     ]);
     opts.summaryManager.rollingSummary.mockResolvedValue("Backfilled summary for the diary.");
 
@@ -119,8 +123,8 @@ describe("writeDiary hybrid material collection", () => {
     const opts = createBaseOptions();
     fs.mkdirSync(path.join(tempRoot, "diary"), { recursive: true });
     writeSession(opts.sessionDir, "workspace-output-session", [
-      { role: "user", content: "Put new diary files under the unified workspace output folder.", timestamp: "2026-05-07T04:10:00+08:00" },
-      { role: "assistant", content: "I will write new diary files into Codia-Works.", timestamp: "2026-05-07T04:12:00+08:00" },
+      { role: "user", content: "Put new diary files under the unified workspace output folder.", timestamp: localTimestamp(4, 10) },
+      { role: "assistant", content: "I will write new diary files into Codia-Works.", timestamp: localTimestamp(4, 12) },
     ]);
     opts.summaryManager.rollingSummary.mockResolvedValue("Workspace output belongs under Codia-Works.");
 
@@ -139,8 +143,8 @@ describe("writeDiary hybrid material collection", () => {
       generateTemporarySummary: vi.fn().mockResolvedValue("Temporary memory-off material for this diary only."),
     });
     writeSession(opts.sessionDir, "memory-off-session", [
-      { role: "user", content: "This session has memory disabled.", timestamp: "2026-05-07T05:10:00+08:00" },
-      { role: "assistant", content: "Then only use temporary compaction.", timestamp: "2026-05-07T05:12:00+08:00" },
+      { role: "user", content: "This session has memory disabled.", timestamp: localTimestamp(5, 10) },
+      { role: "assistant", content: "Then only use temporary compaction.", timestamp: localTimestamp(5, 12) },
     ]);
 
     const result = await writeDiary(opts);
@@ -158,8 +162,8 @@ describe("writeDiary hybrid material collection", () => {
   it("keeps an existing stale summary and adds a temporary supplement", async () => {
     const staleSummary = {
       session_id: "stale-session",
-      created_at: "2026-05-07T04:11:00+08:00",
-      updated_at: "2026-05-07T04:11:00+08:00",
+      created_at: localTimestamp(4, 11),
+      updated_at: localTimestamp(4, 11),
       messageCount: 1,
       summary: "Existing early summary.",
     };
@@ -172,9 +176,9 @@ describe("writeDiary hybrid material collection", () => {
       generateTemporarySummary: vi.fn().mockResolvedValue("Temporary supplement for newer messages."),
     });
     writeSession(opts.sessionDir, "stale-session", [
-      { role: "user", content: "Initial diary topic.", timestamp: "2026-05-07T04:10:00+08:00" },
-      { role: "assistant", content: "I captured the first part.", timestamp: "2026-05-07T04:11:00+08:00" },
-      { role: "user", content: "A later detail needs a temporary supplement.", timestamp: "2026-05-07T04:20:00+08:00" },
+      { role: "user", content: "Initial diary topic.", timestamp: localTimestamp(4, 10) },
+      { role: "assistant", content: "I captured the first part.", timestamp: localTimestamp(4, 11) },
+      { role: "user", content: "A later detail needs a temporary supplement.", timestamp: localTimestamp(4, 20) },
     ]);
 
     const result = await writeDiary(opts);

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-const source = () => fs.readFileSync(path.resolve("desktop", "main.cjs"), "utf8");
+const source = () => fs.readFileSync(path.resolve("desktop", "main.cjs"), "utf8").replace(/\r\n/g, "\n");
 
 describe("desktop browser control WebSocket wiring", () => {
   it("connects Electron browser commands after server start and restart", () => {

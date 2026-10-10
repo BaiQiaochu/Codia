@@ -124,9 +124,9 @@ describe('PlanModeButton', () => {
     );
     expect(css).toContain('.plan-mode-option-copy');
     expect(css).toContain('.plan-mode-option-check');
-    expect(screen.getByText('Always ask before external changes')).toBeInTheDocument();
-    expect(screen.getByText('Ask only for risky operations')).toBeInTheDocument();
-    expect(screen.getByText('Access the internet and any file')).toBeInTheDocument();
+    expect(screen.getByText('Always ask before external changes')).not.toBeNull();
+    expect(screen.getByText('Ask only for risky operations')).not.toBeNull();
+    expect(screen.getByText('Access the internet and any file')).not.toBeNull();
   });
 
   it('keeps ask neutral, trigger modes colored, and menu mode colors text-only', () => {

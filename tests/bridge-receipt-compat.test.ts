@@ -6,7 +6,7 @@ const root = process.cwd();
 
 describe('bridge receipt compatibility source', () => {
   it('keeps the legacy waiting receipt shim as a clean wrapper', () => {
-    const source = fs.readFileSync(path.join(root, 'lib/bridge/bridge-manager.ts'), 'utf8');
+    const source = fs.readFileSync(path.join(root, 'lib/bridge/bridge-manager.ts'), 'utf8').replace(/\r\n/g, '\n');
     const start = source.indexOf('_sendLlmWaitingReceipt(');
     const end = source.indexOf('\n\n  /**', start);
     const method = start >= 0 && end > start ? source.slice(start, end) : '';
