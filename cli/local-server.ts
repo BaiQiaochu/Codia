@@ -4,14 +4,14 @@ import os from "os";
 import path from "path";
 
 export function resolveCliGrapHome(env = process.env) {
-  return resolveHomePath(env.GSAP_HOME || env.HANA_HOME || path.join(os.homedir(), ".gsap"));
+  return resolveHomePath(env.CODIA_HOME || env.CODIA_HOME || path.join(os.homedir(), ".codia"));
 }
 
-export const resolveCliHanaHome = resolveCliGrapHome;
+export const resolveCliCodiaHome = resolveCliGrapHome;
 
 function resolveHomePath(value) {
   const raw = String(value || "").trim();
-  if (!raw) return path.join(os.homedir(), ".gsap");
+  if (!raw) return path.join(os.homedir(), ".codia");
   if (raw === "~") return os.homedir();
   if (raw.startsWith(`~${path.sep}`) || raw.startsWith("~/")) {
     return path.resolve(path.join(os.homedir(), raw.slice(2)));
@@ -20,7 +20,7 @@ function resolveHomePath(value) {
 }
 
 function resolveHomeOption(options = {}) {
-  return options.gsapHome || options.hanaHome || resolveCliGrapHome(options.env || process.env);
+  return options.codiaHome || options.codiaHome || resolveCliGrapHome(options.env || process.env);
 }
 
 export function readLocalServerInfo(options = {}) {
@@ -33,7 +33,7 @@ export function readLocalServerInfo(options = {}) {
       ok: false,
       reason: "missing_server_info",
       filePath,
-      message: `No running G-SAP server was found at ${filePath}`,
+      message: `No running Codia server was found at ${filePath}`,
     };
   }
 
@@ -63,7 +63,7 @@ export function readLocalServerInfo(options = {}) {
       ok: false,
       reason: "stale_server_info",
       filePath,
-      message: `G-SAP server process ${info.pid} is no longer running`,
+      message: `Codia server process ${info.pid} is no longer running`,
     };
   }
 
@@ -77,7 +77,7 @@ export function readLocalServerInfo(options = {}) {
   };
 }
 
-export function resolveConnection({ url, token, gsapHome, hanaHome } = {}) {
+export function resolveConnection({ url, token, codiaHome } = {}) {
   if (url) {
     return {
       ok: true,
@@ -88,7 +88,7 @@ export function resolveConnection({ url, token, gsapHome, hanaHome } = {}) {
     };
   }
 
-  const local = readLocalServerInfo({ gsapHome, hanaHome });
+  const local = readLocalServerInfo({ codiaHome });
   if (!local.ok) return local;
   return {
     ...local,

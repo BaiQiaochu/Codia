@@ -17,7 +17,7 @@ function makeStore(tasks) {
 }
 
 function makeApp({ pluginId = "image-gen", tasks }) {
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-image-card-"));
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-image-card-"));
   tempDirs.push(dataDir);
   const app = new Hono();
   const ctx = {

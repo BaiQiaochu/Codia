@@ -396,8 +396,7 @@ export class UniversalMediaManager {
   declare _store: TaskStoreLike;
 
   constructor({
-    gsapHome,
-    hanakoHome,
+    codiaHome,
     providerRegistry,
     preferences,
     speechRecognition = null,
@@ -406,8 +405,7 @@ export class UniversalMediaManager {
     onProviderChanged,
     logger = log,
   }: {
-    gsapHome?: string;
-    hanakoHome?: string;
+    codiaHome?: string;
     providerRegistry?: ProviderRegistryLike;
     preferences?: PreferencesLike;
     speechRecognition?: SpeechRecognitionLike | null;
@@ -416,8 +414,8 @@ export class UniversalMediaManager {
     onProviderChanged?: () => Promise<void> | void;
     logger?: LoggerLike;
   } = {}) {
-    const home = gsapHome || hanakoHome;
-    if (!home) throw new Error("UniversalMediaManager requires gsapHome");
+    const home = codiaHome || codiaHome;
+    if (!home) throw new Error("UniversalMediaManager requires codiaHome");
     if (!providerRegistry) throw new Error("UniversalMediaManager requires providerRegistry");
     if (!preferences) throw new Error("UniversalMediaManager requires preferences");
     if (typeof registerSessionFile !== "function") throw new Error("UniversalMediaManager requires registerSessionFile");

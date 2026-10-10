@@ -13,7 +13,7 @@ export function setFullscreenHosted(element: HTMLElement, expanded: boolean): vo
   const current = hostedElements.get(element);
   if (expanded) {
     if (current || !element.parentNode || typeof document === 'undefined') return;
-    const placeholder = document.createComment('gsap-fullscreen-host');
+    const placeholder = document.createComment('codia-fullscreen-host');
     const parent = element.parentNode;
     parent.insertBefore(placeholder, element);
     document.body.appendChild(element);

@@ -3,8 +3,8 @@ import { renderGraphHtml } from "../lib/render-graph-html.ts";
 
 export default function (app) {
   app.get("/page", (c) => {
-    const gsapCss = c.req.query("gsap-css") || "";
+    const codiaCss = c.req.query("codia-css") || "";
     const token = c.req.query("token") || c.req.query("api_key") || c.req.query("apikey") || "";
-    return c.html(renderGraphHtml({ mode: "page", gsapCss, token }));
+    return c.html(renderGraphHtml({ mode: "page", codiaCss, token }));
   });
 }

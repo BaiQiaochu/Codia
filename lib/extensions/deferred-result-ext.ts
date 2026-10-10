@@ -3,7 +3,6 @@
  *
  * On session_start:
   *
-  *
  *
   * */
 
@@ -23,17 +22,17 @@ function formatResultNotification(taskId, result, meta) {
     typeof result === "string"
       ? escapeXml(result)
       : escapeXml(JSON.stringify(result, null, 2));
-  return `<gsap-background-result task-id="${escapeXml(taskId)}" status="success" type="${type}">\n${body}\n</gsap-background-result>`;
+  return `<codia-background-result task-id="${escapeXml(taskId)}" status="success" type="${type}">\n${body}\n</codia-background-result>`;
 }
 
 function formatFailNotification(taskId, reason, meta) {
   const type = escapeXml(meta?.type || "background-task");
-  return `<gsap-background-result task-id="${escapeXml(taskId)}" status="failed" type="${type}">\n${escapeXml(reason)}\n</gsap-background-result>`;
+  return `<codia-background-result task-id="${escapeXml(taskId)}" status="failed" type="${type}">\n${escapeXml(reason)}\n</codia-background-result>`;
 }
 
 function formatAbortNotification(taskId, reason, meta) {
   const type = escapeXml(meta?.type || "background-task");
-  return `<gsap-background-result task-id="${escapeXml(taskId)}" status="aborted" type="${type}">\n${escapeXml(reason || "task was stopped")}\n</gsap-background-result>`;
+  return `<codia-background-result task-id="${escapeXml(taskId)}" status="aborted" type="${type}">\n${escapeXml(reason || "task was stopped")}\n</codia-background-result>`;
 }
 
 function isExternallyDeliveredTask(task) {
@@ -54,7 +53,7 @@ function tryDeliver(pi, store, taskId, task) {
         ? formatAbortNotification(taskId, task.reason, task.meta)
         : formatFailNotification(taskId, task.reason, task.meta);
     pi.sendMessage(
-      { customType: "gsap-background-result", content, display: false },
+      { customType: "codia-background-result", content, display: false },
       { deliverAs: "steer", triggerTurn: true },
     );
     store.markDelivered(taskId);
@@ -94,8 +93,8 @@ export function createDeferredResultExtension(deferredStore) {
           try {
             pi.sendMessage(
               {
-                customType: "gsap-deferred-task-reminder",
-                content: `<gsap-deferred-tasks>${pending.length} background tasks are still running; call check_pending_tasks for details.</gsap-deferred-tasks>`,
+                customType: "codia-deferred-task-reminder",
+                content: `<codia-deferred-tasks>${pending.length} background tasks are still running; call check_pending_tasks for details.</codia-deferred-tasks>`,
                 display: false,
               },
               { deliverAs: "steer", triggerTurn: false },

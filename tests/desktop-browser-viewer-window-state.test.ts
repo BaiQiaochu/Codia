@@ -78,7 +78,7 @@ describe("desktop browser viewer window state", () => {
     expect(app).toContain("browserNavigateTo");
     expect(app).toContain("address-form");
     expect(app).toContain("address-input");
-    expect(app).not.toContain("window.hana");
+    expect(app).not.toContain("window.codia");
     expect(html).toContain(".browser-tab-strip");
     expect(html).toContain(".browser-tab-list");
     expect(html).toContain(".address-form");

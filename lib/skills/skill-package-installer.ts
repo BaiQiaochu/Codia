@@ -304,7 +304,7 @@ export async function prepareGithubSkillPackage({
   const archiveUrl = `https://codeload.github.com/${owner}/${repo}/zip/HEAD`;
   try {
     const response = await fetchImpl(archiveUrl, {
-      headers: { "User-Agent": "GSAPBot/1.0" },
+      headers: { "User-Agent": "CODIABot/1.0" },
       signal: AbortSignal.timeout(15_000),
     });
     if (!response.ok) {

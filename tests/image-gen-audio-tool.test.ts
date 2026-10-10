@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 function makeTempDataDir(config = null) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-audio-tool-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-audio-tool-"));
   tempDirs.push(dir);
   if (config) {
     fs.writeFileSync(path.join(dir, "config.json"), JSON.stringify(config), "utf-8");

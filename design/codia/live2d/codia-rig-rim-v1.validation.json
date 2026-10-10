@@ -1,7 +1,7 @@
 {
   "status": "geometry-only rim authoring candidate, no Cubism clipping or rig acceptance",
-  "input": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-repair-masks-v3.psd",
-  "output": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v1.psd",
+  "input": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-repair-masks-v3.psd",
+  "output": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-rim-v1.psd",
   "inputSha256": "19782628ab2fa7a1308c30938759af0e0a6a44cb0f35a4cc375b2aa3d12c1601",
   "outputSha256": "7ae3d643e10b0b63a780e918d0c3b6285ded3a2eb3524ecffab786cd7119bf0a",
   "sourceArtworkLayersPreserved": 17,
@@ -144,9 +144,9 @@
     ]
   },
   "previews": {
-    "neutral": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v1.neutral.png",
-    "targetSimulation": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v1.target-clipped.png",
-    "comparison": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v1.comparison.png"
+    "neutral": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-rim-v1.neutral.png",
+    "targetSimulation": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-rim-v1.target-clipped.png",
+    "comparison": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-rim-v1.comparison.png"
   },
   "modifiedCmo3": false,
   "clippingAssigned": false,

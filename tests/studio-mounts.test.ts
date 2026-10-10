@@ -4,7 +4,7 @@ import os from "os";
 import path from "path";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "hana-studio-mounts-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-studio-mounts-"));
 }
 
 describe("studio mounts", () => {

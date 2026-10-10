@@ -21,7 +21,7 @@ import { relativePathInsideBase } from "../../core/message-utils.ts";
 import { fromRoot } from "../../shared/app-root.ts";
 import { loadSkillBundleStore, recordSkillBundle } from "../skill-bundles/store.ts";
 
-const VALID_YUAN = new Set(["gsap", "butter", "ming", "kong"]);
+const VALID_YUAN = new Set(["codia", "butter", "ming", "kong"]);
 const CARD_FILE_NAMES = [
   "manifest.json",
   "manifest.yaml",
@@ -45,13 +45,13 @@ const INVALID_EXPORT_ENTRY_NAME_CHARS = new Set(["<", ">", ":", "\"", "/", "\\",
 const LEGACY_BRAND_AGENT = ["h", "anako"].join("");
 const LEGACY_BRAND_SHORT = ["h", "ana"].join("");
 const LEGACY_BRAND_PRODUCT = ["open", LEGACY_BRAND_AGENT].join("");
-const DEFAULT_EXPORT_AVATAR_FILE = "gsap-default-avatar.png";
+const DEFAULT_EXPORT_AVATAR_FILE = "codia-default-avatar.png";
 const LEGACY_BRAND_REPLACEMENTS = Object.freeze([
-  [new RegExp(`open\\s*${LEGACY_BRAND_AGENT}`, "gi"), "G-SAP"],
-  [new RegExp(LEGACY_BRAND_PRODUCT, "gi"), "G-SAP"],
-  [new RegExp(`\\bproject\\s+${LEGACY_BRAND_SHORT}\\b`, "gi"), "G-SAP"],
-  [new RegExp(`\\b${LEGACY_BRAND_AGENT}\\b`, "gi"), "G-SAP"],
-  [new RegExp(`\\b${LEGACY_BRAND_SHORT}\\b`, "gi"), "G-SAP"],
+  [new RegExp(`open\\s*${LEGACY_BRAND_AGENT}`, "gi"), "Codia"],
+  [new RegExp(LEGACY_BRAND_PRODUCT, "gi"), "Codia"],
+  [new RegExp(`\\bproject\\s+${LEGACY_BRAND_SHORT}\\b`, "gi"), "Codia"],
+  [new RegExp(`\\b${LEGACY_BRAND_AGENT}\\b`, "gi"), "Codia"],
+  [new RegExp(`\\b${LEGACY_BRAND_SHORT}\\b`, "gi"), "Codia"],
 ]);
 
 class CharacterCardError extends Error {
@@ -82,16 +82,16 @@ function assertSafeToken(token) {
 
 function normalizeYuan(value) {
   const raw = String(value || "").trim().toLowerCase();
-  if (raw === LEGACY_BRAND_AGENT) return "gsap";
-  if (raw === "hermes") return "gsap";
-  return VALID_YUAN.has(raw) ? raw : "gsap";
+  if (raw === LEGACY_BRAND_AGENT) return "codia";
+  if (raw === "hermes") return "codia";
+  return VALID_YUAN.has(raw) ? raw : "codia";
 }
 
 function isZipPath(filePath) {
   const lower = filePath.toLowerCase();
   return lower.endsWith(".zip")
-    || lower.endsWith(".gsap-package")
-    || lower.endsWith(".hana-package");
+    || lower.endsWith(".codia-package")
+    || lower.endsWith(".codia-package");
 }
 
 function isStructuredCardPath(filePath) {
@@ -173,7 +173,7 @@ function sanitizeExportBrandingValue(value) {
 }
 
 function sanitizeExportSkillName(value) {
-  return sanitizeSkillName(sanitizeExportBrandingText(value).replace(/G-SAP/gi, "gsap"));
+  return sanitizeSkillName(sanitizeExportBrandingText(value).replace(/Codia/gi, "codia"));
 }
 
 function normalizeFacts(card) {
@@ -416,7 +416,7 @@ function firstNonEmptyLine(text) {
 
 function defaultAvatarForYuan(yuan) {
   const fileName = {
-    gsap: path.join("character-cards", DEFAULT_EXPORT_AVATAR_FILE),
+    codia: path.join("character-cards", DEFAULT_EXPORT_AVATAR_FILE),
     butter: path.join("character-cards", DEFAULT_EXPORT_AVATAR_FILE),
     ming: path.join("character-cards", DEFAULT_EXPORT_AVATAR_FILE),
     kong: path.join("character-cards", DEFAULT_EXPORT_AVATAR_FILE),
@@ -426,7 +426,7 @@ function defaultAvatarForYuan(yuan) {
 
 function defaultExportAvatar() {
   const candidate = fromRoot("desktop", "src", "assets", "character-cards", DEFAULT_EXPORT_AVATAR_FILE);
-  return fs.existsSync(candidate) ? candidate : defaultAvatarForYuan("gsap");
+  return fs.existsSync(candidate) ? candidate : defaultAvatarForYuan("codia");
 }
 
 function characterCardFallbackAsset(fileName, yuan) {
@@ -437,22 +437,22 @@ function characterCardFallbackAsset(fileName, yuan) {
 function defaultCardBackForYuan(yuan) {
   const normalized = normalizeYuan(yuan);
   const fileName = {
-    gsap: "gsap-card-back.png",
+    codia: "codia-card-back.png",
     butter: "butter-card-back.png",
     ming: "ming-card-back.png",
     kong: "kong-card-back.png",
-  }[normalized] || "gsap-card-back.png";
+  }[normalized] || "codia-card-back.png";
   return characterCardFallbackAsset(fileName, normalized);
 }
 
 function defaultYuanIconForYuan(yuan) {
   const normalized = normalizeYuan(yuan);
   const fileName = {
-    gsap: "gsap-emblem.png",
+    codia: "codia-emblem.png",
     butter: "butter-emblem.png",
     ming: "ming-emblem.png",
     kong: "kong-emblem.png",
-  }[normalized] || "gsap-emblem.png";
+  }[normalized] || "codia-emblem.png";
   return characterCardFallbackAsset(fileName, normalized);
 }
 
@@ -496,21 +496,21 @@ function copyPlanAsset(plan, sourcePath, key, targetBaseName) {
 }
 
 function ensurePreviewAssets(plan) {
-  const yuan = plan.agent?.yuan || "gsap";
+  const yuan = plan.agent?.yuan || "codia";
   if (!plan.assets.avatar) {
-    copyPlanAsset(plan, defaultAvatarForYuan(yuan), "avatar", "gsap-default-avatar");
+    copyPlanAsset(plan, defaultAvatarForYuan(yuan), "avatar", "codia-default-avatar");
   }
   if (!plan.assets.cardFront && plan.assets.avatar) {
     plan.assets.cardFront = { ...plan.assets.avatar };
   }
   if (!plan.assets.cardBack) {
-    copyPlanAsset(plan, defaultCardBackForYuan(yuan), "cardBack", "gsap-default-card-back");
+    copyPlanAsset(plan, defaultCardBackForYuan(yuan), "cardBack", "codia-default-card-back");
   }
   if (!plan.assets.cardBack && plan.assets.avatar) {
     plan.assets.cardBack = { ...plan.assets.avatar };
   }
   if (!plan.assets.yuanIcon) {
-    copyPlanAsset(plan, defaultYuanIconForYuan(yuan), "yuanIcon", "gsap-default-yuan-icon");
+    copyPlanAsset(plan, defaultYuanIconForYuan(yuan), "yuanIcon", "codia-default-yuan-icon");
   }
   if (!plan.assets.yuanIcon && plan.assets.avatar) {
     plan.assets.yuanIcon = { ...plan.assets.avatar };
@@ -518,7 +518,7 @@ function ensurePreviewAssets(plan) {
 }
 
 function sanitizeExportFileBase(value) {
-  const fallback = "gsap";
+  const fallback = "codia";
   const raw = String(value || fallback).trim() || fallback;
   const ascii = raw
     .normalize("NFKD")
@@ -534,7 +534,7 @@ function sanitizeExportEntryName(value) {
     .map(char => (char.charCodeAt(0) <= 0x1f || INVALID_EXPORT_ENTRY_NAME_CHARS.has(char)) ? "-" : char)
     .join("")
     .trim();
-  return cleaned || "gsap";
+  return cleaned || "codia";
 }
 
 function uniqueSiblingPath(dir, name, currentPath) {
@@ -542,7 +542,7 @@ function uniqueSiblingPath(dir, name, currentPath) {
   if (path.resolve(candidate) === path.resolve(currentPath)) return candidate;
   if (!fs.existsSync(candidate)) return candidate;
   const ext = path.extname(name);
-  const base = path.basename(name, ext) || "gsap";
+  const base = path.basename(name, ext) || "codia";
   for (let i = 2; i < 100; i++) {
     candidate = path.join(dir, `${base}-${i}${ext}`);
     if (!fs.existsSync(candidate)) return candidate;
@@ -614,7 +614,7 @@ function skillBundlesForCard(skills) {
 }
 
 export function createCharacterCardService(engine) {
-  const stagingRoot = path.join(engine.gsapHome, ".ephemeral", "character-card-imports");
+  const stagingRoot = path.join(engine.codiaHome, ".ephemeral", "character-card-imports");
 
   function planPath(token) {
     assertSafeToken(token);
@@ -1000,7 +1000,7 @@ export function createCharacterCardService(engine) {
       throw new CharacterCardError("export target directory not found");
     }
     const token = randomToken();
-    const exportRoot = path.join(engine.gsapHome, ".ephemeral", "character-card-exports", token);
+    const exportRoot = path.join(engine.codiaHome, ".ephemeral", "character-card-exports", token);
     const packageRoot = path.join(exportRoot, "package");
     try {
       await fsp.mkdir(packageRoot, { recursive: true });

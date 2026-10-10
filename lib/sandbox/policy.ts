@@ -29,7 +29,7 @@ export const READ_WRITE_AGENT_DIRS = [
   "avatars",
 ];
 
-// G-SAP keeps learned skill bundles read-only through PathGuard.
+// Codia keeps learned skill bundles read-only through PathGuard.
 export const READ_ONLY_AGENT_DIRS = ["learned-skills"];
 export const READ_WRITE_AGENT_FILES = ["pinned.md", "channels.md"];
 export const READ_WRITE_HOME_DIRS = ["channels", "logs", "uploads", ".ephemeral"];
@@ -51,8 +51,7 @@ type DeriveSandboxPolicyOptions = {
   workspace?: string | null;
   workspaceFolders?: unknown[];
   authorizedFolders?: unknown[];
-  gsapHome?: string;
-  hanakoHome?: string;
+  codiaHome?: string;
   runtimeWritablePaths?: unknown[];
   mode: SandboxMode;
 };
@@ -76,8 +75,7 @@ export function deriveSandboxPolicy({
   workspace,
   workspaceFolders = [],
   authorizedFolders = [],
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   runtimeWritablePaths = [],
   mode,
 }: DeriveSandboxPolicyOptions) {
@@ -85,9 +83,9 @@ export function deriveSandboxPolicy({
     return { mode: "full-access" };
   }
 
-  const home = gsapHome || hanakoHome;
+  const home = codiaHome || codiaHome;
   if (!home) {
-    throw new Error("deriveSandboxPolicy requires gsapHome or hanakoHome");
+    throw new Error("deriveSandboxPolicy requires codiaHome or codiaHome");
   }
 
   const workspaceRoots = uniqueTruthy([
@@ -98,8 +96,7 @@ export function deriveSandboxPolicy({
   return {
     mode: "standard",
     access: SANDBOX_ACCESS_CONTRACT,
-    gsapHome: home,
-    hanakoHome: home,
+    codiaHome: home,
     agentDir,
     cwd,
     workspace,

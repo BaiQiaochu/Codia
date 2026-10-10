@@ -1,5 +1,5 @@
 // @ts-nocheck
-// Upstream reference test migrated and debranded; skipped until the matching G-SAP source contract is migrated.
+// Upstream reference test migrated and debranded; skipped until the matching Codia source contract is migrated.
 import fs from "fs";
 import os from "os";
 import path from "path";

@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createAfterSalesRoute } from "../server/routes/aftersales.js";
 
 describe("aftersales route skeleton", () => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-aftersales-"));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-aftersales-"));
 
   afterEach(() => {
     fs.rmSync(tempRoot, { recursive: true, force: true });
@@ -15,7 +15,7 @@ describe("aftersales route skeleton", () => {
 
   it("creates and runs a dry-run aftersales task from message", async () => {
     const app = new Hono();
-    const engine = { gsapHome: tempRoot };
+    const engine = { codiaHome: tempRoot };
     app.route("/api", createAfterSalesRoute(engine));
 
     const createRes = await app.request("/api/aftersales/tasks/from-message", {
@@ -47,7 +47,7 @@ describe("aftersales route skeleton", () => {
 
   it("can switch to live mode config without schema errors", async () => {
     const app = new Hono();
-    const engine = { gsapHome: tempRoot };
+    const engine = { codiaHome: tempRoot };
     app.route("/api", createAfterSalesRoute(engine));
 
     const res = await app.request("/api/aftersales/config", {

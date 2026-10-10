@@ -42,25 +42,25 @@ function ToastItem({ toast }: { toast: Toast }) {
   }
 
   return (
-    <div ref={ref} className={`gsap-toast ${toast.type}`}>
-      <div className="gsap-toast-body">
+    <div ref={ref} className={`codia-toast ${toast.type}`}>
+      <div className="codia-toast-body">
         <span>{toast.text}</span>
         {expanded && diagnostic && (
           <RuntimeDiagnosticDetails diagnostic={diagnostic} onCopy={copyDiagnosticPackage} />
         )}
       </div>
-      <div className="gsap-toast-actions">
+      <div className="codia-toast-actions">
         {diagnostic && (
-          <button type="button" className="gsap-toast-action" onClick={() => setExpanded((value) => !value)}>
+          <button type="button" className="codia-toast-action" onClick={() => setExpanded((value) => !value)}>
             {expanded ? tr('diagnostics.runtime.toast.hideDetails', 'Hide details') : tr('diagnostics.runtime.toast.details', 'Details')}
           </button>
         )}
         {toast.action && (
-          <button type="button" className="gsap-toast-action" onClick={() => { toast.action!.onClick(); dismiss(); }}>
+          <button type="button" className="codia-toast-action" onClick={() => { toast.action!.onClick(); dismiss(); }}>
             {toast.action.label}
           </button>
         )}
-        <button type="button" className="gsap-toast-close" onClick={dismiss}>
+        <button type="button" className="codia-toast-close" onClick={dismiss}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
           </svg>
@@ -100,14 +100,14 @@ function RuntimeDiagnosticDetails({
   ].filter(([, value]) => value);
 
   return (
-    <div className="gsap-toast-diagnostic">
+    <div className="codia-toast-diagnostic">
       {rows.map(([label, value]) => (
-        <div className="gsap-toast-diagnostic-row" key={String(label)}>
+        <div className="codia-toast-diagnostic-row" key={String(label)}>
           <span>{label}</span>
           <strong>{value}</strong>
         </div>
       ))}
-      <button type="button" className="gsap-toast-action" onClick={() => { void onCopy(); }}>
+      <button type="button" className="codia-toast-action" onClick={() => { void onCopy(); }}>
         {tr('diagnostics.runtime.copyPackage', 'Copy diagnostics')}
       </button>
     </div>

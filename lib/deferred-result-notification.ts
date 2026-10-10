@@ -37,8 +37,8 @@ function parseAttrs(rawAttrs) {
   return attrs;
 }
 
-export const DEFERRED_RESULT_MESSAGE_TYPE = "gsap-background-result";
-export const DEFERRED_RESULT_RECORD_TYPE = "gsap-deferred-result";
+export const DEFERRED_RESULT_MESSAGE_TYPE = "codia-background-result";
+export const DEFERRED_RESULT_RECORD_TYPE = "codia-deferred-result";
 
 export function isUiOnlyDeferredResultTask(task) {
   const intent = task?.meta?.deliveryIntent;
@@ -55,17 +55,17 @@ function formatResultNotification(taskId, result, meta) {
     typeof result === "string"
       ? escapeXml(result)
       : escapeXml(JSON.stringify(result, null, 2));
-  return `<gsap-background-result task-id="${escapeXml(taskId)}" status="success" type="${type}">\n${body}\n</gsap-background-result>`;
+  return `<codia-background-result task-id="${escapeXml(taskId)}" status="success" type="${type}">\n${body}\n</codia-background-result>`;
 }
 
 function formatFailNotification(taskId, reason, meta) {
   const type = escapeXml(meta?.type || "background-task");
-  return `<gsap-background-result task-id="${escapeXml(taskId)}" status="failed" type="${type}">\n${escapeXml(reason)}\n</gsap-background-result>`;
+  return `<codia-background-result task-id="${escapeXml(taskId)}" status="failed" type="${type}">\n${escapeXml(reason)}\n</codia-background-result>`;
 }
 
 function formatAbortNotification(taskId, reason, meta) {
   const type = escapeXml(meta?.type || "background-task");
-  return `<gsap-background-result task-id="${escapeXml(taskId)}" status="aborted" type="${type}">\n${escapeXml(reason || "task was stopped")}\n</gsap-background-result>`;
+  return `<codia-background-result task-id="${escapeXml(taskId)}" status="aborted" type="${type}">\n${escapeXml(reason || "task was stopped")}\n</codia-background-result>`;
 }
 
 export function formatDeferredResultNotification(taskId, task) {
@@ -128,7 +128,7 @@ export function parseDeferredResultRecord(data) {
 
 export function parseDeferredResultNotification(content) {
   const text = contentToText(content).trim();
-  const match = /^<(gsap|hana)-background-result\b([^>]*)>([\s\S]*?)<\/\1-background-result>$/.exec(text);
+  const match = /^<(codia|codia)-background-result\b([^>]*)>([\s\S]*?)<\/\1-background-result>$/.exec(text);
   if (!match) return null;
 
   const attrs = parseAttrs(match[2]);

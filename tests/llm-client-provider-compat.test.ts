@@ -296,7 +296,6 @@ describe("callText provider compat", () => {
     expect(body.messages[0].content).toEqual([
       { type: "text", text: "Describe this." },
       { type: "text", text: "[image omitted: current model does not support image input]" },
-      { type: "text", text: "[image omitted: current model does not support image input]" },
     ]);
   });
 

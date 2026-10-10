@@ -1,4 +1,4 @@
-// Upstream reference test migrated and debranded; skipped until the matching G-SAP source contract is migrated.
+// Upstream reference test migrated and debranded; skipped until the matching Codia source contract is migrated.
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -74,14 +74,14 @@ describe.skip("AgentManager.createAgent default skills.enabled", () => {
 
   function seedTemplate(enabledLiteral = '["skill-creator"]') {
     fs.mkdirSync(path.join(productDir, "yuan"), { recursive: true });
-    fs.writeFileSync(path.join(productDir, "yuan", "gsap.md"), "G-SAP yuan\n", "utf-8");
+    fs.writeFileSync(path.join(productDir, "yuan", "codia.md"), "Codia yuan\n", "utf-8");
     fs.writeFileSync(path.join(productDir, "yuan", "ming.md"), "Ming yuan\n", "utf-8");
     fs.writeFileSync(
       path.join(productDir, "config.example.yaml"),
       [
         "agent:",
-        "  name: G-SAP",
-        "  yuan: gsap",
+        "  name: Codia",
+        "  yuan: codia",
         "user:",
         '  name: ""',
         "api:",
@@ -130,7 +130,7 @@ describe.skip("AgentManager.createAgent default skills.enabled", () => {
   }
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-create-defaults-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-create-defaults-"));
     agentsDir = path.join(tempDir, "agents");
     productDir = tempDir;
     fs.mkdirSync(agentsDir);
@@ -161,7 +161,7 @@ describe.skip("AgentManager.createAgent default skills.enabled", () => {
       { name: "ext-one", source: "external" },
     ];
 
-    const { id: newId } = await mgr.createAgent({ name: "TestAgent", yuan: "gsap" });
+    const { id: newId } = await mgr.createAgent({ name: "TestAgent", yuan: "codia" });
 
     const cfgPath = path.join(agentsDir, newId, "config.yaml");
     const cfg = YAML.load(fs.readFileSync(cfgPath, "utf-8"));
@@ -171,7 +171,7 @@ describe.skip("AgentManager.createAgent default skills.enabled", () => {
   it.skip("falls back to seeded template default when snapshot is empty", async () => {
     skillsMock._allSkills = [];
 
-    const { id: newId } = await mgr.createAgent({ name: "EmptyAgent", yuan: "gsap" });
+    const { id: newId } = await mgr.createAgent({ name: "EmptyAgent", yuan: "codia" });
 
     const cfgPath = path.join(agentsDir, newId, "config.yaml");
     const cfg = YAML.load(fs.readFileSync(cfgPath, "utf-8"));
@@ -183,14 +183,14 @@ describe.skip("AgentManager.createAgent default skills.enabled", () => {
   it.skip("does not touch existing agents' config.yaml (regression for #419)", async () => {
     skillsMock._allSkills = [{ name: "pdf", source: "user" }];
 
-    const { id: firstId } = await mgr.createAgent({ name: "First", yuan: "gsap" });
+    const { id: firstId } = await mgr.createAgent({ name: "First", yuan: "codia" });
     const firstCfgPath = path.join(agentsDir, firstId, "config.yaml");
     const mtimeBefore = fs.statSync(firstCfgPath).mtimeMs;
 
     // Wait 20ms so filesystem mtime resolution can distinguish any write
     await new Promise((r) => setTimeout(r, 20));
 
-    await mgr.createAgent({ name: "Second", yuan: "gsap" });
+    await mgr.createAgent({ name: "Second", yuan: "codia" });
 
     const mtimeAfter = fs.statSync(firstCfgPath).mtimeMs;
     expect(mtimeAfter).toBe(mtimeBefore);
@@ -199,7 +199,7 @@ describe.skip("AgentManager.createAgent default skills.enabled", () => {
   it.skip("persists models.chat as composite ref for newly created agents", async () => {
     skillsMock._allSkills = [];
 
-    const { id: newId } = await mgr.createAgent({ name: "CompositeAgent", yuan: "gsap" });
+    const { id: newId } = await mgr.createAgent({ name: "CompositeAgent", yuan: "codia" });
 
     const cfgPath = path.join(agentsDir, newId, "config.yaml");
     const cfg = YAML.load(fs.readFileSync(cfgPath, "utf-8"));
@@ -209,7 +209,7 @@ describe.skip("AgentManager.createAgent default skills.enabled", () => {
   it.skip("defaults patrol to disabled with a 31 minute interval for newly created agents", async () => {
     skillsMock._allSkills = [];
 
-    const { id: newId } = await mgr.createAgent({ name: "DeskAgent", yuan: "gsap" });
+    const { id: newId } = await mgr.createAgent({ name: "DeskAgent", yuan: "codia" });
 
     const cfgPath = path.join(agentsDir, newId, "config.yaml");
     const cfg = YAML.load(fs.readFileSync(cfgPath, "utf-8"));
@@ -220,7 +220,7 @@ describe.skip("AgentManager.createAgent default skills.enabled", () => {
   it.skip("defaults the memory master switch to enabled for newly created agents", async () => {
     skillsMock._allSkills = [];
 
-    const { id: newId } = await mgr.createAgent({ name: "QuietMemoryAgent", yuan: "gsap" });
+    const { id: newId } = await mgr.createAgent({ name: "QuietMemoryAgent", yuan: "codia" });
 
     const cfgPath = path.join(agentsDir, newId, "config.yaml");
     const cfg = YAML.load(fs.readFileSync(cfgPath, "utf-8"));
@@ -246,7 +246,7 @@ describe.skip("AgentManager.createAgent default skills.enabled", () => {
         compiled: {
           facts: "用户喜欢短句。",
           today: "今天迁移角色卡。",
-          week: "本周迁移 Project G-SAP。",
+          week: "本周迁移 Project Codia。",
           longterm: "用户长期关注本地优先迁移。",
         },
         sourceId: "character-card-import-test",

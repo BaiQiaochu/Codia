@@ -3,7 +3,6 @@
   *
  *
   *
-  *
  * - 不拼 session options（compaction、thinkingLevel 等）
  * - 不做工具过滤 / plan mode 逻辑
   * */
@@ -12,6 +11,8 @@
 import { createHash } from "node:crypto";
 import {
   createAgentSession as rawCreateAgentSession,
+  createCodemodeExtension as rawCreateCodemodeExtension,
+  createToolSearchExtension as rawCreateToolSearchExtension,
   ModelRegistry,
   ModelRuntime,
   resizeImage as rawResizeImage,
@@ -31,7 +32,7 @@ import {
   createFindTool,
   createGrepTool,
 } from "./search-tools.ts";
-// This helper remains internal to the v1.0.1 package. Keep the import isolated
+// This helper remains internal to the v1.1.0 package. Keep the import isolated
 // here so a future SDK export can replace it without leaking package internals.
 import {
   prepareCompaction as rawPrepareCompaction,
@@ -49,12 +50,12 @@ export async function createAgentSession(options) {
 export function installProviderRuntimeCompat(session) {
   const agent = session?.agent;
   const streamFn = agent?.streamFn;
-  if (typeof streamFn !== "function" || streamFn.__gsapProviderRuntimeCompat) return;
+  if (typeof streamFn !== "function" || streamFn.__codiaProviderRuntimeCompat) return;
 
   const wrapped = (model, context, options = {}) => {
     return streamFn(model, context, buildProviderRuntimeOptions(session, options));
   };
-  wrapped.__gsapProviderRuntimeCompat = true;
+  wrapped.__codiaProviderRuntimeCompat = true;
   agent.streamFn = wrapped;
 }
 
@@ -92,7 +93,7 @@ function readStableSessionId(session) {
 
   const sessionFile = session?.sessionManager?.getSessionFile?.();
   if (!hasNonEmptyString(sessionFile)) return null;
-  return `gsap-cache-${createHash("sha256")
+  return `codia-cache-${createHash("sha256")
     .update(normalizePathForCacheKey(sessionFile))
     .digest("hex")
     .slice(0, 32)}`;
@@ -107,6 +108,10 @@ function normalizePathForCacheKey(value) {
 }
 
 export { PI_BUILTIN_TOOL_NAMES };
+
+/** SDK extensions that Codia enables for every coding session. */
+export const createCodemodeExtension = rawCreateCodemodeExtension;
+export const createToolSearchExtension = rawCreateToolSearchExtension;
 
 // ── 内置工具常量 ──
 
@@ -156,7 +161,6 @@ export function getPiModel(provider, modelId) {
   *
  * 契约: AgentSession.dispose() 本身-emit shutdown, 调用方必须在
   *
-  *
  * @param {object} session - AgentSession 实例
   *
  */
@@ -188,7 +192,6 @@ export function createModelRegistry(modelRuntime) {
 }
 
 /**
-  *
   *
  * session 持有的是创建时的对象引用。当 ModelRegistry.refresh() 重建模型
  * 表后，session 仍指向旧对象，导致改-base_url / api 等字段后 active

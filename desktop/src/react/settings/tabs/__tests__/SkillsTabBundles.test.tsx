@@ -10,12 +10,12 @@ import { useSettingsStore } from '../../store';
 
 type MockResponse = { json: () => Promise<unknown> };
 
-const gsapFetchMock = vi.fn(async (_url: string, _opts?: RequestInit): Promise<MockResponse> => ({
+const codiaFetchMock = vi.fn(async (_url: string, _opts?: RequestInit): Promise<MockResponse> => ({
   json: async () => ({}),
 }));
 
 vi.mock('../../api', () => ({
-  gsapFetch: (url: string, opts?: RequestInit) => gsapFetchMock(url, opts),
+  codiaFetch: (url: string, opts?: RequestInit) => codiaFetchMock(url, opts),
 }));
 
 vi.mock('../../helpers', () => ({
@@ -92,7 +92,7 @@ vi.mock('../bridge/AgentSelect', () => ({
 
 describe('SkillsTab skill bundles', () => {
   beforeEach(() => {
-    gsapFetchMock.mockImplementation(async (url: string, opts?: RequestInit): Promise<MockResponse> => {
+    codiaFetchMock.mockImplementation(async (url: string, opts?: RequestInit): Promise<MockResponse> => {
       if (url.startsWith('/api/skills?')) {
         return {
           json: async () => ({
@@ -153,7 +153,7 @@ describe('SkillsTab skill bundles', () => {
     fireEvent.click(await screen.findByTestId('skill-bundle-toggle-writing-bundle'));
 
     await waitFor(() => {
-      const putCall = gsapFetchMock.mock.calls.find(([url, opts]) => (
+      const putCall = codiaFetchMock.mock.calls.find(([url, opts]) => (
         url === '/api/agents/agent-a/skills' && opts?.method === 'PUT'
       ));
       expect(putCall).toBeTruthy();
@@ -169,7 +169,7 @@ describe('SkillsTab skill bundles', () => {
     (window as unknown as { platform?: unknown }).platform = { showInFinder };
     useSettingsStore.setState({ showToast });
 
-    gsapFetchMock.mockImplementation(async (url: string, opts?: RequestInit): Promise<MockResponse> => {
+    codiaFetchMock.mockImplementation(async (url: string, opts?: RequestInit): Promise<MockResponse> => {
       if (url === '/api/skills/external-paths') {
         return { json: async () => ({ configured: [], discovered: [] }) };
       }
@@ -223,7 +223,7 @@ describe('SkillsTab skill bundles', () => {
     fireEvent.click(await screen.findByRole('button', { name: '导出 Writing bundle' }));
 
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith(
+      expect(codiaFetchMock).toHaveBeenCalledWith(
         '/api/skills/bundles/writing-bundle/export?agentId=agent-a',
         expect.objectContaining({ method: 'POST' }),
       );
@@ -239,7 +239,7 @@ describe('SkillsTab skill bundles', () => {
     const showToast = vi.fn();
     useSettingsStore.setState({ showToast });
 
-    gsapFetchMock.mockImplementation(async (url: string, opts?: RequestInit): Promise<MockResponse> => {
+    codiaFetchMock.mockImplementation(async (url: string, opts?: RequestInit): Promise<MockResponse> => {
       if (url === '/api/skills/external-paths') {
         return { json: async () => ({ configured: [], discovered: [] }) };
       }
@@ -292,7 +292,7 @@ describe('SkillsTab skill bundles', () => {
     fireEvent.click(within(learnedHeader).getByTitle('导出技能包'));
 
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith(
+      expect(codiaFetchMock).toHaveBeenCalledWith(
         '/api/skills/bundles/learned-bundle/export?agentId=agent-a',
         expect.objectContaining({ method: 'POST' }),
       );
@@ -307,7 +307,7 @@ describe('SkillsTab skill bundles', () => {
     const showToast = vi.fn();
     useSettingsStore.setState({ showToast });
 
-    gsapFetchMock.mockImplementation(async (url: string): Promise<MockResponse> => {
+    codiaFetchMock.mockImplementation(async (url: string): Promise<MockResponse> => {
       if (url === '/api/skills/external-paths') {
         return { json: async () => ({ configured: [], discovered: [] }) };
       }
@@ -348,7 +348,7 @@ describe('SkillsTab skill bundles', () => {
     await waitFor(() => {
       expect(showToast).toHaveBeenCalledWith('请先添加至少一个已安装技能再导出。', 'error');
     });
-    expect(gsapFetchMock.mock.calls.some(([url]) => String(url).includes('/export'))).toBe(false);
+    expect(codiaFetchMock.mock.calls.some(([url]) => String(url).includes('/export'))).toBe(false);
   });
 
   it('renders the bundle disband action as a visible bundle header button', async () => {
@@ -466,7 +466,7 @@ describe('SkillsTab skill bundles', () => {
     fireEvent.drop(agentBundleDropZone, { dataTransfer });
 
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith(
+      expect(codiaFetchMock).toHaveBeenCalledWith(
         '/api/skills/bundles/writing-bundle?agentId=agent-a',
         expect.objectContaining({
           method: 'PUT',

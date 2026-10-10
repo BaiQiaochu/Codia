@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useSettingsStore, type ProviderSummary } from '../../store';
 import { useStore } from '../../../stores';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { t } from '../../helpers';
 import styles from '../../Settings.module.css';
 
@@ -21,7 +21,7 @@ export function OAuthCredentials({ providerId, summary, onRefresh }: {
 
   const login = async () => {
     try {
-      const res = await gsapFetch('/api/auth/oauth/start', {
+      const res = await codiaFetch('/api/auth/oauth/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: providerId }),
@@ -53,7 +53,7 @@ export function OAuthCredentials({ providerId, summary, onRefresh }: {
     const code = codeInput.trim();
     if (!code) return;
     try {
-      const res = await gsapFetch('/api/auth/oauth/callback', {
+      const res = await codiaFetch('/api/auth/oauth/callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: useStore.getState().oauthSessionId, code }),
@@ -75,7 +75,7 @@ export function OAuthCredentials({ providerId, summary, onRefresh }: {
       await new Promise(r => setTimeout(r, 3000));
       if (!pollingRef.current) return;
       try {
-        const res = await gsapFetch(`/api/auth/oauth/poll/${sessionId}`);
+        const res = await codiaFetch(`/api/auth/oauth/poll/${sessionId}`);
         const data = await res.json();
         if (data.status === 'done') {
           showToast(t('settings.oauth.success'), 'success');
@@ -102,7 +102,7 @@ export function OAuthCredentials({ providerId, summary, onRefresh }: {
 
   const logout = async () => {
     try {
-      await gsapFetch('/api/auth/oauth/logout', {
+      await codiaFetch('/api/auth/oauth/logout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: providerId }),

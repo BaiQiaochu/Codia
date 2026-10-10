@@ -22,7 +22,7 @@ import { Agent } from "../core/agent.ts";
 
 function bootstrapAgent(rootDir: string) {
   const agentsDir = path.join(rootDir, "agents");
-  const agentDir = path.join(agentsDir, "gsap");
+  const agentDir = path.join(agentsDir, "codia");
   const userDir = path.join(rootDir, "user");
   fs.mkdirSync(path.join(agentDir, "memory", "summaries"), { recursive: true });
   fs.mkdirSync(path.join(agentDir, "desk"), { recursive: true });
@@ -33,8 +33,8 @@ function bootstrapAgent(rootDir: string) {
     path.join(agentDir, "config.yaml"),
     [
       "agent:",
-      "  name: G-SAP",
-      "  yuan: gsap",
+      "  name: Codia",
+      "  yuan: codia",
       "user:",
       "  name: Tester",
       "locale: en",
@@ -65,10 +65,10 @@ describe("Agent interactive card tools", () => {
   });
 
   it("registers interactive card guide and renderer tools in runtime snapshots", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-card-tools-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-card-tools-"));
     roots.push(root);
     const { agentsDir, productDir, userDir } = bootstrapAgent(root);
-    const agent = new Agent({ id: "gsap", agentsDir, productDir, userDir } as any);
+    const agent = new Agent({ id: "codia", agentsDir, productDir, userDir } as any);
     agent.setCallbacks({
       getLearnSkills: () => ({}),
       isChannelsEnabled: () => false,
@@ -77,7 +77,7 @@ describe("Agent interactive card tools", () => {
     await agent.init(() => {});
     const toolNames = agent.getToolsSnapshot({ forceMemoryEnabled: false }).map((tool) => tool.name);
 
-    expect(toolNames).toContain("hana_card_guide");
+    expect(toolNames).toContain("codia_card_guide");
     expect(toolNames).toContain("show_card");
 
     await agent.dispose();

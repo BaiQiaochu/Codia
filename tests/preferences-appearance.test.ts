@@ -7,7 +7,7 @@ import { PreferencesManager } from "../core/preferences-manager.js";
 import { createPreferencesRoute } from "../server/routes/preferences.js";
 
 function makePrefs() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-prefs-appearance-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-prefs-appearance-"));
   return new PreferencesManager({
     userDir: path.join(root, "user"),
     agentsDir: path.join(root, "agents"),

@@ -77,7 +77,7 @@ export function saveConfig(configPath, partial) {
   const current = YAML.load(fs.readFileSync(configPath, "utf-8")) || {};
   const merged = deepMerge(current, partial);
   const header =
-    "# G-SAP system configuration\n" +
+    "# Codia system configuration\n" +
     "# Managed by the settings UI. Manual edits are supported.\n\n";
   const yamlStr = header + YAML.dump(merged, {
     indent: 2,

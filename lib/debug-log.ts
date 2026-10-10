@@ -60,7 +60,7 @@ class DebugLog {
   header(version: string, info: HeaderInfo = {}) {
     const lines = [
       "=".repeat(60),
-      `G-SAP v${version} started at ${new Date().toISOString()}`,
+      `Codia v${version} started at ${new Date().toISOString()}`,
       "=".repeat(60),
     ];
 

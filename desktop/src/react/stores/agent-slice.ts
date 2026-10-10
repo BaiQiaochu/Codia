@@ -29,7 +29,7 @@ export const createAgentSlice = (
   userName: 'User',
   agentAvatarUrl: null,
   userAvatarUrl: null,
-  agentYuan: 'gsap',
+  agentYuan: 'codia',
   memoryMasterEnabled: true,
   agents: [],
   currentAgentId: null,

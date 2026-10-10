@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ComputerLeaseRegistry } from "../core/computer-use/lease-registry.ts";
 import { COMPUTER_USE_ERRORS } from "../core/computer-use/errors.ts";
 
-const ctx = { sessionPath: "/tmp/a.jsonl", agentId: "hana" };
+const ctx = { sessionPath: "/tmp/a.jsonl", agentId: "codia" };
 
 describe("ComputerLeaseRegistry", () => {
   it("creates leases keyed by sessionPath and agentId", () => {
@@ -18,7 +18,7 @@ describe("ComputerLeaseRegistry", () => {
     expect(lease).toMatchObject({
       leaseId: "lease-1",
       sessionPath: "/tmp/a.jsonl",
-      agentId: "hana",
+      agentId: "codia",
       providerId: "mock",
       appId: "app.notes",
       windowId: "win-1",
@@ -35,7 +35,7 @@ describe("ComputerLeaseRegistry", () => {
 
     expect(() => registry.requireActiveLease({
       sessionPath: "/tmp/b.jsonl",
-      agentId: "hana",
+      agentId: "codia",
     }, "lease-1")).toThrow(COMPUTER_USE_ERRORS.LEASE_NOT_FOUND);
   });
 

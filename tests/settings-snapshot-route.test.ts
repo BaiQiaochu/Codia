@@ -47,7 +47,7 @@ async function writeServerIdentity(root: string) {
       ownerUserId: "user_owner",
       label: "Home Studio",
       kind: "personal",
-      storage: { provider: "legacy_gsap_home", legacyRoot: true },
+      storage: { provider: "legacy_codia_home", legacyRoot: true },
       membershipModel: "single_user_implicit",
       createdAt: "2026-05-16T00:00:00.000Z",
       updatedAt: "2026-05-16T00:00:00.000Z",
@@ -71,7 +71,7 @@ function localOwner() {
 }
 
 async function makeEngine() {
-  tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), "gsap-settings-snapshot-"));
+  tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), "codia-settings-snapshot-"));
   const agentsDir = path.join(tmpRoot, "agents");
   const userDir = path.join(tmpRoot, "user");
   const agentDir = path.join(agentsDir, "agent-a");
@@ -107,7 +107,7 @@ async function makeEngine() {
   await writeFile(path.join(userDir, "profile.md"), "user profile");
 
   return {
-    gsapHome: tmpRoot,
+    codiaHome: tmpRoot,
     agentsDir,
     userDir,
     currentAgentId: "agent-a",

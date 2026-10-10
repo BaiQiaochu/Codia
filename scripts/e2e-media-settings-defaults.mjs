@@ -278,7 +278,7 @@ function assertProviderSettingsSurfaceStyle(style) {
 }
 
 async function main() {
-  const remoteDebugPort = Number(process.env.GSAP_E2E_REMOTE_DEBUG_PORT || await getAvailablePort());
+  const remoteDebugPort = Number(process.env.CODIA_E2E_REMOTE_DEBUG_PORT || await getAvailablePort());
   const mockOpenAI = await startMockOpenAI({
     models: [
       { id: "gptimage2", owned_by: "e2e-media" },
@@ -295,10 +295,10 @@ async function main() {
   const child = spawn(launch.command, launch.args, {
     cwd: launch.cwd,
     env: desktopLaunchEnv({
-      GSAP_HOME: e2eHome,
-      GSAP_E2E: "1",
-      GSAP_E2E_REMOTE_DEBUG_PORT: String(remoteDebugPort),
-      GSAP_DESKTOP_SERVER_MODE: "dist",
+      CODIA_HOME: e2eHome,
+      CODIA_E2E: "1",
+      CODIA_E2E_REMOTE_DEBUG_PORT: String(remoteDebugPort),
+      CODIA_DESKTOP_SERVER_MODE: "dist",
     }),
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -316,13 +316,13 @@ async function main() {
     await mainCdp.send("Runtime.enable");
     await waitFor(
       async () => await mainCdp.evaluate(
-        "typeof window.__GSAP_RUNTIME_DIAGNOSTICS__ !== 'undefined' && window.__GSAP_E2E__?.appReady === true",
+        "typeof window.__CODIA_RUNTIME_DIAGNOSTICS__ !== 'undefined' && window.__CODIA_E2E__?.appReady === true",
       ),
       "renderer e2e helper",
       STARTUP_TIMEOUT_MS,
     );
 
-    await mainCdp.evaluate("window.__GSAP_E2E__.openSettings('media')");
+    await mainCdp.evaluate("window.__CODIA_E2E__.openSettings('media')");
     settingsCdp = mainCdp;
     settingsUsesMainTarget = true;
 
@@ -347,7 +347,7 @@ async function main() {
     if (!imageSet || !videoSet) throw new Error("media default selectors not available");
 
     await waitFor(async () => {
-      const config = await mainCdp.evaluate(`window.__GSAP_E2E__.callApi('/api/plugins/image-gen/providers?agentId=gsap')`);
+      const config = await mainCdp.evaluate(`window.__CODIA_E2E__.callApi('/api/plugins/image-gen/providers?agentId=codia')`);
       return config?.config?.defaultImageModel?.id === "gptimage2"
         && config?.config?.defaultImageModel?.provider === "e2e-media"
         && config?.config?.defaultVideoModel?.id === "e2e-video-model"
@@ -356,7 +356,7 @@ async function main() {
         : null;
     }, "media defaults saved through API", STARTUP_TIMEOUT_MS);
 
-    await mainCdp.evaluate("window.__GSAP_E2E__.openSettings('media')");
+    await mainCdp.evaluate("window.__CODIA_E2E__.openSettings('media')");
     await waitFor(async () => {
       const image = await readSelectValue(settingsCdp, "media-defaultImageModel");
       const video = await readSelectValue(settingsCdp, "media-defaultVideoModel");
@@ -367,13 +367,13 @@ async function main() {
     const clearVideo = await setSelectValue(settingsCdp, "media-defaultVideoModel", "");
     if (!clearImage || !clearVideo) throw new Error("media default selectors could not be cleared");
     await waitFor(async () => {
-      const config = await mainCdp.evaluate(`window.__GSAP_E2E__.callApi('/api/plugins/image-gen/providers?agentId=gsap')`);
+      const config = await mainCdp.evaluate(`window.__CODIA_E2E__.callApi('/api/plugins/image-gen/providers?agentId=codia')`);
       const image = config?.config?.defaultImageModel;
       const video = config?.config?.defaultVideoModel;
       return image == null && video == null ? config : null;
     }, "media defaults cleared through API", STARTUP_TIMEOUT_MS);
 
-    await mainCdp.evaluate("window.__GSAP_E2E__.openSettings('providers')");
+    await mainCdp.evaluate("window.__CODIA_E2E__.openSettings('providers')");
     await waitFor(
       async () => await settingsCdp.evaluate("!!document.querySelector('.pv-list-item') && !!document.querySelector('.pv-detail')"),
       "provider settings themed controls",
@@ -397,7 +397,7 @@ async function main() {
     try {
       diagnostics = {
         providersPayload: mainCdp
-          ? await mainCdp.evaluate(`window.__GSAP_E2E__?.callApi('/api/plugins/image-gen/providers?agentId=gsap')`)
+          ? await mainCdp.evaluate(`window.__CODIA_E2E__?.callApi('/api/plugins/image-gen/providers?agentId=codia')`)
           : null,
         selectOptions: settingsCdp
           ? await settingsCdp.evaluate(`(() => {
@@ -430,7 +430,7 @@ async function main() {
     mainCdp?.close();
     killProcessTree(child);
     await mockOpenAI.close().catch(() => {});
-    if (process.env.GSAP_E2E_KEEP_HOME !== "1") {
+    if (process.env.CODIA_E2E_KEEP_HOME !== "1") {
       removeE2EHome(e2eHome);
     }
   }

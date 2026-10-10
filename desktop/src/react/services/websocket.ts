@@ -2,6 +2,7 @@
  * WebSocket connection lifecycle manager.
  */
 import { handleServerMessage, applyStreamingStatus } from './ws-message-handler';
+import { configureActiveWebSocketResolver } from './websocket-state';
 import { requestStreamResume, injectHandlers, injectWebSocketGetter } from './stream-resume';
 import { useStore } from '../stores';
 import { setStatus } from '../utils/ui-helpers';
@@ -32,12 +33,12 @@ type PwaBridge = { wsUrl?: (token?: string | null) => string };
 
 function pwaBridge(): PwaBridge | undefined {
   return typeof window !== 'undefined'
-    ? (window as Window & { __GSAP_PWA__?: PwaBridge }).__GSAP_PWA__
+    ? (window as Window & { __CODIA_PWA__?: PwaBridge }).__CODIA_PWA__
     : undefined;
 }
 
 function isPwaRuntime(): boolean {
-  return typeof window !== 'undefined' && Boolean((window as Window & { __GSAP_PWA__?: unknown }).__GSAP_PWA__);
+  return typeof window !== 'undefined' && Boolean((window as Window & { __CODIA_PWA__?: unknown }).__CODIA_PWA__);
 }
 
 function buildPwaWebSocketUrl(token?: string | null): string | null {
@@ -47,7 +48,7 @@ function buildPwaWebSocketUrl(token?: string | null): string | null {
   if (typeof window !== 'undefined' && /^https?:$/.test(window.location.protocol)) {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-    return `${protocol}//${window.location.host}/__gsap_backend__/ws${tokenParam}`;
+    return `${protocol}//${window.location.host}/__codia_backend__/ws${tokenParam}`;
   }
   return null;
 }
@@ -76,6 +77,8 @@ export function resolveStreamingSessionResumeTargets(state: {
 export function getWebSocket(): WebSocket | null {
   return _ws;
 }
+
+configureActiveWebSocketResolver(getWebSocket);
 
 export function connectWebSocket(port?: string, token?: string): void {
   const storeState = useStore.getState();

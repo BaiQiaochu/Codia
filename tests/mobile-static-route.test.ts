@@ -14,7 +14,7 @@ describe("mobile static route", () => {
   });
 
   it("serves the dedicated mobile renderer under /mobile without falling back to desktop index", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-mobile-static-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-mobile-static-"));
     fs.mkdirSync(path.join(tmpDir, "assets"), { recursive: true });
     fs.mkdirSync(path.join(tmpDir, "themes"), { recursive: true });
     fs.mkdirSync(path.join(tmpDir, "locales"), { recursive: true });

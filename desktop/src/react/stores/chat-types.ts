@@ -16,7 +16,8 @@ export interface ToolCall {
   args?: Record<string, unknown>;
   done: boolean;
   success: boolean;
-  details?: { card?: import('../types').PluginCardDetails; [key: string]: unknown };
+  durationMs?: number;
+  details?: { card?: import('../types/plugin-card').PluginCardDetails; [key: string]: unknown };
 }
 
 // ── 用户附件 ──
@@ -244,7 +245,7 @@ export type RichBlock =
     childSessionPath?: string | null;
     reuseInstance?: string | null;
   }
-  | { type: 'plugin_card'; card: import('../types').PluginCardDetails };
+  | { type: 'plugin_card'; card: import('../types/plugin-card').PluginCardDetails };
 
 export type ContentBlock = TextDecorator | RichBlock;
 
@@ -303,7 +304,7 @@ export interface SessionModel {
   audioTransport?: string | null;
   audioTransportSupported?: boolean;
   compat?: ({
-    gsapVideoInput?: boolean;
+    codiaVideoInput?: boolean;
   } & Record<string, unknown>) | null;
   reasoning?: boolean;
   xhigh?: boolean;

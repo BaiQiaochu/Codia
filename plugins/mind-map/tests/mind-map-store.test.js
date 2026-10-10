@@ -9,7 +9,7 @@ import { buildXmindWorkbook } from "../lib/mind-map-operations.js";
 const tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-mm-store-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-mm-store-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -24,7 +24,7 @@ describe("MindMapStore", () => {
   it("creates, reads, edits, and saves a parseable XMind tree", async () => {
     const store = new MindMapStore(makeTempDir());
     const filePath = store.createBlank("Plan.xmind", "Plan");
-    const sidecarPath = `${filePath}.gsap-watermark.json`;
+    const sidecarPath = `${filePath}.codia-watermark.json`;
 
     let tree = store.read(filePath).root;
     expect(tree).toMatchObject({ title: "Plan", children: [] });

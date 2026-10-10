@@ -23,7 +23,7 @@ describe('buildItemsFromHistory assistant meta blocks', () => {
     expect(msg?.blocks?.[0]).toMatchObject({ type: 'thinking' });
     expect(msg?.blocks?.[1]).toMatchObject({
       type: 'mood',
-      yuan: 'gsap',
+      yuan: 'codia',
       text: 'Waiting for a concrete subject.',
     });
     expect(msg?.blocks?.[2]).toMatchObject({ type: 'text' });
@@ -47,7 +47,7 @@ describe('buildItemsFromHistory assistant meta blocks', () => {
     const msg = items[0].type === 'message' ? items[0].data : null;
     expect(msg?.blocks?.[0]).toMatchObject({
       type: 'mood',
-      yuan: 'gsap',
+      yuan: 'codia',
       text: '核心材料齐全，门禁通过。开始执行完整工作流。',
     });
     expect(msg?.blocks?.[1]).toMatchObject({ type: 'text' });
@@ -75,7 +75,7 @@ describe('buildItemsFromHistory assistant meta blocks', () => {
       '`office-documents` skill... wait, did the system prompt say only use specific tools?',
       'Actually, many environments handle `.docx` and `.xlsx` through a backend reader.',
       'Current files:',
-      '1. C:\\Users\\root\\.gsap\\uploads\\test.xlsx',
+      '1. C:\\Users\\root\\.codia\\uploads\\test.xlsx',
       'I will attempt to read both now using their verified paths.',
     ].join('\n');
 
@@ -151,7 +151,7 @@ describe('buildItemsFromHistory assistant meta blocks', () => {
           status: 'failed',
           sourceKind: 'tool',
           sourceLabel: 'image generation',
-          text: 'G-SAP did not receive a result from image generation',
+          text: 'Codia did not receive a result from image generation',
           detailMarkdown: 'API error 524',
         },
       ],

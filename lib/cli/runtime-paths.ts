@@ -40,7 +40,7 @@ export function sourceServerEntry(root) {
 }
 
 export function bundledServerBinary(root, platform = process.platform) {
-  const executable = path.join(root, platform === "win32" ? "gsap-server.exe" : "gsap-server");
+  const executable = path.join(root, platform === "win32" ? "codia-server.exe" : "codia-server");
   return fs.existsSync(executable) ? executable : process.execPath;
 }
 
@@ -50,7 +50,7 @@ export function resolveServerLaunchConfig({
   platform = process.platform,
   arch = process.arch,
 } = {}) {
-  const explicitRoot = env.GSAP_CLI_BACKEND_ROOT || env.GSAP_BACKEND_ROOT || env.GSAP_MAIN_ROOT;
+  const explicitRoot = env.CODIA_CLI_BACKEND_ROOT || env.CODIA_BACKEND_ROOT || env.CODIA_MAIN_ROOT;
   const candidates = explicitRoot
     ? [path.resolve(expandHome(explicitRoot, env))]
     : [
@@ -66,8 +66,8 @@ export function resolveServerLaunchConfig({
         command: bundledServerBinary(candidate, platform),
         args: [path.join(candidate, "bootstrap.js")],
         env: {
-          GSAP_ROOT: candidate,
-          GSAP_SERVER_ENTRY: path.join(candidate, "bundle", "index.js"),
+          CODIA_ROOT: candidate,
+          CODIA_SERVER_ENTRY: path.join(candidate, "bundle", "index.js"),
         },
       };
     }
@@ -77,10 +77,10 @@ export function resolveServerLaunchConfig({
         root: candidate,
         command: process.execPath,
         args: [sourceServerEntry(candidate)],
-        env: { GSAP_ROOT: candidate },
+        env: { CODIA_ROOT: candidate },
       };
     }
   }
 
-  throw new CliError(`找不到可启动的 G-SAP 后端: ${candidates.join(", ")}`, { code: 2 });
+  throw new CliError(`找不到可启动的 Codia 后端: ${candidates.join(", ")}`, { code: 2 });
 }

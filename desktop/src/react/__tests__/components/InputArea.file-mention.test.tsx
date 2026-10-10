@@ -130,16 +130,16 @@ vi.mock('../../hooks/use-config', () => ({
   fetchConfig: vi.fn(async () => ({})),
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: vi.fn(async () => new Response('{}', { status: 200 })),
-  gsapUrl: (path: string) => `http://127.0.0.1:3210${path}`,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: vi.fn(async () => new Response('{}', { status: 200 })),
+  codiaUrl: (path: string) => `http://127.0.0.1:3210${path}`,
 }));
 
 vi.mock('../../stores/session-actions', () => ({
   ensureSession: vi.fn(async () => ({
     sessionId: 'sess_input',
     sessionPath: '/session/input.jsonl',
-    agentId: 'hana',
+    agentId: 'codia',
   })),
   loadSessions: vi.fn(),
   upsertOptimisticSessionFirstMessage: vi.fn(),
@@ -222,7 +222,7 @@ function seedInputState() {
   useStore.setState({
     currentSessionPath: '/session/input.jsonl',
     currentSessionId: 'sess_input',
-    currentAgentId: 'hana',
+    currentAgentId: 'codia',
     pendingDraftId: 'draft-input',
     sessions: [],
     sessionLocatorsById: { sess_input: { path: '/session/input.jsonl' } },
@@ -255,7 +255,7 @@ function seedInputState() {
     serverToken: null,
     modelSwitching: false,
     welcomeVisible: false,
-    agentYuan: 'hanako',
+    agentYuan: 'codia',
     deskFiles: [{ name: 'README.md', isDir: false }],
     deskBasePath: '/workspace',
     agents: [],

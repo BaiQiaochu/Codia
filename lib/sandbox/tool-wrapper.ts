@@ -502,9 +502,7 @@ export function wrapPathTool(tool, guard, operation, cwd, opts = {}) {
   *
  *
   *
-  *
  *
-  *
   *
  * @param {object} [opts]
   * */

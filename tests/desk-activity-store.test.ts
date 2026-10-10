@@ -7,7 +7,7 @@ import { ActivityStore } from "../lib/desk/activity-store.js";
 const roots: string[] = [];
 
 function makeRoot() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-activity-store-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-activity-store-"));
   roots.push(root);
   return root;
 }

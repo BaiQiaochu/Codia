@@ -5,7 +5,7 @@ import { spawn } from "child_process";
 import { readLocalServerInfo, resolveCliGrapHome } from "./local-server.ts";
 
 function packagedRootFromEnv(env = process.env) {
-  const roots = [env.GSAP_ROOT, env.HANA_ROOT].filter(Boolean);
+  const roots = [env.CODIA_ROOT, env.CODIA_ROOT].filter(Boolean);
   return roots.find((root) => fs.existsSync(path.join(root, "bootstrap.js"))
     && fs.existsSync(path.join(root, "bundle", "index.js"))) || null;
 }
@@ -30,10 +30,10 @@ export function resolveServerSpawnSpec({
       args: [path.join(packagedRoot, "bootstrap.js"), ...extraArgs],
       env: {
         ...env,
-        GSAP_ROOT: packagedRoot,
-        GSAP_SERVER_ENTRY: path.join(packagedRoot, "bundle", "index.js"),
-        HANA_ROOT: env.HANA_ROOT || packagedRoot,
-        HANA_SERVER_ENTRY: env.HANA_SERVER_ENTRY || path.join(packagedRoot, "bundle", "index.js"),
+        CODIA_ROOT: packagedRoot,
+        CODIA_SERVER_ENTRY: path.join(packagedRoot, "bundle", "index.js"),
+        CODIA_ROOT: env.CODIA_ROOT || packagedRoot,
+        CODIA_SERVER_ENTRY: env.CODIA_SERVER_ENTRY || path.join(packagedRoot, "bundle", "index.js"),
       },
     };
   }
@@ -62,8 +62,8 @@ export async function startLocalServerAndWait({
   timeoutMs = 30000,
   intervalMs = 250,
 } = {}) {
-  const gsapHome = resolveCliGrapHome(env);
-  const existing = readLocalServerInfo({ gsapHome });
+  const codiaHome = resolveCliGrapHome(env);
+  const existing = readLocalServerInfo({ codiaHome });
   if (existing.ok) return existing;
 
   const spec = resolveServerSpawnSpec({ projectRoot, env, extraArgs: [] });
@@ -76,12 +76,12 @@ export async function startLocalServerAndWait({
 
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
-    const info = readLocalServerInfo({ gsapHome });
+    const info = readLocalServerInfo({ codiaHome });
     if (info.ok) return { ...info, started: true, serverMode: spec.mode };
     await delay(intervalMs);
   }
 
-  throw new Error(`G-SAP server did not become ready within ${Math.round(timeoutMs / 1000)}s`);
+  throw new Error(`Codia server did not become ready within ${Math.round(timeoutMs / 1000)}s`);
 }
 
 function delay(ms) {

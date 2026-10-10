@@ -16,7 +16,7 @@ function isolatedPathEnv(directory) {
       delete env[key];
     }
   }
-  delete env.GSAP_OFFICE_PYTHON;
+  delete env.CODIA_OFFICE_PYTHON;
   return env;
 }
 
@@ -80,7 +80,7 @@ describe("office-documents environment check", () => {
   });
 
   it("reports a JS-level error when Python is unavailable", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-office-env-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-office-env-"));
     roots.push(root);
 
     const result = runCheck(["--capability", "read-docx"], isolatedPathEnv(root));
@@ -94,13 +94,13 @@ describe("office-documents environment check", () => {
   });
 
   it("rejects Python versions that cannot parse the bundled scripts", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-office-env-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-office-env-"));
     roots.push(root);
     const fakePython = makeFakePython(root);
 
     const result = runCheck(["--capability", "read-docx"], {
       ...isolatedPathEnv(root),
-      GSAP_OFFICE_PYTHON: JSON.stringify([process.execPath, fakePython]),
+      CODIA_OFFICE_PYTHON: JSON.stringify([process.execPath, fakePython]),
       FAKE_PYTHON_VERSION: "3.9.18",
     });
 
@@ -112,13 +112,13 @@ describe("office-documents environment check", () => {
     expect(result.json.python.version).toBe("3.9.18");
   });
 
-  it("reports malformed GSAP_OFFICE_PYTHON as structured JSON", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-office-env-"));
+  it("reports malformed CODIA_OFFICE_PYTHON as structured JSON", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-office-env-"));
     roots.push(root);
 
     const result = runCheck(["--capability", "read-docx"], {
       ...isolatedPathEnv(root),
-      GSAP_OFFICE_PYTHON: "[",
+      CODIA_OFFICE_PYTHON: "[",
     });
 
     expect(result.status).toBe(1);
@@ -126,17 +126,17 @@ describe("office-documents environment check", () => {
       ok: false,
       code: "invalid_environment",
     });
-    expect(result.json.message).toContain("GSAP_OFFICE_PYTHON");
+    expect(result.json.message).toContain("CODIA_OFFICE_PYTHON");
   });
 
   it("passes baseline reads without requiring optional document libraries", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-office-env-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-office-env-"));
     roots.push(root);
     const fakePython = makeFakePython(root);
 
     const result = runCheck(["--capability", "read-docx"], {
       ...isolatedPathEnv(root),
-      GSAP_OFFICE_PYTHON: JSON.stringify([process.execPath, fakePython]),
+      CODIA_OFFICE_PYTHON: JSON.stringify([process.execPath, fakePython]),
     });
 
     expect(result.status).toBe(0);
@@ -148,13 +148,13 @@ describe("office-documents environment check", () => {
   });
 
   it("reports missing optional packages for package-backed operations", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-office-env-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-office-env-"));
     roots.push(root);
     const fakePython = makeFakePython(root);
 
     const result = runCheck(["--capability", "edit-xlsx"], {
       ...isolatedPathEnv(root),
-      GSAP_OFFICE_PYTHON: JSON.stringify([process.execPath, fakePython]),
+      CODIA_OFFICE_PYTHON: JSON.stringify([process.execPath, fakePython]),
       FAKE_MISSING_PACKAGES: "openpyxl",
     });
 
@@ -168,13 +168,13 @@ describe("office-documents environment check", () => {
   });
 
   it("allows PDF reads when any supported PDF reader package exists", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-office-env-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-office-env-"));
     roots.push(root);
     const fakePython = makeFakePython(root);
 
     const result = runCheck(["--capability", "read-pdf"], {
       ...isolatedPathEnv(root),
-      GSAP_OFFICE_PYTHON: JSON.stringify([process.execPath, fakePython]),
+      CODIA_OFFICE_PYTHON: JSON.stringify([process.execPath, fakePython]),
       FAKE_MISSING_PACKAGES: "markitdown,pdfplumber",
     });
 

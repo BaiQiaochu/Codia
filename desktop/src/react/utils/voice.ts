@@ -43,7 +43,7 @@ export interface SpeechRecognitionCtorLike {
   new (): SpeechRecognitionLike;
 }
 
-const STORAGE_KEY = 'gsap-voice-settings';
+const STORAGE_KEY = 'codia-voice-settings';
 
 const DEFAULT_SETTINGS: VoiceSettings = {
   recognitionLang: 'zh-CN',

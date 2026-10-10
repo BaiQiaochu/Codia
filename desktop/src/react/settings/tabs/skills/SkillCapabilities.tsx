@@ -111,10 +111,10 @@ export function SkillCapabilities({ learnCfg }: SkillCapabilitiesProps) {
       </section>
 
       {showGithubWarning && (
-        <div className="gsap-warning-overlay" onClick={() => setShowGithubWarning(false)}>
-          <div className="gsap-warning-box" onClick={(e) => e.stopPropagation()}>
-            <h3 className="gsap-warning-title">{t('settings.skills.fetchWarning.title')}</h3>
-            <div className="gsap-warning-body">
+        <div className="codia-warning-overlay" onClick={() => setShowGithubWarning(false)}>
+          <div className="codia-warning-box" onClick={(e) => e.stopPropagation()}>
+            <h3 className="codia-warning-title">{t('settings.skills.fetchWarning.title')}</h3>
+            <div className="codia-warning-body">
               <p>{t('settings.skills.fetchWarning.body1')}</p>
               <p>{t('settings.skills.fetchWarning.body2')}</p>
               <p>
@@ -123,11 +123,11 @@ export function SkillCapabilities({ learnCfg }: SkillCapabilitiesProps) {
                 3. {t('settings.skills.fetchWarning.risk3')}
               </p>
             </div>
-            <div className="gsap-warning-actions">
-              <button type="button" className="gsap-warning-cancel" onClick={() => setShowGithubWarning(false)}>
+            <div className="codia-warning-actions">
+              <button type="button" className="codia-warning-cancel" onClick={() => setShowGithubWarning(false)}>
                 {t('common.cancel')}
               </button>
-              <button type="button" className="gsap-warning-confirm" onClick={confirmGithubFetch}>
+              <button type="button" className="codia-warning-confirm" onClick={confirmGithubFetch}>
                 {t('settings.skills.fetchWarning.confirm')}
               </button>
             </div>
@@ -136,10 +136,10 @@ export function SkillCapabilities({ learnCfg }: SkillCapabilitiesProps) {
       )}
 
       {showSafetyWarning && (
-        <div className="gsap-warning-overlay" onClick={() => setShowSafetyWarning(false)}>
-          <div className="gsap-warning-box" onClick={(e) => e.stopPropagation()}>
-            <h3 className="gsap-warning-title">{t('settings.skills.safetyWarning.title')}</h3>
-            <div className="gsap-warning-body">
+        <div className="codia-warning-overlay" onClick={() => setShowSafetyWarning(false)}>
+          <div className="codia-warning-box" onClick={(e) => e.stopPropagation()}>
+            <h3 className="codia-warning-title">{t('settings.skills.safetyWarning.title')}</h3>
+            <div className="codia-warning-body">
               <p>{t('settings.skills.safetyWarning.body1')}</p>
               <p>
                 1. {t('settings.skills.safetyWarning.risk1')}<br />
@@ -148,11 +148,11 @@ export function SkillCapabilities({ learnCfg }: SkillCapabilitiesProps) {
               </p>
               <p>{t('settings.skills.safetyWarning.body2')}</p>
             </div>
-            <div className="gsap-warning-actions">
-              <button type="button" className="gsap-warning-cancel" onClick={() => setShowSafetyWarning(false)}>
+            <div className="codia-warning-actions">
+              <button type="button" className="codia-warning-cancel" onClick={() => setShowSafetyWarning(false)}>
                 {t('common.cancel')}
               </button>
-              <button type="button" className="gsap-warning-confirm" onClick={async () => {
+              <button type="button" className="codia-warning-confirm" onClick={async () => {
                 setShowSafetyWarning(false);
                 await autoSaveConfig(
                   { capabilities: { learn_skills: { safety_review: false } } },

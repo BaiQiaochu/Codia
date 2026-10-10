@@ -17,40 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  runtime-resources:
-    # Reuse checksum-pinned OCR inputs; upstream downloads are unreliable from CI.
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      # GitHub requires push access to read assets of an unpublished release.
-      contents: write
-    env:
-      PUPPETEER_SKIP_DOWNLOAD: 'true'
-      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24.15.0
-          cache: npm
-      - run: npm ci
-      - name: Download pinned OCR model inputs
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p vendor/ocr-runtime/models
-          gh release download v0.2.0 --repo "$GITHUB_REPOSITORY" --pattern 'PP-OCRv5_mobile_*.tar' --dir vendor/ocr-runtime/models
-          sha256sum --check scripts/ocr-runtime.sha256
-      - run: node scripts/prepare-ocr-runtime.mjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ocr-runtime-resources
-          path: vendor/ocr-runtime/
-          if-no-files-found: error
-          retention-days: 7
-
   build:
-    needs: runtime-resources
     timeout-minutes: 90
     strategy:
       fail-fast: false
@@ -92,11 +59,6 @@ jobs:
         run: |
           node -e "if (process.arch !== process.env.EXPECTED_ARCH) throw new Error('Wrong build architecture'); console.log(process.platform, process.arch)"
           node scripts/prepare-codia-live2d.mjs --check
-      - name: Prepare offline OCR resources
-        uses: actions/download-artifact@v4
-        with:
-          name: ocr-runtime-resources
-          path: vendor/ocr-runtime/
       - name: Prepare Windows Git and sandbox runtime
         if: runner.os == 'Windows'
         run: |

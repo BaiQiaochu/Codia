@@ -12,12 +12,12 @@ import { getApiKeySavePlan } from '../../settings/tabs/providers/api-key-save-pl
 import { ApiKeyCredentials } from '../../settings/tabs/providers/ApiKeyCredentials';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
   invalidateConfigCache: vi.fn(),
 }));
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: (...args: unknown[]) => mocks.gsapFetch(...args),
+  codiaFetch: (...args: unknown[]) => mocks.codiaFetch(...args),
 }));
 
 vi.mock('../../hooks/use-config', () => ({
@@ -60,7 +60,7 @@ function renderCredentials(overrides: Partial<React.ComponentProps<typeof ApiKey
 }
 
 function readConfigPayload() {
-  const call = mocks.gsapFetch.mock.calls.find(([url]) => url === '/api/config');
+  const call = mocks.codiaFetch.mock.calls.find(([url]) => url === '/api/config');
   expect(call).toBeTruthy();
   return JSON.parse(String((call?.[1] as RequestInit)?.body || '{}'));
 }
@@ -188,7 +188,7 @@ describe('getApiKeySavePlan', () => {
 describe('ApiKeyCredentials component persistence', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.gsapFetch.mockResolvedValue(jsonResponse({ ok: true }));
+    mocks.codiaFetch.mockResolvedValue(jsonResponse({ ok: true }));
   });
 
   afterEach(() => {
@@ -201,7 +201,7 @@ describe('ApiKeyCredentials component persistence', () => {
     fireEvent.change(screen.getByDisplayValue(MASKED_SECRET), { target: { value: '' } });
     fireEvent.click(screen.getByTitle('settings.providers.verifyConnection'));
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/config', expect.any(Object)));
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/config', expect.any(Object)));
     expect(readConfigPayload()).toEqual({
       providers: {
         chatgpt: { api_key: '' },
@@ -216,7 +216,7 @@ describe('ApiKeyCredentials component persistence', () => {
     fireEvent.change(input, { target: { value: 'sk-chatgpt-new' } });
     fireEvent.blur(input);
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/config', expect.any(Object)));
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/config', expect.any(Object)));
     expect(readConfigPayload()).toEqual({
       providers: {
         chatgpt: { api_key: 'sk-chatgpt-new' },
@@ -232,7 +232,7 @@ describe('ApiKeyCredentials component persistence', () => {
   });
 
   it('keeps runtime API key references masked when the user tries to reveal them', async () => {
-    mocks.gsapFetch.mockImplementation(async (url: string) => {
+    mocks.codiaFetch.mockImplementation(async (url: string) => {
       if (url === '/api/providers/chatgpt/api-key') {
         return jsonResponse({ api_key: buildRuntimeApiKeyRef('chatgpt') });
       }
@@ -243,7 +243,7 @@ describe('ApiKeyCredentials component persistence', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'settings.api.showKey' }));
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/providers/chatgpt/api-key'));
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/providers/chatgpt/api-key'));
     expect(screen.queryByDisplayValue(buildRuntimeApiKeyRef('chatgpt'))).toBeNull();
     expect(screen.getByDisplayValue(MASKED_SECRET)).toBeTruthy();
   });

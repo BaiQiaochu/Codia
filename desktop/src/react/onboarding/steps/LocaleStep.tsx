@@ -5,12 +5,12 @@
 import { useState, useCallback } from 'react';
 import { LOCALES } from '../constants';
 import { saveLocale } from '../onboarding-actions';
-import type { gsapFetch } from '../onboarding-actions';
+import type { codiaFetch } from '../onboarding-actions';
 import { StepContainer, Multiline } from '../onboarding-ui';
 
 interface LocaleStepProps {
   preview: boolean;
-  gsapFetch: gsapFetch;
+  codiaFetch: codiaFetch;
   avatarSrc: string;
   initialLocale: string;
   goToStep: (index: number) => void;
@@ -19,7 +19,7 @@ interface LocaleStepProps {
 }
 
 export function LocaleStep({
-  preview, gsapFetch, avatarSrc, initialLocale,
+  preview, codiaFetch, avatarSrc, initialLocale,
   goToStep, showError: _showError, onLocaleChange,
 }: LocaleStepProps) {
   const [locale, setLocale] = useState(initialLocale);
@@ -34,13 +34,13 @@ export function LocaleStep({
   const onNext = useCallback(async () => {
     if (!preview) {
       try {
-        await saveLocale(gsapFetch, locale);
+        await saveLocale(codiaFetch, locale);
       } catch (err) {
         console.error('[onboarding] save locale failed:', err);
       }
     }
     goToStep(1);
-  }, [preview, gsapFetch, locale, goToStep]);
+  }, [preview, codiaFetch, locale, goToStep]);
 
   return (
     <StepContainer>

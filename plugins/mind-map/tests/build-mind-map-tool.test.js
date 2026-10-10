@@ -9,11 +9,11 @@ import { execute } from "../tools/build-mind-map.js";
 const tempDirs = [];
 
 function makeCtx(overrides = {}) {
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-mm-tool-"));
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-mm-tool-"));
   tempDirs.push(dataDir);
   return {
     dataDir,
-    agentId: "gsap",
+    agentId: "codia",
     sessionPath: "C:/sessions/current.jsonl",
     _mindMap: { store: new MindMapStore(dataDir) },
     bus: {
@@ -76,8 +76,8 @@ describe("build-mind-map tool", () => {
   });
 
   it("defaults generated files to the current workspace cwd instead of plugin data", async () => {
-    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-mm-tool-data-"));
-    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-mm-tool-workspace-"));
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-mm-tool-data-"));
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "codia-mm-tool-workspace-"));
     tempDirs.push(dataDir, workspace);
     const ctx = makeCtx({
       dataDir,

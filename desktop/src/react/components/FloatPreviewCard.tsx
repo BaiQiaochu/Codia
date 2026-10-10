@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../stores';
-import { gsapUrl } from '../hooks/use-gsap-fetch';
+import { codiaUrl } from '../hooks/use-codia-fetch';
 import { createNewSession, switchSession } from '../stores/session-actions';
 import { yuanFallbackAvatar } from '../utils/agent-helpers';
 import { saveJianContent } from '../stores/desk-actions';
@@ -146,7 +146,7 @@ function SessionAvatar({ sess, agents, agentYuan }: { sess: any; agents: any[]; 
   const [src, setSrc] = useState(() => {
     if (sess.agentId) {
       const ag = agents.find((x: any) => x.id === sess.agentId);
-      if (ag?.hasAvatar) return gsapUrl(`/api/agents/${sess.agentId}/avatar?t=${Date.now()}`, { includeTokenQuery: true });
+      if (ag?.hasAvatar) return codiaUrl(`/api/agents/${sess.agentId}/avatar?t=${Date.now()}`, { includeTokenQuery: true });
       return yuanFallbackAvatar(ag?.yuan || agentYuan);
     }
     return yuanFallbackAvatar(agentYuan);

@@ -49,17 +49,17 @@ vi.mock('../../stores', () => ({
   },
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: vi.fn(),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: vi.fn(),
 }));
 
 vi.mock('../../stores/agent-actions', () => ({
   loadAgents: (...args: unknown[]) => loadAgentsMock(...args),
 }));
 
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 
-const mockFetch = vi.mocked(gsapFetch);
+const mockFetch = vi.mocked(codiaFetch);
 
 describe('channel-actions', () => {
   beforeEach(() => {
@@ -111,7 +111,7 @@ describe('channel-actions', () => {
               id: 'ch1',
               name: 'general',
               newMessageCount: 2,
-              memberRoles: { hana: 'project_manager' },
+              memberRoles: { codia: 'project_manager' },
               roleCounts: { project_manager: 1, admin: 0, worker: 0 },
             }],
           }),
@@ -134,7 +134,7 @@ describe('channel-actions', () => {
       const channels = lastPatch.channels as Array<{ id: string; isDM: boolean }>;
       expect(channels.length).toBe(2);
       expect(channels[0].isDM).toBe(false);
-      expect((channels[0] as { memberRoles?: Record<string, string> }).memberRoles?.hana).toBe('project_manager');
+      expect((channels[0] as { memberRoles?: Record<string, string> }).memberRoles?.codia).toBe('project_manager');
       expect(channels[1].isDM).toBe(true);
       expect(channels[1].id).toBe('dm:agent1');
       expect((channels[1] as { dmOwnerId?: string }).dmOwnerId).toBe('owner-1');
@@ -273,7 +273,6 @@ describe('channel-actions', () => {
       };
 
       const { upsertConversationAgentActivity } = await import('../../stores/channel-actions');
-      upsertConversationAgentActivity(activity);
       upsertConversationAgentActivity(activity);
 
       expect(mockState.channelAgentActivities).toEqual({
@@ -470,13 +469,13 @@ describe('channel-actions', () => {
   describe('appendChannelMessage', () => {
     it('appends messages for the current channel, clears unread, and marks the message as read', async () => {
       mockState.currentChannel = 'ch1';
-      mockState.channelMessages = [{ sender: 'hana', timestamp: '2026-05-13 10:00', body: 'old' }];
+      mockState.channelMessages = [{ sender: 'codia', timestamp: '2026-05-13 10:00', body: 'old' }];
       mockState.channels = [{
         id: 'ch1',
         name: 'general',
-        members: ['hana'],
+        members: ['codia'],
         lastMessage: 'old',
-        lastSender: 'hana',
+        lastSender: 'codia',
         lastTimestamp: '2026-05-13 10:00',
         newMessageCount: 2,
       }];
@@ -484,7 +483,7 @@ describe('channel-actions', () => {
       mockFetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true }) } as Response);
 
       const { appendChannelMessage } = await import('../../stores/channel-actions');
-      appendChannelMessage('ch1', { sender: 'hana', timestamp: '2026-05-13 10:01', body: 'new' });
+      appendChannelMessage('ch1', { sender: 'codia', timestamp: '2026-05-13 10:01', body: 'new' });
 
       expect((mockState.channelMessages as Array<{ body: string }>).map(m => m.body)).toEqual(['old', 'new']);
       expect((mockState.channels as Array<{ newMessageCount: number }>)[0].newMessageCount).toBe(0);
@@ -515,7 +514,7 @@ describe('channel-actions', () => {
           name: 'background',
           members: [],
           lastMessage: 'older',
-          lastSender: 'hana',
+          lastSender: 'codia',
           lastTimestamp: '2026-05-13 09:00',
           newMessageCount: 1,
         },
@@ -523,7 +522,7 @@ describe('channel-actions', () => {
       mockState.channelTotalUnread = 1;
 
       const { appendChannelMessage } = await import('../../stores/channel-actions');
-      appendChannelMessage('ch2', { sender: 'hana', timestamp: '2026-05-13 10:02', body: 'background new' });
+      appendChannelMessage('ch2', { sender: 'codia', timestamp: '2026-05-13 10:02', body: 'background new' });
 
       const channels = mockState.channels as Array<{ id: string; lastMessage: string; newMessageCount: number }>;
       expect(channels[0].id).toBe('ch2');

@@ -10,7 +10,7 @@ import { useSettingsStore } from '../../settings/store';
 
 type MockResponse = { json: () => Promise<unknown> };
 
-const gsapFetchMock = vi.fn(async (_url: string, _opts?: RequestInit): Promise<MockResponse> => ({
+const codiaFetchMock = vi.fn(async (_url: string, _opts?: RequestInit): Promise<MockResponse> => ({
   json: async () => ({ ok: true }),
 }));
 const switchToAgentMock = vi.fn(async (..._args: unknown[]) => {});
@@ -20,7 +20,7 @@ const settingsChangedMock = vi.fn();
 const showToastMock = vi.fn();
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: (url: string, opts?: RequestInit) => gsapFetchMock(url, opts),
+  codiaFetch: (url: string, opts?: RequestInit) => codiaFetchMock(url, opts),
 }));
 
 vi.mock('../../settings/helpers', () => ({
@@ -40,7 +40,7 @@ vi.mock('../../settings/actions', () => ({
 
 describe('AgentDeleteOverlay', () => {
   beforeEach(() => {
-    gsapFetchMock.mockReset();
+    codiaFetchMock.mockReset();
     switchToAgentMock.mockReset();
     loadAgentsMock.mockReset();
     loadSettingsConfigMock.mockReset();
@@ -48,7 +48,7 @@ describe('AgentDeleteOverlay', () => {
     showToastMock.mockReset();
     useSettingsStore.setState({
       agents: [
-        { id: 'agent-a', name: 'Alpha', yuan: 'gsap', isPrimary: true },
+        { id: 'agent-a', name: 'Alpha', yuan: 'codia', isPrimary: true },
         { id: 'agent-b', name: 'Beta', yuan: 'ming', isPrimary: false },
       ],
       currentAgentId: 'agent-a',
@@ -71,7 +71,7 @@ describe('AgentDeleteOverlay', () => {
     render(<AgentDeleteOverlay />);
 
     act(() => {
-      window.dispatchEvent(new CustomEvent('gsap-show-agent-delete', {
+      window.dispatchEvent(new CustomEvent('codia-show-agent-delete', {
         detail: { agentId: 'agent-b' },
       }));
     });
@@ -83,7 +83,7 @@ describe('AgentDeleteOverlay', () => {
     });
     fireEvent.click(screen.getByText('settings.agent.deleteConfirm'));
 
-    await waitFor(() => expect(gsapFetchMock).toHaveBeenCalledWith('/api/agents/agent-b', {
+    await waitFor(() => expect(codiaFetchMock).toHaveBeenCalledWith('/api/agents/agent-b', {
       method: 'DELETE',
     }));
     expect(switchToAgentMock).not.toHaveBeenCalled();

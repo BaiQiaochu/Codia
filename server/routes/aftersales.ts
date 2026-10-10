@@ -5,7 +5,7 @@ import { getAfterSalesService } from "../../lib/aftersales/index.ts";
 
 export function createAfterSalesRoute(engine) {
   const route = new Hono();
-  const service = getAfterSalesService(engine.gsapHome, debugLog());
+  const service = getAfterSalesService(engine.codiaHome, debugLog());
 
   route.get("/aftersales/status", async (c) => {
     try {

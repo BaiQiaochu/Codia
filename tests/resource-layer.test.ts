@@ -14,7 +14,7 @@ describe("resource layer", () => {
     tmpDir = null;
   });
 
-  function makeTmpDir(prefix = "gsap-resource-layer-") {
+  function makeTmpDir(prefix = "codia-resource-layer-") {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
     return tmpDir;
   }
@@ -122,10 +122,10 @@ describe("resource layer", () => {
       verifyResourceTicket,
       resourceTicketKeyPath,
     } = await import("../core/resource-ticket-service.js");
-    const gsapHome = makeTmpDir("gsap-resource-ticket-");
+    const codiaHome = makeTmpDir("codia-resource-ticket-");
 
     const issued = issueResourceTicket({
-      gsapHome,
+      codiaHome,
       resourceId: "res_sf_1",
       studioId: "studio_1",
       principalId: "principal_local_1",
@@ -139,9 +139,9 @@ describe("resource layer", () => {
       principalId: "principal_local_1",
       expiresAt: "2026-05-17T00:01:00.000Z",
     });
-    expect(fs.existsSync(resourceTicketKeyPath(gsapHome))).toBe(true);
+    expect(fs.existsSync(resourceTicketKeyPath(codiaHome))).toBe(true);
     expect(verifyResourceTicket({
-      gsapHome,
+      codiaHome,
       ticket: issued.ticket,
       resourceId: "res_sf_1",
       now: "2026-05-17T00:00:30.000Z",
@@ -150,7 +150,7 @@ describe("resource layer", () => {
       action: "resources.content",
     });
     expect(() => verifyResourceTicket({
-      gsapHome,
+      codiaHome,
       ticket: issued.ticket,
       resourceId: "res_other",
       now: "2026-05-17T00:00:30.000Z",
@@ -164,7 +164,7 @@ describe("resource layer", () => {
     fs.writeFileSync(filePath, "image-bytes", "utf-8");
     const app = new Hono();
     app.route("/api", createResourcesRoute({
-      gsapHome: root,
+      codiaHome: root,
       getRuntimeContext: () => ({
         serverId: "server_1",
         serverNodeId: "node_1",

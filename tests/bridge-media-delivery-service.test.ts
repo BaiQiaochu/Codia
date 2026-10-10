@@ -37,7 +37,7 @@ describe("MediaDeliveryService", () => {
   });
 
   function makeTempFile(name, content = "hello") {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-media-delivery-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-media-delivery-"));
     setMediaLocalRoots([tmpDir]);
     const filePath = path.join(tmpDir, name);
     fs.writeFileSync(filePath, content);
@@ -46,7 +46,7 @@ describe("MediaDeliveryService", () => {
 
   function makeTempFileOutsideAllowedRoots(name, content = "hello") {
     makeTempFile("allowed-placeholder.txt", "allowed");
-    const outsideRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-media-outside-"));
+    const outsideRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-media-outside-"));
     extraTmpDirs.push(outsideRoot);
     const outsidePath = path.join(outsideRoot, name);
     fs.writeFileSync(outsidePath, content);
@@ -375,7 +375,7 @@ describe("MediaDeliveryService", () => {
     const mediaPublisher = {
       setBaseUrl: vi.fn(),
       publish: vi.fn(() => ({
-        publicUrl: "https://hana.example.com/api/bridge/media/token_123",
+        publicUrl: "https://codia.example.com/api/bridge/media/token_123",
         expiresAt: 61_000,
       })),
     };
@@ -410,7 +410,7 @@ describe("MediaDeliveryService", () => {
     expect(mediaPublisher.setBaseUrl).toHaveBeenCalledOnce();
     expect(adapter.sendMedia).toHaveBeenCalledWith(
       "chat-1",
-      "https://hana.example.com/api/bridge/media/token_123",
+      "https://codia.example.com/api/bridge/media/token_123",
       {
         kind: "image",
         mime: "image/png",

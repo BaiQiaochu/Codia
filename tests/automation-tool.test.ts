@@ -36,7 +36,6 @@ function makeSuggestionStore(id = "automation_suggestion_1", shortCode = "3827")
 
 async function flushMicrotasks() {
   await Promise.resolve();
-  await Promise.resolve();
 }
 
 describe("automation tool", () => {

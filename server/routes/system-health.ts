@@ -124,7 +124,7 @@ export function createSystemHealthRoute(engine = {}, options = {}) {
     };
     return c.json({
       schemaVersion: 1,
-      app: "BYOUNG",
+      app: "CODIA",
       generatedAt: new Date().toISOString(),
       ui: {
         screenshot: sanitizePackageValue(body?.uiScreenshot || body?.screenshot || null),
@@ -235,8 +235,8 @@ function buildSystemHealthCenterModule({ localHealth, startup, plugins, tasks, d
       { actionTab: "plugins" },
     ),
     opsItem(
-      "media-ocr",
-      "媒体 / OCR",
+      "media",
+      "媒体",
       `image ${media.byType?.image?.models || 0}, video ${media.byType?.video?.models || 0}`,
       (media.byType?.image?.models || 0) > 0 ? "ok" : "warn",
       `providers ${media.providers?.length || 0}`,
@@ -339,7 +339,7 @@ function providerModuleStatus(items) {
 function providerKeySource(provider) {
   const key = provider?.api_key || provider?.apiKey || provider?.key || "";
   if (!key) return "missing";
-  if (typeof key === "string" && key.startsWith("gsap-runtime-api-key:")) return "runtime secret";
+  if (typeof key === "string" && key.startsWith("codia-runtime-api-key:")) return "runtime secret";
   return "saved secret";
 }
 
@@ -636,7 +636,6 @@ function summarizeArtifactSizes(projectRoot) {
   const targets = [
     ["renderer", "desktop/dist-renderer"],
     ["server", "dist-server"],
-    ["ocr", "vendor/ocr-runtime"],
     ["wasm", "vendor"],
   ];
   return targets.map(([id, rel]) => {

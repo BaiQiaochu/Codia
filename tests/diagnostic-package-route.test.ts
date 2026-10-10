@@ -8,7 +8,7 @@ import { createSystemHealthRoute } from "../server/routes/system-health.ts";
 const roots = [];
 
 function makeFixture() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-diagnostic-package-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-diagnostic-package-"));
   roots.push(root);
   const artifactsDir = path.join(root, "artifacts");
   fs.mkdirSync(artifactsDir, { recursive: true });

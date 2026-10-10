@@ -7,7 +7,7 @@ import { syncModels } from "../core/model-sync.ts";
 let tmpHome;
 
 beforeEach(() => {
-  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "hana-model-sync-alias-"));
+  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "codia-model-sync-alias-"));
 });
 
 afterEach(() => {

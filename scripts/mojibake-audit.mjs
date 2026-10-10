@@ -158,7 +158,7 @@ function walk(dir, files = []) {
   if (!fs.existsSync(dir)) return files;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      if (SKIP_DIRS.has(entry.name) || /^openhanako-\d/.test(entry.name)) continue;
+      if (SKIP_DIRS.has(entry.name) || /^codia-\d/.test(entry.name)) continue;
       walk(path.join(dir, entry.name), files);
       continue;
     }

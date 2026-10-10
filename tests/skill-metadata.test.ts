@@ -8,7 +8,7 @@ import { parseSkillMetadata } from "../lib/skills/skill-metadata.js";
 const tmpRoots = [];
 
 function makeTmpRoot() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-skill-metadata-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-skill-metadata-"));
   tmpRoots.push(dir);
   return dir;
 }
@@ -118,7 +118,7 @@ describe("SkillManager metadata scanning", () => {
   it("external and learned skills expose only frontmatter metadata and keep disable-model-invocation", () => {
     const root = makeTmpRoot();
     const externalDir = path.join(root, "external");
-    const agentDir = path.join(root, "agents", "gsap");
+    const agentDir = path.join(root, "agents", "codia");
     const learnedDir = path.join(agentDir, "learned-skills", "learned-skill");
     const externalSkillDir = path.join(externalDir, "external-skill");
 
@@ -170,13 +170,13 @@ describe("SkillManager metadata scanning", () => {
 
   it("resource-loader skills can opt out of default enablement through SKILL.md metadata", () => {
     const root = makeTmpRoot();
-    const skillDir = path.join(root, "skills", "gsap-plugin-creator");
+    const skillDir = path.join(root, "skills", "codia-plugin-creator");
     const skillFile = path.join(skillDir, "SKILL.md");
     fs.mkdirSync(skillDir, { recursive: true });
     fs.writeFileSync(skillFile, [
       "---",
-      "name: gsap-plugin-creator",
-      "description: Create G-SAP plugins.",
+      "name: codia-plugin-creator",
+      "description: Create Codia plugins.",
       "metadata:",
       "  default-enabled: false",
       "---",
@@ -185,13 +185,13 @@ describe("SkillManager metadata scanning", () => {
 
     const manager = new SkillManager({ skillsDir: path.join(root, "skills") });
     manager.init(
-      { getSkills: () => ({ skills: [{ name: "gsap-plugin-creator", source: "user", filePath: skillFile }], diagnostics: [] }) },
+      { getSkills: () => ({ skills: [{ name: "codia-plugin-creator", source: "user", filePath: skillFile }], diagnostics: [] }) },
       new Map(),
       new Set(),
     );
 
     expect(manager.allSkills[0]).toMatchObject({
-      name: "gsap-plugin-creator",
+      name: "codia-plugin-creator",
       defaultEnabled: false,
     });
     expect(manager.computeDefaultEnabledForNewAgent()).toEqual([]);
@@ -203,7 +203,7 @@ describe("SkillManager metadata scanning", () => {
     const workspaceSkillsDir = path.join(root, "workspace", ".agents", "skills");
     const globalSkillDir = path.join(globalExternalDir, "external-skill");
     const workspaceSkillDir = path.join(workspaceSkillsDir, "workspace-skill");
-    const agentDir = path.join(root, "agents", "gsap");
+    const agentDir = path.join(root, "agents", "codia");
 
     fs.mkdirSync(globalSkillDir, { recursive: true });
     fs.mkdirSync(workspaceSkillDir, { recursive: true });

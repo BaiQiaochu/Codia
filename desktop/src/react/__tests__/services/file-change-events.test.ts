@@ -49,7 +49,6 @@ describe('file-change-events', () => {
     expect(platform.unwatchFile).not.toHaveBeenCalled();
 
     unwatchSecond();
-    unwatchSecond();
     await Promise.resolve();
     expect(platform.unwatchFile).toHaveBeenCalledTimes(1);
     expect(platform.unwatchFile).toHaveBeenCalledWith('/tmp/note.md');

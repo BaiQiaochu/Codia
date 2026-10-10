@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { gsapFetch } from './use-gsap-fetch';
+import { codiaFetch } from './use-codia-fetch';
 
 /** Desktop file URLs and authenticated browser previews share the same badge UI. */
 export function useMentionThumbnail(path: string | null, mimeType?: string): string | null {
@@ -9,7 +9,7 @@ export function useMentionThumbnail(path: string | null, mimeType?: string): str
   useEffect(() => {
     if (!path || directUrl) return;
     const controller = new AbortController();
-    void gsapFetch(`/api/fs/read-base64?path=${encodeURIComponent(path)}`, { signal: controller.signal })
+    void codiaFetch(`/api/fs/read-base64?path=${encodeURIComponent(path)}`, { signal: controller.signal })
       .then(response => response.text())
       .then(base64 => {
         if (!base64 || controller.signal.aborted) return;

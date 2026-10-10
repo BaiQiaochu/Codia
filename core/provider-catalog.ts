@@ -87,19 +87,19 @@ function timestampSlug(date = new Date()) {
 }
 
 export class ProviderCatalogStore {
-  declare _gsapHome: string;
+  declare _codiaHome: string;
 
-  constructor(gsapHome: string) {
-    if (!gsapHome) throw new Error("ProviderCatalogStore requires gsapHome");
-    this._gsapHome = gsapHome;
+  constructor(codiaHome: string) {
+    if (!codiaHome) throw new Error("ProviderCatalogStore requires codiaHome");
+    this._codiaHome = codiaHome;
   }
 
   get catalogPath() {
-    return path.join(this._gsapHome, PROVIDER_CATALOG_FILE);
+    return path.join(this._codiaHome, PROVIDER_CATALOG_FILE);
   }
 
   get legacyAddedModelsPath() {
-    return path.join(this._gsapHome, LEGACY_ADDED_MODELS_FILE);
+    return path.join(this._codiaHome, LEGACY_ADDED_MODELS_FILE);
   }
 
   load() {
@@ -203,13 +203,13 @@ export class ProviderCatalogStore {
   _writeMigrationBackup(catalog: any) {
     const files = [
       this.legacyAddedModelsPath,
-      path.join(this._gsapHome, "models.json"),
+      path.join(this._codiaHome, "models.json"),
     ];
     const existingFiles = files.filter((filePath) => fs.existsSync(filePath));
     if (existingFiles.length === 0) return;
 
     const backupDir = path.join(
-      this._gsapHome,
+      this._codiaHome,
       "migration-backups",
       `provider-catalog-v1-${timestampSlug()}`,
     );

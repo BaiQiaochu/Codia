@@ -11,7 +11,8 @@ describe('Codia desktop navigation simplification', () => {
     expect(app).toContain('<span>聊天</span>');
     expect(app).toContain('<span>Agent 小队</span>');
     expect(app).toContain('<span>工作流</span>');
-    expect(app).toContain('<span>活动与插件</span>');
+    expect(app).toContain("<span>{t('sidebar.automationRecords')}</span>");
+    expect(app).not.toContain('<span>活动与插件</span>');
     expect(app).not.toContain('<span>文件与项目</span>');
     expect(app).not.toContain('codia-sidebar-section-label');
     expect(app).not.toContain('id="bridgeBar"');

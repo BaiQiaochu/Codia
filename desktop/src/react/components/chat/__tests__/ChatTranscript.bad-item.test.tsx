@@ -7,8 +7,8 @@ import type { ChatListItem } from '../../../stores/chat-types';
 const mocks = vi.hoisted(() => ({
   state: {
     agents: [],
-    agentName: 'G-SAP',
-    agentYuan: 'gsap',
+    agentName: 'Codia',
+    agentYuan: 'codia',
     chatSessions: {},
     voiceSpeakingMessageId: null,
     setVoiceSpeakingMessageId: vi.fn(),
@@ -29,7 +29,7 @@ vi.mock('../../../stores/session-selectors', () => ({
 
 vi.mock('../../../utils/agent-display', () => ({
   AgentAvatar: () => <span data-testid="agent-avatar" />,
-  resolveAgentDisplayInfo: () => ({ displayName: 'G-SAP', yuan: 'gsap' }),
+  resolveAgentDisplayInfo: () => ({ displayName: 'Codia', yuan: 'codia' }),
 }));
 
 vi.mock('../../../utils/agent-helpers', () => ({
@@ -44,9 +44,9 @@ vi.mock('../../../utils/clipboard', () => ({
   writeClipboardText: vi.fn(async () => true),
 }));
 
-vi.mock('../../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: vi.fn(),
-  gsapUrl: (url: string) => url,
+vi.mock('../../../hooks/use-codia-fetch', () => ({
+  codiaFetch: vi.fn(),
+  codiaUrl: (url: string) => url,
 }));
 
 vi.mock('../MessageActions', () => ({

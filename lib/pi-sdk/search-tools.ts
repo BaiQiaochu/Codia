@@ -136,7 +136,7 @@ function getToolPath(tool) {
 
 async function getLatestVersion(repo) {
   const response = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, {
-    headers: { "User-Agent": "gsap-search-tools" },
+    headers: { "User-Agent": "codia-search-tools" },
     signal: AbortSignal.timeout(NETWORK_TIMEOUT_MS),
   });
   if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);

@@ -52,7 +52,7 @@ function writeAgentFixture(memoryEnabled) {
     [
       "agent:",
       "  name: Nova",
-      "  yuan: gsap",
+      "  yuan: codia",
       "memory:",
       `  enabled: ${memoryEnabled ? "true" : "false"}`,
     ].join("\n"),
@@ -101,7 +101,7 @@ function createRouter(paths) {
 
 describe("ChannelRouter channel memory summaries", () => {
   beforeEach(() => {
-    rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-memory-"));
+    rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-memory-"));
     callTextMock.mockReset();
     factAddMock.mockReset();
     factGetBySessionMock.mockReset();

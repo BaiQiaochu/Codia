@@ -33,7 +33,7 @@ function createEngine(overrides: any = {}) {
     listAgents: vi.fn(() => [{
       id: "agent-a",
       name: "Agent A",
-      yuan: "gsap",
+      yuan: "codia",
       identity: "public intro",
       plugin: { ownerPluginId: null, visibility: "public" },
       isCurrent: true,
@@ -43,7 +43,7 @@ function createEngine(overrides: any = {}) {
       ? {
         id: "agent-a",
         agentName: "Agent A",
-        config: { agent: { name: "Agent A", yuan: "gsap" }, plugin: { visibility: "public" } },
+        config: { agent: { name: "Agent A", yuan: "codia" }, plugin: { visibility: "public" } },
         personality: "identity text",
         memoryMasterEnabled: true,
         experienceEnabled: false,

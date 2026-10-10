@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const state: Record<string, any> = {};
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 const loadMessagesStatePatch = vi.fn();
 
 vi.mock('../../stores/index', () => ({
@@ -14,9 +14,9 @@ vi.mock('../../stores/index', () => ({
   },
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
-  gsapUrl: (path: string) => path,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
+  codiaUrl: (path: string) => path,
 }));
 
 vi.mock('../../utils/ui-helpers', () => ({
@@ -47,7 +47,7 @@ vi.mock('../../utils/todo-compat', () => ({
 describe('refreshSessionCapabilities', () => {
   beforeEach(() => {
     for (const key of Object.keys(state)) delete state[key];
-    gsapFetchMock.mockReset();
+    codiaFetchMock.mockReset();
     loadMessagesStatePatch.mockReset();
     Object.assign(state, {
       capabilityDriftBySession: {
@@ -77,7 +77,7 @@ describe('refreshSessionCapabilities', () => {
   });
 
   it('clears stale capability drift after a successful fresh compact even when messages hydration returns old drift', async () => {
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/sessions/fresh-compact') {
         return {
           ok: true,
@@ -110,7 +110,7 @@ describe('refreshSessionCapabilities', () => {
 
   it('forwards caller abort signal and timeout to the fresh compact request', async () => {
     const controller = new AbortController();
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/sessions/fresh-compact') {
         return {
           ok: true,
@@ -138,7 +138,7 @@ describe('refreshSessionCapabilities', () => {
       timeout: 12_345,
     });
 
-    expect(gsapFetchMock).toHaveBeenCalledWith('/api/sessions/fresh-compact', expect.objectContaining({
+    expect(codiaFetchMock).toHaveBeenCalledWith('/api/sessions/fresh-compact', expect.objectContaining({
       signal: controller.signal,
       timeout: 12_345,
     }));
@@ -146,7 +146,7 @@ describe('refreshSessionCapabilities', () => {
 
   it('retries a transient busy fresh-compact response before showing refresh failure', async () => {
     let freshCompactAttempts = 0;
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/sessions/fresh-compact') {
         freshCompactAttempts += 1;
         if (freshCompactAttempts === 1) {

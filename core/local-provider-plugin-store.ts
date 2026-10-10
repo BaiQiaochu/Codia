@@ -235,15 +235,15 @@ export function providerConfigHasLocalDefinition(config: any) {
 }
 
 export class LocalProviderPluginStore {
-  declare _gsapHome: string;
+  declare _codiaHome: string;
 
-  constructor(gsapHome: string) {
-    if (!gsapHome) throw new Error("LocalProviderPluginStore requires gsapHome");
-    this._gsapHome = gsapHome;
+  constructor(codiaHome: string) {
+    if (!codiaHome) throw new Error("LocalProviderPluginStore requires codiaHome");
+    this._codiaHome = codiaHome;
   }
 
   get rootDir() {
-    return path.join(this._gsapHome, LOCAL_PROVIDER_PLUGINS_DIR);
+    return path.join(this._codiaHome, LOCAL_PROVIDER_PLUGINS_DIR);
   }
 
   providerDir(providerId: string) {

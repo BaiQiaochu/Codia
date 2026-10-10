@@ -3,9 +3,9 @@ const os = require("os");
 const path = require("path");
 const { app, dialog } = require("electron");
 
-let diagnosticsDir = path.join(os.tmpdir(), "gsap-desktop-launch");
+let diagnosticsDir = path.join(os.tmpdir(), "codia-desktop-launch");
 let launchIntegrity = null;
-let gsapHome = null;
+let codiaHome = null;
 
 function serializeError(err) {
   if (err instanceof Error) {
@@ -77,7 +77,7 @@ function writeLaunchMarker(status, payload = {}) {
     arch: process.arch,
     execPath: process.execPath,
     resourcesPath: process.resourcesPath || null,
-    gsapHome,
+    codiaHome,
     ...payload,
   });
 }
@@ -116,12 +116,12 @@ process.on("unhandledRejection", (reason) => {
 });
 
 try {
-  const { applyGsapHomeEnv, resolveGsapHome } = require("./gsap-home.cjs");
-  gsapHome = resolveGsapHome(process.env);
-  applyGsapHomeEnv(gsapHome, process.env);
-  diagnosticsDir = path.join(gsapHome, "diagnostics", "desktop-launch");
+  const { applyCodiaHomeEnv, resolveCodiaHome } = require("./codia-home.cjs");
+  codiaHome = resolveCodiaHome(process.env);
+  applyCodiaHomeEnv(codiaHome, process.env);
+  diagnosticsDir = path.join(codiaHome, "diagnostics", "desktop-launch");
 } catch (err) {
-  const diagnosticPath = writeDiagnostic("gsap-home-resolve-failed.json", "gsap-home-resolve-failed", {
+  const diagnosticPath = writeDiagnostic("codia-home-resolve-failed.json", "codia-home-resolve-failed", {
     phase: "desktop-bootstrap",
     error: serializeError(err),
   });
@@ -201,10 +201,10 @@ function loadDesktopMain() {
 }
 
 function isOfficePdfHelperArg(arg) {
-  return arg === "--gsap-office-html-to-pdf"
-    || arg.startsWith("--gsap-office-html-to-pdf=")
-    || arg === "--hana-office-html-to-pdf"
-    || arg.startsWith("--hana-office-html-to-pdf=");
+  return arg === "--codia-office-html-to-pdf"
+    || arg.startsWith("--codia-office-html-to-pdf=")
+    || arg === "--codia-office-html-to-pdf"
+    || arg.startsWith("--codia-office-html-to-pdf=");
 }
 
 function tryStartOfficePdfHelper() {

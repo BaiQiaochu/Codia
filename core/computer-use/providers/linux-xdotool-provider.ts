@@ -297,7 +297,7 @@ export function createLinuxXdotoolProvider({
   }
 
   async function captureScreenshot() {
-    const tmpFile = path.join(os.tmpdir(), `gsap-linux-computer-${process.pid}-${Date.now()}.png`);
+    const tmpFile = path.join(os.tmpdir(), `codia-linux-computer-${process.pid}-${Date.now()}.png`);
     try {
       if (await commandAvailable(runner, "gnome-screenshot", { env, timeoutMs })) {
         await run("gnome-screenshot", ["-f", tmpFile], { timeoutMs: screenshotTimeoutMs });

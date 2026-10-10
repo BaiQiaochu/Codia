@@ -25,12 +25,12 @@ export interface ScreenshotPayload {
   messages?: ScreenshotMessage[];
 }
 
-const GSAP_BRAND_THEME = 'gsap-brand';
-const GSAP_BRAND_DESKTOP_THEME = 'gsap-brand-desktop';
+const CODIA_BRAND_THEME = 'codia-brand';
+const CODIA_BRAND_DESKTOP_THEME = 'codia-brand-desktop';
 
 export function buildThemeName(color: string, width: string): string {
   void color;
-  return width === 'desktop' ? GSAP_BRAND_DESKTOP_THEME : GSAP_BRAND_THEME;
+  return width === 'desktop' ? CODIA_BRAND_DESKTOP_THEME : CODIA_BRAND_THEME;
 }
 
 function extractBlocks(blocks: ContentBlock[]): ScreenshotBlock[] {

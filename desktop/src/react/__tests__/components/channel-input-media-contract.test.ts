@@ -17,7 +17,7 @@ describe('ChannelInput media attachment contract', () => {
     expect(source).toContain('const handleAttachFiles = useCallback');
     expect(source).toContain('const handleDropFiles = useCallback');
     expect(source).toContain('const handlePasteFiles = useCallback');
-    expect(source).toContain("gsapFetch('/api/upload-blob'");
+    expect(source).toContain("codiaFetch('/api/upload-blob'");
     expect(source).toContain('notifyPasteUploadFailure(t');
     expect(source).toContain('addAttachedFile({');
     expect(source).toContain('onDrop={handleDropFiles}');

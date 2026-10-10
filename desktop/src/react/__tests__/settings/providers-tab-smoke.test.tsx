@@ -5,10 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSettingsStore } from '../../settings/store';
 import type { ProviderSummary } from '../../settings/store';
 
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 vi.mock('../../settings/actions', () => ({
@@ -69,7 +69,7 @@ vi.mock('../../ui', () => ({
 
 describe('ProvidersTab', () => {
   beforeEach(() => {
-    gsapFetchMock.mockResolvedValue({ json: async () => ({ providers: {} }) });
+    codiaFetchMock.mockResolvedValue({ json: async () => ({ providers: {} }) });
     vi.stubGlobal('platform', { settingsChanged: vi.fn() });
     Object.defineProperty(window, 'platform', {
       value: { settingsChanged: vi.fn() },
@@ -96,7 +96,7 @@ describe('ProvidersTab', () => {
 
     render(<ProvidersTab />);
 
-    await waitFor(() => expect(gsapFetchMock).toHaveBeenCalledWith('/api/providers/summary'));
+    await waitFor(() => expect(codiaFetchMock).toHaveBeenCalledWith('/api/providers/summary'));
     fireEvent.click(screen.getByRole('button', { name: '+ settings.providers.addCustom' }));
 
     expect(screen.getByText('settings.providers.addCustom')).toBeTruthy();
@@ -149,7 +149,7 @@ describe('ProvidersTab', () => {
         missing_fields: ['api_key', 'models'],
       },
     };
-    gsapFetchMock.mockResolvedValueOnce({ json: async () => ({ providers: providersSummary }) });
+    codiaFetchMock.mockResolvedValueOnce({ json: async () => ({ providers: providersSummary }) });
     useSettingsStore.setState({
       providersSummary,
       selectedProviderId: null,
@@ -235,7 +235,7 @@ describe('ProvidersTab', () => {
         can_delete: false,
       },
     };
-    gsapFetchMock.mockResolvedValueOnce({ json: async () => ({ providers: providersSummary }) });
+    codiaFetchMock.mockResolvedValueOnce({ json: async () => ({ providers: providersSummary }) });
     useSettingsStore.setState({
       providersSummary,
       selectedProviderId: null,
@@ -274,7 +274,7 @@ describe('ProvidersTab', () => {
         can_delete: false,
       },
     };
-    gsapFetchMock.mockResolvedValueOnce({ json: async () => ({ providers: providersSummary }) });
+    codiaFetchMock.mockResolvedValueOnce({ json: async () => ({ providers: providersSummary }) });
     useSettingsStore.setState({
       providersSummary,
       selectedProviderId: null,

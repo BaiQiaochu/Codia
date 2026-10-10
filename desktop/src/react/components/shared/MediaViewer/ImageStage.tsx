@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FileRef } from '../../../types/file-ref';
-import { loadMediaSource } from './media-source';
+import { loadMediaSources } from './media-source';
 import { fileRefVersionToken } from '../../../services/resource-url';
 import { useMediaTransform } from './use-media-transform';
 import styles from './MediaViewer.module.css';
@@ -12,15 +12,19 @@ interface Props {
   viewport: { width: number; height: number };
   neighbors?: { prev?: FileRef; next?: FileRef };
   zoomCmd?: { in: number; out: number; reset: number };
+  onZoomChange?: (percentage: number) => void;
   onReady?: () => void;
   onError?: (e: unknown) => void;
 }
 
-export function ImageStage({ file, viewport, neighbors, zoomCmd, onReady, onError }: Props) {
-  const [src, setSrc] = useState<string | null>(null);
+export function ImageStage({ file, viewport, neighbors, zoomCmd, onZoomChange, onReady, onError }: Props) {
+  const [sources, setSources] = useState<string[]>([]);
+  const [sourceIndex, setSourceIndex] = useState(0);
+  const src = sources[sourceIndex] ?? null;
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const imgElRef = useRef<HTMLImageElement | null>(null);
   const fileVersionToken = fileRefVersionToken(file);
+  const fileSourceToken = [file.path, file.previewUrl, file.resource?.links.content].filter(Boolean).join('|');
   const prevVersionToken = neighbors?.prev ? fileRefVersionToken(neighbors.prev) : null;
   const nextVersionToken = neighbors?.next ? fileRefVersionToken(neighbors.next) : null;
   const transformViewport = useMemo(
@@ -31,15 +35,18 @@ export function ImageStage({ file, viewport, neighbors, zoomCmd, onReady, onErro
   // 加载当前图
   useEffect(() => {
     let cancelled = false;
-    setSrc(null);
+    setSources([]);
+    setSourceIndex(0);
     setNatural(null);
-    loadMediaSource(file)
-      .then((s) => { if (!cancelled) setSrc(s.url); })
+    loadMediaSources(file)
+      .then((resolved) => {
+        if (!cancelled) setSources(resolved.map(source => source.url));
+      })
       .catch((err) => { if (!cancelled) onError?.(err); });
     return () => { cancelled = true; };
-    // 依赖稳定 id + version；file 是引用类型每次新建，onError 仅在错误时被调用。
+    // 依赖稳定 id、version 与可用资源地址；资源登记迟到时允许当前预览自动恢复。
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file.id, fileVersionToken]);
+  }, [file.id, fileVersionToken, fileSourceToken]);
 
   // 邻近预加载（触发浏览器缓存）
   // 仅对 image/svg 预加载：loadMediaSource 只支持这两类，其他 kind 会抛 "unsupported media kind"。
@@ -47,7 +54,8 @@ export function ImageStage({ file, viewport, neighbors, zoomCmd, onReady, onErro
     const preload = async (nf?: FileRef) => {
       if (!nf || (nf.kind !== 'image' && nf.kind !== 'svg')) return;
       try {
-        const s = await loadMediaSource(nf);
+        const [s] = await loadMediaSources(nf);
+        if (!s) return;
         const img = new Image();
         img.src = s.url;
       } catch { /* ignore */ }
@@ -95,6 +103,10 @@ export function ImageStage({ file, viewport, neighbors, zoomCmd, onReady, onErro
   const isZoomed = transform.scale > fitScale + 0.01;
   const cursorStyle = isDragging ? 'grabbing' : isZoomed ? 'grab' : 'default';
 
+  useEffect(() => {
+    onZoomChange?.(Math.max(1, Math.round(transform.scale * 100)));
+  }, [onZoomChange, transform.scale]);
+
   return (
     <div
       className={styles.stage}
@@ -121,7 +133,14 @@ export function ImageStage({ file, viewport, neighbors, zoomCmd, onReady, onErro
             setNatural({ w: el.naturalWidth, h: el.naturalHeight });
             onReady?.();
           }}
-          onError={() => onError?.(new Error(`image decode failed: ${file.name}`))}
+          onError={() => {
+            setNatural(null);
+            if (sourceIndex + 1 < sources.length) {
+              setSourceIndex(index => index + 1);
+              return;
+            }
+            onError?.(new Error(`image decode failed: ${file.name}`));
+          }}
           draggable={false}
           className={styles.stageImg}
         />

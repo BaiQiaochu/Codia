@@ -586,7 +586,7 @@ export function createPreferencesRoute(engine: any, options: Record<string, any>
 
   route.post("/preferences/web-access/generate", async (c) => {
     try {
-      const apiKey = `gsap_${crypto.randomBytes(32).toString("base64url")}`;
+      const apiKey = `codia_${crypto.randomBytes(32).toString("base64url")}`;
       const createdAt = new Date().toISOString();
       const current = engine.preferences.getWebAccess();
       engine.preferences.setWebAccess({

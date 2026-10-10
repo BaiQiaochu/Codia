@@ -25,7 +25,7 @@ export const ICONS = {
 
 // ── 排序 ──
 
-export const DESK_SORT_KEY = 'gsap-desk-sort';
+export const DESK_SORT_KEY = 'codia-desk-sort';
 
 export type SortMode = 'mtime-desc' | 'name-asc' | 'name-desc' | 'size-desc' | 'type-asc';
 export type FileTypeFilter = 'image' | 'text' | 'video';

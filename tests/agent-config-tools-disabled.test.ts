@@ -21,10 +21,10 @@ describe("agents route tools.disabled", () => {
   let agentDir;
   let app;
   let engine;
-  const agentId = "hana";
+  const agentId = "codia";
 
   beforeEach(async () => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-tools-route-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-tools-route-"));
     agentDir = path.join(tempRoot, agentId);
     fs.mkdirSync(agentDir, { recursive: true });
     fs.writeFileSync(

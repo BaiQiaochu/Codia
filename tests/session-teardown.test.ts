@@ -3,7 +3,7 @@
  *
  * 契约:
  *   1. emit session_shutdown (让扩展清理 setInterval、store 订阅)
- *   2. 调 entry.unsub() (取消 G-SAP 层的 session 事件订阅)
+ *   2. 调 entry.unsub() (取消 Codia 层的 session 事件订阅)
  *   3. 调 entry.session.dispose() (SDK 层 disconnect + 清 listeners)
  *
  * 错误处理:

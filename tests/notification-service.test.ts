@@ -9,10 +9,10 @@ describe("NotificationService", () => {
       getBridgeManager: () => null,
     });
 
-    const result = await service.notify({ title: "Reminder", body: "Drink water" }, { agentId: "G-SAP" });
+    const result = await service.notify({ title: "Reminder", body: "Drink water" }, { agentId: "Codia" });
 
     expect(desktopEvents).toEqual([
-      { title: "Reminder", body: "Drink water", agentId: "G-SAP", desktopFocusPolicy: "always" },
+      { title: "Reminder", body: "Drink water", agentId: "Codia", desktopFocusPolicy: "always" },
     ]);
     expect(result).toMatchObject({
       ok: true,
@@ -33,13 +33,13 @@ describe("NotificationService", () => {
         body: "This turn has finished",
         desktopFocusPolicy: "when_unfocused",
       },
-      { agentId: "G-SAP" },
+      { agentId: "Codia" },
     );
 
     expect(emitDesktop).toHaveBeenCalledWith({
       title: "Complete",
       body: "This turn has finished",
-      agentId: "G-SAP",
+      agentId: "Codia",
       desktopFocusPolicy: "when_unfocused",
     });
   });
@@ -57,13 +57,13 @@ describe("NotificationService", () => {
         body: "This turn has finished",
         sessionPath: "/tmp/finished.jsonl",
       },
-      { agentId: "G-SAP" },
+      { agentId: "Codia" },
     );
 
     expect(emitDesktop).toHaveBeenCalledWith({
       title: "Complete",
       body: "This turn has finished",
-      agentId: "G-SAP",
+      agentId: "Codia",
       desktopFocusPolicy: "always",
       sessionPath: "/tmp/finished.jsonl",
     });
@@ -78,11 +78,11 @@ describe("NotificationService", () => {
 
     const first = await service.notify(
       { title: "Reminder", body: "Drink water", idempotencyKey: "job:drink:2026-06-01T10:00" },
-      { agentId: "G-SAP" },
+      { agentId: "Codia" },
     );
     const second = await service.notify(
       { title: "Reminder", body: "Drink water", idempotencyKey: "job:drink:2026-06-01T10:00" },
-      { agentId: "G-SAP" },
+      { agentId: "Codia" },
     );
 
     expect(emitDesktop).toHaveBeenCalledTimes(1);
@@ -108,7 +108,7 @@ describe("NotificationService", () => {
       sendProactive: vi.fn().mockResolvedValue({
         platform: "wechat",
         chatId: "wx-user",
-        sessionKey: "wx_dm_wx-user@G-SAP",
+        sessionKey: "wx_dm_wx-user@Codia",
       }),
     };
     const service = new NotificationService({
@@ -122,12 +122,12 @@ describe("NotificationService", () => {
         body: "There are three updates today.",
         channels: ["bridge_owner"],
       },
-      { agentId: "G-SAP" },
+      { agentId: "Codia" },
     );
 
     expect(bridgeManager.sendProactive).toHaveBeenCalledWith(
       "AI Daily\n\nThere are three updates today.",
-      "G-SAP",
+      "Codia",
       { contextPolicy: "record_when_delivered" },
     );
     expect(result).toMatchObject({
@@ -136,7 +136,7 @@ describe("NotificationService", () => {
         channel: "bridge_owner",
         status: "sent",
         platform: "wechat",
-        sessionKey: "wx_dm_wx-user@G-SAP",
+        sessionKey: "wx_dm_wx-user@Codia",
       }],
     });
   });
@@ -146,7 +146,7 @@ describe("NotificationService", () => {
       sendProactive: vi.fn().mockResolvedValue({
         platform: "feishu",
         chatId: "oc_owner",
-        sessionKey: "fs_dm_owner@G-SAP",
+        sessionKey: "fs_dm_owner@Codia",
       }),
     };
     const service = new NotificationService({
@@ -161,12 +161,12 @@ describe("NotificationService", () => {
         channels: ["bridge_owner"],
         bridgePlatforms: ["feishu"],
       },
-      { agentId: "G-SAP" },
+      { agentId: "Codia" },
     );
 
     expect(bridgeManager.sendProactive).toHaveBeenCalledWith(
       "Reminder\n\nBody",
-      "G-SAP",
+      "Codia",
       {
         contextPolicy: "record_when_delivered",
         bridgePlatforms: ["feishu"],
@@ -182,7 +182,7 @@ describe("NotificationService", () => {
 
     const result = await service.notify(
       { title: "AI Daily", body: "Body", channels: ["bridge_owner"] },
-      { agentId: "G-SAP" },
+      { agentId: "Codia" },
     );
 
     expect(result.ok).toBe(false);
@@ -202,7 +202,7 @@ describe("NotificationService", () => {
 
     const result = await service.notify(
       { title: "AI Daily", body: "Body", channels: ["sms"] },
-      { agentId: "G-SAP" },
+      { agentId: "Codia" },
     );
 
     expect(emitDesktop).not.toHaveBeenCalled();

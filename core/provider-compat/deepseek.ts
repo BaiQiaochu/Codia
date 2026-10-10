@@ -14,7 +14,7 @@ const MISSING_ANTHROPIC_TOOL_THINKING_ERROR =
   + "Compact this session or start a new session before continuing with DeepSeek Anthropic thinking mode.";
 const DEEPSEEK_ROLEPLAY_MARKER_SIGNATURES = [
   "[Role immersion instruction]",
-  "G-SAP DeepSeek roleplay reasoning patch",
+  "Codia DeepSeek roleplay reasoning patch",
   "〖角色沉浸要求〗",
 ];
 
@@ -61,7 +61,8 @@ export function matches(model) {
 
 function isKnownThinkingModelId(id) {
   const normalized = lower(id);
-  return normalized === "deepseek-reasoner"
+  return normalized === "deepseek-flash"
+    || normalized === "deepseek-reasoner"
     || normalized === "deepseek-v4"
     || normalized.startsWith("deepseek-v4-");
 }
@@ -84,8 +85,9 @@ function isThinkingOff(level) {
 
 function reasoningEffortForLevel(level) {
   if (!level) return null;
-  if (level === "xhigh" || level === "max") return "max";
+  if (level === "max" || level === "xhigh") return "max";
   if (level === "high") return "high";
+  if (level === "minimal" || level === "low" || level === "medium") return "low";
   return null;
 }
 
@@ -130,10 +132,12 @@ function shouldDisableThinkingForUtility(payload, model) {
 
 function normalizeReasoningEffort(payload) {
   if (!hasOwn(payload, "reasoning_effort")) return;
-  if (payload.reasoning_effort === "low" || payload.reasoning_effort === "medium") {
-    payload.reasoning_effort = "high";
+  if (payload.reasoning_effort === "medium") {
+    payload.reasoning_effort = "low";
   } else if (payload.reasoning_effort === "xhigh") {
     payload.reasoning_effort = "max";
+  } else if (payload.reasoning_effort === "minimal") {
+    payload.reasoning_effort = "low";
   }
 }
 
@@ -202,7 +206,7 @@ function buildRoleplayReasoningMarker(options: AnyRecord = {}) {
 
   return [
     "[Role immersion instruction] In your reasoning_content / thinking process, follow these rules:",
-    "G-SAP DeepSeek roleplay reasoning patch",
+    "Codia DeepSeek roleplay reasoning patch",
     `Current agent: ${agentName}`,
     agentDescription ? `Roster description: ${agentDescription}` : null,
     `1. Use first-person inner monologue as the Agent identity "${agentName}" defined in the current system prompt.`,

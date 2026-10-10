@@ -17,13 +17,13 @@ describe('removed VS Code coding surface contract', () => {
   it('does not render or import the VS Code coding surface', () => {
     const app = readReact('App.tsx');
 
-    expect(app).not.toContain('GsapIdeSurface');
+    expect(app).not.toContain('CodiaIdeSurface');
     expect(app).not.toContain('codingMode');
     expect(app).not.toContain('titlebar-ide-mode');
-    expect(app).not.toContain('data-gsap-ide-status-entry');
+    expect(app).not.toContain('data-codia-ide-status-entry');
     expect(app).not.toContain("t('appMode.codingWorkspace')");
     expect(app).not.toContain('<BottomConsole');
-    expect(fs.existsSync(path.join(ROOT, 'components/GsapIdeSurface.tsx'))).toBe(false);
+    expect(fs.existsSync(path.join(ROOT, 'components/CodiaIdeSurface.tsx'))).toBe(false);
   });
 
   it('keeps the standard application chrome only', () => {
@@ -63,7 +63,7 @@ describe('removed VS Code coding surface contract', () => {
   it('does not keep VS Code workbench CSS', () => {
     const css = readRoot('desktop/src/styles.css');
 
-    expect(css).not.toContain('.gsap-coding-surface');
+    expect(css).not.toContain('.codia-coding-surface');
     expect(css).not.toContain('.vscode-workbench-shell');
     expect(css).not.toContain('.vscode-workbench-host');
     expect(css).not.toContain('.vscode-embed-placeholder');

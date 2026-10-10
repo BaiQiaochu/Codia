@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
 }));
 
 vi.mock('../../helpers', () => ({
@@ -15,7 +15,7 @@ vi.mock('../../helpers', () => ({
 }));
 
 vi.mock('../../api', () => ({
-  gsapFetch: (...args: unknown[]) => mocks.gsapFetch(...args),
+  codiaFetch: (...args: unknown[]) => mocks.codiaFetch(...args),
 }));
 
 import { MediaTab } from '../MediaTab';
@@ -30,7 +30,7 @@ describe('MediaTab settings startup order', () => {
       settingsAgentId: null,
       serverPort: null,
     });
-    mocks.gsapFetch.mockResolvedValue({
+    mocks.codiaFetch.mockResolvedValue({
       json: async () => ({
         providers: {},
         config: {},
@@ -60,18 +60,18 @@ describe('MediaTab settings startup order', () => {
   it('waits for settings readiness and an agent id before loading scoped media config', async () => {
     render(<MediaTab />);
 
-    expect(mocks.gsapFetch).not.toHaveBeenCalled();
+    expect(mocks.codiaFetch).not.toHaveBeenCalled();
 
-    useSettingsStore.setState({ ready: true, currentAgentId: 'gsap', serverPort: 52022 });
+    useSettingsStore.setState({ ready: true, currentAgentId: 'codia', serverPort: 52022 });
 
     await waitFor(() => {
-      expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/plugins/image-gen/providers?agentId=gsap');
+      expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/plugins/image-gen/providers?agentId=codia');
     });
     expect(screen.getByTestId('media-defaultImageModel')).toBeTruthy();
   });
 
   it('shows only actual scanned models in global defaults and clears stale saved defaults', async () => {
-    mocks.gsapFetch.mockImplementation(async (url: string) => {
+    mocks.codiaFetch.mockImplementation(async (url: string) => {
       if (String(url).includes('/config')) {
         return { json: async () => ({ ok: true }) };
       }
@@ -98,7 +98,7 @@ describe('MediaTab settings startup order', () => {
       };
     });
 
-    useSettingsStore.setState({ ready: true, currentAgentId: 'gsap', serverPort: 52022 });
+    useSettingsStore.setState({ ready: true, currentAgentId: 'codia', serverPort: 52022 });
     render(<MediaTab />);
 
     const select = await screen.findByTestId('media-defaultImageModel') as HTMLSelectElement;
@@ -110,7 +110,7 @@ describe('MediaTab settings startup order', () => {
     });
 
     await waitFor(() => {
-      expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/plugins/image-gen/config?agentId=gsap', expect.objectContaining({
+      expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/plugins/image-gen/config?agentId=codia', expect.objectContaining({
         method: 'PUT',
         body: JSON.stringify({ values: { defaultImageModel: null } }),
       }));
@@ -118,7 +118,7 @@ describe('MediaTab settings startup order', () => {
   });
 
   it('clears the saved default image model when it is only available as a provider candidate', async () => {
-    mocks.gsapFetch.mockImplementation(async (url: string) => {
+    mocks.codiaFetch.mockImplementation(async (url: string) => {
       if (String(url).includes('/config')) {
         return { json: async () => ({ ok: true }) };
       }
@@ -139,20 +139,20 @@ describe('MediaTab settings startup order', () => {
       };
     });
 
-    useSettingsStore.setState({ ready: true, currentAgentId: 'gsap', serverPort: 52022 });
+    useSettingsStore.setState({ ready: true, currentAgentId: 'codia', serverPort: 52022 });
     render(<MediaTab />);
 
     const select = await screen.findByTestId('media-defaultImageModel') as HTMLSelectElement;
     await waitFor(() => expect(select.value).toBe(''));
     expect([...select.options].map(option => option.textContent || '')).not.toContain('image2 / GPT Image 2');
-    expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/plugins/image-gen/config?agentId=gsap', expect.objectContaining({
+    expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/plugins/image-gen/config?agentId=codia', expect.objectContaining({
       method: 'PUT',
       body: JSON.stringify({ values: { defaultImageModel: null } }),
     }));
   });
 
   it('does not show provider candidate models as imported default model choices', async () => {
-    mocks.gsapFetch.mockImplementation(async (url: string) => {
+    mocks.codiaFetch.mockImplementation(async (url: string) => {
       if (String(url).includes('/config')) {
         return { json: async () => ({ ok: true }) };
       }
@@ -174,7 +174,7 @@ describe('MediaTab settings startup order', () => {
       };
     });
 
-    useSettingsStore.setState({ ready: true, currentAgentId: 'gsap', serverPort: 52022 });
+    useSettingsStore.setState({ ready: true, currentAgentId: 'codia', serverPort: 52022 });
     render(<MediaTab />);
 
     const select = await screen.findByTestId('media-defaultImageModel') as HTMLSelectElement;
@@ -186,7 +186,7 @@ describe('MediaTab settings startup order', () => {
   });
 
   it('clears stale built-in fallback audio and video defaults instead of keeping them selected', async () => {
-    mocks.gsapFetch.mockImplementation(async (url: string) => {
+    mocks.codiaFetch.mockImplementation(async (url: string) => {
       if (String(url).includes('/config')) {
         return { json: async () => ({ ok: true }) };
       }
@@ -201,7 +201,7 @@ describe('MediaTab settings startup order', () => {
       };
     });
 
-    useSettingsStore.setState({ ready: true, currentAgentId: 'gsap', serverPort: 52022 });
+    useSettingsStore.setState({ ready: true, currentAgentId: 'codia', serverPort: 52022 });
     render(<MediaTab />);
 
     const audioSelect = await screen.findByTestId('media-defaultAudioModel') as HTMLSelectElement;
@@ -213,7 +213,7 @@ describe('MediaTab settings startup order', () => {
     });
 
     await waitFor(() => {
-      expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/plugins/image-gen/config?agentId=gsap', expect.objectContaining({
+      expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/plugins/image-gen/config?agentId=codia', expect.objectContaining({
         method: 'PUT',
         body: JSON.stringify({
           values: {
@@ -226,7 +226,7 @@ describe('MediaTab settings startup order', () => {
   });
 
   it('switches between image, speech, music, and video modules while preserving global defaults', async () => {
-    mocks.gsapFetch.mockResolvedValue({
+    mocks.codiaFetch.mockResolvedValue({
       json: async () => ({
         providers: {
           volcengine: {
@@ -252,7 +252,7 @@ describe('MediaTab settings startup order', () => {
       }),
     });
 
-    useSettingsStore.setState({ ready: true, currentAgentId: 'gsap', serverPort: 52022 });
+    useSettingsStore.setState({ ready: true, currentAgentId: 'codia', serverPort: 52022 });
     render(<MediaTab />);
 
     expect(await screen.findByText('settings.media.imageGeneration')).toBeTruthy();
@@ -285,7 +285,7 @@ describe('MediaTab settings startup order', () => {
   });
 
   it('does not use speech provider candidate models as default transcription choices', async () => {
-    mocks.gsapFetch.mockImplementation(async (url: string) => {
+    mocks.codiaFetch.mockImplementation(async (url: string) => {
       if (url === '/api/speech-recognition/providers') {
         return {
           json: async () => ({
@@ -310,7 +310,7 @@ describe('MediaTab settings startup order', () => {
       };
     });
 
-    useSettingsStore.setState({ ready: true, currentAgentId: 'gsap', serverPort: 52022 });
+    useSettingsStore.setState({ ready: true, currentAgentId: 'codia', serverPort: 52022 });
     render(<MediaTab />);
 
     const select = await screen.findByTestId('speech-recognition-default-model') as HTMLSelectElement;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { t } from '../helpers';
 import styles from './WechatQrcodeOverlay.module.css';
 
@@ -34,7 +34,7 @@ export function WechatQrcodeOverlay() {
     setStatus('loading');
     setError('');
     try {
-      const res = await gsapFetch('/api/bridge/wechat/qrcode', { method: 'POST' });
+      const res = await codiaFetch('/api/bridge/wechat/qrcode', { method: 'POST' });
       const data = await res.json();
       if (data.ok && data.qrcodeUrl) {
         setQrcodeUrl(data.qrcodeUrl);
@@ -60,7 +60,7 @@ export function WechatQrcodeOverlay() {
     (async () => {
       while (!stoppedRef.current) {
         try {
-          const res = await gsapFetch('/api/bridge/wechat/qrcode-status', {
+          const res = await codiaFetch('/api/bridge/wechat/qrcode-status', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ qrcodeId: id }),
@@ -75,7 +75,7 @@ export function WechatQrcodeOverlay() {
             setStatus('confirmed');
             // Read agentId from ref so this uses the current value, not a stale closure.
             const agentQuery = agentIdRef.current ? `?agentId=${encodeURIComponent(agentIdRef.current)}` : '';
-            await gsapFetch(`/api/bridge/config${agentQuery}`, {
+            await codiaFetch(`/api/bridge/config${agentQuery}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -86,13 +86,13 @@ export function WechatQrcodeOverlay() {
             });
             // WeChat binds one account; the scanning user becomes the owner.
             if (data.userId) {
-              await gsapFetch(`/api/bridge/owner${agentQuery}`, {
+              await codiaFetch(`/api/bridge/owner${agentQuery}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ platform: 'wechat', userId: data.userId }),
               }).catch((err: unknown) => console.warn('[WechatQrcodeOverlay] set owner failed', err));
             }
-            window.dispatchEvent(new Event('gsap-bridge-reload'));
+            window.dispatchEvent(new Event('codia-bridge-reload'));
             setTimeout(close, 1200);
             return;
           } else if (data.status === 'expired') {
@@ -128,9 +128,9 @@ export function WechatQrcodeOverlay() {
       setRefreshCount(0);
       fetchQrcode();
     };
-    window.addEventListener('gsap-show-wechat-qrcode', show);
+    window.addEventListener('codia-show-wechat-qrcode', show);
     return () => {
-      window.removeEventListener('gsap-show-wechat-qrcode', show);
+      window.removeEventListener('codia-show-wechat-qrcode', show);
       stopPolling();
     };
   }, [fetchQrcode, stopPolling]);

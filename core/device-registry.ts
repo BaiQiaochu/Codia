@@ -10,11 +10,11 @@ export const DEVICE_CREDENTIALS_FILE = "device-credentials.json";
 export const PAIRING_SESSIONS_FILE = "pairing-sessions.json";
 
 const SCHEMA_VERSION = 1;
-const SECRET_PREFIX = "gsap_dev_";
+const SECRET_PREFIX = "codia_dev_";
 const SECRET_PREFIX_LENGTH = 18;
 const DEFAULT_PAIRING_TTL_MS = 10 * 60 * 1000;
 
-export function ensureDeviceAccessRegistries(gsapHome, { now = new Date().toISOString() } = {}) {
+export function ensureDeviceAccessRegistries(codiaHome, { now = new Date().toISOString() } = {}) {
   const created = [];
   const registries = [
     [DEVICES_FILE, createEmptyDevicesRegistry(now), validateDevicesRegistry],
@@ -23,7 +23,7 @@ export function ensureDeviceAccessRegistries(gsapHome, { now = new Date().toISOS
   ];
 
   for (const [file, emptyRegistry, validate] of registries) {
-    const filePath = path.join(gsapHome, file);
+    const filePath = path.join(codiaHome, file);
     const current = readJsonIfPresent(filePath, file);
     if (current) {
       validate(current, file);
@@ -36,28 +36,28 @@ export function ensureDeviceAccessRegistries(gsapHome, { now = new Date().toISOS
   return { created };
 }
 
-export function loadDeviceAccessRegistries(gsapHome) {
-  ensureDeviceAccessRegistries(gsapHome);
-  const devices = readJsonRequired(path.join(gsapHome, DEVICES_FILE), DEVICES_FILE);
-  const credentials = readJsonRequired(path.join(gsapHome, DEVICE_CREDENTIALS_FILE), DEVICE_CREDENTIALS_FILE);
-  const pairingSessions = readJsonRequired(path.join(gsapHome, PAIRING_SESSIONS_FILE), PAIRING_SESSIONS_FILE);
+export function loadDeviceAccessRegistries(codiaHome) {
+  ensureDeviceAccessRegistries(codiaHome);
+  const devices = readJsonRequired(path.join(codiaHome, DEVICES_FILE), DEVICES_FILE);
+  const credentials = readJsonRequired(path.join(codiaHome, DEVICE_CREDENTIALS_FILE), DEVICE_CREDENTIALS_FILE);
+  const pairingSessions = readJsonRequired(path.join(codiaHome, PAIRING_SESSIONS_FILE), PAIRING_SESSIONS_FILE);
   validateDevicesRegistry(devices, DEVICES_FILE);
   validateCredentialsRegistry(credentials, DEVICE_CREDENTIALS_FILE);
   validatePairingSessionsRegistry(pairingSessions, PAIRING_SESSIONS_FILE);
   return { devices, credentials, pairingSessions };
 }
 
-export function createDeviceCredential(gsapHome, input) {
+export function createDeviceCredential(codiaHome, input) {
   const now = input?.now || new Date().toISOString();
-  const registries = loadDeviceAccessRegistries(gsapHome);
+  const registries = loadDeviceAccessRegistries(codiaHome);
   const issued = issueDeviceCredential(registries, input, { now });
-  persistDeviceAccessRegistries(gsapHome, registries);
+  persistDeviceAccessRegistries(codiaHome, registries);
   return cloneIssuedCredential(issued);
 }
 
-export function authenticateDeviceCredential(gsapHome, secret, { now = new Date().toISOString() } = {}) {
+export function authenticateDeviceCredential(codiaHome, secret, { now = new Date().toISOString() } = {}) {
   if (!isNonEmptyString(secret)) return null;
-  const registries = loadDeviceAccessRegistries(gsapHome);
+  const registries = loadDeviceAccessRegistries(codiaHome);
   const credential = registries.credentials.credentials.find((item) => (
     item.status === "active"
     && isNonEmptyString(item.secretPrefix)
@@ -72,7 +72,7 @@ export function authenticateDeviceCredential(gsapHome, secret, { now = new Date(
 
   credential.lastUsedAt = now;
   device.lastSeenAt = now;
-  persistDeviceAccessRegistries(gsapHome, registries);
+  persistDeviceAccessRegistries(codiaHome, registries);
 
   const trustState = device.trustState || "lan";
   return normalizePrincipal({
@@ -90,21 +90,21 @@ export function authenticateDeviceCredential(gsapHome, secret, { now = new Date(
   });
 }
 
-export function revokeDeviceCredential(gsapHome, credentialId, { now = new Date().toISOString() } = {}) {
+export function revokeDeviceCredential(codiaHome, credentialId, { now = new Date().toISOString() } = {}) {
   if (!isNonEmptyString(credentialId)) throw new Error("credentialId required");
-  const registries = loadDeviceAccessRegistries(gsapHome);
+  const registries = loadDeviceAccessRegistries(codiaHome);
   const credential = registries.credentials.credentials.find((item) => item.credentialId === credentialId);
   if (!credential) throw new Error(`device credential not found: ${credentialId}`);
   credential.status = "revoked";
   credential.revokedAt = now;
   registries.credentials.updatedAt = now;
-  persistDeviceAccessRegistries(gsapHome, registries);
+  persistDeviceAccessRegistries(codiaHome, registries);
   return clonePlain(credential);
 }
 
-export function revokeDevice(gsapHome, deviceId, { now = new Date().toISOString() } = {}) {
+export function revokeDevice(codiaHome, deviceId, { now = new Date().toISOString() } = {}) {
   if (!isNonEmptyString(deviceId)) throw new Error("deviceId required");
-  const registries = loadDeviceAccessRegistries(gsapHome);
+  const registries = loadDeviceAccessRegistries(codiaHome);
   const device = registries.devices.devices.find((item) => item.deviceId === deviceId);
   if (!device) throw new Error(`device not found: ${deviceId}`);
   device.status = "revoked";
@@ -118,11 +118,11 @@ export function revokeDevice(gsapHome, deviceId, { now = new Date().toISOString(
   }
   registries.devices.updatedAt = now;
   registries.credentials.updatedAt = now;
-  persistDeviceAccessRegistries(gsapHome, registries);
+  persistDeviceAccessRegistries(codiaHome, registries);
   return clonePlain(device);
 }
 
-export function createPairingSession(gsapHome, input) {
+export function createPairingSession(codiaHome, input) {
   const now = input?.now || new Date().toISOString();
   const ttlMs = Number.isFinite(input?.ttlMs) ? input.ttlMs : DEFAULT_PAIRING_TTL_MS;
   if (ttlMs <= 0) throw new Error("ttlMs must be positive");
@@ -144,21 +144,21 @@ export function createPairingSession(gsapHome, input) {
     expiresAt: new Date(Date.parse(now) + ttlMs).toISOString(),
   };
 
-  const registries = loadDeviceAccessRegistries(gsapHome);
+  const registries = loadDeviceAccessRegistries(codiaHome);
   registries.pairingSessions.pairingSessions.push(pairingSession);
   registries.pairingSessions.updatedAt = now;
-  persistDeviceAccessRegistries(gsapHome, registries);
+  persistDeviceAccessRegistries(codiaHome, registries);
   return {
     pairingSession: clonePlain(pairingSession),
     userCode,
   };
 }
 
-export function approvePairingSession(gsapHome, input) {
+export function approvePairingSession(codiaHome, input) {
   const now = input?.now || new Date().toISOString();
   assertNonEmptyString(input?.pairingSessionId, "pairingSessionId");
   assertNonEmptyString(input?.userCode, "userCode");
-  const registries = loadDeviceAccessRegistries(gsapHome);
+  const registries = loadDeviceAccessRegistries(codiaHome);
   const session = registries.pairingSessions.pairingSessions
     .find((item) => item.pairingSessionId === input.pairingSessionId);
   if (!session) throw new Error(`pairing session not found: ${input.pairingSessionId}`);
@@ -167,7 +167,7 @@ export function approvePairingSession(gsapHome, input) {
     session.status = "expired";
     session.expiredAt = now;
     registries.pairingSessions.updatedAt = now;
-    persistDeviceAccessRegistries(gsapHome, registries);
+    persistDeviceAccessRegistries(codiaHome, registries);
     throw new Error("pairing session expired");
   }
   if (!verifySecret(normalizeUserCode(input.userCode), session.userCodeSalt, session.userCodeHash)) {
@@ -191,7 +191,7 @@ export function approvePairingSession(gsapHome, input) {
   session.deviceId = issued.device.deviceId;
   session.credentialId = issued.credential.credentialId;
   registries.pairingSessions.updatedAt = now;
-  persistDeviceAccessRegistries(gsapHome, registries);
+  persistDeviceAccessRegistries(codiaHome, registries);
   return cloneIssuedCredential({
     ...issued,
     pairingSession: session,
@@ -250,13 +250,13 @@ function issueDeviceCredential(registries, input, { now }) {
   return { device, credential, secret };
 }
 
-function persistDeviceAccessRegistries(gsapHome, registries) {
+function persistDeviceAccessRegistries(codiaHome, registries) {
   validateDevicesRegistry(registries.devices, DEVICES_FILE);
   validateCredentialsRegistry(registries.credentials, DEVICE_CREDENTIALS_FILE);
   validatePairingSessionsRegistry(registries.pairingSessions, PAIRING_SESSIONS_FILE);
-  writeJsonAtomic(path.join(gsapHome, DEVICES_FILE), registries.devices);
-  writeJsonAtomic(path.join(gsapHome, DEVICE_CREDENTIALS_FILE), registries.credentials);
-  writeJsonAtomic(path.join(gsapHome, PAIRING_SESSIONS_FILE), registries.pairingSessions);
+  writeJsonAtomic(path.join(codiaHome, DEVICES_FILE), registries.devices);
+  writeJsonAtomic(path.join(codiaHome, DEVICE_CREDENTIALS_FILE), registries.credentials);
+  writeJsonAtomic(path.join(codiaHome, PAIRING_SESSIONS_FILE), registries.pairingSessions);
 }
 
 function createEmptyDevicesRegistry(now) {

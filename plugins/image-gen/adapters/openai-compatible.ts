@@ -6,6 +6,10 @@ import { isOpenAICompatibleApi } from "../lib/provider-utils.ts";
 import { providerDefaultsFor } from "../lib/provider-defaults.ts";
 import { resolveOpenAiImageSize } from "../lib/resolution-tiers.ts";
 import { inferMediaTypeFromModelId } from "../../../shared/model-type-inference.ts";
+import {
+  isGptImageModelId,
+  supportsFlexibleOpenAIImageSize,
+} from "../../../shared/openai-image-models.ts";
 
 function isLocalBaseUrl(url = "") {
   return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/.test(String(url || ""));
@@ -59,13 +63,13 @@ function matchesCompactGptImage2(value) {
   return /(^|[^a-z0-9])gpt[-_]?image_?2([^a-z0-9]|$)/i.test(String(value || ""));
 }
 
-function looksLikeOfficialGptImage2Model(modelId) {
-  return /(^|[^a-z0-9])gpt-image-2([^a-z0-9]|$)/i.test(String(modelId || ""));
+function looksLikeOfficialGptImageModel(modelId) {
+  return isGptImageModelId(modelId);
 }
 
 function looksLikeGptImage2(providerId, modelId) {
   if (matchesCompactGptImage2(providerId)) return true;
-  if (looksLikeOfficialGptImage2Model(modelId)) return false;
+  if (looksLikeOfficialGptImageModel(modelId)) return false;
   return matchesCompactGptImage2(modelId);
 }
 
@@ -119,7 +123,7 @@ function shouldUseFlexibleOpenAiImageSize(params, providerDefaults, providerId, 
   if (!hasTierInput && !providerDefaults?.openAiFlexibleSize && !providerDefaults?.openaiFlexibleSize) return false;
   return providerDefaults?.openAiFlexibleSize === true
     || providerDefaults?.openaiFlexibleSize === true
-    || looksLikeOfficialGptImage2Model(modelId);
+    || supportsFlexibleOpenAIImageSize(modelId);
 }
 
 function shouldUseGenerationImageUrls(providerDefaults, providerId, modelId) {

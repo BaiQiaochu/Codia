@@ -10,7 +10,7 @@ type StoreState = {
 };
 
 let storeState: StoreState;
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
 const useStoreMock = Object.assign(
   () => storeState,
@@ -24,8 +24,8 @@ vi.mock('../../stores', () => ({
   useStore: useStoreMock,
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 vi.mock('../../../../shared/error-bus.ts', () => ({
@@ -51,7 +51,7 @@ describe('loadModels session healing', () => {
       currentModel: null,
     };
 
-    gsapFetchMock.mockResolvedValue({
+    codiaFetchMock.mockResolvedValue({
       json: async () => ({
         activeModel: { id: 'vision-model', provider: 'openai' },
         models: [
@@ -102,7 +102,7 @@ describe('loadModels session healing', () => {
 
   it('drops a stale model refresh when the focused session changed mid-flight', async () => {
     let resolveFetch: (value: unknown) => void = () => {};
-    gsapFetchMock.mockReturnValue(new Promise((resolve) => {
+    codiaFetchMock.mockReturnValue(new Promise((resolve) => {
       resolveFetch = resolve;
     }));
 

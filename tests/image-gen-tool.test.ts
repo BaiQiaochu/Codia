@@ -95,8 +95,6 @@ function makeCtx(mediaGen, busOverrides = {}) {
 
 async function flushBackgroundSubmits() {
   await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
 }
 
 // ---------------------------------------------------------------------------
@@ -416,8 +414,8 @@ describe("generate-image tool - single submit returns card", () => {
         isBridgeSession: true,
         platform: "wechat",
         chatId: "wx-user",
-        sessionKey: "wx_dm_wx-user@gsap",
-        agentId: "gsap",
+        sessionKey: "wx_dm_wx-user@codia",
+        agentId: "codia",
         chatType: "dm",
       },
     };
@@ -429,8 +427,8 @@ describe("generate-image tool - single submit returns card", () => {
       kind: "bridge",
       platform: "wechat",
       chatId: "wx-user",
-      sessionKey: "wx_dm_wx-user@gsap",
-      agentId: "gsap",
+      sessionKey: "wx_dm_wx-user@codia",
+      agentId: "codia",
       chatType: "dm",
     });
     expect(store.add.mock.calls[0][0].deliveryTarget).toEqual(deferredCall[1].meta.deliveryTarget);
@@ -811,23 +809,23 @@ describe("generate-image tool - image param (image-to-image)", () => {
       submit: vi.fn(async () => ({ taskId: "t-agent-config" })),
     });
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "image-gen-agent-scope-"));
-    fs.mkdirSync(path.join(tmpDir, "agents", "hana"), { recursive: true });
+    fs.mkdirSync(path.join(tmpDir, "agents", "codia"), { recursive: true });
     fs.writeFileSync(
-      path.join(tmpDir, "agents", "hana", "config.json"),
-      JSON.stringify({ defaultImageModel: { id: "gsap-default", provider: "openai-compatible" } }),
+      path.join(tmpDir, "agents", "codia", "config.json"),
+      JSON.stringify({ defaultImageModel: { id: "codia-default", provider: "openai-compatible" } }),
       "utf-8",
     );
     const ctx = {
       ...makeCtx({ registry, store, poller }),
       dataDir: tmpDir,
-      agentId: "hana",
+      agentId: "codia",
     };
 
     await execute({ prompt: "lanterns" }, ctx);
 
     const [submittedParams] = adapter.submit.mock.calls[0];
     expect(submittedParams.providerId).toBe("openai-compatible");
-    expect(submittedParams.model).toBe("gsap-default");
+    expect(submittedParams.model).toBe("codia-default");
   });
 
   it("uses configured image model without requiring it as the main chat model", async () => {
@@ -1000,7 +998,7 @@ describe("generate-image direct route", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-gsap-Session-Path": ctx.sessionPath,
+        "X-codia-Session-Path": ctx.sessionPath,
       },
       body: JSON.stringify({
         prompt: "a glass city at sunrise",
@@ -1072,7 +1070,7 @@ describe("generate-image direct route", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-gsap-Session-Path": ctx.sessionPath,
+        "X-codia-Session-Path": ctx.sessionPath,
       },
       body: JSON.stringify({ prompt: "a flower icon" }),
     });

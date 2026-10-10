@@ -3,7 +3,7 @@
   * */
 
 import { useCallback, useEffect, useRef, useState, lazy, Suspense, type TouchEvent } from 'react';
-import { ChatCircleDots, UsersThree, FlowArrow, Wrench, Flower, Plus } from '@phosphor-icons/react';
+import { ChatCircleDots, UsersThree, FlowArrow, ClockCounterClockwise, Flower, Plus, Broadcast } from '@phosphor-icons/react';
 import codiaBrandEmblem from '../assets/codia/codia-brand-emblem.png';
 import { useStore } from './stores';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -15,6 +15,7 @@ const ActivityPanel = lazy(() => import('./components/ActivityPanel').then(m => 
 const AutomationPanel = lazy(() => import('./components/AutomationPanel').then(m => ({ default: m.AutomationPanel })));
 const SkillsPanel = lazy(() => import('./components/SkillsPanel').then(m => ({ default: m.SkillsPanel })));
 const BridgePanel = lazy(() => import('./components/BridgePanel').then(m => ({ default: m.BridgePanel })));
+const SocialStatusPanel = lazy(() => import('./components/SocialStatusPanel').then(m => ({ default: m.SocialStatusPanel })));
 import { RightWorkspacePanel } from './components/right-workspace/RightWorkspacePanel';
 import { PluginPageView } from './components/plugin/PluginPageView';
 import { InputArea } from './components/InputArea';
@@ -48,12 +49,12 @@ import { ToastContainer } from './components/ToastContainer';
 import { InputContextMenu } from './components/InputContextMenu';
 import { StatusBar } from './components/StatusBar';
 import { SelectionQuoteActionSurface } from './components/selection/SelectionQuoteActionSurface';
-import { MediaViewer } from './components/shared/MediaViewer/MediaViewer';
+const LazyMediaViewer = lazy(() => import('./components/shared/MediaViewer/MediaViewer').then((module) => ({ default: module.MediaViewer })));
 import { SettingsModalShell } from './components/SettingsModalShell';
 import { initTheme, initDragPrevention } from './bootstrap';
 import { initApp } from './app-init';
 import { MainContent } from './MainContent';
-import { useAnyBrowserRunning } from './stores/browser-slice';
+import { useAnyBrowserRunning } from './stores/browser-selectors';
 import { openSettingsModal } from './stores/settings-modal-actions';
 import { switchTab } from './components/channels/tab-router';
 import { calculateInputCardBottomInset, parseCssPixels } from './utils/input-card-layout';
@@ -66,6 +67,16 @@ import {
 } from './utils/mobile-edge-gesture';
 
 declare function t(key: string, vars?: Record<string, string | number>): string;
+
+function LazyMediaViewerRoot() {
+  const mediaViewer = useStore(state => state.mediaViewer);
+  if (!mediaViewer) return null;
+  return (
+    <Suspense fallback={null}>
+      <LazyMediaViewer />
+    </Suspense>
+  );
+}
 
 //
 initTheme();
@@ -173,14 +184,14 @@ function ChannelInputArea() {
 
   if (isDM) {
     return (
-      <div className="channel-readonly-notice" data-byoung-chat-color-scope="">
+      <div className="channel-readonly-notice" data-codia-chat-color-scope="">
         <ChannelReadonly />
       </div>
     );
   }
 
   return (
-    <div className="channel-input-area" data-byoung-chat-color-scope="">
+    <div className="channel-input-area" data-codia-chat-color-scope="">
       <ChannelInput />
     </div>
   );
@@ -451,7 +462,15 @@ function App() {
               </div>
               <button type="button" className={`codia-nav-item${currentTab === 'channels' ? ' active' : ''}`} onClick={() => switchTab('channels')}><UsersThree weight="fill" /><span>Agent 小队</span>{channelTotalUnread > 0 && <span className="codia-nav-badge" aria-label={`${channelTotalUnread} 条未读消息`}>{channelTotalUnread > 99 ? '99+' : channelTotalUnread}</span>}</button>
               <button type="button" className={`codia-nav-item${currentTab === 'workflow' ? ' active' : ''}`} onClick={() => void goWorkflow()}><FlowArrow weight="fill" /><span>工作流</span></button>
-              <button type="button" className={`codia-nav-item${activePanel === 'activity' ? ' active' : ''}`} onClick={goActivity}><Wrench weight="fill" /><span>活动与插件</span></button>
+              <button
+                type="button"
+                className={`codia-nav-item${activePanel === 'activity' ? ' active' : ''}`}
+                onClick={goActivity}
+                aria-label={t('sidebar.automationRecords')}
+              >
+                <ClockCounterClockwise weight="fill" />
+                <span>{t('sidebar.automationRecords')}</span>
+              </button>
             </nav>
             <div className={`sidebar-chat-content${currentTab === 'chat' ? '' : ' hidden'}`}>
               <>
@@ -484,11 +503,20 @@ function App() {
               )}
             </div>
           </div>
-          <button type="button" className="codia-profile" onClick={() => openSettingsModal('me')}>
-            {userAvatarUrl ? <img src={userAvatarUrl} alt="" /> : <span className="codia-profile-avatar">{(userName || 'U').slice(0, 1).toUpperCase()}</span>}
-            <span><strong>{userName && userName !== 'User' ? userName : '个人空间'}</strong><small>账户与偏好设置</small></span>
-            <Flower size={16} weight="fill" />
-          </button>
+          <div className="codia-profile-shell" role="group" aria-label="账户与快捷设置">
+            <button type="button" className="codia-profile" onClick={() => openSettingsModal('me')}>
+              {userAvatarUrl ? <img src={userAvatarUrl} alt="" /> : <span className="codia-profile-avatar">{(userName || 'U').slice(0, 1).toUpperCase()}</span>}
+              <span><strong>{userName && userName !== 'User' ? userName : '个人空间'}</strong><small>账户与偏好设置</small></span>
+            </button>
+            <div className="codia-profile-actions">
+              <button type="button" className="codia-profile-action" aria-label="社交状态" title="社交状态" onClick={() => useStore.getState().setActivePanel('social')}>
+                <Broadcast size={17} weight="duotone" /><span className="codia-social-status-dot" aria-hidden="true" />
+              </button>
+              <button type="button" className="codia-profile-action" aria-label="设置" title="设置" onClick={() => openSettingsModal('me')}>
+                <Flower size={16} weight="fill" />
+              </button>
+            </div>
+          </div>
           <div className="resize-handle resize-handle-right" id="sidebarResizeHandle"></div>
         </aside>
 
@@ -497,7 +525,7 @@ function App() {
 
           <div
             className={`chat-area${currentTab === 'chat' ? '' : ' hidden'}${hasPanels ? ' has-panels' : ''}`}
-            data-byoung-chat-color-scope=""
+            data-codia-chat-color-scope=""
           >
             <WelcomeContainer />
             <RegionalErrorBoundary
@@ -510,7 +538,7 @@ function App() {
 
           <div
             className={`input-area${currentTab === 'chat' ? '' : ' hidden'}`}
-            data-byoung-chat-color-scope=""
+            data-codia-chat-color-scope=""
             ref={inputAreaRef}
           >
             <RegionalErrorBoundary
@@ -534,7 +562,7 @@ function App() {
                 {currentChannel ? (
                   <>
                     <ChannelHeader />
-                    <div className="channel-messages" data-byoung-chat-color-scope="">
+                    <div className="channel-messages" data-codia-chat-color-scope="">
                       <ChannelMessages />
                     </div>
                     <ChannelInputArea />
@@ -572,6 +600,7 @@ function App() {
             {activePanel === 'automation' && <AutomationPanel />}
             {activePanel === 'skills' && <SkillsPanel />}
             {activePanel === 'bridge' && <BridgePanel />}
+            {activePanel === 'social' && <SocialStatusPanel />}
           </Suspense>
         </MainContent>
 
@@ -627,7 +656,7 @@ function App() {
       <StatusBar />
 
       {/* Media viewer overlay */}
-      <MediaViewer />
+      <LazyMediaViewerRoot />
 
       {/* In-window settings overlay */}
       <SettingsModalShell />

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { subscribeStreamKey } from '../../services/stream-key-dispatcher';
 import type { StreamKeyEvent } from '../../services/stream-key-dispatcher';
 import { renderMarkdown } from '../../utils/markdown';
@@ -7,8 +7,11 @@ import { useStore } from '../../stores';
 import { sessionScopedValue } from '../../stores/session-slice';
 import { loadMessages } from '../../stores/session-actions';
 import { requestStreamResume } from '../../services/stream-resume';
-import { ChatTranscript } from './ChatTranscript';
 import styles from './Chat.module.css';
+
+const LazyChatTranscript = lazy(() => import('./ChatTranscript').then(module => ({
+  default: module.ChatTranscript,
+})));
 
 const EMPTY_ITEMS: ChatListItem[] = [];
 const EMPTY_SESSION_RETRY_DELAY_MS = 800;
@@ -364,13 +367,15 @@ export function SubagentSessionPreview({ taskId, sessionPath, agentId, streamSta
       ) : mergedItems.length === 0 ? (
         <div>暂无会话内容</div>
       ) : (
-        <ChatTranscript
-          items={mergedItems}
-          sessionPath={sessionPath}
-          agentId={agentId}
-          readOnly
-          hideUserIdentity
-        />
+        <Suspense fallback={<div>正在加载会话视图...</div>}>
+          <LazyChatTranscript
+            items={mergedItems}
+            sessionPath={sessionPath}
+            agentId={agentId}
+            readOnly
+            hideUserIdentity
+          />
+        </Suspense>
       )}
     </div>
   );

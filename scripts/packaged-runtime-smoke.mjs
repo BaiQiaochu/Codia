@@ -3,15 +3,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
 
-const baseUrl = String(process.env.GSAP_PACKAGE_SMOKE_BASE_URL || "").replace(/\/+$/, "");
-const token = String(process.env.GSAP_PACKAGE_SMOKE_TOKEN || "");
-const screenshotsArg = String(process.env.GSAP_PACKAGE_SMOKE_SCREENSHOTS || "").trim();
+const baseUrl = String(process.env.CODIA_PACKAGE_SMOKE_BASE_URL || "").replace(/\/+$/, "");
+const token = String(process.env.CODIA_PACKAGE_SMOKE_TOKEN || "");
+const screenshotsArg = String(process.env.CODIA_PACKAGE_SMOKE_SCREENSHOTS || "").trim();
 const screenshotsDir = screenshotsArg === "none"
   ? null
   : path.resolve(screenshotsArg || "artifacts/packaged-runtime-smoke-screenshots");
 
 if (!baseUrl) {
-  console.error("[packaged-runtime-smoke] GSAP_PACKAGE_SMOKE_BASE_URL is required");
+  console.error("[packaged-runtime-smoke] CODIA_PACKAGE_SMOKE_BASE_URL is required");
   process.exit(2);
 }
 
@@ -33,7 +33,7 @@ try {
   validateMobileBootstrap(mobileBootstrap);
   checks.push("PWA bootstrap identity");
 
-  const skills = await httpJson("/api/skills?agentId=gsap");
+  const skills = await httpJson("/api/skills?agentId=codia");
   if (!Array.isArray(skills?.skills)) {
     throw new Error("/api/skills did not return a skills array");
   }
@@ -63,7 +63,7 @@ try {
   await assertNoHorizontalOverflow(page, "mobile-theme-workbench");
   const themeState = await page.evaluate(() => ({
     dataTheme: document.documentElement.getAttribute("data-theme"),
-    storedTheme: localStorage.getItem("gsap-theme"),
+    storedTheme: localStorage.getItem("codia-theme"),
     cssHref: document.getElementById("themeSheet")?.getAttribute("href") || "",
   }));
   if (themeState.storedTheme !== "workbench") {

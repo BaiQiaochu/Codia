@@ -6,7 +6,7 @@ function createApp() {
   const saveProvider = vi.fn();
   const engine = {
     config: {},
-    configPath: "E:/tmp/gsap-config-test.yaml",
+    configPath: "E:/tmp/codia-config-test.yaml",
     updateConfig: vi.fn().mockResolvedValue(undefined),
     onProviderChanged: vi.fn().mockResolvedValue(undefined),
     providerRegistry: {

@@ -1,20 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { requestResearchReport } from '../../utils/research-mode';
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: vi.fn(),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: vi.fn(),
 }));
 
-const gsapFetchMock = vi.mocked(gsapFetch);
+const codiaFetchMock = vi.mocked(codiaFetch);
 
 describe('requestResearchReport', () => {
   beforeEach(() => {
-    gsapFetchMock.mockReset();
+    codiaFetchMock.mockReset();
   });
 
   it('posts the current topic and returns the research report', async () => {
-    gsapFetchMock.mockResolvedValue(new Response(JSON.stringify({
+    codiaFetchMock.mockResolvedValue(new Response(JSON.stringify({
       report: 'A cited research report.',
       mode: 'academic',
       generatedAt: '2026-06-27T00:00:00.000Z',
@@ -34,12 +34,12 @@ describe('requestResearchReport', () => {
       mode: 'academic',
       generatedAt: '2026-06-27T00:00:00.000Z',
     });
-    expect(gsapFetchMock).toHaveBeenCalledWith('/api/prompts/research', expect.objectContaining({
+    expect(codiaFetchMock).toHaveBeenCalledWith('/api/prompts/research', expect.objectContaining({
       method: 'POST',
       timeout: 180_000,
       headers: { 'content-type': 'application/json' },
     }));
-    expect(JSON.parse(String(gsapFetchMock.mock.calls[0][1]?.body))).toEqual({
+    expect(JSON.parse(String(codiaFetchMock.mock.calls[0][1]?.body))).toEqual({
       topic: 'mainland china ai search products',
       mode: 'academic',
       exportFormats: ['word', 'pdf'],
@@ -51,11 +51,11 @@ describe('requestResearchReport', () => {
 
   it('does not call the backend for empty topics', async () => {
     await expect(requestResearchReport({ topic: '   ' })).rejects.toThrow('empty_research_topic');
-    expect(gsapFetchMock).not.toHaveBeenCalled();
+    expect(codiaFetchMock).not.toHaveBeenCalled();
   });
 
   it('throws when the backend returns no report', async () => {
-    gsapFetchMock.mockResolvedValue(new Response(JSON.stringify({ report: '', error: 'search unavailable' })));
+    codiaFetchMock.mockResolvedValue(new Response(JSON.stringify({ report: '', error: 'search unavailable' })));
 
     await expect(requestResearchReport({ topic: 'ai search' })).rejects.toThrow('search unavailable');
   });

@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSettingsStore } from '../../settings/store';
 
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
 function response(body: unknown): Response {
   return { json: async () => body } as Response;
@@ -119,7 +119,7 @@ const observationPayload = {
 };
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 vi.mock('../../utils/markdown', () => ({
@@ -128,8 +128,8 @@ vi.mock('../../utils/markdown', () => ({
 
 describe('ExperimentsTab', () => {
   beforeEach(() => {
-    gsapFetchMock.mockReset();
-    gsapFetchMock.mockImplementation(async (url: string, opts?: RequestInit) => {
+    codiaFetchMock.mockReset();
+    codiaFetchMock.mockImplementation(async (url: string, opts?: RequestInit) => {
       if (opts?.method === 'PATCH') {
         return response({ ok: true, value: JSON.parse(String(opts.body)).value });
       }
@@ -203,8 +203,8 @@ describe('ExperimentsTab', () => {
     useSettingsStore.setState({
       platformName: 'win32',
       agents: [
-        { id: 'secondary', name: 'Secondary', yuan: 'gsap', isPrimary: false },
-        { id: 'primary', name: 'Primary', yuan: 'gsap', isPrimary: true },
+        { id: 'secondary', name: 'Secondary', yuan: 'codia', isPrimary: false },
+        { id: 'primary', name: 'Primary', yuan: 'codia', isPrimary: true },
       ],
       toastVisible: false,
       toastMessage: '',
@@ -221,15 +221,13 @@ describe('ExperimentsTab', () => {
     const { ExperimentsTab } = await import('../../settings/tabs/ExperimentsTab');
     render(<ExperimentsTab />);
 
-    expect(await screen.findByText('Computer control')).toBeInTheDocument();
-
     const main = await screen.findByRole('switch', { name: 'Cache snapshot memory' });
     expect(main).toHaveAttribute('aria-checked', 'false');
 
     fireEvent.click(main);
 
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith(
+      expect(codiaFetchMock).toHaveBeenCalledWith(
         '/api/experiments/memory.cache_snapshot_reflection',
         expect.objectContaining({
           method: 'PATCH',
@@ -245,7 +243,7 @@ describe('ExperimentsTab', () => {
     fireEvent.click(observeOnly);
 
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith(
+      expect(codiaFetchMock).toHaveBeenCalledWith(
         '/api/experiments/memory.cache_snapshot_reflection',
         expect.objectContaining({
           method: 'PATCH',
@@ -257,7 +255,7 @@ describe('ExperimentsTab', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Clear observation' }));
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith(
+      expect(codiaFetchMock).toHaveBeenCalledWith(
         '/api/experiments/memory/cache-snapshot-reflection/observation?agentId=primary',
         { method: 'DELETE' },
       );
@@ -285,7 +283,7 @@ describe('ExperimentsTab', () => {
     fireEvent.click(await screen.findByRole('option', { name: 'Normal compaction' }));
 
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith(
+      expect(codiaFetchMock).toHaveBeenCalledWith(
         '/api/experiments/session.compaction_mode',
         expect.objectContaining({
           method: 'PATCH',
@@ -306,14 +304,14 @@ describe('ExperimentsTab', () => {
     fireEvent.click(screen.getByRole('switch', { name: 'DeepSeek roleplay reasoning patch' }));
 
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith(
+      expect(codiaFetchMock).toHaveBeenCalledWith(
         '/api/experiments/subagent.proactive_delegation',
         expect.objectContaining({
           method: 'PATCH',
           body: JSON.stringify({ value: true }),
         }),
       );
-      expect(gsapFetchMock).toHaveBeenCalledWith(
+      expect(codiaFetchMock).toHaveBeenCalledWith(
         '/api/experiments/provider.deepseek_roleplay_reasoning_patch',
         expect.objectContaining({
           method: 'PATCH',
@@ -333,7 +331,7 @@ describe('ExperimentsTab', () => {
     fireEvent.click(editableMemory);
 
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith(
+      expect(codiaFetchMock).toHaveBeenCalledWith(
         '/api/experiments/memory.editable_facts',
         expect.objectContaining({
           method: 'PATCH',

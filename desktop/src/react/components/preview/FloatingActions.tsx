@@ -10,7 +10,7 @@ import {
   requestMarkdownCoverGeneration,
   type WorkbenchMarkdownCoverTarget,
 } from '../../utils/markdown-cover-generation';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { useI18n } from '../../hooks/use-i18n';
 import { Tooltip } from '../../ui';
 import { extOfName, inferKindByExt } from '../../utils/file-kind';
@@ -203,7 +203,7 @@ export function FloatingActions({
     coverStatusRequestRef.current = requestId;
     setCoverStatusRefreshing(true);
     try {
-      const res = await gsapFetch('/api/desk/beautify/status');
+      const res = await codiaFetch('/api/desk/beautify/status');
       const data = await res.json().catch(() => ({}));
       if (requestId === coverStatusRequestRef.current) {
         setCoverStatus(data || null);

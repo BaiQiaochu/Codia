@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { gsapUrl } from '../hooks/use-gsap-fetch';
+import { codiaUrl } from '../hooks/use-codia-fetch';
 import type { Agent } from '../types';
 import { yuanFallbackAvatar } from './agent-helpers';
 
@@ -79,7 +79,7 @@ export function resolveAgentDisplayInfo({
     return {
       id: agent.id,
       displayName: agent.name || agent.id,
-      avatarUrl: agent.hasAvatar ? gsapUrl(`/api/agents/${agent.id}/avatar?t=${agentAvatarVersion}`, { includeTokenQuery: true }) : null,
+      avatarUrl: agent.hasAvatar ? codiaUrl(`/api/agents/${agent.id}/avatar?t=${agentAvatarVersion}`, { includeTokenQuery: true }) : null,
       fallbackAvatar: yuanFallbackAvatar(agent.yuan),
       yuan: agent.yuan,
       isUser: false,

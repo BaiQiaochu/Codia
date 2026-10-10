@@ -7,7 +7,7 @@ let runtime;
 const tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-server-runtime-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-server-runtime-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -38,7 +38,7 @@ describe("desktop server runtime", () => {
     const projectRoot = makeTempDir();
     const resourcesPath = makeTempDir();
     ensureFile(path.join(projectRoot, "server", "index.js"), "console.log('source');");
-    ensureFile(path.join(resourcesPath, "server", "gsap-server.exe"));
+    ensureFile(path.join(resourcesPath, "server", "codia-server.exe"));
 
     const config = runtime.resolveServerLaunchConfig({
       env: {},
@@ -50,17 +50,17 @@ describe("desktop server runtime", () => {
     });
 
     expect(config.kind).toBe("bundled");
-    expect(config.serverBin).toBe(path.join(resourcesPath, "server", "gsap-server.exe"));
+    expect(config.serverBin).toBe(path.join(resourcesPath, "server", "codia-server.exe"));
     expect(config.serverArgs).toEqual([path.join(resourcesPath, "server", "bootstrap.js")]);
-    expect(config.serverEnv.GSAP_ROOT).toBe(path.join(resourcesPath, "server"));
-    expect(config.serverEnv.GSAP_SERVER_ENTRY).toBe(path.join(resourcesPath, "server", "bundle", "index.js"));
+    expect(config.serverEnv.CODIA_ROOT).toBe(path.join(resourcesPath, "server"));
+    expect(config.serverEnv.CODIA_SERVER_ENTRY).toBe(path.join(resourcesPath, "server", "bundle", "index.js"));
   });
 
   it("falls back to the legacy packaged server binary during install migration", () => {
     const projectRoot = makeTempDir();
     const resourcesPath = makeTempDir();
     ensureFile(path.join(projectRoot, "server", "index.js"), "console.log('source');");
-    ensureFile(path.join(resourcesPath, "server", "hana-server.exe"));
+    ensureFile(path.join(resourcesPath, "server", "codia-server.exe"));
 
     const config = runtime.resolveServerLaunchConfig({
       env: {},
@@ -72,21 +72,21 @@ describe("desktop server runtime", () => {
     });
 
     expect(config.kind).toBe("bundled");
-    expect(config.serverBin).toBe(path.join(resourcesPath, "server", "hana-server.exe"));
+    expect(config.serverBin).toBe(path.join(resourcesPath, "server", "codia-server.exe"));
     expect(config.serverArgs).toEqual([path.join(resourcesPath, "server", "bootstrap.js")]);
-    expect(config.serverEnv.GSAP_ROOT).toBe(path.join(resourcesPath, "server"));
-    expect(config.serverEnv.GSAP_SERVER_ENTRY).toBe(path.join(resourcesPath, "server", "bundle", "index.js"));
+    expect(config.serverEnv.CODIA_ROOT).toBe(path.join(resourcesPath, "server"));
+    expect(config.serverEnv.CODIA_SERVER_ENTRY).toBe(path.join(resourcesPath, "server", "bundle", "index.js"));
   });
 
   it("uses the launch Node runtime for source server in auto mode", () => {
     const projectRoot = makeTempDir();
     const fakeNode = path.join(projectRoot, "tools", "node.exe");
     ensureFile(path.join(projectRoot, "server", "index.js"), "console.log('source');");
-    ensureFile(path.join(projectRoot, "dist-server", "win-x64", "gsap-server.exe"));
+    ensureFile(path.join(projectRoot, "dist-server", "win-x64", "codia-server.exe"));
     ensureFile(fakeNode);
 
     const config = runtime.resolveServerLaunchConfig({
-      env: { GSAP_LAUNCH_NODE: fakeNode },
+      env: { CODIA_LAUNCH_NODE: fakeNode },
       projectRoot,
       resourcesPath: "",
       platform: "win32",
@@ -97,21 +97,21 @@ describe("desktop server runtime", () => {
     expect(config.kind).toBe("dev-source-node");
     expect(config.serverBin).toBe(fakeNode);
     expect(config.serverArgs).toEqual([path.join(projectRoot, "server", "bootstrap.js")]);
-    expect(config.serverEnv.GSAP_ROOT).toBe(projectRoot);
-    expect(config.serverEnv.GSAP_SERVER_ENTRY).toBe(path.join(projectRoot, "server", "index.js"));
+    expect(config.serverEnv.CODIA_ROOT).toBe(projectRoot);
+    expect(config.serverEnv.CODIA_SERVER_ENTRY).toBe(path.join(projectRoot, "server", "index.js"));
   });
 
   it("can force the local dist server in dev mode", () => {
     const projectRoot = makeTempDir();
     const fakeNode = path.join(projectRoot, "tools", "node.exe");
     ensureFile(path.join(projectRoot, "server", "index.js"), "console.log('source');");
-    ensureFile(path.join(projectRoot, "dist-server", "win-x64", "gsap-server.exe"));
+    ensureFile(path.join(projectRoot, "dist-server", "win-x64", "codia-server.exe"));
     ensureFile(fakeNode);
 
     const config = runtime.resolveServerLaunchConfig({
       env: {
-        GSAP_LAUNCH_NODE: fakeNode,
-        GSAP_DESKTOP_SERVER_MODE: "dist",
+        CODIA_LAUNCH_NODE: fakeNode,
+        CODIA_DESKTOP_SERVER_MODE: "dist",
       },
       projectRoot,
       resourcesPath: "",
@@ -121,21 +121,21 @@ describe("desktop server runtime", () => {
     });
 
     expect(config.kind).toBe("dev-dist-server");
-    expect(config.serverBin).toBe(path.join(projectRoot, "dist-server", "win-x64", "gsap-server.exe"));
+    expect(config.serverBin).toBe(path.join(projectRoot, "dist-server", "win-x64", "codia-server.exe"));
     expect(config.serverArgs).toEqual([path.join(projectRoot, "dist-server", "win-x64", "bootstrap.js")]);
-    expect(config.serverEnv.GSAP_ROOT).toBe(path.join(projectRoot, "dist-server", "win-x64"));
-    expect(config.serverEnv.GSAP_SERVER_ENTRY).toBe(path.join(projectRoot, "dist-server", "win-x64", "bundle", "index.js"));
+    expect(config.serverEnv.CODIA_ROOT).toBe(path.join(projectRoot, "dist-server", "win-x64"));
+    expect(config.serverEnv.CODIA_SERVER_ENTRY).toBe(path.join(projectRoot, "dist-server", "win-x64", "bundle", "index.js"));
   });
 
   it("prepends bundled ffmpeg to PATH for local dist server on Windows", () => {
     const projectRoot = makeTempDir();
     const distRoot = path.join(projectRoot, "dist-server", "win-x64");
-    ensureFile(path.join(distRoot, "gsap-server.exe"));
+    ensureFile(path.join(distRoot, "codia-server.exe"));
     ensureFile(path.join(distRoot, "ffmpeg", "ffmpeg.exe"));
 
     const config = runtime.resolveServerLaunchConfig({
       env: {
-        GSAP_DESKTOP_SERVER_MODE: "dist",
+        CODIA_DESKTOP_SERVER_MODE: "dist",
         Path: "C:\\Windows\\System32",
       },
       projectRoot,
@@ -168,6 +168,6 @@ describe("desktop server runtime", () => {
     expect(config.serverBin).toBe("C:\\Electron\\electron.exe");
     expect(config.serverArgs).toEqual([path.join(projectRoot, "server", "bootstrap.js")]);
     expect(config.serverEnv.ELECTRON_RUN_AS_NODE).toBe("1");
-    expect(config.serverEnv.GSAP_SERVER_ENTRY).toBe(path.join(projectRoot, "server", "index.js"));
+    expect(config.serverEnv.CODIA_SERVER_ENTRY).toBe(path.join(projectRoot, "server", "index.js"));
   });
 });

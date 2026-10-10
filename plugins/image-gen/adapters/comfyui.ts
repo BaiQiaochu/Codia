@@ -206,5 +206,5 @@ export const comfyuiAdapter = {
 };
 
 function randomClientId() {
-  return `gsap_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  return `codia_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 }

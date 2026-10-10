@@ -2,27 +2,27 @@ export type MaybePromise<T> = T | Promise<T>;
 
 export type JsonSchema = Record<string, unknown>;
 
-export const GSAP_BUS_SKIP = Symbol.for('gsap.event-bus.skip');
+export const CODIA_BUS_SKIP = Symbol.for('codia.event-bus.skip');
 
-export interface GsapToolResult {
+export interface CodiaToolResult {
   content?: Array<Record<string, unknown>>;
   details?: Record<string, unknown>;
 }
 
-export interface GsapSessionRef {
+export interface CodiaSessionRef {
   sessionId: string;
   sessionPath?: string | null;
   legacySessionPath?: string | null;
 }
 
-export type GsapSessionTarget = string | GsapSessionRef | {
+export type CodiaSessionTarget = string | CodiaSessionRef | {
   sessionId?: string | null;
   sessionPath?: string | null;
   path?: string | null;
   legacySessionPath?: string | null;
 };
 
-export interface GsapSessionFile {
+export interface CodiaSessionFile {
   id?: string | null;
   fileId?: string | null;
   sessionId?: string | null;
@@ -43,11 +43,11 @@ export interface GsapSessionFile {
   storageKind?: string;
   status?: string;
   missingAt?: number | string | null;
-  resource?: GsapResourceEnvelope;
+  resource?: CodiaResourceEnvelope;
   [key: string]: unknown;
 }
 
-export interface GsapResourceEnvelope {
+export interface CodiaResourceEnvelope {
   schemaVersion: 1;
   resourceId: string;
   name: string;
@@ -83,14 +83,14 @@ export interface GsapResourceEnvelope {
   [key: string]: unknown;
 }
 
-export type GsapResourceRef =
+export type CodiaResourceRef =
   | { kind: 'local-file'; path: string }
   | { kind: 'mount'; mountId: string; path: string }
   | { kind: 'session-file'; fileId: string; sessionId?: string; sessionPath?: string }
   | { kind: 'resource'; resourceId: string }
   | { kind: 'url'; url: string };
 
-export interface GsapResourceVersion {
+export interface CodiaResourceVersion {
   mtimeMs?: number;
   size?: number | null;
   sha256?: string;
@@ -98,97 +98,97 @@ export interface GsapResourceVersion {
   sequence?: number;
 }
 
-export type GsapResourceDescriptor = GsapResourceRef & {
+export type CodiaResourceDescriptor = CodiaResourceRef & {
   provider?: string;
   filePath?: string;
   displayName?: string;
 };
 
-export interface GsapResourceStat {
+export interface CodiaResourceStat {
   resourceKey: string;
-  resource: GsapResourceDescriptor;
+  resource: CodiaResourceDescriptor;
   exists: boolean;
   isDirectory: boolean;
-  version?: GsapResourceVersion;
+  version?: CodiaResourceVersion;
   filePath?: string;
 }
 
-export interface GsapResourceReadResult {
+export interface CodiaResourceReadResult {
   resourceKey: string;
-  resource: GsapResourceDescriptor;
+  resource: CodiaResourceDescriptor;
   content: Uint8Array;
-  version?: GsapResourceVersion;
+  version?: CodiaResourceVersion;
   filePath?: string;
 }
 
-export interface GsapResourceMutationResult {
+export interface CodiaResourceMutationResult {
   changeType: 'created' | 'modified';
   resourceKey: string;
-  resource: GsapResourceDescriptor;
-  version?: GsapResourceVersion;
+  resource: CodiaResourceDescriptor;
+  version?: CodiaResourceVersion;
   filePath?: string;
 }
 
-export interface GsapResourceWriteConflictResult {
+export interface CodiaResourceWriteConflictResult {
   ok: false;
   conflict: true;
   resourceKey: string;
-  resource: GsapResourceDescriptor;
-  version?: GsapResourceVersion;
+  resource: CodiaResourceDescriptor;
+  version?: CodiaResourceVersion;
   filePath?: string;
 }
 
-export type GsapResourceWriteExpectedVersionResult =
-  | GsapResourceMutationResult
-  | GsapResourceWriteConflictResult;
+export type CodiaResourceWriteExpectedVersionResult =
+  | CodiaResourceMutationResult
+  | CodiaResourceWriteConflictResult;
 
-export interface GsapResourceMoveResult {
+export interface CodiaResourceMoveResult {
   oldResourceKey: string;
   newResourceKey: string;
-  oldResource: GsapResourceDescriptor;
-  newResource: GsapResourceDescriptor;
+  oldResource: CodiaResourceDescriptor;
+  newResource: CodiaResourceDescriptor;
   oldFilePath?: string;
   newFilePath?: string;
 }
 
-export interface GsapResourceTrashOptions {
+export interface CodiaResourceTrashOptions {
   namespace?: string;
   metadata?: Record<string, unknown>;
 }
 
-export interface GsapResourceTrashResult {
+export interface CodiaResourceTrashResult {
   resourceKey: string;
-  resource: GsapResourceDescriptor;
+  resource: CodiaResourceDescriptor;
   trashId: string;
   trashPath?: string;
   payloadPath?: string;
   filePath?: string;
 }
 
-export interface GsapResourceEdit {
+export interface CodiaResourceEdit {
   oldText: string;
   newText: string;
 }
 
-export interface GsapResourceListItem {
+export interface CodiaResourceListItem {
   name: string;
   isDirectory: boolean;
   size: number | null;
   mtimeMs: number;
 }
 
-export interface GsapResourceListResult {
+export interface CodiaResourceListResult {
   resourceKey: string;
-  resource: GsapResourceDescriptor;
-  items: GsapResourceListItem[];
+  resource: CodiaResourceDescriptor;
+  items: CodiaResourceListItem[];
 }
 
-export interface GsapResourceSearchOptions {
+export interface CodiaResourceSearchOptions {
   query?: string;
   [key: string]: unknown;
 }
 
-export interface GsapResourceSearchMatch {
+export interface CodiaResourceSearchMatch {
   filePath: string;
   line: number;
   text: string;
@@ -200,50 +200,50 @@ export interface GsapResourceSearchMatch {
   mtimeMs?: number;
 }
 
-export interface GsapResourceSearchResult {
+export interface CodiaResourceSearchResult {
   resourceKey: string;
-  resource: GsapResourceDescriptor;
-  matches: GsapResourceSearchMatch[];
+  resource: CodiaResourceDescriptor;
+  matches: CodiaResourceSearchMatch[];
 }
 
-export interface GsapResourceMaterializeResult {
+export interface CodiaResourceMaterializeResult {
   resourceKey: string;
-  resource: GsapResourceDescriptor;
+  resource: CodiaResourceDescriptor;
   filePath: string;
-  version?: GsapResourceVersion;
+  version?: CodiaResourceVersion;
 }
 
-export interface GsapResourceWatchTarget {
-  ref?: GsapResourceRef;
+export interface CodiaResourceWatchTarget {
+  ref?: CodiaResourceRef;
   filePath: string;
   isDirectory?: boolean;
   resourceKey: string;
-  resource: GsapResourceDescriptor;
+  resource: CodiaResourceDescriptor;
 }
 
-export interface GsapPluginResourceMutationOptions {
+export interface CodiaPluginResourceMutationOptions {
   emit?: boolean;
 }
 
-export interface GsapPluginResources {
-  stat(ref: GsapResourceRef | Record<string, unknown>): Promise<GsapResourceStat>;
-  read(ref: GsapResourceRef | Record<string, unknown>): Promise<GsapResourceReadResult>;
-  list(ref: GsapResourceRef | Record<string, unknown>): Promise<GsapResourceListResult>;
-  search(ref: GsapResourceRef | Record<string, unknown>, options?: GsapResourceSearchOptions): Promise<GsapResourceSearchResult>;
-  materialize(ref: GsapResourceRef | Record<string, unknown>): Promise<GsapResourceMaterializeResult>;
-  write(ref: GsapResourceRef | Record<string, unknown>, content: string | Uint8Array | ArrayBuffer, options?: GsapPluginResourceMutationOptions): Promise<GsapResourceMutationResult>;
-  writeExpectedVersion(ref: GsapResourceRef | Record<string, unknown>, content: string | Uint8Array | ArrayBuffer, expectedVersion: GsapResourceVersion, options?: GsapPluginResourceMutationOptions): Promise<GsapResourceWriteExpectedVersionResult>;
-  edit(ref: GsapResourceRef | Record<string, unknown>, edits: GsapResourceEdit[], options?: GsapPluginResourceMutationOptions): Promise<GsapResourceMutationResult>;
-  mkdir(ref: GsapResourceRef | Record<string, unknown>, options?: GsapPluginResourceMutationOptions): Promise<GsapResourceMutationResult>;
-  delete(ref: GsapResourceRef | Record<string, unknown>, options?: GsapPluginResourceMutationOptions): Promise<GsapResourceMutationResult>;
-  copy(from: GsapResourceRef | Record<string, unknown>, to: GsapResourceRef | Record<string, unknown>, options?: GsapPluginResourceMutationOptions): Promise<GsapResourceMutationResult>;
-  rename(from: GsapResourceRef | Record<string, unknown>, to: GsapResourceRef | Record<string, unknown>, options?: GsapPluginResourceMutationOptions): Promise<GsapResourceMoveResult>;
-  move(from: GsapResourceRef | Record<string, unknown>, to: GsapResourceRef | Record<string, unknown>, options?: GsapPluginResourceMutationOptions): Promise<GsapResourceMoveResult>;
-  trash(ref: GsapResourceRef | Record<string, unknown>, trashOptions?: GsapResourceTrashOptions, options?: GsapPluginResourceMutationOptions): Promise<GsapResourceTrashResult>;
-  resolveWatchTarget?(ref: GsapResourceRef | Record<string, unknown>): GsapResourceWatchTarget;
+export interface CodiaPluginResources {
+  stat(ref: CodiaResourceRef | Record<string, unknown>): Promise<CodiaResourceStat>;
+  read(ref: CodiaResourceRef | Record<string, unknown>): Promise<CodiaResourceReadResult>;
+  list(ref: CodiaResourceRef | Record<string, unknown>): Promise<CodiaResourceListResult>;
+  search(ref: CodiaResourceRef | Record<string, unknown>, options?: CodiaResourceSearchOptions): Promise<CodiaResourceSearchResult>;
+  materialize(ref: CodiaResourceRef | Record<string, unknown>): Promise<CodiaResourceMaterializeResult>;
+  write(ref: CodiaResourceRef | Record<string, unknown>, content: string | Uint8Array | ArrayBuffer, options?: CodiaPluginResourceMutationOptions): Promise<CodiaResourceMutationResult>;
+  writeExpectedVersion(ref: CodiaResourceRef | Record<string, unknown>, content: string | Uint8Array | ArrayBuffer, expectedVersion: CodiaResourceVersion, options?: CodiaPluginResourceMutationOptions): Promise<CodiaResourceWriteExpectedVersionResult>;
+  edit(ref: CodiaResourceRef | Record<string, unknown>, edits: CodiaResourceEdit[], options?: CodiaPluginResourceMutationOptions): Promise<CodiaResourceMutationResult>;
+  mkdir(ref: CodiaResourceRef | Record<string, unknown>, options?: CodiaPluginResourceMutationOptions): Promise<CodiaResourceMutationResult>;
+  delete(ref: CodiaResourceRef | Record<string, unknown>, options?: CodiaPluginResourceMutationOptions): Promise<CodiaResourceMutationResult>;
+  copy(from: CodiaResourceRef | Record<string, unknown>, to: CodiaResourceRef | Record<string, unknown>, options?: CodiaPluginResourceMutationOptions): Promise<CodiaResourceMutationResult>;
+  rename(from: CodiaResourceRef | Record<string, unknown>, to: CodiaResourceRef | Record<string, unknown>, options?: CodiaPluginResourceMutationOptions): Promise<CodiaResourceMoveResult>;
+  move(from: CodiaResourceRef | Record<string, unknown>, to: CodiaResourceRef | Record<string, unknown>, options?: CodiaPluginResourceMutationOptions): Promise<CodiaResourceMoveResult>;
+  trash(ref: CodiaResourceRef | Record<string, unknown>, trashOptions?: CodiaResourceTrashOptions, options?: CodiaPluginResourceMutationOptions): Promise<CodiaResourceTrashResult>;
+  resolveWatchTarget?(ref: CodiaResourceRef | Record<string, unknown>): CodiaResourceWatchTarget;
 }
 
-export interface GsapExecutionBoundary {
+export interface CodiaExecutionBoundary {
   schemaVersion: 1;
   boundaryId: string;
   kind: 'local_process' | string;
@@ -270,17 +270,17 @@ export interface GsapExecutionBoundary {
   [key: string]: unknown;
 }
 
-export interface GsapPluginNetworkFetchInit extends RequestInit {
+export interface CodiaPluginNetworkFetchInit extends RequestInit {
   timeoutMs?: number;
   cacheTtlMs?: number;
   maxResponseBytes?: number;
 }
 
-export interface GsapPluginNetwork {
-  fetch(input: string | URL | Request, init?: GsapPluginNetworkFetchInit): Promise<Response>;
+export interface CodiaPluginNetwork {
+  fetch(input: string | URL | Request, init?: CodiaPluginNetworkFetchInit): Promise<Response>;
 }
 
-export interface GsapSessionFileMediaItem {
+export interface CodiaSessionFileMediaItem {
   type: 'session_file';
   fileId: string;
   sessionId?: string | null;
@@ -293,19 +293,19 @@ export interface GsapSessionFileMediaItem {
   [key: string]: unknown;
 }
 
-export interface GsapStagedSessionFile {
-  file?: GsapSessionFile | null;
-  sessionFile?: GsapSessionFile | null;
-  mediaItem: GsapSessionFileMediaItem;
+export interface CodiaStagedSessionFile {
+  file?: CodiaSessionFile | null;
+  sessionFile?: CodiaSessionFile | null;
+  mediaItem: CodiaSessionFileMediaItem;
 }
 
-export interface GsapMediaDetails {
+export interface CodiaMediaDetails {
   media: {
-    items: GsapSessionFileMediaItem[];
+    items: CodiaSessionFileMediaItem[];
   };
 }
 
-export interface GsapToolContext {
+export interface CodiaToolContext {
   serverId: string;
   serverNodeId?: string;
   userId: string;
@@ -314,27 +314,27 @@ export interface GsapToolContext {
   credentialKind?: 'none' | 'loopback_token' | 'device_credential' | 'user_session' | string;
   platformAccountId?: string | null;
   officialServiceKind?: 'relay' | 'cloud_studio' | 'inference' | 'billing' | string | null;
-  executionBoundary?: GsapExecutionBoundary;
+  executionBoundary?: CodiaExecutionBoundary;
   pluginId: string;
   pluginDir: string;
   dataDir: string;
   capabilities?: string[];
   sensitiveCapabilities?: string[];
   sessionId?: string | null;
-  sessionRef?: GsapSessionRef | null;
+  sessionRef?: CodiaSessionRef | null;
   /** @deprecated Use sessionId/sessionRef. Kept for legacy plugins. */
   sessionPath?: string | null;
-  bus: GsapEventBus;
-  network: GsapPluginNetwork;
-  resources: GsapPluginResources;
-  config: GsapPluginConfigStore;
-  log: GsapPluginLogger;
-  registerSessionFile?: (input: Record<string, unknown>) => GsapSessionFile;
-  stageFile?: (input: Record<string, unknown>) => GsapStagedSessionFile;
+  bus: CodiaEventBus;
+  network: CodiaPluginNetwork;
+  resources: CodiaPluginResources;
+  config: CodiaPluginConfigStore;
+  log: CodiaPluginLogger;
+  registerSessionFile?: (input: Record<string, unknown>) => CodiaSessionFile;
+  stageFile?: (input: Record<string, unknown>) => CodiaStagedSessionFile;
   [key: string]: unknown;
 }
 
-export type GsapToolSessionPermissionKind =
+export type CodiaToolSessionPermissionKind =
   | 'read'
   | 'read_only'
   | 'plugin_output'
@@ -344,83 +344,83 @@ export type GsapToolSessionPermissionKind =
   | 'review'
   | string;
 
-export interface GsapToolSessionPermission<Input = unknown> {
+export interface CodiaToolSessionPermission<Input = unknown> {
   readOnly?: boolean;
-  kind?: GsapToolSessionPermissionKind;
+  kind?: CodiaToolSessionPermissionKind;
   auto?: 'allow' | 'review';
   description?: string;
   sideEffect?: Record<string, unknown>;
   describeSideEffect?: (input: Input) => Record<string, unknown> | null | undefined;
 }
 
-export interface GsapToolDefinition<Input = unknown, Output = unknown> {
+export interface CodiaToolDefinition<Input = unknown, Output = unknown> {
   name: string;
   description: string;
   parameters?: JsonSchema;
   promptSnippet?: string;
   promptGuidelines?: string;
-  sessionPermission?: GsapToolSessionPermission<Input>;
+  sessionPermission?: CodiaToolSessionPermission<Input>;
   metadata?: Record<string, unknown>;
   invocationStyle?: 'sdk_tool' | 'pi_tool';
-  execute(input: Input, ctx: GsapToolContext): MaybePromise<Output>;
+  execute(input: Input, ctx: CodiaToolContext): MaybePromise<Output>;
 }
 
-export type GsapSlashPermission = 'anyone' | 'owner' | 'admin';
-export type GsapSlashScope = 'session' | 'global';
+export type CodiaSlashPermission = 'anyone' | 'owner' | 'admin';
+export type CodiaSlashScope = 'session' | 'global';
 
-export interface GsapCommandContext {
+export interface CodiaCommandContext {
   [key: string]: unknown;
 }
 
-export interface GsapCommandResult {
+export interface CodiaCommandResult {
   reply?: string;
   silent?: boolean;
   error?: string;
   [key: string]: unknown;
 }
 
-export interface GsapCommandDefinition<Context = GsapCommandContext> {
+export interface CodiaCommandDefinition<Context = CodiaCommandContext> {
   name: string;
   aliases?: string[];
   description?: string;
-  scope?: GsapSlashScope;
-  permission?: GsapSlashPermission;
+  scope?: CodiaSlashScope;
+  permission?: CodiaSlashPermission;
   usage?: string;
-  handler?: (ctx: Context) => MaybePromise<GsapCommandResult | void>;
+  handler?: (ctx: Context) => MaybePromise<CodiaCommandResult | void>;
   execute?: (ctx: Context) => MaybePromise<unknown>;
 }
 
-export type GsapProviderRuntimeKind = 'http' | 'oauth-http' | 'local-cli' | 'browser-cli' | 'plugin';
-export type GsapMediaCapabilityName = 'imageGeneration' | 'videoGeneration' | 'speechGeneration' | string;
-export type GsapMediaOutputKind = 'file_glob' | 'json_stdout' | 'url_stdout';
-export type GsapCliBindingSource = 'prompt' | 'modelId' | 'inputFile' | 'outputDir' | 'size' | 'duration';
+export type CodiaProviderRuntimeKind = 'http' | 'oauth-http' | 'local-cli' | 'browser-cli' | 'plugin';
+export type CodiaMediaCapabilityName = 'imageGeneration' | 'videoGeneration' | 'speechGeneration' | string;
+export type CodiaMediaOutputKind = 'file_glob' | 'json_stdout' | 'url_stdout';
+export type CodiaCliBindingSource = 'prompt' | 'modelId' | 'inputFile' | 'outputDir' | 'size' | 'duration';
 
-export type GsapCliArgBinding =
+export type CodiaCliArgBinding =
   | { literal: string }
-  | { option: string; from: GsapCliBindingSource };
+  | { option: string; from: CodiaCliBindingSource };
 
-export interface GsapCliOutputContract {
-  kind: GsapMediaOutputKind;
-  directory?: GsapCliBindingSource | string;
+export interface CodiaCliOutputContract {
+  kind: CodiaMediaOutputKind;
+  directory?: CodiaCliBindingSource | string;
   pattern?: string;
   [key: string]: unknown;
 }
 
-export interface GsapCliCommandSpec {
+export interface CodiaCliCommandSpec {
   executable: string;
-  args: GsapCliArgBinding[];
+  args: CodiaCliArgBinding[];
   timeoutMs: number;
-  output: GsapCliOutputContract;
+  output: CodiaCliOutputContract;
 }
 
-export interface GsapProviderRuntime {
-  kind: GsapProviderRuntimeKind;
+export interface CodiaProviderRuntime {
+  kind: CodiaProviderRuntimeKind;
   protocolId?: string;
-  command?: GsapCliCommandSpec;
+  command?: CodiaCliCommandSpec;
   [key: string]: unknown;
 }
 
-export interface GsapProviderChatCapability {
+export interface CodiaProviderChatCapability {
   projection?: 'models-json' | 'sdk-auth-alias' | 'none' | string;
   runtimeProviderId?: string;
   displayProviderId?: string;
@@ -428,29 +428,29 @@ export interface GsapProviderChatCapability {
   [key: string]: unknown;
 }
 
-export interface GsapMediaReferenceImageLimits {
+export interface CodiaMediaReferenceImageLimits {
   min?: number;
   max?: number;
   [key: string]: unknown;
 }
 
-export interface GsapMediaInputLimits {
-  referenceImages?: GsapMediaReferenceImageLimits;
+export interface CodiaMediaInputLimits {
+  referenceImages?: CodiaMediaReferenceImageLimits;
   [key: string]: unknown;
 }
 
-export interface GsapProviderMediaMode {
+export interface CodiaProviderMediaMode {
   id: string;
   label?: string;
   parameterSchema?: JsonSchema;
   defaults?: Record<string, unknown>;
-  inputLimits?: GsapMediaInputLimits;
+  inputLimits?: CodiaMediaInputLimits;
   pricing?: Record<string, unknown>;
   agentHints?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
-export interface GsapProviderMediaModel {
+export interface CodiaProviderMediaModel {
   id: string;
   displayName?: string;
   protocolId: string;
@@ -459,40 +459,40 @@ export interface GsapProviderMediaModel {
   supportsEdit?: boolean;
   aliases?: string[];
   credentialLaneId?: string;
-  modes?: GsapProviderMediaMode[];
+  modes?: CodiaProviderMediaMode[];
   parameterSchema?: JsonSchema;
   defaults?: Record<string, unknown>;
-  inputLimits?: GsapMediaInputLimits;
+  inputLimits?: CodiaMediaInputLimits;
   [key: string]: unknown;
 }
 
-export interface GsapProviderCredentialLane {
+export interface CodiaProviderCredentialLane {
   id: string;
   kind?: string;
   label?: string;
   [key: string]: unknown;
 }
 
-export interface GsapProviderMediaCapability {
+export interface CodiaProviderMediaCapability {
   defaultModelId?: string;
-  models: GsapProviderMediaModel[];
-  credentialLanes?: GsapProviderCredentialLane[];
+  models: CodiaProviderMediaModel[];
+  credentialLanes?: CodiaProviderCredentialLane[];
   [key: string]: unknown;
 }
 
-export interface GsapProviderCapabilities {
-  chat?: GsapProviderChatCapability;
-  media?: Partial<Record<GsapMediaCapabilityName, GsapProviderMediaCapability>>;
+export interface CodiaProviderCapabilities {
+  chat?: CodiaProviderChatCapability;
+  media?: Partial<Record<CodiaMediaCapabilityName, CodiaProviderMediaCapability>>;
   [key: string]: unknown;
 }
 
-export interface GsapProviderSource {
+export interface CodiaProviderSource {
   kind: 'builtin' | 'plugin' | 'user' | string;
   pluginId?: string;
   [key: string]: unknown;
 }
 
-export interface GsapProviderDefinition {
+export interface CodiaProviderDefinition {
   id: string;
   displayName?: string;
   name?: string;
@@ -502,23 +502,23 @@ export interface GsapProviderDefinition {
   defaultApi?: string;
   api?: string;
   models?: unknown[];
-  runtime?: GsapProviderRuntime;
-  capabilities?: GsapProviderCapabilities;
-  source?: GsapProviderSource;
+  runtime?: CodiaProviderRuntime;
+  capabilities?: CodiaProviderCapabilities;
+  source?: CodiaProviderSource;
   [key: string]: unknown;
 }
 
-export type GsapExtensionFactory<Pi = unknown> = (pi: Pi) => MaybePromise<void>;
+export type CodiaExtensionFactory<Pi = unknown> = (pi: Pi) => MaybePromise<void>;
 
-export interface GsapPluginConfigStore {
-  get<T = unknown>(key: string, options?: GsapPluginConfigScopeOptions): MaybePromise<T | undefined>;
-  getAll?(options?: GsapPluginConfigScopeOptions & { redacted?: boolean }): MaybePromise<Record<string, unknown>>;
-  set<T = unknown>(key: string, value: T, options?: GsapPluginConfigScopeOptions): MaybePromise<void>;
-  setMany?(values: Record<string, unknown>, options?: GsapPluginConfigScopeOptions): MaybePromise<Record<string, unknown>>;
+export interface CodiaPluginConfigStore {
+  get<T = unknown>(key: string, options?: CodiaPluginConfigScopeOptions): MaybePromise<T | undefined>;
+  getAll?(options?: CodiaPluginConfigScopeOptions & { redacted?: boolean }): MaybePromise<Record<string, unknown>>;
+  set<T = unknown>(key: string, value: T, options?: CodiaPluginConfigScopeOptions): MaybePromise<void>;
+  setMany?(values: Record<string, unknown>, options?: CodiaPluginConfigScopeOptions): MaybePromise<Record<string, unknown>>;
   getSchema?(): JsonSchema;
 }
 
-export interface GsapPluginConfigScopeOptions {
+export interface CodiaPluginConfigScopeOptions {
   scope?: 'global' | 'per-agent' | 'per-session';
   agentId?: string;
   sessionId?: string;
@@ -526,14 +526,14 @@ export interface GsapPluginConfigScopeOptions {
   sessionPath?: string;
 }
 
-export interface GsapSessionTurnContext {
+export interface CodiaSessionTurnContext {
   system?: string | Array<string | { text: string; label?: string }>;
   beforeUser?: string | Array<string | { text: string; label?: string }>;
   afterUser?: string | Array<string | { text: string; label?: string }>;
   metadata?: Record<string, unknown>;
 }
 
-export interface GsapSessionCreateInput {
+export interface CodiaSessionCreateInput {
   agentId?: string | null;
   cwd?: string | null;
   memoryEnabled?: boolean;
@@ -548,9 +548,9 @@ export interface GsapSessionCreateInput {
   visibility?: 'public' | 'plugin_private' | 'private' | string;
 }
 
-export interface GsapSessionSendInput {
+export interface CodiaSessionSendInput {
   text: string;
-  context?: GsapSessionTurnContext | null;
+  context?: CodiaSessionTurnContext | null;
   images?: unknown[];
   videos?: unknown[];
   audios?: unknown[];
@@ -560,13 +560,13 @@ export interface GsapSessionSendInput {
   [key: string]: unknown;
 }
 
-export interface GsapSessionListFilter {
+export interface CodiaSessionListFilter {
   agentId?: string;
   ownerPluginId?: string;
   includePluginPrivate?: boolean;
 }
 
-export interface GsapSessionUpdateInput {
+export interface CodiaSessionUpdateInput {
   title?: string;
   pinned?: boolean;
   projectId?: string | null;
@@ -577,7 +577,7 @@ export interface GsapSessionUpdateInput {
   visibility?: 'public' | 'plugin_private' | 'private' | string;
 }
 
-export interface GsapAgentCreateInput {
+export interface CodiaAgentCreateInput {
   id?: string;
   name: string;
   yuan?: string;
@@ -589,7 +589,7 @@ export interface GsapAgentCreateInput {
   memoryPolicy?: { enabled?: boolean };
 }
 
-export interface GsapAgentUpdateInput {
+export interface CodiaAgentUpdateInput {
   name?: string;
   yuan?: string;
   ownerPluginId?: string | null;
@@ -600,11 +600,11 @@ export interface GsapAgentUpdateInput {
   config?: Record<string, unknown>;
 }
 
-export interface GsapModelSampleInput {
+export interface CodiaModelSampleInput {
   systemPrompt?: string;
   messages: Array<{ role: string; content: unknown }>;
   sessionId?: string;
-  sessionRef?: GsapSessionRef;
+  sessionRef?: CodiaSessionRef;
   /** @deprecated Use sessionId/sessionRef. */
   sessionPath?: string;
   agentId?: string;
@@ -613,11 +613,11 @@ export interface GsapModelSampleInput {
   operation?: string;
 }
 
-export interface GsapMediaProviderFilter {
+export interface CodiaMediaProviderFilter {
   capability?: string;
 }
 
-export interface GsapMediaModelRef {
+export interface CodiaMediaModelRef {
   providerId?: string;
   provider?: string;
   modelId?: string;
@@ -626,27 +626,27 @@ export interface GsapMediaModelRef {
   credentialLaneId?: string;
 }
 
-export type GsapSessionFileReference =
+export type CodiaSessionFileReference =
   | { kind: 'session_file'; fileId: string }
   | { type: 'session_file'; fileId: string };
 
-export type GsapGenerateImageReference = GsapSessionFileReference;
+export type CodiaGenerateImageReference = CodiaSessionFileReference;
 
-export interface GsapMediaDelivery {
+export interface CodiaMediaDelivery {
   mode?: 'session' | 'response' | string;
   ttlMs?: number;
   [key: string]: unknown;
 }
 
-export interface GsapGenerateImageInput {
+export interface CodiaGenerateImageInput {
   sessionId?: string;
-  sessionRef?: GsapSessionRef;
+  sessionRef?: CodiaSessionRef;
   /** @deprecated Use sessionId/sessionRef. */
   sessionPath?: string;
   prompt: string;
   count?: number;
-  image?: string | GsapGenerateImageReference | GsapGenerateImageReference[];
-  referenceImages?: GsapGenerateImageReference[];
+  image?: string | CodiaGenerateImageReference | CodiaGenerateImageReference[];
+  referenceImages?: CodiaGenerateImageReference[];
   ratio?: string;
   resolution?: string;
   quality?: string;
@@ -656,19 +656,19 @@ export interface GsapGenerateImageInput {
   provider?: string;
   input?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
-  delivery?: GsapMediaDelivery;
+  delivery?: CodiaMediaDelivery;
   deliveryMode?: string;
   deliveryTarget?: unknown;
 }
 
-export interface GsapGenerateVideoInput {
+export interface CodiaGenerateVideoInput {
   sessionId?: string;
-  sessionRef?: GsapSessionRef;
+  sessionRef?: CodiaSessionRef;
   /** @deprecated Use sessionId/sessionRef. */
   sessionPath?: string;
   prompt: string;
-  image?: GsapGenerateImageReference | GsapGenerateImageReference[] | string;
-  referenceImages?: GsapGenerateImageReference[];
+  image?: CodiaGenerateImageReference | CodiaGenerateImageReference[] | string;
+  referenceImages?: CodiaGenerateImageReference[];
   images?: string[];
   duration?: number;
   ratio?: string;
@@ -679,24 +679,24 @@ export interface GsapGenerateVideoInput {
   provider?: string;
   input?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
-  delivery?: GsapMediaDelivery;
+  delivery?: CodiaMediaDelivery;
   deliveryMode?: string;
   deliveryTarget?: unknown;
   [key: string]: unknown;
 }
 
-export interface GsapGenerateMediaInput {
+export interface CodiaGenerateMediaInput {
   kind?: 'image' | 'video' | 'audio' | 'image_generation' | 'video_generation' | 'speech_recognition' | 'asr' | 'transcription' | string;
   type?: string;
   mediaKind?: string;
   sessionId?: string;
-  sessionRef?: GsapSessionRef;
+  sessionRef?: CodiaSessionRef;
   /** @deprecated Use sessionId/sessionRef. */
   sessionPath?: string;
   fileId?: string;
   prompt?: string;
-  image?: string | GsapGenerateImageReference | GsapGenerateImageReference[];
-  referenceImages?: GsapGenerateImageReference[];
+  image?: string | CodiaGenerateImageReference | CodiaGenerateImageReference[];
+  referenceImages?: CodiaGenerateImageReference[];
   duration?: number;
   ratio?: string;
   resolution?: string;
@@ -707,14 +707,14 @@ export interface GsapGenerateMediaInput {
   provider?: string;
   input?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
-  delivery?: GsapMediaDelivery;
+  delivery?: CodiaMediaDelivery;
   deliveryMode?: string;
   [key: string]: unknown;
 }
 
-export interface GsapTranscribeAudioInput {
+export interface CodiaTranscribeAudioInput {
   sessionId?: string;
-  sessionRef?: GsapSessionRef;
+  sessionRef?: CodiaSessionRef;
   /** @deprecated Use sessionId/sessionRef. */
   sessionPath?: string;
   fileId: string;
@@ -725,32 +725,32 @@ export interface GsapTranscribeAudioInput {
   model?: string;
 }
 
-export interface GsapTranscribeAudioResult {
+export interface CodiaTranscribeAudioResult {
   ok: true;
   transcription: unknown;
   taskId?: string;
   stream?: unknown;
 }
 
-export interface GsapEventBus {
+export interface CodiaEventBus {
   emit(event: unknown, sessionPath?: string | null): unknown;
   emit(type: string, payload?: unknown): unknown;
-  subscribe(callback: (event: unknown, sessionPath?: string | null) => void, filter?: GsapBusSubscriptionFilter): () => void;
+  subscribe(callback: (event: unknown, sessionPath?: string | null) => void, filter?: CodiaBusSubscriptionFilter): () => void;
   subscribe(type: string, handler: (payload: unknown) => void): () => void;
   request<T = unknown>(type: string, payload?: unknown, options?: Record<string, unknown>): Promise<T>;
   hasHandler?(type: string): boolean;
   handle?(type: string, handler: (payload: unknown) => MaybePromise<unknown>): () => void;
-  listCapabilities?(): GsapEventBusCapability[];
-  getCapability?(type: string): GsapEventBusCapability | null;
+  listCapabilities?(): CodiaEventBusCapability[];
+  getCapability?(type: string): CodiaEventBusCapability | null;
 }
 
-export interface GsapBusSubscriptionFilter {
+export interface CodiaBusSubscriptionFilter {
   types?: string[] | Set<string>;
   sessionPath?: string;
   [key: string]: unknown;
 }
 
-export interface GsapEventBusCapability {
+export interface CodiaEventBusCapability {
   type: string;
   title: string;
   description: string;
@@ -764,7 +764,7 @@ export interface GsapEventBusCapability {
   available?: boolean;
 }
 
-export interface GsapNormalizedUsage {
+export interface CodiaNormalizedUsage {
   input: {
     totalTokens: number | null;
     uncachedTokens: number | null;
@@ -786,7 +786,7 @@ export interface GsapNormalizedUsage {
   costTotal: number | null;
 }
 
-export type GsapUsageAttribution =
+export type CodiaUsageAttribution =
   | { kind: 'session'; agentId: string | null; sessionId?: string | null; sessionPath?: string | null }
   | { kind: 'phone_conversation'; agentId: string; conversationId: string; conversationType: 'channel' | 'dm'; sessionId?: string | null; sessionPath?: string | null }
   | { kind: 'memory'; agentId: string | null }
@@ -795,7 +795,7 @@ export type GsapUsageAttribution =
   | { kind: 'utility'; agentId?: string | null; sessionId?: string | null; sessionPath?: string | null }
   | { kind: 'unknown' };
 
-export interface GsapUsageSource {
+export interface CodiaUsageSource {
   subsystem: 'session' | 'phone' | 'memory' | 'automation' | 'subagent' | 'compaction' | 'plugin' | 'utility' | 'vision' | 'unknown' | string;
   operation: string;
   surface: 'desktop' | 'mobile' | 'bridge' | 'channel' | 'dm' | 'cron' | 'heartbeat' | 'system' | 'plugin' | 'unknown' | string;
@@ -819,21 +819,21 @@ export interface GsapUsageSource {
   };
 }
 
-export interface GsapUsageLedgerEntry {
+export interface CodiaUsageLedgerEntry {
   schemaVersion: 1;
   requestId: string;
   startedAt: string;
   endedAt: string | null;
   durationMs: number | null;
   status: 'ok' | 'error' | 'aborted' | 'usage_missing';
-  source: GsapUsageSource;
-  attribution: GsapUsageAttribution;
+  source: CodiaUsageSource;
+  attribution: CodiaUsageAttribution;
   model: {
     provider: string | null;
     modelId: string | null;
     api: string | null;
   };
-  usage: GsapNormalizedUsage | null;
+  usage: CodiaNormalizedUsage | null;
   rawUsageShape: string | null;
   error: {
     name: string | null;
@@ -841,7 +841,7 @@ export interface GsapUsageLedgerEntry {
   } | null;
 }
 
-export interface GsapUsageListFilter {
+export interface CodiaUsageListFilter {
   since?: string;
   until?: string;
   attributionKind?: string;
@@ -855,25 +855,25 @@ export interface GsapUsageListFilter {
   limit?: number;
 }
 
-export interface GsapUsageListResult {
-  entries: GsapUsageLedgerEntry[];
+export interface CodiaUsageListResult {
+  entries: CodiaUsageLedgerEntry[];
   nextCursor: string | null;
 }
 
-export interface GsapUsageEventMeta {
+export interface CodiaUsageEventMeta {
   sessionId?: string | null;
   sessionPath?: string | null;
-  sessionRef?: GsapSessionRef | null;
+  sessionRef?: CodiaSessionRef | null;
 }
 
-export interface GsapPluginLogger {
+export interface CodiaPluginLogger {
   debug(...args: unknown[]): void;
   info(...args: unknown[]): void;
   warn(...args: unknown[]): void;
   error(...args: unknown[]): void;
 }
 
-export interface GsapBusHandlerContext {
+export interface CodiaBusHandlerContext {
   serverId: string;
   serverNodeId?: string;
   userId: string;
@@ -882,30 +882,30 @@ export interface GsapBusHandlerContext {
   credentialKind?: 'none' | 'loopback_token' | 'device_credential' | 'user_session' | string;
   platformAccountId?: string | null;
   officialServiceKind?: 'relay' | 'cloud_studio' | 'inference' | 'billing' | string | null;
-  executionBoundary?: GsapExecutionBoundary;
+  executionBoundary?: CodiaExecutionBoundary;
   pluginId: string;
   sessionId?: string | null;
-  sessionRef?: GsapSessionRef | null;
+  sessionRef?: CodiaSessionRef | null;
   /** @deprecated Use sessionId/sessionRef. Kept for legacy plugins. */
   sessionPath?: string | null;
-  bus: GsapEventBus;
-  network: GsapPluginNetwork;
-  resources?: GsapPluginResources;
-  config?: GsapPluginConfigStore;
-  log?: GsapPluginLogger;
+  bus: CodiaEventBus;
+  network: CodiaPluginNetwork;
+  resources?: CodiaPluginResources;
+  config?: CodiaPluginConfigStore;
+  log?: CodiaPluginLogger;
   [key: string]: unknown;
 }
 
-export interface GsapBusHandlerDefinition<
+export interface CodiaBusHandlerDefinition<
   Payload = unknown,
   Result = unknown,
-  Context extends GsapBusHandlerContext = GsapBusHandlerContext,
+  Context extends CodiaBusHandlerContext = CodiaBusHandlerContext,
 > {
   type: string;
   handle(payload: Payload, ctx: Context): MaybePromise<Result>;
 }
 
-export interface GsapPluginContext {
+export interface CodiaPluginContext {
   serverId: string;
   serverNodeId?: string;
   userId: string;
@@ -914,46 +914,46 @@ export interface GsapPluginContext {
   credentialKind?: 'none' | 'loopback_token' | 'device_credential' | 'user_session' | string;
   platformAccountId?: string | null;
   officialServiceKind?: 'relay' | 'cloud_studio' | 'inference' | 'billing' | string | null;
-  executionBoundary?: GsapExecutionBoundary;
+  executionBoundary?: CodiaExecutionBoundary;
   pluginId: string;
   pluginDir: string;
   dataDir: string;
   capabilities?: string[];
   sensitiveCapabilities?: string[];
   sessionId?: string | null;
-  sessionRef?: GsapSessionRef | null;
+  sessionRef?: CodiaSessionRef | null;
   /** @deprecated Use sessionId/sessionRef. Kept for legacy plugins. */
   sessionPath?: string | null;
-  bus: GsapEventBus;
-  network: GsapPluginNetwork;
-  resources: GsapPluginResources;
-  config: GsapPluginConfigStore;
-  log: GsapPluginLogger;
-  registerTool?: (tool: GsapToolDefinition) => () => void;
-  registerSessionFile?: (input: Record<string, unknown>) => GsapSessionFile;
-  stageFile?: (input: Record<string, unknown>) => GsapStagedSessionFile;
+  bus: CodiaEventBus;
+  network: CodiaPluginNetwork;
+  resources: CodiaPluginResources;
+  config: CodiaPluginConfigStore;
+  log: CodiaPluginLogger;
+  registerTool?: (tool: CodiaToolDefinition) => () => void;
+  registerSessionFile?: (input: Record<string, unknown>) => CodiaSessionFile;
+  stageFile?: (input: Record<string, unknown>) => CodiaStagedSessionFile;
   [key: string]: unknown;
 }
 
-export type GsapPluginDisposable = () => void;
+export type CodiaPluginDisposable = () => void;
 
-export interface GsapPluginLifecycleHelpers {
-  register(disposable: GsapPluginDisposable): void;
+export interface CodiaPluginLifecycleHelpers {
+  register(disposable: CodiaPluginDisposable): void;
 }
 
-export interface GsapPluginLifecycle {
-  onload?(ctx: GsapPluginContext, helpers: GsapPluginLifecycleHelpers): MaybePromise<void>;
-  onunload?(ctx: GsapPluginContext): MaybePromise<void>;
+export interface CodiaPluginLifecycle {
+  onload?(ctx: CodiaPluginContext, helpers: CodiaPluginLifecycleHelpers): MaybePromise<void>;
+  onunload?(ctx: CodiaPluginContext): MaybePromise<void>;
 }
 
-export interface GsapPluginInstance {
-  ctx: GsapPluginContext;
-  register: (disposable: GsapPluginDisposable) => void;
+export interface CodiaPluginInstance {
+  ctx: CodiaPluginContext;
+  register: (disposable: CodiaPluginDisposable) => void;
   onload?(): MaybePromise<void>;
   onunload?(): MaybePromise<void>;
 }
 
-export type GsapTaskStatus =
+export type CodiaTaskStatus =
   | 'pending'
   | 'running'
   | 'paused'
@@ -964,22 +964,22 @@ export type GsapTaskStatus =
   | 'canceled'
   | 'aborted';
 
-export interface GsapTaskProgress {
+export interface CodiaTaskProgress {
   current?: number;
   total?: number;
   percent?: number;
   message?: string;
 }
 
-export interface GsapTaskRecord {
+export interface CodiaTaskRecord {
   taskId: string;
   type: string;
   parentSessionPath?: string | null;
   pluginId?: string | null;
   agentId?: string | null;
   meta?: Record<string, unknown>;
-  progress?: GsapTaskProgress | null;
-  status: GsapTaskStatus;
+  progress?: CodiaTaskProgress | null;
+  status: CodiaTaskStatus;
   aborted?: boolean;
   createdAt?: number;
   updatedAt?: number;
@@ -988,7 +988,7 @@ export interface GsapTaskRecord {
   error?: string;
 }
 
-export interface GsapTaskSchedule {
+export interface CodiaTaskSchedule {
   scheduleId: string;
   type: string;
   pluginId?: string | null;
@@ -1006,7 +1006,7 @@ export interface GsapTaskSchedule {
   runCount?: number;
 }
 
-export interface GsapTaskRegisterInput {
+export interface CodiaTaskRegisterInput {
   taskId: string;
   type: string;
   parentSessionPath?: string | null;
@@ -1016,10 +1016,10 @@ export interface GsapTaskRegisterInput {
   persist?: boolean;
 }
 
-export interface GsapTaskUpdateInput {
+export interface CodiaTaskUpdateInput {
   taskId: string;
-  status?: GsapTaskStatus;
-  progress?: GsapTaskProgress | null;
+  status?: CodiaTaskStatus;
+  progress?: CodiaTaskProgress | null;
   meta?: Record<string, unknown>;
   result?: unknown;
   error?: unknown;
@@ -1028,7 +1028,7 @@ export interface GsapTaskUpdateInput {
   agentId?: string | null;
 }
 
-export interface GsapTaskScheduleInput {
+export interface CodiaTaskScheduleInput {
   scheduleId: string;
   type: string;
   pluginId?: string | null;
@@ -1044,36 +1044,36 @@ export interface GsapTaskScheduleInput {
 const EMPTY_PARAMETERS: JsonSchema = { type: 'object', properties: {} };
 
 export function defineTool<Input = unknown, Output = unknown>(
-  definition: GsapToolDefinition<Input, Output>,
-): GsapToolDefinition<Input, Output> & { parameters: JsonSchema } {
+  definition: CodiaToolDefinition<Input, Output>,
+): CodiaToolDefinition<Input, Output> & { parameters: JsonSchema } {
   return {
     ...definition,
     parameters: definition.parameters ?? EMPTY_PARAMETERS,
   };
 }
 
-export function defineCommand<Context = GsapCommandContext>(
-  definition: GsapCommandDefinition<Context>,
-): GsapCommandDefinition<Context> {
+export function defineCommand<Context = CodiaCommandContext>(
+  definition: CodiaCommandDefinition<Context>,
+): CodiaCommandDefinition<Context> {
   return { ...definition };
 }
 
-export function defineProvider<T extends GsapProviderDefinition>(definition: T): T {
+export function defineProvider<T extends CodiaProviderDefinition>(definition: T): T {
   return definition;
 }
 
 export function defineBusHandler<
   Payload = unknown,
   Result = unknown,
-  Context extends GsapBusHandlerContext = GsapBusHandlerContext,
+  Context extends CodiaBusHandlerContext = CodiaBusHandlerContext,
 >(
-  definition: GsapBusHandlerDefinition<Payload, Result, Context>,
-): GsapBusHandlerDefinition<Payload, Result, Context> {
+  definition: CodiaBusHandlerDefinition<Payload, Result, Context>,
+): CodiaBusHandlerDefinition<Payload, Result, Context> {
   return { ...definition };
 }
 
 export function requestBus<Result = unknown, Payload = unknown>(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
   type: string,
   payload?: Payload,
   options?: Record<string, unknown>,
@@ -1099,8 +1099,8 @@ function withOwnerPlugin<T extends Record<string, unknown>>(
 
 function withContextMetadata(
   ctx: { pluginId?: string | null },
-  context: GsapSessionTurnContext | null | undefined,
-): GsapSessionTurnContext | null | undefined {
+  context: CodiaSessionTurnContext | null | undefined,
+): CodiaSessionTurnContext | null | undefined {
   if (!context) return context;
   const pluginId = pluginIdFromContext(ctx);
   if (!pluginId) return context;
@@ -1117,7 +1117,7 @@ function textOrNull(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function normalizeSessionTarget(target: GsapSessionTarget): Record<string, unknown> {
+function normalizeSessionTarget(target: CodiaSessionTarget): Record<string, unknown> {
   if (typeof target === 'string') return { sessionPath: target };
   if (!target || typeof target !== 'object') return { sessionPath: target as unknown };
 
@@ -1128,7 +1128,7 @@ function normalizeSessionTarget(target: GsapSessionTarget): Record<string, unkno
     return sessionPath ? { sessionPath } : {};
   }
 
-  const sessionRef: GsapSessionRef = {
+  const sessionRef: CodiaSessionRef = {
     sessionId,
     ...(sessionPath ? { sessionPath } : {}),
     ...(legacySessionPath ? { legacySessionPath } : {}),
@@ -1141,39 +1141,39 @@ function normalizeSessionTarget(target: GsapSessionTarget): Record<string, unkno
   };
 }
 
-function sessionRefFromTarget(target: GsapSessionTarget): GsapSessionRef | null {
+function sessionRefFromTarget(target: CodiaSessionTarget): CodiaSessionRef | null {
   const payload = normalizeSessionTarget(target);
-  return (payload.sessionRef as GsapSessionRef | undefined) || null;
+  return (payload.sessionRef as CodiaSessionRef | undefined) || null;
 }
 
 export function createSession(
-  ctx: { pluginId?: string | null; bus?: Pick<GsapEventBus, 'request'> | null },
-  input: GsapSessionCreateInput = {},
+  ctx: { pluginId?: string | null; bus?: Pick<CodiaEventBus, 'request'> | null },
+  input: CodiaSessionCreateInput = {},
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'session:create', withOwnerPlugin(ctx, { ...input }), options);
 }
 
 export function getSession(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
-  target: GsapSessionTarget,
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
+  target: CodiaSessionTarget,
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'session:get', normalizeSessionTarget(target), options);
 }
 
 export function listSessions(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
-  filter: GsapSessionListFilter = {},
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
+  filter: CodiaSessionListFilter = {},
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'session:list', filter, options);
 }
 
 export function updateSession(
-  ctx: { pluginId?: string | null; bus?: Pick<GsapEventBus, 'request'> | null },
-  target: GsapSessionTarget,
-  patch: GsapSessionUpdateInput,
+  ctx: { pluginId?: string | null; bus?: Pick<CodiaEventBus, 'request'> | null },
+  target: CodiaSessionTarget,
+  patch: CodiaSessionUpdateInput,
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'session:update', {
@@ -1183,9 +1183,9 @@ export function updateSession(
 }
 
 export function sendSessionMessage(
-  ctx: { pluginId?: string | null; bus?: Pick<GsapEventBus, 'request'> | null },
-  target: GsapSessionTarget,
-  input: GsapSessionSendInput,
+  ctx: { pluginId?: string | null; bus?: Pick<CodiaEventBus, 'request'> | null },
+  target: CodiaSessionTarget,
+  input: CodiaSessionSendInput,
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'session:send', {
@@ -1196,9 +1196,9 @@ export function sendSessionMessage(
 }
 
 export function subscribeSessionEvents(
-  ctx: { bus?: Pick<GsapEventBus, 'subscribe'> | null },
-  target: GsapSessionTarget,
-  handler: (event: unknown, meta: { sessionId: string | null; sessionPath: string | null; sessionRef: GsapSessionRef | null }) => void,
+  ctx: { bus?: Pick<CodiaEventBus, 'subscribe'> | null },
+  target: CodiaSessionTarget,
+  handler: (event: unknown, meta: { sessionId: string | null; sessionPath: string | null; sessionRef: CodiaSessionRef | null }) => void,
 ): () => void {
   if (!ctx.bus || typeof ctx.bus.subscribe !== 'function') {
     throw new Error('plugin bus subscribe unavailable');
@@ -1219,7 +1219,7 @@ export function subscribeSessionEvents(
 }
 
 export function listAgents(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
   filter: { ownerPluginId?: string; includePluginPrivate?: boolean } = {},
   options?: Record<string, unknown>,
 ): Promise<unknown> {
@@ -1227,7 +1227,7 @@ export function listAgents(
 }
 
 export function getAgentProfile(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
   agentId: string,
   options?: Record<string, unknown>,
 ): Promise<unknown> {
@@ -1235,25 +1235,25 @@ export function getAgentProfile(
 }
 
 export function createAgent(
-  ctx: { pluginId?: string | null; bus?: Pick<GsapEventBus, 'request'> | null },
-  input: GsapAgentCreateInput,
+  ctx: { pluginId?: string | null; bus?: Pick<CodiaEventBus, 'request'> | null },
+  input: CodiaAgentCreateInput,
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'agent:create', withOwnerPlugin(ctx, { ...input }), options);
 }
 
 export function updateAgent(
-  ctx: { pluginId?: string | null; bus?: Pick<GsapEventBus, 'request'> | null },
+  ctx: { pluginId?: string | null; bus?: Pick<CodiaEventBus, 'request'> | null },
   agentId: string,
-  patch: GsapAgentUpdateInput,
+  patch: CodiaAgentUpdateInput,
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'agent:update', { agentId, ...withOwnerPlugin(ctx, { ...patch }) }, options);
 }
 
 export function sampleText(
-  ctx: { pluginId?: string | null; bus?: Pick<GsapEventBus, 'request'> | null },
-  input: GsapModelSampleInput,
+  ctx: { pluginId?: string | null; bus?: Pick<CodiaEventBus, 'request'> | null },
+  input: CodiaModelSampleInput,
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'model:sample-text', {
@@ -1263,24 +1263,24 @@ export function sampleText(
 }
 
 export function listMediaProviders(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
-  filter: GsapMediaProviderFilter = {},
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
+  filter: CodiaMediaProviderFilter = {},
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'provider:media-providers', filter, options);
 }
 
 export function resolveMediaModel(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
-  ref: GsapMediaModelRef,
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
+  ref: CodiaMediaModelRef,
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'provider:resolve-media-model', ref, options);
 }
 
 export function generateImage(
-  ctx: { pluginId?: string | null; bus?: Pick<GsapEventBus, 'request'> | null },
-  input: GsapGenerateImageInput,
+  ctx: { pluginId?: string | null; bus?: Pick<CodiaEventBus, 'request'> | null },
+  input: CodiaGenerateImageInput,
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'media:generate-image', {
@@ -1290,8 +1290,8 @@ export function generateImage(
 }
 
 export function generateVideo(
-  ctx: { pluginId?: string | null; bus?: Pick<GsapEventBus, 'request'> | null },
-  input: GsapGenerateVideoInput,
+  ctx: { pluginId?: string | null; bus?: Pick<CodiaEventBus, 'request'> | null },
+  input: CodiaGenerateVideoInput,
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'media:generate-video', {
@@ -1301,8 +1301,8 @@ export function generateVideo(
 }
 
 export function generateMedia(
-  ctx: { pluginId?: string | null; bus?: Pick<GsapEventBus, 'request'> | null },
-  input: GsapGenerateMediaInput,
+  ctx: { pluginId?: string | null; bus?: Pick<CodiaEventBus, 'request'> | null },
+  input: CodiaGenerateMediaInput,
   options?: Record<string, unknown>,
 ): Promise<unknown> {
   return requestBus(ctx, 'media:generate', {
@@ -1312,35 +1312,35 @@ export function generateMedia(
 }
 
 export function transcribeAudio(
-  ctx: { pluginId?: string | null; bus?: Pick<GsapEventBus, 'request'> | null },
-  input: GsapTranscribeAudioInput,
+  ctx: { pluginId?: string | null; bus?: Pick<CodiaEventBus, 'request'> | null },
+  input: CodiaTranscribeAudioInput,
   options?: Record<string, unknown>,
-): Promise<GsapTranscribeAudioResult> {
+): Promise<CodiaTranscribeAudioResult> {
   return requestBus(ctx, 'media:transcribe-audio', {
     ...input,
     ...(pluginIdFromContext(ctx) ? { pluginId: pluginIdFromContext(ctx) } : {}),
   }, options).then(normalizeTranscribeAudioResult);
 }
 
-function normalizeTranscribeAudioResult(result: unknown): GsapTranscribeAudioResult {
+function normalizeTranscribeAudioResult(result: unknown): CodiaTranscribeAudioResult {
   if (result && typeof result === 'object' && (result as any).ok === true
     && Object.prototype.hasOwnProperty.call(result, 'transcription')) {
-    return result as GsapTranscribeAudioResult;
+    return result as CodiaTranscribeAudioResult;
   }
   return { ok: true, transcription: result };
 }
 
 export function listUsageEntries(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
-  filter: GsapUsageListFilter = {},
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
+  filter: CodiaUsageListFilter = {},
   options?: Record<string, unknown>,
-): Promise<GsapUsageListResult> {
-  return requestBus<GsapUsageListResult, GsapUsageListFilter>(ctx, 'usage:list', filter, options);
+): Promise<CodiaUsageListResult> {
+  return requestBus<CodiaUsageListResult, CodiaUsageListFilter>(ctx, 'usage:list', filter, options);
 }
 
 export function subscribeUsageEvents(
   ctx: { bus?: { subscribe?: (handler: (event: unknown, sessionPath?: string | null) => void, filter?: Record<string, unknown>) => () => void } | null },
-  handler: (entry: GsapUsageLedgerEntry, meta: GsapUsageEventMeta) => void,
+  handler: (entry: CodiaUsageLedgerEntry, meta: CodiaUsageEventMeta) => void,
 ): () => void {
   if (!ctx.bus || typeof ctx.bus.subscribe !== 'function') {
     throw new Error('plugin bus subscribe unavailable');
@@ -1349,7 +1349,7 @@ export function subscribeUsageEvents(
     if (!event || typeof event !== 'object') return;
     const typed = event as { type?: unknown; entry?: unknown };
     if (typed.type !== 'llm_usage') return;
-    const entry = typed.entry as GsapUsageLedgerEntry;
+    const entry = typed.entry as CodiaUsageLedgerEntry;
     const entrySessionId =
       textOrNull((entry as any)?.attribution?.sessionId)
       || textOrNull((entry as any)?.source?.actor?.sessionId)
@@ -1373,37 +1373,37 @@ export function subscribeUsageEvents(
 }
 
 export function registerTask(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
-  input: GsapTaskRegisterInput,
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
+  input: CodiaTaskRegisterInput,
 ): Promise<{ ok: true }> {
   return requestBus(ctx, 'task:register', input);
 }
 
 export function updateTask(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
-  input: GsapTaskUpdateInput,
-): Promise<{ ok: true; task: GsapTaskRecord }> {
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
+  input: CodiaTaskUpdateInput,
+): Promise<{ ok: true; task: CodiaTaskRecord }> {
   return requestBus(ctx, 'task:update', input);
 }
 
 export function completeTask(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
   taskId: string,
   result?: unknown,
-): Promise<{ ok: true; task: GsapTaskRecord }> {
+): Promise<{ ok: true; task: CodiaTaskRecord }> {
   return requestBus(ctx, 'task:complete', { taskId, result });
 }
 
 export function failTask(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
   taskId: string,
   error: unknown,
-): Promise<{ ok: true; task: GsapTaskRecord }> {
+): Promise<{ ok: true; task: CodiaTaskRecord }> {
   return requestBus(ctx, 'task:fail', { taskId, error });
 }
 
 export function cancelTask(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
   taskId: string,
   reason?: string,
 ): Promise<{ result: string; canceled: boolean }> {
@@ -1411,26 +1411,26 @@ export function cancelTask(
 }
 
 export function scheduleTask(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
-  input: GsapTaskScheduleInput,
-): Promise<{ ok: true; schedule: GsapTaskSchedule }> {
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
+  input: CodiaTaskScheduleInput,
+): Promise<{ ok: true; schedule: CodiaTaskSchedule }> {
   return requestBus(ctx, 'task:schedule', input);
 }
 
 export function unscheduleTask(
-  ctx: { bus?: Pick<GsapEventBus, 'request'> | null },
+  ctx: { bus?: Pick<CodiaEventBus, 'request'> | null },
   scheduleId: string,
 ): Promise<{ ok: true; removed: boolean }> {
   return requestBus(ctx, 'task:unschedule', { scheduleId });
 }
 
-export function sessionFileToMediaItem(file: GsapSessionFile): GsapSessionFileMediaItem {
+export function sessionFileToMediaItem(file: CodiaSessionFile): CodiaSessionFileMediaItem {
   const fileId = firstText(file.fileId, file.id);
   if (!fileId) {
     throw new Error('SessionFile media item requires id or fileId');
   }
 
-  const item: GsapSessionFileMediaItem = {
+  const item: CodiaSessionFileMediaItem = {
     type: 'session_file',
     fileId,
   };
@@ -1444,9 +1444,9 @@ export function sessionFileToMediaItem(file: GsapSessionFile): GsapSessionFileMe
   return item;
 }
 
-type GsapMediaInput = GsapSessionFile | GsapSessionFileMediaItem | GsapStagedSessionFile;
+type CodiaMediaInput = CodiaSessionFile | CodiaSessionFileMediaItem | CodiaStagedSessionFile;
 
-export function createMediaDetails(items: GsapMediaInput[]): GsapMediaDetails {
+export function createMediaDetails(items: CodiaMediaInput[]): CodiaMediaDetails {
   return {
     media: {
       items: items.map(normalizeMediaItem),
@@ -1454,14 +1454,14 @@ export function createMediaDetails(items: GsapMediaInput[]): GsapMediaDetails {
   };
 }
 
-export function defineExtension<Pi = unknown>(factory: GsapExtensionFactory<Pi>): GsapExtensionFactory<Pi> {
+export function defineExtension<Pi = unknown>(factory: CodiaExtensionFactory<Pi>): CodiaExtensionFactory<Pi> {
   return factory;
 }
 
-export function definePlugin(lifecycle: GsapPluginLifecycle): new () => GsapPluginInstance {
-  return class DefinedGsapPlugin implements GsapPluginInstance {
-    ctx!: GsapPluginContext;
-    register!: (disposable: GsapPluginDisposable) => void;
+export function definePlugin(lifecycle: CodiaPluginLifecycle): new () => CodiaPluginInstance {
+  return class DefinedCodiaPlugin implements CodiaPluginInstance {
+    ctx!: CodiaPluginContext;
+    register!: (disposable: CodiaPluginDisposable) => void;
 
     async onload(): Promise<void> {
       await lifecycle.onload?.(this.ctx, { register: this.register });
@@ -1473,7 +1473,7 @@ export function definePlugin(lifecycle: GsapPluginLifecycle): new () => GsapPlug
   };
 }
 
-function normalizeMediaItem(input: GsapMediaInput): GsapSessionFileMediaItem {
+function normalizeMediaItem(input: CodiaMediaInput): CodiaSessionFileMediaItem {
   if (isRecord(input) && isRecord(input.mediaItem)) {
     return normalizeSessionFileMediaItem(input.mediaItem);
   }
@@ -1486,7 +1486,7 @@ function normalizeMediaItem(input: GsapMediaInput): GsapSessionFileMediaItem {
   throw new Error('media details item must be a SessionFile, staged file, or session_file media item');
 }
 
-function normalizeSessionFileMediaItem(input: Record<string, unknown>): GsapSessionFileMediaItem {
+function normalizeSessionFileMediaItem(input: Record<string, unknown>): CodiaSessionFileMediaItem {
   if (input.type !== 'session_file') {
     throw new Error('media details item must be a session_file media item');
   }

@@ -73,7 +73,7 @@ describe("renderer build contracts", () => {
     expect(html).toContain('href="themes/codia-lilac.css" id="themeSheet"');
     expect(html).toContain('src="./mobile-main.tsx"');
 
-    expect(entry).toContain("__GSAP_PWA__");
+    expect(entry).toContain("__CODIA_PWA__");
     expect(entry).toContain("serverUrl");
     expect(entry).toContain("wsUrl");
     expect(entry).toContain("installMobilePlatform");

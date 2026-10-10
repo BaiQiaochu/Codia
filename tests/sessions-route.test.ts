@@ -66,7 +66,7 @@ describe("sessions route", () => {
 
   beforeEach(() => {
     vi.resetModules();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-sessions-route-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-sessions-route-"));
     browserManagerMock._sessions.clear();
     browserManagerMock._sessions.set("/tmp/agents/a/sessions/old.jsonl", { running: true, url: "https://before.example.com" });
     browserManagerMock.suspendForSession.mockClear();
@@ -93,8 +93,8 @@ describe("sessions route", () => {
       planMode: false,
       memoryModelUnavailableReason: null,
       cwd: "/tmp/workspace",
-      currentAgentId: "gsap",
-      agentName: "G-SAP",
+      currentAgentId: "codia",
+      agentName: "Codia",
       currentModel: {
         id: "mimo-v2.5",
         provider: "mimo",
@@ -110,7 +110,7 @@ describe("sessions route", () => {
       getSessionByPath: vi.fn((_sp) => ({
         messages: [{ role: "assistant", content: "ok" }],
       })),
-      getAgent: vi.fn(() => ({ agentName: "G-SAP" })),
+      getAgent: vi.fn(() => ({ agentName: "Codia" })),
       agentIdFromSessionPath: vi.fn((sp) => {
         const rel = path.relative("/tmp/agents", sp);
         return rel.split(path.sep)[0] || null;
@@ -144,17 +144,17 @@ describe("sessions route", () => {
   it("switches by manifest sessionId before trusting a stale legacy path", async () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
-    const stalePath = "/tmp/agents/gsap/sessions/stale.jsonl";
-    const currentPath = "/tmp/agents/gsap/sessions/current.jsonl";
+    const stalePath = "/tmp/agents/codia/sessions/stale.jsonl";
+    const currentPath = "/tmp/agents/codia/sessions/current.jsonl";
     const engine = {
       agentsDir: "/tmp/agents",
-      currentSessionPath: "/tmp/agents/gsap/sessions/old.jsonl",
+      currentSessionPath: "/tmp/agents/codia/sessions/old.jsonl",
       memoryEnabled: true,
       planMode: false,
       memoryModelUnavailableReason: null,
       cwd: "/tmp/workspace",
-      currentAgentId: "gsap",
-      agentName: "G-SAP",
+      currentAgentId: "codia",
+      agentName: "Codia",
       currentModel: { id: "gpt-test", provider: "openai" },
       getSessionManifest: vi.fn((sessionId) => sessionId === "sess_manifest_current"
         ? { sessionId, currentLocator: { path: currentPath } }
@@ -169,8 +169,8 @@ describe("sessions route", () => {
         engine.currentSessionPath = sessionPath;
       }),
       getSessionByPath: vi.fn(() => ({ messages: [] })),
-      getAgent: vi.fn(() => ({ agentName: "G-SAP" })),
-      agentIdFromSessionPath: vi.fn(() => "gsap"),
+      getAgent: vi.fn(() => ({ agentName: "Codia" })),
+      agentIdFromSessionPath: vi.fn(() => "codia"),
     };
 
     app.route("/api", createSessionsRoute(engine));
@@ -191,7 +191,7 @@ describe("sessions route", () => {
   it("does not fail session switch when browser host is unavailable but the target has cold state", async () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
-    const targetPath = "/tmp/agents/gsap/sessions/browser-cold.jsonl";
+    const targetPath = "/tmp/agents/codia/sessions/browser-cold.jsonl";
     browserManagerMock.resumeForSessionIfAvailable.mockResolvedValueOnce({
       status: "skipped",
       canResume: false,
@@ -204,21 +204,21 @@ describe("sessions route", () => {
 
     const engine = {
       agentsDir: "/tmp/agents",
-      currentSessionPath: "/tmp/agents/gsap/sessions/old.jsonl",
+      currentSessionPath: "/tmp/agents/codia/sessions/old.jsonl",
       memoryEnabled: true,
       planMode: false,
       memoryModelUnavailableReason: null,
       cwd: "/tmp/workspace",
-      currentAgentId: "gsap",
-      agentName: "G-SAP",
+      currentAgentId: "codia",
+      agentName: "Codia",
       currentModel: { id: "gpt-test", provider: "openai" },
       isSessionStreaming: vi.fn(() => false),
       switchSession: vi.fn(async (sessionPath) => {
         engine.currentSessionPath = sessionPath;
       }),
       getSessionByPath: vi.fn(() => ({ messages: [] })),
-      getAgent: vi.fn(() => ({ agentName: "G-SAP" })),
-      agentIdFromSessionPath: vi.fn(() => "gsap"),
+      getAgent: vi.fn(() => ({ agentName: "Codia" })),
+      agentIdFromSessionPath: vi.fn(() => "codia"),
     };
 
     app.route("/api", createSessionsRoute(engine));
@@ -248,14 +248,14 @@ describe("sessions route", () => {
 
     const engine = {
       listSessions: vi.fn(async () => [{
-        path: "/tmp/agents/gsap/sessions/a.jsonl",
+        path: "/tmp/agents/codia/sessions/a.jsonl",
         title: "Pinned thread",
         firstMessage: "hello",
         modified: new Date("2026-04-29T07:00:00.000Z"),
         messageCount: 2,
         cwd: "/tmp/work",
-        agentId: "gsap",
-        agentName: "G-SAP",
+        agentId: "codia",
+        agentName: "Codia",
         sessionId: "sess_manifest_123",
         revision: "12:3456",
         pinnedAt,
@@ -278,17 +278,17 @@ describe("sessions route", () => {
   it("switches by stable sessionId when a pinned history row has a stale path", async () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
-    const stalePath = "/tmp/agents/gsap/sessions/stale.jsonl";
-    const currentPath = "/tmp/agents/gsap/sessions/current.jsonl";
+    const stalePath = "/tmp/agents/codia/sessions/stale.jsonl";
+    const currentPath = "/tmp/agents/codia/sessions/current.jsonl";
     const engine = {
       agentsDir: "/tmp/agents",
-      currentSessionPath: "/tmp/agents/gsap/sessions/old.jsonl",
+      currentSessionPath: "/tmp/agents/codia/sessions/old.jsonl",
       memoryEnabled: true,
       planMode: false,
       memoryModelUnavailableReason: null,
       cwd: "/tmp/workspace",
-      currentAgentId: "gsap",
-      agentName: "G-SAP",
+      currentAgentId: "codia",
+      agentName: "Codia",
       currentModel: { id: "gpt-test", provider: "openai" },
       listSessions: vi.fn(async () => [{
         path: currentPath,
@@ -301,8 +301,8 @@ describe("sessions route", () => {
         engine.currentSessionPath = sessionPath;
       }),
       getSessionByPath: vi.fn(() => ({ messages: [] })),
-      getAgent: vi.fn(() => ({ agentName: "G-SAP" })),
-      agentIdFromSessionPath: vi.fn(() => "gsap"),
+      getAgent: vi.fn(() => ({ agentName: "Codia" })),
+      agentIdFromSessionPath: vi.fn(() => "codia"),
     };
 
     app.route("/api", createSessionsRoute(engine));
@@ -326,7 +326,7 @@ describe("sessions route", () => {
   it("gets and updates session authorized folders", async () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
-    const agentDir = path.join(tmpDir, "agents", "gsap");
+    const agentDir = path.join(tmpDir, "agents", "codia");
     const sessionDir = path.join(agentDir, "sessions");
     const sessionPath = path.join(sessionDir, "one.jsonl");
     const authorized = path.join(tmpDir, "external-assets");
@@ -426,14 +426,14 @@ describe("sessions route", () => {
 
     const engine = {
       listSessions: vi.fn(async () => [{
-        path: "/tmp/agents/gsap/sessions/a.jsonl",
+        path: "/tmp/agents/codia/sessions/a.jsonl",
         title: "Summarized thread",
         firstMessage: "hello",
         modified: new Date("2026-04-29T07:00:00.000Z"),
         messageCount: 2,
         cwd: "/tmp/work",
-        agentId: "gsap",
-        agentName: "G-SAP",
+        agentId: "codia",
+        agentName: "Codia",
       }]),
       getAgent: vi.fn(() => ({ summaryManager })),
       rcState: null,
@@ -452,7 +452,7 @@ describe("sessions route", () => {
   it("returns a session summary for the history context menu", async () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
-    const sessionPath = "/tmp/agents/gsap/sessions/with-summary.jsonl";
+    const sessionPath = "/tmp/agents/codia/sessions/with-summary.jsonl";
     const summaryManager = {
       getSummary: vi.fn(() => ({
         session_id: "with-summary",
@@ -464,7 +464,7 @@ describe("sessions route", () => {
 
     const engine = {
       agentsDir: "/tmp/agents",
-      agentIdFromSessionPath: vi.fn(() => "gsap"),
+      agentIdFromSessionPath: vi.fn(() => "codia"),
       getAgent: vi.fn(() => ({ summaryManager })),
     };
 
@@ -489,13 +489,13 @@ describe("sessions route", () => {
     const app = new Hono();
     const engine = {
       agentsDir: "/tmp/agents",
-      agentIdFromSessionPath: vi.fn(() => "gsap"),
+      agentIdFromSessionPath: vi.fn(() => "codia"),
       getAgent: vi.fn(() => ({ summaryManager: { getSummary: vi.fn(() => null) } })),
     };
 
     app.route("/api", createSessionsRoute(engine));
 
-    const res = await app.request("/api/sessions/summary?path=%2Ftmp%2Fagents%2Fhana%2Fsessions%2Fempty.jsonl");
+    const res = await app.request("/api/sessions/summary?path=%2Ftmp%2Fagents%2Fcodia%2Fsessions%2Fempty.jsonl");
     const data = await res.json();
 
     expect(res.status).toBe(200);
@@ -511,7 +511,7 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const msgUtils = await import("../core/message-utils.js");
     const app = new Hono();
-    const sessionPath = "/tmp/agents/gsap/sessions/a.jsonl";
+    const sessionPath = "/tmp/agents/codia/sessions/a.jsonl";
 
     vi.mocked(msgUtils.loadSessionHistoryMessages).mockResolvedValueOnce([]);
 
@@ -519,8 +519,8 @@ describe("sessions route", () => {
       agentsDir: "/tmp/agents",
       listSessions: vi.fn(async () => [{ path: sessionPath, title: "Thread A" }]),
       deferredResults: null,
-      agentIdFromSessionPath: vi.fn(() => "gsap"),
-      getAgent: vi.fn(() => ({ agentName: "G-SAP" })),
+      agentIdFromSessionPath: vi.fn(() => "codia"),
+      getAgent: vi.fn(() => ({ agentName: "Codia" })),
     };
 
     app.route("/api", createSessionsRoute(engine));
@@ -538,7 +538,7 @@ describe("sessions route", () => {
     const msgUtils = await import("../core/message-utils.js");
     const app = new Hono();
     const agentsDir = path.join(tmpDir, "agents");
-    const sessionDir = path.join(agentsDir, "gsap", "sessions");
+    const sessionDir = path.join(agentsDir, "codia", "sessions");
     const sessionPath = path.join(sessionDir, "revision.jsonl");
     fs.mkdirSync(sessionDir, { recursive: true });
     fs.writeFileSync(sessionPath, "{\"type\":\"session\",\"id\":\"revision\"}\n", "utf-8");
@@ -550,8 +550,8 @@ describe("sessions route", () => {
       agentsDir,
       currentSessionPath: sessionPath,
       deferredResults: null,
-      agentIdFromSessionPath: vi.fn(() => "gsap"),
-      getAgent: vi.fn(() => ({ agentName: "G-SAP" })),
+      agentIdFromSessionPath: vi.fn(() => "codia"),
+      getAgent: vi.fn(() => ({ agentName: "Codia" })),
     };
 
     app.route("/api", createSessionsRoute(engine));
@@ -567,8 +567,8 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const msgUtils = await import("../core/message-utils.js");
     const app = new Hono();
-    const stalePath = "/tmp/agents/gsap/sessions/stale.jsonl";
-    const currentPath = "/tmp/agents/gsap/sessions/current.jsonl";
+    const stalePath = "/tmp/agents/codia/sessions/stale.jsonl";
+    const currentPath = "/tmp/agents/codia/sessions/current.jsonl";
 
     vi.mocked(msgUtils.loadSessionHistoryMessages).mockResolvedValueOnce([]);
 
@@ -579,8 +579,8 @@ describe("sessions route", () => {
         : null),
       listSessions: vi.fn(async () => [{ path: stalePath, sessionId: "sess_moved", title: "Moved" }]),
       deferredResults: null,
-      agentIdFromSessionPath: vi.fn(() => "gsap"),
-      getAgent: vi.fn(() => ({ agentName: "G-SAP" })),
+      agentIdFromSessionPath: vi.fn(() => "codia"),
+      getAgent: vi.fn(() => ({ agentName: "Codia" })),
     };
 
     app.route("/api", createSessionsRoute(engine));
@@ -597,7 +597,7 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const msgUtils = await import("../core/message-utils.js");
     const app = new Hono();
-    const sessionPath = "/tmp/agents/gsap/sessions/main.jsonl";
+    const sessionPath = "/tmp/agents/codia/sessions/main.jsonl";
 
     vi.mocked(msgUtils.loadSessionHistoryMessages).mockResolvedValueOnce([]);
 
@@ -649,7 +649,7 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const msgUtils = await import("../core/message-utils.js");
     const app = new Hono();
-    const sessionPath = "/tmp/agents/gsap/sessions/legacy.jsonl";
+    const sessionPath = "/tmp/agents/codia/sessions/legacy.jsonl";
 
     vi.mocked(msgUtils.extractTextContent)
       .mockReturnValueOnce({ text: "legacy file", images: [], thinking: "", toolUses: [] });
@@ -730,7 +730,7 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const msgUtils = await import("../core/message-utils.js");
     const app = new Hono();
-    const sessionPath = "/tmp/agents/gsap/sessions/image.jsonl";
+    const sessionPath = "/tmp/agents/codia/sessions/image.jsonl";
 
     vi.mocked(msgUtils.extractTextContent).mockImplementation((content) => ({
       text: typeof content === "string" ? content : "",
@@ -753,7 +753,7 @@ describe("sessions route", () => {
       },
       {
         role: "custom",
-        customType: "gsap-deferred-result",
+        customType: "codia-deferred-result",
         taskId: "img-task-1",
         status: "success",
         type: "image-generation",
@@ -803,7 +803,7 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const msgUtils = await import("../core/message-utils.js");
     const app = new Hono();
-    const sessionPath = "/tmp/agents/gsap/sessions/a.jsonl";
+    const sessionPath = "/tmp/agents/codia/sessions/a.jsonl";
     const messages = [
       { role: "user", content: "hi" },
       { role: "assistant", content: "hello" },
@@ -837,7 +837,7 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
     const agentsDir = path.join(tmpDir, "agents");
-    const sessionPath = path.join(agentsDir, "gsap", "sessions", "a.jsonl");
+    const sessionPath = path.join(agentsDir, "codia", "sessions", "a.jsonl");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(sessionPath, "{}\n", "utf-8");
 
@@ -878,7 +878,7 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
     const agentsDir = path.join(tmpDir, "agents");
-    const sessionPath = path.join(agentsDir, "gsap", "sessions", "todo.jsonl");
+    const sessionPath = path.join(agentsDir, "codia", "sessions", "todo.jsonl");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(sessionPath, "{}\n", "utf-8");
     const appendCustomMessageEntry = vi.fn();
@@ -906,8 +906,8 @@ describe("sessions route", () => {
     expect(res.status).toBe(200);
     expect(data).toEqual({ ok: true, todos: [] });
     expect(appendCustomMessageEntry).toHaveBeenCalledWith(
-      "gsap.todo_state",
-      expect.stringContaining("[G-SAP Todo]"),
+      "codia.todo_state",
+      expect.stringContaining("[Codia Todo]"),
       false,
       expect.objectContaining({
         action: "complete_all",
@@ -923,24 +923,24 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
     const agentsDir = path.join(tmpDir, "agents");
-    const sessionPath = path.join(agentsDir, "gsap", "sessions", "new.jsonl");
+    const sessionPath = path.join(agentsDir, "codia", "sessions", "new.jsonl");
     const engine = {
       agentsDir,
       cwd: "/workspace",
       config: { cwd_history: [] },
-      currentAgentId: "gsap",
-      agentName: "G-SAP",
+      currentAgentId: "codia",
+      agentName: "Codia",
       planMode: false,
       permissionMode: "ask",
       memoryModelUnavailableReason: null,
-      createSession: vi.fn(async () => ({ sessionPath, agentId: "gsap" })),
+      createSession: vi.fn(async () => ({ sessionPath, agentId: "codia" })),
       persistSessionMeta: vi.fn(),
       updateConfig: vi.fn(async () => {}),
       getSessionWorkspaceFolders: vi.fn(() => ["/workspace"]),
       getSessionPermissionMode: vi.fn(() => "ask"),
       getSessionThinkingLevel: vi.fn(() => "auto"),
       getThinkingLevel: vi.fn(() => "auto"),
-      getAgent: vi.fn(() => ({ agentName: "G-SAP" })),
+      getAgent: vi.fn(() => ({ agentName: "Codia" })),
     };
     const hub = { eventBus: { emit: vi.fn() } };
 
@@ -970,7 +970,7 @@ describe("sessions route", () => {
         type: "session_created",
         session: expect.objectContaining({
           path: sessionPath,
-          agentName: "G-SAP",
+          agentName: "Codia",
           cwd: "/workspace",
         }),
       },
@@ -982,23 +982,23 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
     const agentsDir = path.join(tmpDir, "agents");
-    const sessionPath = path.join(agentsDir, "gsap", "sessions", "quick.jsonl");
+    const sessionPath = path.join(agentsDir, "codia", "sessions", "quick.jsonl");
     const engine = {
       agentsDir,
       cwd: "/workspace",
-      currentSessionPath: path.join(agentsDir, "gsap", "sessions", "focused.jsonl"),
-      currentAgentId: "gsap",
-      agentName: "G-SAP",
+      currentSessionPath: path.join(agentsDir, "codia", "sessions", "focused.jsonl"),
+      currentAgentId: "codia",
+      agentName: "Codia",
       permissionMode: "ask",
       memoryModelUnavailableReason: null,
-      createDetachedSession: vi.fn(async () => ({ sessionPath, agentId: "gsap" })),
+      createDetachedSession: vi.fn(async () => ({ sessionPath, agentId: "codia" })),
       persistSessionMeta: vi.fn(),
       getSessionWorkspaceFolders: vi.fn(() => ["/workspace"]),
       getSessionAuthorizedFolders: vi.fn(() => ["/workspace"]),
       getSessionPermissionMode: vi.fn(() => "read_only"),
       getSessionThinkingLevel: vi.fn(() => "medium"),
       getThinkingLevel: vi.fn(() => "auto"),
-      getAgent: vi.fn(() => ({ agentName: "G-SAP" })),
+      getAgent: vi.fn(() => ({ agentName: "Codia" })),
     };
     const hub = { eventBus: { emit: vi.fn() } };
 
@@ -1009,7 +1009,7 @@ describe("sessions route", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         cwd: "/workspace",
-        agentId: "gsap",
+        agentId: "codia",
         permissionMode: "read_only",
         thinkingLevel: "medium",
         workspaceFolders: ["/workspace"],
@@ -1021,7 +1021,7 @@ describe("sessions route", () => {
     expect(engine.createDetachedSession).toHaveBeenCalledWith({
       cwd: "/workspace",
       memoryEnabled: true,
-      agentId: "gsap",
+      agentId: "codia",
       workspaceFolders: ["/workspace"],
       visibleInSessionList: true,
       permissionMode: "read_only",
@@ -1034,7 +1034,7 @@ describe("sessions route", () => {
       permissionMode: "read_only",
       accessMode: "read_only",
       planMode: true,
-      agentName: "G-SAP",
+      agentName: "Codia",
     }));
     expect(hub.eventBus.emit).toHaveBeenCalledWith(
       {
@@ -1050,7 +1050,7 @@ describe("sessions route", () => {
     const app = new Hono();
     const agentsDir = path.join(tmpDir, "agents");
     const oldPath = path.join(agentsDir, "deleted", "sessions", "old.jsonl");
-    const newPath = path.join(agentsDir, "gsap", "sessions", "continued.jsonl");
+    const newPath = path.join(agentsDir, "codia", "sessions", "continued.jsonl");
     fs.mkdirSync(path.dirname(oldPath), { recursive: true });
     fs.writeFileSync(
       oldPath,
@@ -1067,8 +1067,8 @@ describe("sessions route", () => {
       memoryModelUnavailableReason: null,
       continueDeletedAgentSession: vi.fn(async () => ({
         sessionPath: newPath,
-        agentId: "gsap",
-        agentName: "G-SAP",
+        agentId: "codia",
+        agentName: "Codia",
         cwd: "/workspace",
         workspaceFolders: ["/workspace"],
         authorizedFolders: ["/workspace"],
@@ -1079,7 +1079,7 @@ describe("sessions route", () => {
       getSessionAuthorizedFolders: vi.fn(() => ["/workspace"]),
       getSessionThinkingLevel: vi.fn(() => "auto"),
       getThinkingLevel: vi.fn(() => "auto"),
-      getAgent: vi.fn(() => ({ agentName: "G-SAP" })),
+      getAgent: vi.fn(() => ({ agentName: "Codia" })),
     };
     const hub = { eventBus: { emit: vi.fn() } };
 
@@ -1097,8 +1097,8 @@ describe("sessions route", () => {
     expect(data).toMatchObject({
       ok: true,
       path: newPath,
-      agentId: "gsap",
-      agentName: "G-SAP",
+      agentId: "codia",
+      agentName: "Codia",
       compacted: false,
       compactionError: "summary model unavailable",
     });
@@ -1107,7 +1107,7 @@ describe("sessions route", () => {
         type: "session_created",
         session: expect.objectContaining({
           path: newPath,
-          agentName: "G-SAP",
+          agentName: "Codia",
         }),
       },
       newPath,
@@ -1129,23 +1129,23 @@ describe("sessions route", () => {
     const pinRes = await app.request("/api/sessions/pin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path: "/tmp/agents/gsap/sessions/a.jsonl", pinned: true }),
+      body: JSON.stringify({ path: "/tmp/agents/codia/sessions/a.jsonl", pinned: true }),
     });
     const pinData = await pinRes.json();
 
     expect(pinRes.status).toBe(200);
-    expect(engine.setSessionPinned).toHaveBeenCalledWith("/tmp/agents/gsap/sessions/a.jsonl", true);
+    expect(engine.setSessionPinned).toHaveBeenCalledWith("/tmp/agents/codia/sessions/a.jsonl", true);
     expect(pinData).toEqual({ ok: true, pinnedAt });
 
     const unpinRes = await app.request("/api/sessions/pin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path: "/tmp/agents/gsap/sessions/a.jsonl", pinned: false }),
+      body: JSON.stringify({ path: "/tmp/agents/codia/sessions/a.jsonl", pinned: false }),
     });
     const unpinData = await unpinRes.json();
 
     expect(unpinRes.status).toBe(200);
-    expect(engine.setSessionPinned).toHaveBeenLastCalledWith("/tmp/agents/gsap/sessions/a.jsonl", false);
+    expect(engine.setSessionPinned).toHaveBeenLastCalledWith("/tmp/agents/codia/sessions/a.jsonl", false);
     expect(unpinData).toEqual({ ok: true, pinnedAt: null });
   });
 
@@ -1153,7 +1153,7 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
     const agentsDir = path.join(tmpDir, "agents");
-    const sessionPath = path.join(agentsDir, "gsap", "sessions", "a.jsonl");
+    const sessionPath = path.join(agentsDir, "codia", "sessions", "a.jsonl");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(sessionPath, "{}\n", "utf-8");
 
@@ -1183,7 +1183,7 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
     const agentsDir = path.join(tmpDir, "agents");
-    const sessionPath = path.join(agentsDir, "gsap", "sessions", "a.jsonl");
+    const sessionPath = path.join(agentsDir, "codia", "sessions", "a.jsonl");
     const destPath = path.join(path.dirname(sessionPath), "archived", path.basename(sessionPath));
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(sessionPath, "{}\n", "utf-8");
@@ -1231,7 +1231,7 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
     const agentsDir = path.join(tmpDir, "agents");
-    const sessionPath = path.join(agentsDir, "gsap", "sessions", "delete-me.jsonl");
+    const sessionPath = path.join(agentsDir, "codia", "sessions", "delete-me.jsonl");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(sessionPath, "{}\n", "utf-8");
 
@@ -1265,8 +1265,8 @@ describe("sessions route", () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
     const agentsDir = path.join(tmpDir, "agents");
-    const stalePath = path.join(agentsDir, "gsap", "sessions", "stale.jsonl");
-    const currentPath = path.join(agentsDir, "gsap", "sessions", "current.jsonl");
+    const stalePath = path.join(agentsDir, "codia", "sessions", "stale.jsonl");
+    const currentPath = path.join(agentsDir, "codia", "sessions", "current.jsonl");
     fs.mkdirSync(path.dirname(currentPath), { recursive: true });
     fs.writeFileSync(currentPath, "{}\n", "utf-8");
 
@@ -1311,7 +1311,7 @@ describe("sessions route", () => {
         details: {
           taskId: "subagent-1",
           task: "do work",
-          sessionPath: "/tmp/agents/gsap/subagent-sessions/child.jsonl",
+          sessionPath: "/tmp/agents/codia/subagent-sessions/child.jsonl",
           streamStatus: "done",
         },
       },
@@ -1324,7 +1324,7 @@ describe("sessions route", () => {
         const rel = path.relative("/tmp/agents", sp);
         return rel.split(path.sep)[0] || null;
       }),
-      getAgent: vi.fn((id) => (id === "gsap" ? { agentName: "G-SAP" } : null)),
+      getAgent: vi.fn((id) => (id === "codia" ? { agentName: "Codia" } : null)),
     };
 
     app.route("/api", createSessionsRoute(engine));
@@ -1336,9 +1336,9 @@ describe("sessions route", () => {
     expect(data.blocks).toHaveLength(1);
     expect(data.blocks[0]).toMatchObject({
       type: "subagent",
-      agentId: "gsap",
-      agentName: "G-SAP",
-      streamKey: "/tmp/agents/gsap/subagent-sessions/child.jsonl",
+      agentId: "codia",
+      agentName: "Codia",
+      streamKey: "/tmp/agents/codia/subagent-sessions/child.jsonl",
     });
   });
 
@@ -1361,7 +1361,7 @@ describe("sessions route", () => {
           requestedAgentNameSnapshot: "butter",
           executorAgentId: "butter",
           executorAgentNameSnapshot: "butter",
-          sessionPath: "/tmp/agents/gsap/subagent-sessions/child.jsonl",
+          sessionPath: "/tmp/agents/codia/subagent-sessions/child.jsonl",
           streamStatus: "done",
         },
       },
@@ -1375,7 +1375,7 @@ describe("sessions route", () => {
         return rel.split(path.sep)[0] || null;
       }),
       getAgent: vi.fn((id) => {
-        if (id === "gsap") return { agentName: "G-SAP" };
+        if (id === "codia") return { agentName: "Codia" };
         if (id === "butter") return { agentName: "butter" };
         return null;
       }),
@@ -1394,7 +1394,7 @@ describe("sessions route", () => {
       agentName: "butter",
       requestedAgentId: "butter",
       requestedAgentName: "butter",
-      streamKey: "/tmp/agents/gsap/subagent-sessions/child.jsonl",
+      streamKey: "/tmp/agents/codia/subagent-sessions/child.jsonl",
     });
   });
 
@@ -1404,7 +1404,7 @@ describe("sessions route", () => {
     const app = new Hono();
 
     const agentsDir = path.join(tmpDir, "agents");
-    const childSessionPath = path.join(agentsDir, "gsap", "subagent-sessions", "child.jsonl");
+    const childSessionPath = path.join(agentsDir, "codia", "subagent-sessions", "child.jsonl");
     fs.mkdirSync(path.dirname(childSessionPath), { recursive: true });
     fs.writeFileSync(childSessionPath, "", "utf-8");
     fs.writeFileSync(
@@ -1442,7 +1442,7 @@ describe("sessions route", () => {
         const rel = path.relative(agentsDir, sp);
         return rel.split(path.sep)[0] || null;
       }),
-      getAgent: vi.fn((id) => (id === "gsap" ? { agentName: "G-SAP" } : null)),
+      getAgent: vi.fn((id) => (id === "codia" ? { agentName: "Codia" } : null)),
     };
 
     app.route("/api", createSessionsRoute(engine));
@@ -1488,14 +1488,14 @@ describe("sessions route", () => {
       subagentRuns: {
         query: vi.fn(() => ({
           taskId: "subagent-1",
-          parentSessionPath: "/tmp/agents/gsap/sessions/parent.jsonl",
-          childSessionPath: "/tmp/agents/gsap/subagent-sessions/child.jsonl",
+          parentSessionPath: "/tmp/agents/codia/sessions/parent.jsonl",
+          childSessionPath: "/tmp/agents/codia/subagent-sessions/child.jsonl",
           status: "resolved",
           summary: "durable result",
-          requestedAgentId: "gsap",
-          requestedAgentNameSnapshot: "G-SAP",
-          executorAgentId: "gsap",
-          executorAgentNameSnapshot: "G-SAP",
+          requestedAgentId: "codia",
+          requestedAgentNameSnapshot: "Codia",
+          executorAgentId: "codia",
+          executorAgentNameSnapshot: "Codia",
           executorMetaVersion: 1,
         })),
       },
@@ -1503,7 +1503,7 @@ describe("sessions route", () => {
         const rel = path.relative("/tmp/agents", sp);
         return rel.split(path.sep)[0] || null;
       }),
-      getAgent: vi.fn((id) => (id === "gsap" ? { agentName: "G-SAP" } : null)),
+      getAgent: vi.fn((id) => (id === "codia" ? { agentName: "Codia" } : null)),
     };
 
     app.route("/api", createSessionsRoute(engine));
@@ -1513,14 +1513,14 @@ describe("sessions route", () => {
 
     expect(res.status).toBe(200);
     expect(engine.subagentRuns.query).toHaveBeenCalledWith("subagent-1");
-    expect(msgUtils.loadLatestAssistantSummaryFromSessionFile).toHaveBeenCalledWith("/tmp/agents/gsap/subagent-sessions/child.jsonl");
+    expect(msgUtils.loadLatestAssistantSummaryFromSessionFile).toHaveBeenCalledWith("/tmp/agents/codia/subagent-sessions/child.jsonl");
     expect(data.blocks[0]).toMatchObject({
       type: "subagent",
-      streamKey: "/tmp/agents/gsap/subagent-sessions/child.jsonl",
+      streamKey: "/tmp/agents/codia/subagent-sessions/child.jsonl",
       streamStatus: "done",
       summary: "child finished from durable run",
-      agentId: "gsap",
-      agentName: "G-SAP",
+      agentId: "codia",
+      agentName: "Codia",
     });
   });
 
@@ -1583,7 +1583,7 @@ describe("sessions route", () => {
         details: {
           taskId: "subagent-pending-stale",
           task: "legacy child session still marked running",
-          sessionPath: "/tmp/agents/gsap/subagent-sessions/child.jsonl",
+          sessionPath: "/tmp/agents/codia/subagent-sessions/child.jsonl",
           streamStatus: "running",
         },
       },
@@ -1595,8 +1595,8 @@ describe("sessions route", () => {
       subagentRuns: {
         query: vi.fn(() => ({
           taskId: "subagent-pending-stale",
-          parentSessionPath: "/tmp/agents/gsap/sessions/parent.jsonl",
-          childSessionPath: "/tmp/agents/gsap/subagent-sessions/child.jsonl",
+          parentSessionPath: "/tmp/agents/codia/sessions/parent.jsonl",
+          childSessionPath: "/tmp/agents/codia/subagent-sessions/child.jsonl",
           status: "pending",
           summary: "legacy pending",
         })),
@@ -1605,7 +1605,7 @@ describe("sessions route", () => {
         const rel = path.relative("/tmp/agents", sp);
         return rel.split(path.sep)[0] || null;
       }),
-      getAgent: vi.fn((id) => (id === "gsap" ? { agentName: "G-SAP" } : null)),
+      getAgent: vi.fn((id) => (id === "codia" ? { agentName: "Codia" } : null)),
     };
 
     app.route("/api", createSessionsRoute(engine));
@@ -1616,7 +1616,7 @@ describe("sessions route", () => {
     expect(res.status).toBe(200);
     expect(data.blocks[0]).toMatchObject({
       type: "subagent",
-      streamKey: "/tmp/agents/gsap/subagent-sessions/child.jsonl",
+      streamKey: "/tmp/agents/codia/subagent-sessions/child.jsonl",
       streamStatus: "failed",
     });
     expect(msgUtils.loadLatestAssistantSummaryFromSessionFile).not.toHaveBeenCalled();
@@ -1625,7 +1625,7 @@ describe("sessions route", () => {
   it("routes fresh compact through the desktop fresh compact entrypoint", async () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
-    const sessionPath = "/tmp/agents/gsap/sessions/fresh.jsonl";
+    const sessionPath = "/tmp/agents/codia/sessions/fresh.jsonl";
     const engine = {
       agentsDir: "/tmp/agents",
       freshCompactDesktopSession: vi.fn(async () => ({
@@ -1665,7 +1665,7 @@ describe("sessions route", () => {
   it("returns conflict for transient busy fresh compact attempts", async () => {
     const { createSessionsRoute } = await import("../server/routes/sessions.js");
     const app = new Hono();
-    const sessionPath = "/tmp/agents/gsap/sessions/busy.jsonl";
+    const sessionPath = "/tmp/agents/codia/sessions/busy.jsonl";
     const engine = {
       agentsDir: "/tmp/agents",
       freshCompactDesktopSession: vi.fn(async () => {

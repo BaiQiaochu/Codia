@@ -8,21 +8,21 @@ const root = process.cwd();
 const tempDirs = [];
 
 function makeTempPackage(version = "0.217.0") {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-version-bump-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-version-bump-"));
   tempDirs.push(dir);
   fs.writeFileSync(
     path.join(dir, "package.json"),
-    JSON.stringify({ name: "g-sap", version }, null, 2) + "\n",
+    JSON.stringify({ name: "codia", version }, null, 2) + "\n",
     "utf-8",
   );
   fs.writeFileSync(
     path.join(dir, "package-lock.json"),
     JSON.stringify({
-      name: "g-sap",
+      name: "codia",
       version,
       lockfileVersion: 3,
       packages: {
-        "": { name: "g-sap", version },
+        "": { name: "codia", version },
       },
     }, null, 2) + "\n",
     "utf-8",
@@ -58,7 +58,7 @@ describe("package version bumping", () => {
         .toMatch(/^npm run bump:package-version && /);
     }
 
-    expect(pkg.scripts["package:win"]).toBe("node scripts/package-gsap-win.mjs");
+    expect(pkg.scripts["package:win"]).toBe("node scripts/package-codia-win.mjs");
     expect(pkg.scripts["package:win"]).not.toContain("bump:package-version");
     expect(pkg.scripts["package:surfaces"]).toBe("node scripts/package-surface-artifacts.mjs");
     expect(pkg.scripts["package:surfaces"]).not.toContain("bump:package-version");

@@ -4,7 +4,7 @@ import os from "os";
 import path from "path";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-server-network-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-server-network-"));
 }
 
 describe("server network config", () => {

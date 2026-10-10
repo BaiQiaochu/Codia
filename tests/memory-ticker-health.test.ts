@@ -57,7 +57,7 @@ describe("memory ticker health status", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-memory-health-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-memory-health-"));
   });
 
   afterEach(() => {

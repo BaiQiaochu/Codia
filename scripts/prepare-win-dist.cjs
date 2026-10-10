@@ -70,7 +70,7 @@ function stopLockedDistProcesses() {
   if (process.platform !== "win32") return;
 
   const powershellScript = `
-$targetRoot = [System.IO.Path]::GetFullPath($env:GSAP_DIST_ROOT)
+$targetRoot = [System.IO.Path]::GetFullPath($env:CODIA_DIST_ROOT)
 Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
   Where-Object {
     $_.ExecutablePath -and
@@ -92,7 +92,7 @@ Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
       stdio: "inherit",
       env: {
         ...process.env,
-        GSAP_DIST_ROOT: distRuntimeDir,
+        CODIA_DIST_ROOT: distRuntimeDir,
       },
     },
   );

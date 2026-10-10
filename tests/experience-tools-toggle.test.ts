@@ -8,7 +8,7 @@ import { createExperienceTools, recordEntry } from "../lib/tools/experience.js";
 let tempDirs = [];
 
 function tempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-exp-tools-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-exp-tools-"));
   tempDirs.push(dir);
   return dir;
 }

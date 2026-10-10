@@ -11,10 +11,10 @@ describe("server startup order", () => {
     const source = readServerEntry();
 
     expect(source).toContain('import { resolveServerListenOptions } from "../core/server-network-config.ts";');
-    expect(source).toContain("const serverNetwork = resolveServerListenOptions(gsapHome);");
+    expect(source).toContain("const serverNetwork = resolveServerListenOptions(codiaHome);");
     expect(source).toMatch(/const port = Number\.isInteger\(envPort\) && envPort >= 0 \? envPort : serverNetwork\.port;/);
     expect(source).toContain("const host = serverNetwork.host;");
-    expect(source).not.toContain("const port = parseInt(process.env.GSAP_PORT) || 0;");
+    expect(source).not.toContain("const port = parseInt(process.env.CODIA_PORT) || 0;");
     expect(source).not.toContain("resolveWebAccessBindHost(engine.preferences?.getWebAccess?.())");
   });
 
@@ -22,8 +22,8 @@ describe("server startup order", () => {
     const source = readServerEntry();
 
     const bindIdx = source.indexOf("await bindServerTransportOwnership(server");
-    const ensureFirstRunIdx = source.indexOf("ensureFirstRun(gsapHome");
-    const engineCreateIdx = source.indexOf("new GsapEngine");
+    const ensureFirstRunIdx = source.indexOf("ensureFirstRun(codiaHome");
+    const engineCreateIdx = source.indexOf("new CodiaEngine");
 
     expect(source).toContain('import { createAdaptorServer } from "@hono/node-server";');
     expect(source).toMatch(/let activeFetch(?::\s*ServerFetchCallback)?\s*=\s*\(request\)\s*=>/);
@@ -64,8 +64,7 @@ describe("server startup order", () => {
 
     expect(source).toContain("version: appVersion");
     expect(source).toContain("agentId: engine.currentAgentId || null");
-    expect(source).toContain('agentYuan: engine.agent?.config?.agent?.yuan || "gsap"');
-    expect(source).not.toContain('agentYuan: engine.agent?.config?.agent?.yuan || "hanako"');
+    expect(source).toContain('agentYuan: engine.agent?.config?.agent?.yuan || "codia"');
   });
 
   it("emits structured listen permission startup errors", () => {
@@ -87,9 +86,9 @@ describe("server startup order", () => {
 
     expect(runStoreIdx).toBeGreaterThan(-1);
     expect(threadStoreIdx).toBeGreaterThan(-1);
-    expect(runStoreBlock).toContain('path.join(gsapHome, "subagent-runs.json")');
+    expect(runStoreBlock).toContain('path.join(codiaHome, "subagent-runs.json")');
     expect(runStoreBlock).toContain("getSessionIdForPath: (sessionPath) => engine.getSessionIdForPath?.(sessionPath) || null");
-    expect(threadStoreBlock).toContain('path.join(gsapHome, "subagent-threads.json")');
+    expect(threadStoreBlock).toContain('path.join(codiaHome, "subagent-threads.json")');
     expect(threadStoreBlock).toContain("getSessionIdForPath: (sessionPath) => engine.getSessionIdForPath?.(sessionPath) || null");
   });
 

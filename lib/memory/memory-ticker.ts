@@ -254,7 +254,6 @@ export function createMemoryTicker(opts) {
     _activeJobs.add(promise);
     promise.then(
       () => _activeJobs.delete(promise),
-      () => _activeJobs.delete(promise),
     );
     return promise;
   }

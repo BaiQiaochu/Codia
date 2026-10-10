@@ -1,10 +1,10 @@
 {
   "status": "candidate clothing and hidden neck backplates; visual seam review required; not a completed rig",
-  "source": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-neutral-bust.png",
-  "originalRigPsd": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-source.psd",
-  "generatedCandidate": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-body-occlusion-v1.png",
-  "generatedNeckCandidate": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-neck-occlusion-v4.png",
-  "output": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-occlusion-v1.psd",
+  "source": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-neutral-bust.png",
+  "originalRigPsd": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-source.psd",
+  "generatedCandidate": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-body-occlusion-v1.png",
+  "generatedNeckCandidate": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-neck-occlusion-v4.png",
+  "output": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-occlusion-v1.psd",
   "sourceSha256": "0db9931dde32548419ab298fc17ce5f09e7658287896fe31e6787a3660a4cb6c",
   "originalRigSha256": "6b0949a2ceecf19210b7f50fcf5342480b02b7c04bb1b101efa636d434f770ff",
   "candidateSha256": "87a4d261c9f6c728e0f4b366c55a994d22ba5ca70372cc1e12f500291b7ea5e9",
@@ -822,5 +822,5 @@
     "codia-rig-occlusion-v1.actual-head-left.png",
     "codia-rig-occlusion-v1.actual-head-right.png"
   ],
-  "seamReview": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-occlusion-v1.seam-review.png"
+  "seamReview": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-occlusion-v1.seam-review.png"
 }

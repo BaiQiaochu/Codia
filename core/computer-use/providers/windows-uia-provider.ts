@@ -14,7 +14,7 @@ function defaultPowerShellCommand(env = process.env) {
 }
 
 function defaultHelperDir() {
-  return path.join(os.tmpdir(), "gsap-computer-use", "windows-uia");
+  return path.join(os.tmpdir(), "codia-computer-use", "windows-uia");
 }
 
 function helperScriptHash(script) {

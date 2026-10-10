@@ -15,7 +15,7 @@ function sleep(ms) {
 
 export function serverInfoPath(opts) {
   if (opts.serverInfo) return path.resolve(expandHome(opts.serverInfo));
-  if (process.env.GSAP_SERVER_INFO) return path.resolve(expandHome(process.env.GSAP_SERVER_INFO));
+  if (process.env.CODIA_SERVER_INFO) return path.resolve(expandHome(process.env.CODIA_SERVER_INFO));
   return path.join(opts.home, "server-info.cli.json");
 }
 
@@ -75,17 +75,17 @@ export function startDetachedServer(opts) {
   const logDir = path.join(opts.home, "logs");
   fs.mkdirSync(logDir, { recursive: true });
   const infoPath = serverInfoPath(opts);
-  const out = fs.openSync(path.join(logDir, "gsapctl-server.out.log"), "a");
-  const err = fs.openSync(path.join(logDir, "gsapctl-server.err.log"), "a");
+  const out = fs.openSync(path.join(logDir, "codiactl-server.out.log"), "a");
+  const err = fs.openSync(path.join(logDir, "codiactl-server.err.log"), "a");
   const child = spawn(launch.command, launch.args, {
     cwd: launch.root,
     env: {
       ...process.env,
       ...launch.env,
-      GSAP_HOME: opts.home,
-      GSAP_HOST: opts.host || DEFAULT_HOST,
-      GSAP_SERVER_SCOPE: "cli",
-      GSAP_SERVER_INFO: infoPath,
+      CODIA_HOME: opts.home,
+      CODIA_HOST: opts.host || DEFAULT_HOST,
+      CODIA_SERVER_SCOPE: "cli",
+      CODIA_SERVER_INFO: infoPath,
     },
     detached: true,
     stdio: ["ignore", out, err],
@@ -93,7 +93,7 @@ export function startDetachedServer(opts) {
   });
   child.unref();
   try {
-    fs.writeSync(out, `gsapctl: starting ${launch.kind} backend from ${launch.root}\n`);
+    fs.writeSync(out, `codiactl: starting ${launch.kind} backend from ${launch.root}\n`);
   } catch {}
   return child.pid;
 }
@@ -105,16 +105,16 @@ export function spawnServerForeground(opts, extraArgs = []) {
   const env = {
     ...process.env,
     ...launch.env,
-    GSAP_HOME: opts.home,
-    GSAP_HOST: opts.host || DEFAULT_HOST,
-    GSAP_SERVER_SCOPE: "cli",
-    GSAP_SERVER_INFO: infoPath,
+    CODIA_HOME: opts.home,
+    CODIA_HOST: opts.host || DEFAULT_HOST,
+    CODIA_SERVER_SCOPE: "cli",
+    CODIA_SERVER_INFO: infoPath,
   };
   if (opts.port !== null && opts.port !== undefined) {
-    env.GSAP_PORT = String(opts.port);
+    env.CODIA_PORT = String(opts.port);
   }
   if (opts.token) {
-    env.GSAP_TOKEN = opts.token;
+    env.CODIA_TOKEN = opts.token;
   }
   return spawn(launch.command, [...launch.args, ...extraArgs], {
     cwd: launch.root,
@@ -126,10 +126,10 @@ export function spawnServerForeground(opts, extraArgs = []) {
 
 export async function ensureServerInfo(opts, streams = { stderr: process.stderr }) {
   if (opts.apiBase) {
-    const token = opts.token || process.env.GSAP_API_TOKEN || process.env.GSAP_TOKEN || "";
+    const token = opts.token || process.env.CODIA_API_TOKEN || process.env.CODIA_TOKEN || "";
     const info = await checkApiBase(opts.apiBase, token);
     if (info) return info;
-    throw new CliError("无法连接 GSAP_API_BASE 指定的后端，请检查地址和 token", { code: 2 });
+    throw new CliError("无法连接 CODIA_API_BASE 指定的后端，请检查地址和 token", { code: 2 });
   }
 
   if (opts.port && opts.token) {
@@ -145,14 +145,14 @@ export async function ensureServerInfo(opts, streams = { stderr: process.stderr 
 
   if (opts.noStartServer) {
     throw new CliError(
-      `没有找到可用的 G-SAP server: ${infoPath}\n请先运行 npm run server，或移除 --no-start-server 让 CLI 自动启动。`,
+      `没有找到可用的 Codia server: ${infoPath}\n请先运行 npm run server，或移除 --no-start-server 让 CLI 自动启动。`,
       { code: 2 },
     );
   }
 
   const pid = startDetachedServer(opts);
   if (!opts.json) {
-    streams.stderr.write(`gsapctl: 未检测到后端，已启动 server (pid ${pid})，正在等待就绪...\n`);
+    streams.stderr.write(`codiactl: 未检测到后端，已启动 server (pid ${pid})，正在等待就绪...\n`);
   }
   const startedAt = Date.now();
   while (Date.now() - startedAt < SERVER_START_TIMEOUT_MS) {
@@ -160,5 +160,5 @@ export async function ensureServerInfo(opts, streams = { stderr: process.stderr 
     if (info) return info;
     await sleep(750);
   }
-  throw new CliError(`G-SAP server 启动超时，日志目录: ${path.join(opts.home, "logs")}`, { code: 2 });
+  throw new CliError(`Codia server 启动超时，日志目录: ${path.join(opts.home, "logs")}`, { code: 2 });
 }

@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "hana-remote-admin-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-remote-admin-"));
 }
 
 function withPrincipal(app, principal) {
@@ -50,7 +50,7 @@ describe("trusted remote admin secret writes", () => {
     tmpDir = makeTmpDir();
     const saveProvider = vi.fn();
     const engine = {
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       config: {},
       configPath: path.join(tmpDir, "config.yaml"),
       updateConfig: vi.fn().mockResolvedValue(undefined),
@@ -90,7 +90,7 @@ describe("trusted remote admin secret writes", () => {
     tmpDir = makeTmpDir();
     const saveProvider = vi.fn();
     const engine = {
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       config: {},
       configPath: path.join(tmpDir, "config.yaml"),
       updateConfig: vi.fn().mockResolvedValue(undefined),
@@ -140,7 +140,7 @@ describe("trusted remote admin secret writes", () => {
     tmpDir = makeTmpDir();
     const saveProvider = vi.fn();
     const engine = {
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       config: {},
       configPath: path.join(tmpDir, "config.yaml"),
       updateConfig: vi.fn().mockResolvedValue(undefined),
@@ -177,14 +177,14 @@ describe("trusted remote admin secret writes", () => {
     const { createBridgeRoute } = await import("../server/routes/bridge.ts");
     tmpDir = makeTmpDir();
     const agent = {
-      id: "hana",
+      id: "codia",
       config: { bridge: { telegram: { token: "tg-saved", enabled: false } } },
       updateConfig: vi.fn(),
     };
     const engine = {
-      hanakoHome: tmpDir,
-      currentAgentId: "hana",
-      getAgent: (id) => id === "hana" ? agent : null,
+      codiaHome: tmpDir,
+      currentAgentId: "codia",
+      getAgent: (id) => id === "codia" ? agent : null,
       getBridgeIndex: () => ({}),
       getBridgeReadOnly: () => false,
       getBridgeReceiptEnabled: () => true,
@@ -193,7 +193,7 @@ describe("trusted remote admin secret writes", () => {
     withPrincipal(app, remotePrincipal(["bridge.manage"]));
     app.route("/api", createBridgeRoute(engine, { getStatus: () => ({}) }));
 
-    const res = await app.request("/api/bridge/config?agentId=hana", {
+    const res = await app.request("/api/bridge/config?agentId=codia", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

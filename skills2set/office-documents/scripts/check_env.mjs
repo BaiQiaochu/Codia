@@ -163,16 +163,16 @@ function parsePythonCommand(value) {
       parsed = JSON.parse(trimmed);
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
-      throw new Error(`Invalid GSAP_OFFICE_PYTHON JSON value: ${reason}`);
+      throw new Error(`Invalid CODIA_OFFICE_PYTHON JSON value: ${reason}`);
     }
     if (!Array.isArray(parsed) || parsed.length === 0 || !parsed.every((item) => typeof item === "string")) {
-      throw new Error("GSAP_OFFICE_PYTHON JSON value must be a non-empty string array.");
+      throw new Error("CODIA_OFFICE_PYTHON JSON value must be a non-empty string array.");
     }
     return {
       command: parsed[0],
       args: parsed.slice(1),
       label: parsed.join(" "),
-      source: "GSAP_OFFICE_PYTHON",
+      source: "CODIA_OFFICE_PYTHON",
     };
   }
 
@@ -180,14 +180,14 @@ function parsePythonCommand(value) {
     command: trimmed,
     args: [],
     label: trimmed,
-    source: "GSAP_OFFICE_PYTHON",
+    source: "CODIA_OFFICE_PYTHON",
   };
 }
 
 function pythonCandidates() {
   const candidates = [];
-  if (process.env.GSAP_OFFICE_PYTHON) {
-    candidates.push(parsePythonCommand(process.env.GSAP_OFFICE_PYTHON));
+  if (process.env.CODIA_OFFICE_PYTHON) {
+    candidates.push(parsePythonCommand(process.env.CODIA_OFFICE_PYTHON));
   }
 
   if (process.platform === "win32") {
@@ -300,7 +300,7 @@ function findPython() {
       minimumVersion: MIN_PYTHON_VERSION_TEXT,
     },
     attempted,
-    message: `Office document scripts require Python ${MIN_PYTHON_VERSION_TEXT}+. Install Python or set GSAP_OFFICE_PYTHON to a Python executable, then retry.`,
+    message: `Office document scripts require Python ${MIN_PYTHON_VERSION_TEXT}+. Install Python or set CODIA_OFFICE_PYTHON to a Python executable, then retry.`,
   };
 }
 

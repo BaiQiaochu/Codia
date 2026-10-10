@@ -10,7 +10,7 @@ import {
 } from "../lib/cli/permission-mode.ts";
 
 describe("CLI permission mode helpers", () => {
-  it("normalizes aliases to G-SAP session permission modes", () => {
+  it("normalizes aliases to Codia session permission modes", () => {
     expect(normalizeCliPermissionMode("read-only")).toBe("read_only");
     expect(normalizeCliPermissionMode("read_only")).toBe("read_only");
     expect(normalizeCliPermissionMode("ask")).toBe("ask");
@@ -18,14 +18,14 @@ describe("CLI permission mode helpers", () => {
     expect(normalizeCliPermissionMode("auto")).toBe("operate");
   });
 
-  it("maps Codex approval policies to current G-SAP permission modes", () => {
+  it("maps Codex approval policies to current Codia permission modes", () => {
     expect(permissionModeFromApprovalMode("untrusted")).toBe("read_only");
     expect(permissionModeFromApprovalMode("on-request")).toBe("ask");
     expect(permissionModeFromApprovalMode("on-failure")).toBe("ask");
     expect(permissionModeFromApprovalMode("never")).toBe("operate");
   });
 
-  it("maps Codex sandbox modes conservatively to current G-SAP permission modes", () => {
+  it("maps Codex sandbox modes conservatively to current Codia permission modes", () => {
     expect(permissionModeFromSandbox("read-only")).toBe("read_only");
     expect(permissionModeFromSandbox("workspace-write")).toBe("ask");
     expect(permissionModeFromSandbox("danger-full-access")).toBe("operate");

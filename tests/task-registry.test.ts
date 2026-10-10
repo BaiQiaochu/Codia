@@ -110,17 +110,17 @@ describe("TaskRegistry", () => {
     registry.registerHandler("subagent", { abort });
     registry.register("task-1", {
       type: "subagent",
-      parentSessionPath: "/agents/gsap/sessions/a.jsonl",
+      parentSessionPath: "/agents/codia/sessions/a.jsonl",
       meta: {},
     });
     registry.register("task-2", {
       type: "subagent",
-      parentSessionPath: "/agents/gsap/sessions/b.jsonl",
+      parentSessionPath: "/agents/codia/sessions/b.jsonl",
       meta: {},
     });
 
     const result = registry.abortByParentSession(
-      "/agents/gsap/sessions/a.jsonl",
+      "/agents/codia/sessions/a.jsonl",
       "parent session archived",
     );
 
@@ -158,8 +158,8 @@ describe("TaskRegistry", () => {
   });
 
   it("aborts running tasks by stable parent session id after the parent path moves", () => {
-    const originalPath = "/agents/gsap/sessions/original.jsonl";
-    const movedPath = "/agents/gsap/sessions/archive/renamed.jsonl";
+    const originalPath = "/agents/codia/sessions/original.jsonl";
+    const movedPath = "/agents/codia/sessions/archive/renamed.jsonl";
     const sessionId = "sess_task_registry";
     const registry = new TaskRegistry({
       getSessionIdForPath: (sessionPath) => (
@@ -175,7 +175,7 @@ describe("TaskRegistry", () => {
     });
     registry.register("task-2", {
       type: "subagent",
-      parentSessionPath: "/agents/gsap/sessions/other.jsonl",
+      parentSessionPath: "/agents/codia/sessions/other.jsonl",
       meta: {},
     });
 
@@ -248,7 +248,7 @@ describe("TaskRegistry", () => {
   });
 
   it("persists tasks and restores active tasks as recovering", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-task-registry-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-task-registry-"));
     const persistencePath = path.join(dir, "tasks.json");
 
     const registry = new TaskRegistry({ persistencePath });
@@ -274,7 +274,7 @@ describe("TaskRegistry", () => {
   it("runs persisted schedules when their handler is registered", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-task-schedules-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-task-schedules-"));
     const persistencePath = path.join(dir, "tasks.json");
 
     const first = new TaskRegistry({ persistencePath });

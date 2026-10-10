@@ -61,11 +61,11 @@ function makeSession(sessionPath, overrides: any = {}) {
   };
 }
 
-function makeAgent(root = "/tmp/gsap-runtime-hibernation") {
+function makeAgent(root = "/tmp/codia-runtime-hibernation") {
   return {
-    id: "hana",
-    agentDir: path.join(root, "agents", "hana"),
-    sessionDir: path.join(root, "agents", "hana", "sessions"),
+    id: "codia",
+    agentDir: path.join(root, "agents", "codia"),
+    sessionDir: path.join(root, "agents", "codia", "sessions"),
     memoryMasterEnabled: true,
     sessionMemoryEnabled: true,
     setMemoryEnabled: vi.fn(),
@@ -76,7 +76,7 @@ function makeAgent(root = "/tmp/gsap-runtime-hibernation") {
 }
 
 function makeCoordinator( overrides: any = {}) {
-  const root = overrides.root || "/tmp/gsap-runtime-hibernation";
+  const root = overrides.root || "/tmp/codia-runtime-hibernation";
   const agent = overrides.agent || makeAgent(root);
   return new SessionCoordinator({
     agentsDir: path.join(root, "agents"),
@@ -120,7 +120,7 @@ describe("SessionCoordinator runtime hibernation", () => {
   });
 
   it("releases a focused runtime while preserving the current session path", async () => {
-    const sessionPath = "/tmp/gsap-runtime-hibernation/agents/hana/sessions/current.jsonl";
+    const sessionPath = "/tmp/codia-runtime-hibernation/agents/codia/sessions/current.jsonl";
     const session = makeSession(sessionPath, {
       getContextUsage: vi.fn(() => ({ tokens: 123, contextWindow: 1000, percent: 12.3 })),
     });
@@ -131,7 +131,7 @@ describe("SessionCoordinator runtime hibernation", () => {
     coordinator._sessions.set(sessionPath, {
       session,
       unsub,
-      agentId: "hana",
+      agentId: "codia",
       modelId: "test-model",
       modelProvider: "test",
       workspaceFolders: ["/tmp/workspace", "/tmp/other"],
@@ -163,7 +163,7 @@ describe("SessionCoordinator runtime hibernation", () => {
   });
 
   it("restores a hibernated focused runtime before prompting", async () => {
-    const sessionPath = "/tmp/gsap-runtime-hibernation/agents/hana/sessions/current.jsonl";
+    const sessionPath = "/tmp/codia-runtime-hibernation/agents/codia/sessions/current.jsonl";
     const manager = { getCwd: () => "/tmp/workspace", getSessionFile: () => sessionPath };
     const restored = makeSession(sessionPath, { sessionManager: manager });
     sessionManagerOpenMock.mockReturnValue(manager);
@@ -182,7 +182,7 @@ describe("SessionCoordinator runtime hibernation", () => {
   });
 
   it("hibernates only heavy idle runtimes under memory pressure", async () => {
-    const sessionPath = "/tmp/gsap-runtime-hibernation/agents/hana/sessions/heavy.jsonl";
+    const sessionPath = "/tmp/codia-runtime-hibernation/agents/codia/sessions/heavy.jsonl";
     const session = makeSession(sessionPath, {
       messages: [
         {
@@ -214,7 +214,7 @@ describe("SessionCoordinator runtime hibernation", () => {
     coordinator._sessions.set(sessionPath, {
       session,
       unsub: vi.fn(),
-      agentId: "hana",
+      agentId: "codia",
       lastTouchedAt: Date.now() - 60_000,
     });
 

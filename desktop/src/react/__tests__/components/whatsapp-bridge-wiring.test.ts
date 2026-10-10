@@ -19,7 +19,7 @@ describe('whatsapp bridge wiring', () => {
   it('WhatsApp bridge section opens QR overlay instead of inline web page flow', () => {
     const source = read('settings/tabs/bridge/WhatsappSection.tsx');
 
-    expect(source).toContain("gsap-show-whatsapp-qrcode");
+    expect(source).toContain("codia-show-whatsapp-qrcode");
     expect(source).toContain("settings.bridge.whatsappScan");
     expect(source).toContain("settings.bridge.whatsappRescan");
     expect(source).not.toContain('alt="WhatsApp QR"');

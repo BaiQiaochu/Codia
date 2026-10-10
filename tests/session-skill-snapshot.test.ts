@@ -16,13 +16,13 @@ describe("session skill snapshot identity", () => {
   });
 
   function makeTempRoot() {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-skill-snapshot-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-skill-snapshot-"));
     return tmpDir;
   }
 
   it("stores runtime skill pointers without copying the source directory", async () => {
     const root = makeTempRoot();
-    const sessionPath = path.join(root, "agents", "gsap", "sessions", "main.jsonl");
+    const sessionPath = path.join(root, "agents", "codia", "sessions", "main.jsonl");
     const sourceBaseDir = path.join(root, "workspace", ".agents", "skills", "demo-skill");
     const sourceFilePath = path.join(sourceBaseDir, "SKILL.md");
     const sourceAssetPath = path.join(sourceBaseDir, "assets", "note.txt");
@@ -68,7 +68,7 @@ describe("session skill snapshot identity", () => {
 
   it("omits pointer skills whose source file was removed", async () => {
     const root = makeTempRoot();
-    const sessionPath = path.join(root, "agents", "gsap", "sessions", "main.jsonl");
+    const sessionPath = path.join(root, "agents", "codia", "sessions", "main.jsonl");
     const sourceBaseDir = path.join(root, "skills", "demo-skill");
     const sourceFilePath = path.join(sourceBaseDir, "SKILL.md");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });

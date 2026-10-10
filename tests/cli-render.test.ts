@@ -24,9 +24,9 @@ describe("CLI render helpers", () => {
   });
 
   it("renders a fixed-width card as a string for tests and CLI output", () => {
-    const card = drawCliCardToString(["G-SAP CLI", "模型: ask"], 24);
+    const card = drawCliCardToString(["Codia CLI", "模型: ask"], 24);
     expect(card).toContain("╭");
-    expect(card).toContain("G-SAP CLI");
+    expect(card).toContain("Codia CLI");
     expect(card.split("\n").filter(Boolean)).toHaveLength(4);
   });
 });

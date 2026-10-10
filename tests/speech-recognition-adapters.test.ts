@@ -14,7 +14,7 @@ let tmpDir;
 let audioFile;
 
 beforeEach(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-speech-adapter-"));
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-speech-adapter-"));
   audioFile = path.join(tmpDir, "voice.wav");
   fs.writeFileSync(audioFile, "RIFF");
 });

@@ -1,4 +1,4 @@
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 
 export interface PromptOptimizationRequest {
   prompt: string;
@@ -11,7 +11,7 @@ export async function requestPromptOptimization(request: PromptOptimizationReque
   const prompt = String(request.prompt || '').trim();
   if (!prompt) throw new Error('empty_prompt');
 
-  const res = await gsapFetch('/api/prompts/optimize', {
+  const res = await codiaFetch('/api/prompts/optimize', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     timeout: 90_000,

@@ -397,7 +397,7 @@ export async function generateAgentId(utilConfig, name, agentsDir) {
 4. 直接输出 ID，不要解释
 
 示例：
-- "G-SAP Balance" -> "gsap-balance"
+- "Codia Balance" -> "codia-balance"
 - "miku" -> "miku"
 - "小助手" -> "helper"
 - "Alice" -> "alice"`
@@ -409,7 +409,7 @@ Rules:
 4. Output the ID directly, no explanation
 
 Examples:
-- "G-SAP Balance" -> "gsap-balance"
+- "Codia Balance" -> "codia-balance"
 - "銉熴偗" -> "miku"
 - "Helper" -> "helper"
 - "Alice" -> "alice"`,
@@ -461,7 +461,7 @@ Rules:
 4. Output the ID directly, with no explanation
 
 Examples:
-- "G-SAP Balance" -> "gsap-balance"
+- "Codia Balance" -> "codia-balance"
 - "Miku" -> "miku"
 - "Helper" -> "helper"
 - "Alice" -> "alice"`
@@ -473,7 +473,7 @@ Rules:
 4. Output the ID directly, no explanation
 
 Examples:
-- "G-SAP Balance" -> "gsap-balance"
+- "Codia Balance" -> "codia-balance"
 - "Miku" -> "miku"
 - "Helper" -> "helper"
 - "Alice" -> "alice"`,
@@ -498,7 +498,6 @@ Examples:
 
 /**
  * -agent 生成能力描述摘要
-  *
   *
  * @returns {Promise<string|null>}
  */

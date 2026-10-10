@@ -18,7 +18,7 @@ export const TODO_TOOL_NAMES = ["todo", TODO_WRITE_TOOL_NAME] as const;
 export type TodoToolName = typeof TODO_TOOL_NAMES[number];
 
 /** 内部 session 事件：用户手动完成并移除当前 todo group */
-export const TODO_STATE_CUSTOM_TYPE = "gsap.todo_state" as const;
+export const TODO_STATE_CUSTOM_TYPE = "codia.todo_state" as const;
 
 /** Legacy custom event types kept readable for imported sessions. */
-export const TODO_STATE_CUSTOM_TYPES = [TODO_STATE_CUSTOM_TYPE, "hana.todo_state"] as const;
+export const TODO_STATE_CUSTOM_TYPES = [TODO_STATE_CUSTOM_TYPE, "codia.todo_state"] as const;

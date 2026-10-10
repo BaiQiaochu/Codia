@@ -88,7 +88,7 @@ describe('titlebar drag region', () => {
 
   it('keeps global toasts below the frameless titlebar', () => {
     const css = read('../../src/styles.css');
-    const toast = extractRule(css, '.gsap-toast');
+    const toast = extractRule(css, '.codia-toast');
 
     expect(toast).toContain('top: calc(var(--titlebar-h) + 12px)');
     expect(toast).not.toContain('top: 40px');

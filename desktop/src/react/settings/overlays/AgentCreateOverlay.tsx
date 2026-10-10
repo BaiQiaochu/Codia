@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSettingsStore } from '../store';
-import { gsapFetch, yuanFallbackAvatar } from '../api';
+import { codiaFetch, yuanFallbackAvatar } from '../api';
 import { t } from '../helpers';
 import { switchToAgent } from '../actions';
 import { getErrorMessage } from '../shared-types';
@@ -12,19 +12,19 @@ export function AgentCreateOverlay() {
   const { showToast, homeFolder } = useSettingsStore();
   const [visible, setVisible] = useState(false);
   const [name, setName] = useState('');
-  const [yuan, setYuan] = useState('gsap');
+  const [yuan, setYuan] = useState('codia');
   const [creating, setCreating] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handler = () => {
       setName('');
-      setYuan('gsap');
+      setYuan('codia');
       setVisible(true);
       requestAnimationFrame(() => inputRef.current?.focus());
     };
-    window.addEventListener('gsap-show-agent-create', handler);
-    return () => window.removeEventListener('gsap-show-agent-create', handler);
+    window.addEventListener('codia-show-agent-create', handler);
+    return () => window.removeEventListener('codia-show-agent-create', handler);
   }, []);
 
   const close = useCallback(() => {
@@ -38,7 +38,7 @@ export function AgentCreateOverlay() {
 
     setCreating(true);
     try {
-      const res = await gsapFetch('/api/agents', {
+      const res = await codiaFetch('/api/agents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,7 +64,7 @@ export function AgentCreateOverlay() {
 
   const types = t<Record<string, { avatar?: string; label?: string; name?: string }>>('yuan.types') || {};
   const entries = Object.entries(types) as [string, { avatar?: string; label?: string; name?: string }][];
-  const defaultAvatar = yuanFallbackAvatar('gsap');
+  const defaultAvatar = yuanFallbackAvatar('codia');
 
   return (
     <div className={`${styles['agent-create-overlay']} ${styles['visible']}`} onClick={(e) => { if (e.target === e.currentTarget && !creating) close(); }}>

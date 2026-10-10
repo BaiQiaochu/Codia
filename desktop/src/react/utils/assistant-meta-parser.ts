@@ -24,8 +24,8 @@ const PRIVATE_SELF_TALK_RE =
   /\b(?:wait,|actually,|i should|i need to|i will attempt|i will try|let me|we need(?: to)?|cannot read|no such file)\b/i;
 
 const PLAIN_MOOD_YUAN: Record<string, string> = {
-  MOOD: 'gsap',
-  MOD: 'gsap',
+  MOOD: 'codia',
+  MOD: 'codia',
   PULSE: 'butter',
   HERMES: 'hermes',
   'HERMES LOOP': 'hermes',
@@ -173,7 +173,7 @@ function splitPlainMoodBody(
       return {
         text: body.slice(blank).replace(/^\s+/, ''),
         mood,
-        moodYuan: PLAIN_MOOD_YUAN[marker] || 'gsap',
+        moodYuan: PLAIN_MOOD_YUAN[marker] || 'codia',
       };
     }
   }
@@ -184,13 +184,13 @@ function splitPlainMoodBody(
       const mood = body.slice(0, lineEnd).trim();
       const visible = body.slice(lineEnd).replace(/^\s+/, '');
       if (mood && visible) {
-        return { text: visible, mood, moodYuan: PLAIN_MOOD_YUAN[marker] || 'gsap' };
+        return { text: visible, mood, moodYuan: PLAIN_MOOD_YUAN[marker] || 'codia' };
       }
     }
   }
 
   const mood = body.trim();
-  return { text: '', mood, moodYuan: PLAIN_MOOD_YUAN[marker] || 'gsap' };
+  return { text: '', mood, moodYuan: PLAIN_MOOD_YUAN[marker] || 'codia' };
 }
 
 export function splitAssistantMeta(raw: string | null | undefined): AssistantMetaParts {

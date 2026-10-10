@@ -6,7 +6,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useStore } from './stores';
 import { toArray } from './stores/session-selectors';
 import { sessionScopedValue } from './stores/session-slice';
-import { gsapFetch } from './hooks/use-gsap-fetch';
+import { codiaFetch } from './hooks/use-codia-fetch';
 import { toSlash, baseName, isImageFile } from './utils/format';
 import { isAudioFileName } from './utils/file-kind';
 import { prepareImageAttachmentForVision } from './utils/image-attachments';
@@ -38,7 +38,7 @@ async function installSkillFile(filePath: string, sessionPath?: string | null): 
       );
       return;
     }
-    const res = await gsapFetch(`/api/skills/install?agentId=${encodeURIComponent(agentId)}`, {
+    const res = await codiaFetch(`/api/skills/install?agentId=${encodeURIComponent(agentId)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: filePath, ...(sessionPath ? { sessionPath } : {}) }),
@@ -169,7 +169,7 @@ export async function attachFilesFromPaths(
   try {
     const sessionPath = useStore.getState().currentSessionPath || null;
     const channelId = typeof options.channelId === 'string' && options.channelId ? options.channelId : null;
-    const res = await gsapFetch('/api/upload', {
+    const res = await codiaFetch('/api/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

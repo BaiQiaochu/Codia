@@ -4,10 +4,10 @@ import path from "path";
 const MISSING_CODES = new Set(["ENOENT", "ENOTDIR"]);
 
 const ERROR_CODES = {
-  invalid: "GSAP_EXEC_CWD_INVALID",
-  relative: "GSAP_EXEC_CWD_RELATIVE",
-  missing: "GSAP_EXEC_CWD_MISSING",
-  "not-directory": "GSAP_EXEC_CWD_NOT_DIRECTORY",
+  invalid: "CODIA_EXEC_CWD_INVALID",
+  relative: "CODIA_EXEC_CWD_RELATIVE",
+  missing: "CODIA_EXEC_CWD_MISSING",
+  "not-directory": "CODIA_EXEC_CWD_NOT_DIRECTORY",
 };
 
 function messageFor(status, cwd) {

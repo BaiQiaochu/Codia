@@ -59,13 +59,13 @@ describe("screenshot pipeline", () => {
     expect(mainSource).toContain("background: var(--screenshot-page-bg)");
   });
 
-  it("keeps the screenshot watermark and filenames on the active G-SAP product name", () => {
+  it("keeps the screenshot watermark and filenames on the active Codia product name", () => {
     const mainSource = readMain();
 
     expect(mainSource).toContain("${runtimeProductName()}-${timestamp}${segmentSuffix}.png");
     expect(mainSource).toContain("${runtimeProductName()}</span>");
-    expect(mainSource).not.toContain("OpenHanako</span>");
-    expect(mainSource).not.toContain("hanako-${timestamp}${segmentSuffix}.png");
+    expect(mainSource).not.toContain("Codia</span>");
+    expect(mainSource).not.toContain("codia-${timestamp}${segmentSuffix}.png");
   });
 
   it("adds segment suffixes and returns the save directory for split screenshots", () => {
@@ -82,7 +82,6 @@ describe("screenshot pipeline", () => {
 
     expect(mainSource).toContain("resolveWorkspaceOutputDir(base, \"screenshots\", payload.locale || \"zh\")");
     expect(mainSource).toContain('title: "保存截图样式预览"');
-    expect(mainSource).not.toContain('path.join(base, "截图")');
     expect(mainSource).not.toContain('path.join(base, "截图")');
     expect(mainSource).not.toContain('title: "淇濆瓨鎴浘鏍峰紡棰勮"');
   });

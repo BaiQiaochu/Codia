@@ -537,8 +537,8 @@ describe('subagent', () => {
       taskId: "t1",
       task: "任务：整理桌面\n\n请独立完成",
       taskTitle: "任务：整理桌面",
-      agentId: "gsap",
-      agentName: "G-SAP",
+      agentId: "codia",
+      agentName: "Codia",
       sessionPath: "/s/t.jsonl",
       streamStatus: "running",
     });
@@ -546,8 +546,8 @@ describe('subagent', () => {
       type: "subagent",
       taskId: "t1",
       taskTitle: "任务：整理桌面",
-      requestedAgentId: "gsap",
-      requestedAgentName: "G-SAP",
+      requestedAgentId: "codia",
+      requestedAgentName: "Codia",
       streamKey: "/s/t.jsonl",
       streamStatus: "running",
     });
@@ -558,8 +558,8 @@ describe('subagent', () => {
       taskId: "t1",
       task: "任务：do stuff\n\n详细要求",
       taskTitle: "任务：do stuff",
-      agentId: "gsap",
-      agentName: "G-SAP",
+      agentId: "codia",
+      agentName: "Codia",
       executorAgentId: "butter",
       executorAgentNameSnapshot: "butter",
       sessionPath: "/s/t.jsonl",
@@ -656,7 +656,7 @@ describe('extractBlocks: tool block + plugin card coexistence', () => {
 
 describe('show_card block extraction', () => {
   it('extracts an interactive_card block from show_card details', () => {
-    const code = '<svg viewBox="0 0 100 40"><text x="10" y="20">G-SAP</text></svg>';
+    const code = '<svg viewBox="0 0 100 40"><text x="10" y="20">Codia</text></svg>';
     const blocks = extractBlocks('show_card', {
       cardId: 'c_123',
       title: 'system_flow',

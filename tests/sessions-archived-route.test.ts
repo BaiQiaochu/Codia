@@ -44,7 +44,7 @@ function makeEngine(tmpDir) {
       const rel = path.relative(path.join(tmpDir, "agents"), p);
       return rel.split(path.sep)[0] || null;
     },
-    getAgent: () => ({ agentName: "G-SAP" }),
+    getAgent: () => ({ agentName: "Codia" }),
     clearSessionTitle: vi.fn(async () => {}),
     listArchivedSessions: vi.fn(async () => []),
     emitEvent: vi.fn(),
@@ -77,7 +77,7 @@ describe("archive route: mtime semantics", () => {
   beforeEach(async () => {
     vi.resetModules();
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-archived-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-archived-"));
     const sessDir = path.join(tmpDir, "agents", "a", "sessions");
     fs.mkdirSync(sessDir, { recursive: true });
     const sess = path.join(sessDir, "s1.jsonl");
@@ -260,7 +260,7 @@ describe("POST /api/sessions/switch archived path", () => {
   beforeEach(async () => {
     vi.resetModules();
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-switch-archived-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-switch-archived-"));
     const archivedDir = path.join(tmpDir, "agents", "a", "sessions", "archived");
     fs.mkdirSync(archivedDir, { recursive: true });
     archivedPath = path.join(archivedDir, "s1.jsonl");
@@ -289,7 +289,7 @@ describe("GET /api/sessions/archived", () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-archived-list-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-archived-list-"));
     engine = makeEngine(tmpDir);
     engine.listArchivedSessions = vi.fn(async () => [
       {
@@ -323,7 +323,7 @@ describe("POST /api/sessions/restore", () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-restore-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-restore-"));
     const archDir = path.join(tmpDir, "agents", "a", "sessions", "archived");
     fs.mkdirSync(archDir, { recursive: true });
     archSrc = path.join(archDir, "r1.jsonl");
@@ -405,7 +405,7 @@ describe("POST /api/sessions/archived/delete", () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-del-arch-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-del-arch-"));
     const sessDir = path.join(tmpDir, "agents", "a", "sessions");
     const archDir = path.join(sessDir, "archived");
     fs.mkdirSync(archDir, { recursive: true });
@@ -514,7 +514,7 @@ describe("POST /api/sessions/cleanup (titles orphan cleanup)", () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-cleanup-titles-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-cleanup-titles-"));
     const sessDir = path.join(tmpDir, "agents", "a", "sessions");
     const archDir = path.join(sessDir, "archived");
     fs.mkdirSync(archDir, { recursive: true });

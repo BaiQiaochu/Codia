@@ -72,7 +72,7 @@
   margin-top: 0;
   overflow: hidden auto;
   flex-direction: column;
-  animation: gsap-select-popout var(--duration-fast) var(--ease-out);
+  animation: codia-select-popout var(--duration-fast) var(--ease-out);
   transform-origin: top right;
   padding: 0;
   -webkit-app-region: no-drag;
@@ -168,7 +168,7 @@
   background-blend-mode: var(--paper-texture-card-blend-mode);
 }
 
-@keyframes gsap-select-popout {
+@keyframes codia-select-popout {
   from {
     opacity: 0;
     transform: scale(0.98);

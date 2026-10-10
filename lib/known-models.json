@@ -640,6 +640,24 @@
     }
   },
   "deepseek": {
+    "deepseek-flash": {
+      "name": "DeepSeek V4.1 Flash",
+      "context": 1000000,
+      "maxOutput": 384000,
+      "vision": true,
+      "image": true,
+      "reasoning": true,
+      "thinkingLevels": ["off", "low", "high", "max"],
+      "thinkingLevelMap": {
+        "off": "none",
+        "minimal": "low",
+        "low": "low",
+        "medium": "high",
+        "high": "high",
+        "xhigh": "high",
+        "max": "max"
+      }
+    },
     "deepseek-chat": {
       "name": "DeepSeek Chat",
       "context": 128000,
@@ -702,6 +720,63 @@
     }
   },
   "openai": {
+    "gpt-6-astra": {
+      "name": "GPT-6 Astra",
+      "api": "openai-responses",
+      "context": 1048576,
+      "maxOutput": 128000,
+      "vision": true,
+      "image": true,
+      "reasoning": true,
+      "thinkingLevels": ["low", "medium", "high", "xhigh", "max"],
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": "low",
+        "low": "low",
+        "medium": "medium",
+        "high": "high",
+        "xhigh": "xhigh",
+        "max": "max"
+      }
+    },
+    "gpt-6.1-sol": {
+      "name": "GPT-6.1 Sol",
+      "api": "openai-responses",
+      "context": 1048576,
+      "maxOutput": 128000,
+      "vision": true,
+      "image": true,
+      "reasoning": true,
+      "thinkingLevels": ["low", "medium", "high", "xhigh", "max"],
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": "low",
+        "low": "low",
+        "medium": "medium",
+        "high": "high",
+        "xhigh": "xhigh",
+        "max": "max"
+      }
+    },
+    "gpt-6-luna": {
+      "name": "GPT-6 Luna",
+      "api": "openai-responses",
+      "context": 1048576,
+      "maxOutput": 128000,
+      "vision": true,
+      "image": true,
+      "reasoning": true,
+      "thinkingLevels": ["off", "low", "medium", "high", "xhigh", "max"],
+      "thinkingLevelMap": {
+        "off": "none",
+        "minimal": "low",
+        "low": "low",
+        "medium": "medium",
+        "high": "high",
+        "xhigh": "xhigh",
+        "max": "max"
+      }
+    },
     "gpt-4o": {
       "name": "GPT-4o",
       "context": 128000,
@@ -1862,6 +1937,78 @@
     }
   },
   "anthropic": {
+    "claude-fable-5-1": {
+      "name": "Claude Fable 5.1",
+      "context": 1000000,
+      "maxOutput": 128000,
+      "vision": true,
+      "image": true,
+      "reasoning": true,
+      "thinkingLevels": ["low", "medium", "high", "max"],
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": "medium",
+        "high": "high",
+        "xhigh": "max",
+        "max": "max"
+      }
+    },
+    "claude-opus-5-5": {
+      "name": "Claude Opus 5.5",
+      "context": 1000000,
+      "maxOutput": 128000,
+      "vision": true,
+      "image": true,
+      "reasoning": true,
+      "thinkingLevels": ["low", "medium", "high", "max"],
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": "medium",
+        "high": "high",
+        "xhigh": "max",
+        "max": "max"
+      }
+    },
+    "claude-sonnet-5-5": {
+      "name": "Claude Sonnet 5.5",
+      "context": 1000000,
+      "maxOutput": 128000,
+      "vision": true,
+      "image": true,
+      "reasoning": true,
+      "thinkingLevels": ["off", "low", "medium", "high", "max"],
+      "thinkingLevelMap": {
+        "off": "off",
+        "minimal": "low",
+        "low": "low",
+        "medium": "medium",
+        "high": "high",
+        "xhigh": "max",
+        "max": "max"
+      }
+    },
+    "claude-haiku-5-5": {
+      "name": "Claude Haiku 5.5",
+      "context": 1000000,
+      "maxOutput": 128000,
+      "vision": true,
+      "image": true,
+      "reasoning": true,
+      "thinkingLevels": ["off", "low", "medium", "high", "max"],
+      "thinkingLevelMap": {
+        "off": "off",
+        "minimal": "low",
+        "low": "low",
+        "medium": "medium",
+        "high": "high",
+        "xhigh": "max",
+        "max": "max"
+      }
+    },
     "claude-opus-4-7": {
       "name": "Claude Opus 4.7",
       "context": 1000000,
@@ -2233,6 +2380,34 @@
     }
   },
   "gemini": {
+    "gemini-3.8-flash": {
+      "name": "Gemini 3.8 Flash",
+      "context": 1048576,
+      "maxOutput": 65536,
+      "vision": true,
+      "image": true,
+      "video": true,
+      "reasoning": true,
+      "thinkingLevels": ["low", "medium", "high"],
+      "thinkingLevelMap": {
+        "off": null,
+        "minimal": null,
+        "low": "low",
+        "medium": "medium",
+        "high": "high",
+        "xhigh": null,
+        "max": null
+      },
+      "visionCapabilities": {
+        "grounding": true,
+        "boxes": true,
+        "points": false,
+        "coordinateSpace": "norm-1000",
+        "boxOrder": "yxyx",
+        "outputFormat": "gemini",
+        "groundingMode": "native"
+      }
+    },
     "gemini-2.5-pro": {
       "name": "Gemini 2.5 Pro",
       "context": 1048576,

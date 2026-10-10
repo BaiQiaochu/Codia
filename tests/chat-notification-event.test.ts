@@ -9,12 +9,12 @@ describe("chat route notification messages", () => {
       type: "notification",
       title: "提醒",
       body: "该喝水了",
-      agentId: "hana",
+      agentId: "codia",
     })).toEqual({
       type: "notification",
       title: "提醒",
       body: "该喝水了",
-      agentId: "hana",
+      agentId: "codia",
       desktopFocusPolicy: "always",
       sessionPath: null,
     });
@@ -40,13 +40,13 @@ describe("chat route notification messages", () => {
       type: "notification",
       title: "完成",
       body: "这一轮已经结束",
-      agentId: "hana",
+      agentId: "codia",
       desktopFocusPolicy: "when_unfocused",
     })).toEqual({
       type: "notification",
       title: "完成",
       body: "这一轮已经结束",
-      agentId: "hana",
+      agentId: "codia",
       desktopFocusPolicy: "when_unfocused",
       sessionPath: null,
     });
@@ -57,14 +57,14 @@ describe("chat route notification messages", () => {
       type: "notification",
       title: "完成",
       body: "这一轮已经结束",
-      agentId: "hana",
+      agentId: "codia",
       desktopFocusPolicy: "when_session_unfocused",
       sessionPath: "/tmp/finished.jsonl",
     })).toEqual({
       type: "notification",
       title: "完成",
       body: "这一轮已经结束",
-      agentId: "hana",
+      agentId: "codia",
       desktopFocusPolicy: "when_session_unfocused",
       sessionPath: "/tmp/finished.jsonl",
     });

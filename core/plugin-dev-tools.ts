@@ -74,7 +74,7 @@ export function createPluginDevTools({ pluginDevService, getAgentId } = {}) {
   return [
     createPluginDevTool({
       name: "plugin_dev_install",
-      description: "Install a G-SAP plugin source directory into the isolated development plugin slot. Requires the plugin dev tools setting to be enabled by the user.",
+      description: "Install a Codia plugin source directory into the isolated development plugin slot. Requires the plugin dev tools setting to be enabled by the user.",
       service: pluginDevService,
       parameters: createSchema({
         sourcePath: { type: "string", description: "Absolute path to the plugin source directory." },

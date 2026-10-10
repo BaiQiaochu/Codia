@@ -14,26 +14,24 @@ export function expandHome(value, env = process.env) {
   return path.join(home, value.slice(2));
 }
 
-export function resolveGsapHome(env = process.env, { existsSync = null } = {}) {
-  const configured = env.GSAP_HOME;
+export function resolveCodiaHome(env = process.env, { existsSync = null } = {}) {
+  const configured = env.CODIA_HOME;
   if (configured) return path.resolve(expandHome(configured, env));
   const home = env.HOME || env.USERPROFILE || os.homedir();
-  const gsapHome = path.join(home, ".gsap");
-  const legacyHome = path.join(home, `.${["h", "anako"].join("")}`);
-  if (existsSync?.(gsapHome)) return gsapHome;
-  if (env.GSAP_USE_LEGACY_GSAP_HOME === "1" && existsSync?.(legacyHome)) return legacyHome;
-  return gsapHome;
+  const codiaHome = path.join(home, ".codia");
+  if (existsSync?.(codiaHome)) return codiaHome;
+  return codiaHome;
 }
 
 export function parseGlobalArgs(rawArgs, context = {}) {
   const env = context.env || process.env;
   const opts = {
-    home: resolveGsapHome(env, context),
+    home: resolveCodiaHome(env, context),
     serverInfo: null,
     host: DEFAULT_HOST,
     port: null,
     token: null,
-    apiBase: env.GSAP_API_BASE || env.GSAP_BACKEND_URL || "",
+    apiBase: env.CODIA_API_BASE || env.CODIA_BACKEND_URL || "",
     noStartServer: false,
     json: false,
     timeoutMs: DEFAULT_TIMEOUT_MS,

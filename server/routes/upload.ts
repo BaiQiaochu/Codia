@@ -188,13 +188,13 @@ function validateUploadSessionPath(engine, sessionPath) {
 function resolveUploadTarget(engine, sessionPath) {
   if (sessionPath) {
     return {
-      dir: sessionFilesCacheDir(engine.gsapHome, sessionPath),
+      dir: sessionFilesCacheDir(engine.codiaHome, sessionPath),
       storageKind: "managed_cache",
       shouldCleanOldUploads: false,
     };
   }
   return {
-    dir: path.join(engine.gsapHome, "uploads"),
+    dir: path.join(engine.codiaHome, "uploads"),
     storageKind: undefined,
     shouldCleanOldUploads: true,
   };
@@ -302,7 +302,7 @@ export function createUploadRoute(engine) {
           results.push({ src: srcPath, error: "symlink not allowed" });
           continue;
         }
-        if (isSensitivePath(srcPath, engine.gsapHome)) {
+        if (isSensitivePath(srcPath, engine.codiaHome)) {
           results.push({ src: srcPath, error: "sensitive path blocked" });
           continue;
         }

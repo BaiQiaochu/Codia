@@ -8,8 +8,8 @@ import {
 } from "./plugin-versioning.ts";
 
 const DEFAULT_EMPTY_MARKETPLACE = Object.freeze({ schemaVersion: 1, plugins: [] });
-export const DEFAULT_GSAP_PLUGIN_MARKETPLACE_URL = "";
-export const DEFAULT_OFFICIAL_PLUGIN_MARKETPLACE_URL = DEFAULT_GSAP_PLUGIN_MARKETPLACE_URL;
+export const DEFAULT_CODIA_PLUGIN_MARKETPLACE_URL = "";
+export const DEFAULT_OFFICIAL_PLUGIN_MARKETPLACE_URL = DEFAULT_CODIA_PLUGIN_MARKETPLACE_URL;
 
 export class PluginMarketplace {
   constructor(options = {}) {
@@ -90,13 +90,13 @@ export class PluginMarketplace {
   }
 }
 
-export function createDefaultPluginMarketplace({ gsapHome, env = process.env, fetchImpl } = {}) {
-  const envPath = normalizeOptionalText(env.GSAP_PLUGIN_MARKETPLACE_FILE);
-  const envUrl = normalizeOptionalText(env.GSAP_PLUGIN_MARKETPLACE_URL);
-  const localIndex = gsapHome ? path.join(gsapHome, "plugin-marketplace", "marketplace.json") : null;
+export function createDefaultPluginMarketplace({ codiaHome, env = process.env, fetchImpl } = {}) {
+  const envPath = normalizeOptionalText(env.CODIA_PLUGIN_MARKETPLACE_FILE);
+  const envUrl = normalizeOptionalText(env.CODIA_PLUGIN_MARKETPLACE_URL);
+  const localIndex = codiaHome ? path.join(codiaHome, "plugin-marketplace", "marketplace.json") : null;
   return new PluginMarketplace({
     indexPath: envPath || (localIndex && fs.existsSync(localIndex) ? localIndex : null),
-    indexUrl: envUrl || DEFAULT_GSAP_PLUGIN_MARKETPLACE_URL,
+    indexUrl: envUrl || DEFAULT_CODIA_PLUGIN_MARKETPLACE_URL,
     fetchImpl,
   });
 }

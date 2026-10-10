@@ -6,7 +6,7 @@ describe("serializeSessionFile", () => {
 
     const serialized = serializeSessionFile({
       id: "sf_response",
-      sessionPath: "/tmp/agents/gsap/sessions/main.jsonl",
+      sessionPath: "/tmp/agents/codia/sessions/main.jsonl",
       filePath: "/tmp/work/report.md",
       realPath: "/private/tmp/work/report.md",
       label: "report.md",
@@ -27,7 +27,7 @@ describe("serializeSessionFile", () => {
     expect(serialized).toMatchObject({
       id: "sf_response",
       fileId: "sf_response",
-      sessionPath: "/tmp/agents/gsap/sessions/main.jsonl",
+      sessionPath: "/tmp/agents/codia/sessions/main.jsonl",
       filePath: "/tmp/work/report.md",
       realPath: "/private/tmp/work/report.md",
       label: "report.md",

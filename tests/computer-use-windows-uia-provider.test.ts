@@ -309,7 +309,7 @@ describe("Windows UIA provider", () => {
     ]);
   });
 
-  it("normalizes helper snapshots into G-SAP snapshots", async () => {
+  it("normalizes helper snapshots into Codia snapshots", async () => {
     const { runner } = makeRunner((_command, args) => helperResult({
       appId: "pid:12",
       windowId: "123",
@@ -411,7 +411,7 @@ describe("Windows UIA provider", () => {
       .rejects.toMatchObject({ code: COMPUTER_USE_ERRORS.ACTION_BLOCKED_BY_POLICY });
   });
 
-  it("converts helper errors into typed G-SAP errors", async () => {
+  it("converts helper errors into typed Codia errors", async () => {
     const { runner } = makeRunner((_command, args) => {
       if (writeHelperResult(args, { ok: false, errorCode: "TARGET_NOT_FOUND", message: "Window not found." })) {
         return { stdout: "", stderr: "", exitCode: 0 };

@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   getAutoLaunchStatus: vi.fn(),
   setAutoLaunchEnabled: vi.fn(),
   autoSaveConfig: vi.fn(),
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
 }));
 
 vi.mock('../../helpers', async () => ({
@@ -17,7 +17,7 @@ vi.mock('../../helpers', async () => ({
   VALID_THEMES: (await import('../../../../shared/theme-registry')).getThemeIds(),
   autoSaveConfig: (...args: unknown[]) => mocks.autoSaveConfig(...args),
 }));
-vi.mock('../../api', () => ({ gsapFetch: (...args: unknown[]) => mocks.gsapFetch(...args) }));
+vi.mock('../../api', () => ({ codiaFetch: (...args: unknown[]) => mocks.codiaFetch(...args) }));
 vi.mock('../../actions', () => ({ loadSettingsConfig: vi.fn() }));
 vi.mock('../../../utils/desktop-api', () => ({ getDesktopApi: () => mocks }));
 
@@ -29,7 +29,7 @@ beforeEach(() => {
   mocks.getAutoLaunchStatus.mockResolvedValue({ supported: true, openAtLogin: false });
   mocks.setAutoLaunchEnabled.mockResolvedValue({ supported: true, openAtLogin: true });
   mocks.autoSaveConfig.mockResolvedValue(true);
-  mocks.gsapFetch.mockResolvedValue({ ok: true, json: async () => ({}) });
+  mocks.codiaFetch.mockResolvedValue({ ok: true, json: async () => ({}) });
   useSettingsStore.setState({ settingsConfig: {}, platformName: 'win32' });
 });
 
@@ -59,7 +59,7 @@ describe('combined general settings', () => {
     const logo = screen.getByRole('img', { name: 'Codia 小豆蔻' });
     expect(logo).toHaveAttribute('src', expect.stringContaining('codia-brand-emblem'));
     expect(logo.parentElement).toHaveTextContent('Codia · 小豆蔻');
-    expect(container.textContent).not.toContain('G-SAP');
+    expect(container.textContent).toContain('Codia');
   });
 
   it('updates the single launch setting using the desktop result', async () => {

@@ -222,7 +222,7 @@ describe('settings locale smoke', () => {
     }
   });
 
-  it('keeps plugin marketplace copy neutral and G-SAP branded', () => {
+  it('keeps plugin marketplace copy neutral and Codia branded', () => {
     const blocked = /original plugin|original marketplace|原版插件|原版市场|原版 marketplace/i;
 
     for (const localeName of ['zh', 'en']) {

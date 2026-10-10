@@ -30,8 +30,8 @@ function listJsonlFiles(directory) {
   }
 }
 
-function resolveGsapHome(opts: any = {}) {
-  return opts.gsapHome || opts.hanaHome || null;
+function resolveCodiaHome(opts: any = {}) {
+  return opts.codiaHome || opts.codiaHome || null;
 }
 
 function hasLegacyPermissionFields(metaEntry) {
@@ -133,12 +133,12 @@ function buildLegacyManifestInput({
 }
 
 export function migrateLegacySessions(opts: any = {}) {
-  const inputHome = resolveGsapHome(opts);
-  if (!inputHome) throw new Error("migrateLegacySessions requires gsapHome");
+  const inputHome = resolveCodiaHome(opts);
+  if (!inputHome) throw new Error("migrateLegacySessions requires codiaHome");
   if (!opts.store) throw new Error("migrateLegacySessions requires store");
 
-  const gsapHome = path.resolve(inputHome);
-  const agentsDir = path.resolve(opts.agentsDir || path.join(gsapHome, "agents"));
+  const codiaHome = path.resolve(inputHome);
+  const agentsDir = path.resolve(opts.agentsDir || path.join(codiaHome, "agents"));
   const migratedAt = opts.migratedAt || new Date().toISOString();
   const result = { scanned: 0, created: 0, existing: 0, skipped: 0 };
 

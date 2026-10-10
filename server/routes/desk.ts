@@ -700,7 +700,7 @@ export function createDeskRoute(engine: any, hub: any) {
   function fileServiceForRequest(c) {
     const requestContext = createRequestContext(c, engine);
     return new MountAwareFileService({
-      gsapHome: engine.gsapHome,
+      codiaHome: engine.codiaHome,
       defaultRoot: defaultDeskDir(engine),
       studioId: requestContext?.studioId || engine.getRuntimeContext?.()?.studioId || null,
       createCheckpoint: typeof engine.createUserEditCheckpoint === "function"
@@ -798,7 +798,7 @@ export function createDeskRoute(engine: any, hub: any) {
       ? image.filename.trim()
       : typeof image.name === "string" && image.name.trim() ? image.name.trim() : "cover.png";
     const ext = path.extname(filename).toLowerCase() || ".png";
-    const uploadRoot = path.join(engine.gsapHome || os.tmpdir(), "tmp", "markdown-cover-uploads");
+    const uploadRoot = path.join(engine.codiaHome || os.tmpdir(), "tmp", "markdown-cover-uploads");
     fs.mkdirSync(uploadRoot, { recursive: true });
     const tempDir = fs.mkdtempSync(path.join(uploadRoot, "cover-"));
     const filePath = path.join(tempDir, `upload-${crypto.randomBytes(4).toString("hex")}${ext}`);
@@ -1545,7 +1545,7 @@ export function createDeskRoute(engine: any, hub: any) {
               results.push({ src: srcPath, error: "invalid path" });
               continue;
             }
-            if (isSensitivePath(srcPath, engine.gsapHome)) {
+            if (isSensitivePath(srcPath, engine.codiaHome)) {
               results.push({ src: srcPath, error: "sensitive path blocked" });
               continue;
             }

@@ -4,7 +4,7 @@ import { formatSessionLine, selectSession } from "../cli/chat.ts";
 
 describe("CLI chat session helpers", () => {
   const sessions = [
-    { path: "/a.json", title: "Alpha", agentName: "G-SAP", modified: "2026-05-19T10:00:00.000Z" },
+    { path: "/a.json", title: "Alpha", agentName: "Codia", modified: "2026-05-19T10:00:00.000Z" },
     { path: "/b.json", firstMessage: "Beta first", agentId: "agent-b", modified: null },
   ];
 
@@ -23,6 +23,6 @@ describe("CLI chat session helpers", () => {
   it("formats recent session rows for terminal display", () => {
     const line = formatSessionLine(sessions[0], 1);
     expect(line).toContain("Alpha");
-    expect(line).toContain("G-SAP");
+    expect(line).toContain("Codia");
   });
 });

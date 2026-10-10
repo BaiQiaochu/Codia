@@ -2,26 +2,26 @@ import { describe, it, expect } from 'vitest';
 import { buildThemeName, extractScreenshotPayload } from '../desktop/src/react/utils/screenshot-extract';
 
 describe('buildThemeName', () => {
-  it('maps legacy light mobile to the G-SAP brand theme', () => {
-    expect(buildThemeName('light', 'mobile')).toBe('gsap-brand');
+  it('maps legacy light mobile to the Codia brand theme', () => {
+    expect(buildThemeName('light', 'mobile')).toBe('codia-brand');
   });
-  it('maps legacy light desktop to the G-SAP brand desktop theme', () => {
-    expect(buildThemeName('light', 'desktop')).toBe('gsap-brand-desktop');
+  it('maps legacy light desktop to the Codia brand desktop theme', () => {
+    expect(buildThemeName('light', 'desktop')).toBe('codia-brand-desktop');
   });
-  it('maps legacy dark mobile to the G-SAP brand theme', () => {
-    expect(buildThemeName('dark', 'mobile')).toBe('gsap-brand');
+  it('maps legacy dark mobile to the Codia brand theme', () => {
+    expect(buildThemeName('dark', 'mobile')).toBe('codia-brand');
   });
-  it('maps legacy dark desktop to the G-SAP brand desktop theme', () => {
-    expect(buildThemeName('dark', 'desktop')).toBe('gsap-brand-desktop');
+  it('maps legacy dark desktop to the Codia brand desktop theme', () => {
+    expect(buildThemeName('dark', 'desktop')).toBe('codia-brand-desktop');
   });
-  it('maps G-SAP brand mobile to gsap-brand', () => {
-    expect(buildThemeName('gsap', 'mobile')).toBe('gsap-brand');
+  it('maps Codia brand mobile to codia-brand', () => {
+    expect(buildThemeName('codia', 'mobile')).toBe('codia-brand');
   });
-  it('maps G-SAP brand desktop to gsap-brand-desktop', () => {
-    expect(buildThemeName('gsap', 'desktop')).toBe('gsap-brand-desktop');
+  it('maps Codia brand desktop to codia-brand-desktop', () => {
+    expect(buildThemeName('codia', 'desktop')).toBe('codia-brand-desktop');
   });
-  it('keeps the old sakura storage value on the G-SAP brand theme', () => {
-    expect(buildThemeName('sakura', 'mobile')).toBe('gsap-brand');
+  it('keeps the old sakura storage value on the Codia brand theme', () => {
+    expect(buildThemeName('sakura', 'mobile')).toBe('codia-brand');
   });
 });
 
@@ -70,7 +70,7 @@ describe('extractScreenshotPayload', () => {
         role: 'assistant' as const,
         blocks: [
           { type: 'thinking' as const, content: '...', sealed: true },
-          { type: 'mood' as const, yuan: 'gsap', text: 'happy' },
+          { type: 'mood' as const, yuan: 'codia', text: 'happy' },
           { type: 'tool_group' as const, tools: [] as any[], collapsed: true },
           { type: 'text' as const, html: '<p>visible</p>' },
         ],

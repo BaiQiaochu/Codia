@@ -8,12 +8,12 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import '@testing-library/jest-dom/vitest';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
   lookupModelMeta: vi.fn((_id: unknown, _provider?: unknown): unknown => null),
 }));
 
 vi.mock('../../../api', () => ({
-  gsapFetch: (...args: unknown[]) => mocks.gsapFetch(...args),
+  codiaFetch: (...args: unknown[]) => mocks.codiaFetch(...args),
 }));
 
 vi.mock('../../../../hooks/use-config', () => ({
@@ -35,7 +35,7 @@ function jsonResponse(body: unknown): Response {
 describe('ProviderModelList', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.gsapFetch.mockResolvedValue(jsonResponse({ models: [] }));
+    mocks.codiaFetch.mockResolvedValue(jsonResponse({ models: [] }));
     mocks.lookupModelMeta.mockReturnValue(null);
   });
 
@@ -85,7 +85,7 @@ describe('ProviderModelList', () => {
   });
 
   it('passes saved custom provider credentials when fetching remote models', async () => {
-    mocks.gsapFetch
+    mocks.codiaFetch
       .mockResolvedValueOnce(jsonResponse({ models: [] }))
       .mockResolvedValueOnce(jsonResponse({ models: [{ id: 'gpt-4o' }] }));
 
@@ -112,7 +112,7 @@ describe('ProviderModelList', () => {
 
     fireEvent.click(screen.getByTitle('settings.providers.fetchModels'));
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith(
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith(
       '/api/providers/fetch-models',
       expect.objectContaining({
         body: JSON.stringify({
@@ -126,7 +126,7 @@ describe('ProviderModelList', () => {
   });
 
   it('passes preset endpoint config when fetching models before credentials are saved', async () => {
-    mocks.gsapFetch
+    mocks.codiaFetch
       .mockResolvedValueOnce(jsonResponse({ models: [] }))
       .mockResolvedValueOnce(jsonResponse({ models: [{ id: 'deepseek-chat' }] }));
 
@@ -153,7 +153,7 @@ describe('ProviderModelList', () => {
 
     fireEvent.click(screen.getByTitle('settings.providers.fetchModels'));
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith(
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith(
       '/api/providers/fetch-models',
       expect.objectContaining({
         body: JSON.stringify({
@@ -166,7 +166,7 @@ describe('ProviderModelList', () => {
   });
 
   it('defaults explicitly named video providers to video discovery and hides chat models in the dropdown', async () => {
-    mocks.gsapFetch
+    mocks.codiaFetch
       .mockResolvedValueOnce(jsonResponse({ models: [] }))
       .mockResolvedValueOnce(jsonResponse({
         models: [
@@ -198,7 +198,7 @@ describe('ProviderModelList', () => {
 
     fireEvent.click(screen.getByTitle('settings.providers.fetchModels'));
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith(
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith(
       '/api/providers/fetch-models',
       expect.objectContaining({
         body: JSON.stringify({
@@ -211,8 +211,6 @@ describe('ProviderModelList', () => {
       }),
     ));
 
-    fireEvent.click(screen.getByText('settings.api.addModel'));
-
     await waitFor(() => {
       expect(screen.getByText('seedance-2')).toBeInTheDocument();
       expect(screen.queryByText('gpt-5.5')).not.toBeInTheDocument();
@@ -220,8 +218,7 @@ describe('ProviderModelList', () => {
   });
 
   it('does not switch an existing provider to video discovery when its display name becomes ToAPIs', async () => {
-    mocks.gsapFetch
-      .mockResolvedValueOnce(jsonResponse({ models: [] }))
+    mocks.codiaFetch
       .mockResolvedValueOnce(jsonResponse({ models: [] }))
       .mockResolvedValueOnce(jsonResponse({ models: [{ id: 'seedance-2', type: 'video' }] }));
 
@@ -264,7 +261,7 @@ describe('ProviderModelList', () => {
 
     fireEvent.click(screen.getByTitle('settings.providers.fetchModels'));
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith(
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith(
       '/api/providers/fetch-models',
       expect.objectContaining({
         body: JSON.stringify({
@@ -278,7 +275,7 @@ describe('ProviderModelList', () => {
   });
 
   it('does not force video discovery for custom providers using a ToAPIs-compatible gateway URL', async () => {
-    mocks.gsapFetch
+    mocks.codiaFetch
       .mockResolvedValueOnce(jsonResponse({ models: [] }))
       .mockResolvedValueOnce(jsonResponse({ models: [{ id: 'gpt-5.5', type: 'chat' }] }));
 
@@ -309,7 +306,7 @@ describe('ProviderModelList', () => {
 
     fireEvent.click(screen.getByTitle('settings.providers.fetchModels'));
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith(
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith(
       '/api/providers/fetch-models',
       expect.objectContaining({
         body: JSON.stringify({
@@ -326,7 +323,7 @@ describe('ProviderModelList', () => {
   });
 
   it('shows the backend discovery error instead of a generic fetch failure', async () => {
-    mocks.gsapFetch.mockImplementation((url: unknown) => {
+    mocks.codiaFetch.mockImplementation((url: unknown) => {
       if (String(url).includes('/discovered-models')) {
         return Promise.resolve(jsonResponse({ models: [] }));
       }
@@ -357,7 +354,7 @@ describe('ProviderModelList', () => {
       />,
     );
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/providers/custom-gateway/discovered-models'));
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/providers/custom-gateway/discovered-models'));
 
     fireEvent.click(screen.getByTitle('settings.providers.fetchModels'));
 

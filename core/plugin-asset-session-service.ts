@@ -29,7 +29,7 @@ export class PluginAssetSessionError extends Error {
 export function pluginAssetSessionCookieName(pluginId: unknown): string {
   assertNonEmpty(pluginId, "pluginId");
   const digest = crypto.createHash("sha256").update(pluginId).digest("base64url").slice(0, 24);
-  return `gsap_plugin_assets_${digest}`;
+  return `codia_plugin_assets_${digest}`;
 }
 
 export function pluginAssetSessionCookiePath(pluginId: unknown): string {
@@ -58,14 +58,13 @@ export function createPluginAssetSessionCookie({
 }
 
 export function issuePluginAssetSession({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   pluginId,
   principalId,
   now = new Date().toISOString(),
   ttlMs = DEFAULT_PLUGIN_ASSET_SESSION_TTL_MS,
 }: AnyRecord = {}) {
-  const home = resolveHome(gsapHome, hanakoHome);
+  const home = resolveHome(codiaHome);
   assertNonEmpty(pluginId, "pluginId");
   assertNonEmpty(principalId, "principalId");
   const issuedAtMs = Date.parse(now);
@@ -93,13 +92,12 @@ export function issuePluginAssetSession({
 }
 
 export function verifyPluginAssetSession({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   pluginId,
   token,
   now = new Date().toISOString(),
 }: AnyRecord = {}) {
-  const home = resolveHome(gsapHome, hanakoHome);
+  const home = resolveHome(codiaHome);
   assertNonEmpty(pluginId, "pluginId");
   if (typeof token !== "string" || !token.trim()) {
     throw new PluginAssetSessionError("plugin asset session required", {
@@ -148,26 +146,25 @@ export function verifyPluginAssetSession({
   });
 }
 
-function resolveHome(gsapHome: unknown, hanakoHome: unknown): string {
-  const home = gsapHome || hanakoHome;
-  assertNonEmpty(home, "gsapHome");
-  return home;
+function resolveHome(codiaHome: unknown): string {
+  assertNonEmpty(codiaHome, "codiaHome");
+  return codiaHome;
 }
 
-function pluginAssetSessionKeyPath(gsapHome: unknown): string {
-  assertNonEmpty(gsapHome, "gsapHome");
-  return path.join(gsapHome, "security", PLUGIN_ASSET_SESSION_KEY_FILE);
+function pluginAssetSessionKeyPath(codiaHome: unknown): string {
+  assertNonEmpty(codiaHome, "codiaHome");
+  return path.join(codiaHome, "security", PLUGIN_ASSET_SESSION_KEY_FILE);
 }
 
-function signBody(gsapHome: string, body: string): string {
+function signBody(codiaHome: string, body: string): string {
   return crypto
-    .createHmac("sha256", readOrCreateSessionKey(gsapHome))
+    .createHmac("sha256", readOrCreateSessionKey(codiaHome))
     .update(body)
     .digest("base64url");
 }
 
-function readOrCreateSessionKey(gsapHome: string): string {
-  const filePath = pluginAssetSessionKeyPath(gsapHome);
+function readOrCreateSessionKey(codiaHome: string): string {
+  const filePath = pluginAssetSessionKeyPath(codiaHome);
   try {
     const existing = fs.readFileSync(filePath, "utf-8").trim();
     if (existing) return existing;

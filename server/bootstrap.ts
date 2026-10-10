@@ -25,14 +25,14 @@ function assertSupportedServerEntry(entry) {
   }
 }
 
-const gsapRoot = process.env.GSAP_ROOT || __dirname;
+const codiaRoot = process.env.CODIA_ROOT || __dirname;
 const serverEntry =
-  process.env.GSAP_SERVER_ENTRY ||
-  path.join(gsapRoot, "bundle", "index.js");
+  process.env.CODIA_SERVER_ENTRY ||
+  path.join(codiaRoot, "bundle", "index.js");
 
 log(`[server-bootstrap] process started pid=${process.pid} platform=${process.platform} arch=${process.arch}`);
-log(`[server-bootstrap] node=${process.version} gsapHome=${process.env.GSAP_HOME || "unset"}`);
-log(`[server-bootstrap] root=${gsapRoot}`);
+log(`[server-bootstrap] node=${process.version} codiaHome=${process.env.CODIA_HOME || "unset"}`);
+log(`[server-bootstrap] root=${codiaRoot}`);
 log(`[server-bootstrap] entry=${serverEntry}`);
 
 try {

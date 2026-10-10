@@ -7,47 +7,47 @@ import {
   parsePluginUiMessage,
   type PluginUiError,
   type PluginUiMessage,
-} from '@g-sap/plugin-protocol';
+} from '@codia/plugin-protocol';
 
-export interface GsapPluginSize {
+export interface CodiaPluginSize {
   width?: number;
   height?: number;
 }
 
-export interface GsapPluginThemeSnapshot {
+export interface CodiaPluginThemeSnapshot {
   theme?: string;
   cssUrl?: string;
 }
 
-export interface GsapPluginRequestOptions {
+export interface CodiaPluginRequestOptions {
   timeoutMs?: number;
 }
 
-export type GsapToastType = 'success' | 'error' | 'info' | 'warning';
+export type CodiaToastType = 'success' | 'error' | 'info' | 'warning';
 
-export interface GsapToastShowInput {
+export interface CodiaToastShowInput {
   message: string;
-  type?: GsapToastType;
+  type?: CodiaToastType;
   duration?: number;
 }
 
-export interface GsapToastShowResult {
+export interface CodiaToastShowResult {
   shown: boolean;
 }
 
-export type GsapExternalOpenInput = string | { url: string };
+export type CodiaExternalOpenInput = string | { url: string };
 
-export interface GsapExternalOpenResult {
+export interface CodiaExternalOpenResult {
   opened: boolean;
 }
 
-export type GsapClipboardWriteTextInput = string | { text: string };
+export type CodiaClipboardWriteTextInput = string | { text: string };
 
-export interface GsapClipboardWriteTextResult {
+export interface CodiaClipboardWriteTextResult {
   written: boolean;
 }
 
-export interface GsapPluginSdkOptions {
+export interface CodiaPluginSdkOptions {
   parentWindow?: Window;
   targetWindow?: Window;
   targetOrigin?: string;
@@ -56,7 +56,7 @@ export interface GsapPluginSdkOptions {
   idFactory?: () => string;
 }
 
-export interface GsapPluginSdk {
+export interface CodiaPluginSdk {
   ready(payload?: unknown): void;
   assets: {
     url(path: string): string;
@@ -66,35 +66,35 @@ export interface GsapPluginSdk {
     fetch(path: string, init?: RequestInit): Promise<Response>;
   };
   ui: {
-    resize(size: GsapPluginSize): void;
+    resize(size: CodiaPluginSize): void;
   };
   theme: {
-    getSnapshot(): GsapPluginThemeSnapshot;
-    subscribe(callback: (theme: GsapPluginThemeSnapshot) => void): () => void;
+    getSnapshot(): CodiaPluginThemeSnapshot;
+    subscribe(callback: (theme: CodiaPluginThemeSnapshot) => void): () => void;
   };
   host: {
     request<T = unknown>(
       type: string,
       payload?: unknown,
-      options?: GsapPluginRequestOptions,
+      options?: CodiaPluginRequestOptions,
     ): Promise<T>;
   };
   toast: {
-    show(input: GsapToastShowInput, options?: GsapPluginRequestOptions): Promise<GsapToastShowResult>;
+    show(input: CodiaToastShowInput, options?: CodiaPluginRequestOptions): Promise<CodiaToastShowResult>;
   };
   external: {
-    open(input: GsapExternalOpenInput, options?: GsapPluginRequestOptions): Promise<GsapExternalOpenResult>;
+    open(input: CodiaExternalOpenInput, options?: CodiaPluginRequestOptions): Promise<CodiaExternalOpenResult>;
   };
   clipboard: {
     writeText(
-      input: GsapClipboardWriteTextInput,
-      options?: GsapPluginRequestOptions,
-    ): Promise<GsapClipboardWriteTextResult>;
+      input: CodiaClipboardWriteTextInput,
+      options?: CodiaPluginRequestOptions,
+    ): Promise<CodiaClipboardWriteTextResult>;
   };
 }
 
-export class GsapPluginError extends Error {
-  override name = 'GsapPluginError';
+export class CodiaPluginError extends Error {
+  override name = 'CodiaPluginError';
   readonly code: string;
   readonly details?: unknown;
 
@@ -112,12 +112,12 @@ function defaultIdFactory(): string {
     return crypto.randomUUID();
   }
   fallbackIdSeq += 1;
-  return `gsap-plugin-${Date.now()}-${fallbackIdSeq}`;
+  return `codia-plugin-${Date.now()}-${fallbackIdSeq}`;
 }
 
 function getBrowserWindow(): Window {
   if (typeof window === 'undefined') {
-    throw new Error('@g-sap/plugin-sdk requires a browser iframe window.');
+    throw new Error('@codia/plugin-sdk requires a browser iframe window.');
   }
   return window;
 }
@@ -134,17 +134,17 @@ function safeOriginFromUrl(value: string | null | undefined): string | null {
 function resolveTargetOrigin(targetWindow: Window, explicit?: string): string {
   if (explicit) return explicit;
 
-  const hostOrigin = new URLSearchParams(targetWindow.location.search).get('gsap-host-origin');
+  const hostOrigin = new URLSearchParams(targetWindow.location.search).get('codia-host-origin');
   if (hostOrigin) return hostOrigin;
 
   return safeOriginFromUrl(targetWindow.document.referrer) ?? '*';
 }
 
-function readInitialTheme(targetWindow: Window): GsapPluginThemeSnapshot {
+function readInitialTheme(targetWindow: Window): CodiaPluginThemeSnapshot {
   const params = new URLSearchParams(targetWindow.location.search);
   return {
-    theme: params.get('gsap-theme') ?? undefined,
-    cssUrl: params.get('gsap-css') ?? undefined,
+    theme: params.get('codia-theme') ?? undefined,
+    cssUrl: params.get('codia-css') ?? undefined,
   };
 }
 
@@ -154,11 +154,11 @@ function isTrustedHostEvent(event: MessageEvent, parentWindow: Window, targetOri
   return true;
 }
 
-function externalOpenPayload(input: GsapExternalOpenInput): { url: string } {
+function externalOpenPayload(input: CodiaExternalOpenInput): { url: string } {
   return typeof input === 'string' ? { url: input } : input;
 }
 
-function clipboardWriteTextPayload(input: GsapClipboardWriteTextInput): { text: string } {
+function clipboardWriteTextPayload(input: CodiaClipboardWriteTextInput): { text: string } {
   return typeof input === 'string' ? { text: input } : input;
 }
 
@@ -246,7 +246,7 @@ function pluginApiUrl(targetWindow: Window, input: string): string {
   return `${targetWindow.location.origin}/api/plugins/${encodeURIComponent(pluginId)}/${apiPath}`;
 }
 
-export function createGsapPluginSdk(options: GsapPluginSdkOptions = {}): GsapPluginSdk {
+export function createCodiaPluginSdk(options: CodiaPluginSdkOptions = {}): CodiaPluginSdk {
   const targetWindow = options.targetWindow ?? getBrowserWindow();
   const parentWindow = options.parentWindow ?? targetWindow.parent;
   const targetOrigin = resolveTargetOrigin(targetWindow, options.targetOrigin);
@@ -254,7 +254,7 @@ export function createGsapPluginSdk(options: GsapPluginSdkOptions = {}): GsapPlu
   const requestTimeoutMs = options.requestTimeoutMs ?? 10_000;
   const idFactory = options.idFactory ?? defaultIdFactory;
   let themeSnapshot = readInitialTheme(targetWindow);
-  const themeSubscribers = new Set<(theme: GsapPluginThemeSnapshot) => void>();
+  const themeSubscribers = new Set<(theme: CodiaPluginThemeSnapshot) => void>();
 
   function post(message: PluginUiMessage): void {
     parentWindow.postMessage(message, targetOrigin);
@@ -277,7 +277,7 @@ export function createGsapPluginSdk(options: GsapPluginSdkOptions = {}): GsapPlu
     if (!parsed.ok) return;
 
     const message = parsed.value;
-    if (message.kind !== 'event' || message.type !== 'gsap.theme.changed') return;
+    if (message.kind !== 'event' || message.type !== 'codia.theme.changed') return;
     if (typeof message.payload !== 'object' || message.payload === null) return;
 
     const payload = message.payload as Record<string, unknown>;
@@ -291,7 +291,7 @@ export function createGsapPluginSdk(options: GsapPluginSdkOptions = {}): GsapPlu
   function request<T = unknown>(
     type: string,
     payload?: unknown,
-    requestOptions: GsapPluginRequestOptions = {},
+    requestOptions: CodiaPluginRequestOptions = {},
   ): Promise<T> {
     const id = idFactory();
     const timeoutMs = requestOptions.timeoutMs ?? requestTimeoutMs;
@@ -316,13 +316,13 @@ export function createGsapPluginSdk(options: GsapPluginSdkOptions = {}): GsapPlu
         }
         if (message.kind === 'error' && message.error) {
           cleanup();
-          reject(new GsapPluginError(message.error));
+          reject(new CodiaPluginError(message.error));
         }
       };
 
       const timeout = targetWindow.setTimeout(() => {
         cleanup();
-        reject(new GsapPluginError({
+        reject(new CodiaPluginError({
           code: 'TIMEOUT',
           message: `Plugin host request timed out: ${type}.`,
         }));
@@ -344,7 +344,7 @@ export function createGsapPluginSdk(options: GsapPluginSdkOptions = {}): GsapPlu
 
   return {
     ready(payload?: unknown) {
-      postEvent('gsap.ready', payload);
+      postEvent('codia.ready', payload);
     },
     assets: {
       url(path: string) {
@@ -372,7 +372,7 @@ export function createGsapPluginSdk(options: GsapPluginSdkOptions = {}): GsapPlu
       },
     },
     ui: {
-      resize(size: GsapPluginSize) {
+      resize(size: CodiaPluginSize) {
         postEvent(PLUGIN_UI_CAPABILITY.UI_RESIZE, size);
       },
     },
@@ -380,7 +380,7 @@ export function createGsapPluginSdk(options: GsapPluginSdkOptions = {}): GsapPlu
       getSnapshot() {
         return { ...themeSnapshot };
       },
-      subscribe(callback: (theme: GsapPluginThemeSnapshot) => void) {
+      subscribe(callback: (theme: CodiaPluginThemeSnapshot) => void) {
         if (themeSubscribers.size === 0) {
           targetWindow.addEventListener('message', onThemeMessage);
         }
@@ -398,18 +398,18 @@ export function createGsapPluginSdk(options: GsapPluginSdkOptions = {}): GsapPlu
       request,
     },
     toast: {
-      show(input: GsapToastShowInput, options?: GsapPluginRequestOptions) {
-        return request<GsapToastShowResult>(PLUGIN_UI_CAPABILITY.TOAST_SHOW, input, options);
+      show(input: CodiaToastShowInput, options?: CodiaPluginRequestOptions) {
+        return request<CodiaToastShowResult>(PLUGIN_UI_CAPABILITY.TOAST_SHOW, input, options);
       },
     },
     external: {
-      open(input: GsapExternalOpenInput, options?: GsapPluginRequestOptions) {
-        return request<GsapExternalOpenResult>(PLUGIN_UI_CAPABILITY.EXTERNAL_OPEN, externalOpenPayload(input), options);
+      open(input: CodiaExternalOpenInput, options?: CodiaPluginRequestOptions) {
+        return request<CodiaExternalOpenResult>(PLUGIN_UI_CAPABILITY.EXTERNAL_OPEN, externalOpenPayload(input), options);
       },
     },
     clipboard: {
-      writeText(input: GsapClipboardWriteTextInput, options?: GsapPluginRequestOptions) {
-        return request<GsapClipboardWriteTextResult>(
+      writeText(input: CodiaClipboardWriteTextInput, options?: CodiaPluginRequestOptions) {
+        return request<CodiaClipboardWriteTextResult>(
           PLUGIN_UI_CAPABILITY.CLIPBOARD_WRITE_TEXT,
           clipboardWriteTextPayload(input),
           options,
@@ -419,14 +419,14 @@ export function createGsapPluginSdk(options: GsapPluginSdkOptions = {}): GsapPlu
   };
 }
 
-let singleton: GsapPluginSdk | null = null;
+let singleton: CodiaPluginSdk | null = null;
 
-function getSingleton(): GsapPluginSdk {
-  singleton ??= createGsapPluginSdk();
+function getSingleton(): CodiaPluginSdk {
+  singleton ??= createCodiaPluginSdk();
   return singleton;
 }
 
-export const gsap: GsapPluginSdk = {
+export const codia: CodiaPluginSdk = {
   ready(payload?: unknown) {
     return getSingleton().ready(payload);
   },
@@ -444,7 +444,7 @@ export const gsap: GsapPluginSdk = {
     },
   },
   ui: {
-    resize(size: GsapPluginSize) {
+    resize(size: CodiaPluginSize) {
       return getSingleton().ui.resize(size);
     },
   },
@@ -452,7 +452,7 @@ export const gsap: GsapPluginSdk = {
     getSnapshot() {
       return getSingleton().theme.getSnapshot();
     },
-    subscribe(callback: (theme: GsapPluginThemeSnapshot) => void) {
+    subscribe(callback: (theme: CodiaPluginThemeSnapshot) => void) {
       return getSingleton().theme.subscribe(callback);
     },
   },
@@ -460,23 +460,23 @@ export const gsap: GsapPluginSdk = {
     request<T = unknown>(
       type: string,
       payload?: unknown,
-      options?: GsapPluginRequestOptions,
+      options?: CodiaPluginRequestOptions,
     ) {
       return getSingleton().host.request<T>(type, payload, options);
     },
   },
   toast: {
-    show(input: GsapToastShowInput, options?: GsapPluginRequestOptions) {
+    show(input: CodiaToastShowInput, options?: CodiaPluginRequestOptions) {
       return getSingleton().toast.show(input, options);
     },
   },
   external: {
-    open(input: GsapExternalOpenInput, options?: GsapPluginRequestOptions) {
+    open(input: CodiaExternalOpenInput, options?: CodiaPluginRequestOptions) {
       return getSingleton().external.open(input, options);
     },
   },
   clipboard: {
-    writeText(input: GsapClipboardWriteTextInput, options?: GsapPluginRequestOptions) {
+    writeText(input: CodiaClipboardWriteTextInput, options?: CodiaPluginRequestOptions) {
       return getSingleton().clipboard.writeText(input, options);
     },
   },

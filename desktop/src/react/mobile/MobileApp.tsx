@@ -42,8 +42,8 @@ type AuthState = 'checking' | 'login' | 'ready';
 type LoginMode = 'device' | 'password';
 
 const MOBILE_REQUIRED_SCOPES = Object.freeze(['chat', 'resources.read', 'files.read', 'files.write']);
-const MOBILE_UPDATE_AVAILABLE_EVENT = 'gsap-mobile-update-available';
-const MOBILE_APPLY_UPDATE_EVENT = 'gsap-mobile-apply-update';
+const MOBILE_UPDATE_AVAILABLE_EVENT = 'codia-mobile-update-available';
+const MOBILE_APPLY_UPDATE_EVENT = 'codia-mobile-apply-update';
 const LazyPreviewPanel = lazy(() => import('../components/PreviewPanel').then((module) => ({ default: module.PreviewPanel })));
 const LazyMediaViewer = lazy(() => import('../components/shared/MediaViewer/MediaViewer').then((module) => ({ default: module.MediaViewer })));
 
@@ -140,7 +140,7 @@ function MobileDesktopShell({ principal }: { principal: MobilePrincipal | null }
   const currentTab = useStore(s => s.currentTab);
   const isNarrow = useNarrowMobileViewport();
   const edgeGestureRef = useRef<MobileEdgeGesture | null>(null);
-  const [mobileUpdateAvailable, setMobileUpdateAvailable] = useState(() => window.__gsapMobileUpdateAvailable === true);
+  const [mobileUpdateAvailable, setMobileUpdateAvailable] = useState(() => window.__codiaMobileUpdateAvailable === true);
 
   useEffect(() => {
     useStore.setState({ currentTab: 'chat' });
@@ -148,10 +148,10 @@ function MobileDesktopShell({ principal }: { principal: MobilePrincipal | null }
 
   useEffect(() => {
     const handleUpdateAvailable = () => {
-      window.__gsapMobileUpdateAvailable = true;
+      window.__codiaMobileUpdateAvailable = true;
       setMobileUpdateAvailable(true);
     };
-    if (window.__gsapMobileUpdateAvailable === true) setMobileUpdateAvailable(true);
+    if (window.__codiaMobileUpdateAvailable === true) setMobileUpdateAvailable(true);
     window.addEventListener(MOBILE_UPDATE_AVAILABLE_EVENT, handleUpdateAvailable);
     return () => {
       window.removeEventListener(MOBILE_UPDATE_AVAILABLE_EVENT, handleUpdateAvailable);
@@ -406,13 +406,13 @@ function MobileChatPage() {
 
   return (
     <>
-      <div className={`chat-area${hasPanels ? ' has-panels' : ''}`} data-byoung-chat-color-scope="">
+      <div className={`chat-area${hasPanels ? ' has-panels' : ''}`} data-codia-chat-color-scope="">
         <WelcomeContainer />
         <RegionalErrorBoundary region="mobile-chat" resetKeys={[currentSessionPath]}>
           <ChatArea />
         </RegionalErrorBoundary>
       </div>
-      <div className="input-area" data-byoung-chat-color-scope="">
+      <div className="input-area" data-codia-chat-color-scope="">
         <RegionalErrorBoundary
           region="mobile-input"
           resetKeys={[currentSessionPath]}

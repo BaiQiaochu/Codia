@@ -36,7 +36,7 @@ describe("TerminalSessionManager", () => {
   let backend;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-terminal-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-terminal-"));
     backend = makeFakeBackend();
   });
 
@@ -46,16 +46,16 @@ describe("TerminalSessionManager", () => {
 
   it("keeps terminal ownership scoped to the creating session", async () => {
     const manager = new TerminalSessionManager({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       createBackend: () => backend,
       now: () => 1770000000000,
     });
-    const sessionPath = path.join(tmpDir, "agents", "gsap", "sessions", "s1.jsonl");
-    const otherSessionPath = path.join(tmpDir, "agents", "gsap", "sessions", "s2.jsonl");
+    const sessionPath = path.join(tmpDir, "agents", "codia", "sessions", "s1.jsonl");
+    const otherSessionPath = path.join(tmpDir, "agents", "codia", "sessions", "s2.jsonl");
 
     const started = await manager.start({
       sessionPath,
-      agentId: "gsap",
+      agentId: "codia",
       cwd: tmpDir,
       command: "npm run dev",
       label: "dev server",
@@ -64,7 +64,7 @@ describe("TerminalSessionManager", () => {
 
     expect(started).toMatchObject({
       sessionPath,
-      agentId: "gsap",
+      agentId: "codia",
       cwd: tmpDir,
       command: "npm run dev",
       label: "dev server",
@@ -96,11 +96,11 @@ describe("TerminalSessionManager", () => {
 
   it("writes only to a running terminal owned by the same session", async () => {
     const manager = new TerminalSessionManager({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       createBackend: () => backend,
     });
-    const sessionPath = path.join(tmpDir, "agents", "gsap", "sessions", "s1.jsonl");
-    const started = await manager.start({ sessionPath, agentId: "gsap", cwd: tmpDir });
+    const sessionPath = path.join(tmpDir, "agents", "codia", "sessions", "s1.jsonl");
+    const started = await manager.start({ sessionPath, agentId: "codia", cwd: tmpDir });
 
     const written = manager.write({
       sessionPath,

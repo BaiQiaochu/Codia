@@ -23,7 +23,7 @@ afterEach(() => {
 });
 
 function makeTempDataDir(config = null, agentId = null) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-video-tool-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-video-tool-"));
   tempDirs.push(dir);
   if (config) {
     const configPath = agentId
@@ -132,7 +132,7 @@ describe("generate-video tool", () => {
         isBridgeSession: true,
         platform: "wechat",
         chatId: "wx-user",
-        sessionKey: "wx_dm_wx-user@gsap",
+        sessionKey: "wx_dm_wx-user@codia",
       },
     };
 
@@ -143,7 +143,7 @@ describe("generate-video tool", () => {
       kind: "bridge",
       platform: "wechat",
       chatId: "wx-user",
-      sessionKey: "wx_dm_wx-user@gsap",
+      sessionKey: "wx_dm_wx-user@codia",
     });
     expect(mediaGen.store.add.mock.calls[0][0].deliveryTarget).toEqual(deferredCall[1].meta.deliveryTarget);
   });
@@ -426,7 +426,7 @@ describe("generate-video direct route", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-gsap-Session-Path": ctx.sessionPath,
+        "X-codia-Session-Path": ctx.sessionPath,
       },
       body: JSON.stringify({
         prompt: "a starship leaving a nebula",

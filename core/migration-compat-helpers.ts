@@ -10,7 +10,7 @@ import { normalizeThinkingLevelForModel } from "./session-thinking-level.ts";
 
 export function writeYamlFile(filePath, data) {
   const header =
-    "# G-SAP provider configuration (global, shared across agents)\n" +
+    "# Codia provider configuration (global, shared across agents)\n" +
     "# Managed by Settings.\n\n";
   const tmp = `${filePath}.tmp`;
   fs.writeFileSync(
@@ -110,7 +110,7 @@ function serializeBridgeIndexEntryForMigration(previousRaw, entry) {
 }
 
 export function repairModelsJsonVideoInputs(ctx) {
-  const modelsJsonPath = path.join(ctx.gsapHome, "models.json");
+  const modelsJsonPath = path.join(ctx.codiaHome, "models.json");
   let raw;
   try {
     raw = JSON.parse(fs.readFileSync(modelsJsonPath, "utf-8"));
@@ -155,7 +155,7 @@ function repairPiModelInputRecord(providerId, record, fallbackModelId) {
     record.input = sanitizedInput.input;
     patched++;
   }
-  if (shouldEnableVideo && ensureGsapVideoInputCompat(record)) patched++;
+  if (shouldEnableVideo && ensureCodiaVideoInputCompat(record)) patched++;
   if (hadRuntimeVideoField) {
     delete record.video;
     patched++;
@@ -192,24 +192,24 @@ function sanitizePiInputModalities(input) {
   };
 }
 
-function ensureGsapVideoInputCompat(record) {
+function ensureCodiaVideoInputCompat(record) {
   const compat = record.compat && typeof record.compat === "object" && !Array.isArray(record.compat)
     ? record.compat
     : {};
   const legacyVideoInputCompatKey = ["h", "ana", "VideoInput"].join("");
-  if (compat.gsapVideoInput === true && compat[legacyVideoInputCompatKey] !== true && record.compat === compat) return false;
+  if (compat.codiaVideoInput === true && compat[legacyVideoInputCompatKey] !== true && record.compat === compat) return false;
   const nextCompat = { ...compat };
   delete nextCompat[legacyVideoInputCompatKey];
   record.compat = {
     ...nextCompat,
-    gsapVideoInput: true,
+    codiaVideoInput: true,
   };
   return true;
 }
 
 export function promoteAgentVideoOverrides(ctx) {
-  const { gsapHome, agentsDir } = ctx;
-  const ymlPath = path.join(gsapHome, "added-models.yaml");
+  const { codiaHome, agentsDir } = ctx;
+  const ymlPath = path.join(codiaHome, "added-models.yaml");
   const raw = safeReadYAMLSync(ymlPath, null, YAML);
   if (!raw?.providers || typeof raw.providers !== "object") return 0;
 
@@ -404,8 +404,8 @@ function defaultDeepSeekModelsForMigration(ctx, providerId) {
 }
 
 export function repairLegacyDeepSeekProviderModelIds(ctx) {
-  const { gsapHome, log } = ctx;
-  const ymlPath = path.join(gsapHome, "added-models.yaml");
+  const { codiaHome, log } = ctx;
+  const ymlPath = path.join(codiaHome, "added-models.yaml");
   const raw = safeReadYAMLSync(ymlPath, null, YAML);
   if (!raw?.providers || typeof raw.providers !== "object") return 0;
 
@@ -585,7 +585,7 @@ function pushLegacyFileRef(refs, candidate, defaults = {}) {
   });
 }
 
-export function registerLegacySessionFile({ registry, sessionPath, ref, gsapHome, log }) {
+export function registerLegacySessionFile({ registry, sessionPath, ref, codiaHome, log }) {
   if (!ref?.filePath || !path.isAbsolute(ref.filePath)) return false;
   if (!fs.existsSync(ref.filePath)) return false;
 
@@ -595,7 +595,7 @@ export function registerLegacySessionFile({ registry, sessionPath, ref, gsapHome
       filePath: ref.filePath,
       label: ref.label || path.basename(ref.filePath),
       origin: ref.origin || "unknown",
-      storageKind: normalizeLegacyStorageKind(ref, gsapHome),
+      storageKind: normalizeLegacyStorageKind(ref, codiaHome),
     });
     return true;
   } catch (err) {
@@ -604,11 +604,11 @@ export function registerLegacySessionFile({ registry, sessionPath, ref, gsapHome
   }
 }
 
-function normalizeLegacyStorageKind(ref, gsapHome) {
+function normalizeLegacyStorageKind(ref, codiaHome) {
   const storageKind = ref.storageKind || "external";
   if (storageKind !== "managed_cache") return storageKind;
 
-  const managedRoot = path.join(gsapHome, "session-files");
+  const managedRoot = path.join(codiaHome, "session-files");
   const resolved = normalizeExistingOrResolvedPathForMigration(ref.filePath);
   const root = normalizeExistingOrResolvedPathForMigration(managedRoot);
   const rel = path.relative(root, resolved);

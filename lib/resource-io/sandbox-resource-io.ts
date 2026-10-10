@@ -15,7 +15,7 @@ type Options = {
   workspaceFolders?: string[];
   authorizedFolders?: string[];
   getAuthorizedFolders?: () => string[];
-  gsapHome?: string;
+  codiaHome?: string;
   getSandboxEnabled?: () => boolean;
   getExternalReadPaths?: () => string[];
   getSessionPath?: () => string | null;
@@ -34,7 +34,7 @@ export function createSandboxResourceIO({
   workspaceFolders = [],
   authorizedFolders = [],
   getAuthorizedFolders,
-  gsapHome,
+  codiaHome,
   getSandboxEnabled,
   getExternalReadPaths,
   getSessionPath,
@@ -45,13 +45,13 @@ export function createSandboxResourceIO({
   studioId,
   urlMaterializeRoot,
 }: Options) {
-  const home = gsapHome || "";
+  const home = codiaHome || "";
   const resourceAccessGuard = new ResourceAccessPolicy({
     agentDir,
     cwd,
     workspace,
     workspaceFolders,
-    gsapHome: home,
+    codiaHome: home,
     getAuthorizedFolders: typeof getAuthorizedFolders === "function"
       ? getAuthorizedFolders
       : () => Array.isArray(authorizedFolders) ? authorizedFolders : [],
@@ -74,7 +74,7 @@ export function createSandboxResourceIO({
   }
   if (studioId) {
     providers.mount = new MountProvider({
-      gsapHome: home,
+      codiaHome: home,
       studioId,
       localFsProviderFactory,
     });

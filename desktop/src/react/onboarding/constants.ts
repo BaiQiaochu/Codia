@@ -8,7 +8,7 @@ import type { ProviderPreset } from '../utils/provider-presets';
 
 export type { ProviderPreset } from '../utils/provider-presets';
 
-export const AGENT_ID = 'gsap';
+export const AGENT_ID = 'codia';
 export const TOTAL_STEPS = 7;
 
 export const LOCALES = [

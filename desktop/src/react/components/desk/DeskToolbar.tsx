@@ -158,7 +158,7 @@ export function DeskSortButton({ sortMode, onSort, onShowMenu }: {
       items: getSortOptions().map(o => ({
         label: (o.key === sortMode ? '路 ' : '   ') + o.label,
         action: () => {
-          localStorage.setItem('gsap-desk-sort', o.key);
+          localStorage.setItem('codia-desk-sort', o.key);
           onSort(o.key);
         },
       })),

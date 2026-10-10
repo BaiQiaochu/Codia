@@ -14,9 +14,9 @@ describe('interactive card UI integration', () => {
     const card = read('desktop/src/react/components/chat/InteractiveCard.tsx');
 
     expect(assistant).toContain("BLOCK_RENDERERS.interactive_card = InteractiveCard");
-    expect(card).toContain("gsapUrl(`/api/cards/${encodeURIComponent(cardId)}`, { includeTokenQuery: true })");
-    expect(card).toContain("gsap.card-resize");
-    expect(card).toContain("gsap.card-ping");
+    expect(card).toContain("codiaUrl(`/api/cards/${encodeURIComponent(cardId)}`, { includeTokenQuery: true })");
+    expect(card).toContain("codia.card-resize");
+    expect(card).toContain("codia.card-ping");
   });
 
   it('hides only card infrastructure tools from tool groups', () => {
@@ -24,7 +24,7 @@ describe('interactive card UI integration', () => {
     const visibilitySource = read('desktop/src/react/utils/tool-call-visibility.ts');
 
     expect(groupSource).toContain("rawTools.filter(t => !isToolCallHiddenFromProcessUi(t))");
-    expect(visibilitySource).toContain("'hana_card_guide'");
+    expect(visibilitySource).toContain("'codia_card_guide'");
     expect(visibilitySource).toContain("'show_card'");
     expect(visibilitySource).toContain("'media_generate-image'");
     expect(visibilitySource).toContain("'workflow'");

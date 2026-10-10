@@ -30,7 +30,7 @@ import {
 // ── Models-cache helpers ──
 
 function getCachePath(engine) {
-  return path.join(engine.gsapHome, "models-cache.json");
+  return path.join(engine.codiaHome, "models-cache.json");
 }
 
 function readModelsCache(engine) {

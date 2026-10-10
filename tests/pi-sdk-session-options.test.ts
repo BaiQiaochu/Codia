@@ -21,7 +21,7 @@ function makeAgentTool(name) {
 }
 
 describe("Pi SDK session option normalization", () => {
-  it("exposes stable G-SAP built-in tool names without SDK prebuilt objects", () => {
+  it("exposes stable Codia built-in tool names without SDK prebuilt objects", () => {
     expect(PI_BUILTIN_TOOL_NAMES).toEqual(["read", "write", "edit", "bash", "grep", "find", "ls"]);
     expect(Object.isFrozen(PI_BUILTIN_TOOL_NAMES)).toBe(true);
   });
@@ -43,7 +43,7 @@ describe("Pi SDK session option normalization", () => {
     expect(result.content[0].text).toBe("ok");
   });
 
-  it("normalizes G-SAP Tool[] plus customTools into Pi 0.68+ name allowlist and SDK custom tools", () => {
+  it("normalizes Codia Tool[] plus customTools into Pi 0.68+ name allowlist and SDK custom tools", () => {
     const read = makeAgentTool("read");
     const bash = makeAgentTool("bash");
     const custom = {
@@ -60,7 +60,7 @@ describe("Pi SDK session option normalization", () => {
       model: { id: "m" },
     }, "0.70.2");
 
-    expect(normalized.tools).toEqual(["read", "bash", "web_search"]);
+    expect(normalized.tools).toEqual(["read", "bash", "web_search", "codemode", "tool_search"]);
     expect(normalized.customTools.map(t => t.name)).toEqual(["read", "bash", "web_search"]);
     expect(normalized.customTools[0]).not.toBe(read);
     expect(normalized.customTools[2]).toBe(custom);
@@ -99,7 +99,7 @@ describe("Pi SDK session option normalization", () => {
       customTools: [customRead],
     }, "0.70.2");
 
-    expect(normalized.tools).toEqual(["read"]);
+    expect(normalized.tools).toEqual(["read", "codemode", "tool_search"]);
     expect(normalized.customTools.map(t => t.name)).toEqual(["read", "read"]);
     expect(normalized.customTools[1]).toBe(customRead);
   });

@@ -98,7 +98,7 @@ export function DeskDropZone({
           const name = await deskMkdir();
           if (!name) return;
           const subdir = currentPath ? `${currentPath}/${name}` : name;
-          window.dispatchEvent(new CustomEvent('gsap-desk-begin-rename', { detail: { subdir } }));
+          window.dispatchEvent(new CustomEvent('codia-desk-begin-rename', { detail: { subdir } }));
         } },
         ...(!isWebRuntime() && canUseNativePath ? [
           { label: tFn('desk.ctx.openInFinder'), action: () => { const p = deskCurrentDir(); if (p) window.platform?.showInFinder?.(p); } },

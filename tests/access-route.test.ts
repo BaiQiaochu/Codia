@@ -6,7 +6,7 @@ import os from "os";
 import path from "path";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-access-route-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-access-route-"));
 }
 
 function writeJson(filePath, data) {
@@ -54,7 +54,7 @@ async function makeApp(root, runtimeState = {}) {
   });
   app.route("/api", createAccessRoute({
     engine: {
-      gsapHome: root,
+      codiaHome: root,
       preferences: {
         getWebAccess: () => ({ external_enabled: false }),
         setWebAccess: () => {},
@@ -174,7 +174,7 @@ describe("access route", () => {
 
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data.secret).toMatch(/^gsap_dev_/);
+    expect(data.secret).toMatch(/^codia_dev_/);
     expect(data).toMatchObject({
       accessUrl: "http://192.168.31.75:14500/",
       device: {
@@ -203,7 +203,7 @@ describe("access route", () => {
     expect(JSON.stringify(data)).not.toContain("secretHash");
   });
 
-  it("issues a one-time visible mobile access key with a G-SAP prefix", async () => {
+  it("issues a one-time visible mobile access key with a Codia prefix", async () => {
     tmpDir = makeTmpDir();
     writeIdentity(tmpDir);
     const app = await makeApp(tmpDir, { mode: "lan", listenHost: "0.0.0.0", actualPort: 14500 });
@@ -219,7 +219,7 @@ describe("access route", () => {
 
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data.secret).toMatch(/^gsap_dev_/);
+    expect(data.secret).toMatch(/^codia_dev_/);
     expect(data).toMatchObject({
       accessUrl: "http://192.168.31.75:14500/mobile/",
       device: {
@@ -244,13 +244,13 @@ describe("access route", () => {
     const profile = await app.request("/api/access/account/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: "gsap-owner", displayName: "G-SAP Owner" }),
+      body: JSON.stringify({ username: "codia-owner", displayName: "Codia Owner" }),
     });
     expect(profile.status).toBe(200);
     expect(await profile.json()).toMatchObject({
       account: {
-        username: "gsap-owner",
-        displayName: "G-SAP Owner",
+        username: "codia-owner",
+        displayName: "Codia Owner",
         passwordSet: false,
       },
     });
@@ -263,8 +263,8 @@ describe("access route", () => {
     expect(password.status).toBe(200);
     expect(await password.json()).toMatchObject({
       account: {
-        username: "gsap-owner",
-        displayName: "G-SAP Owner",
+        username: "codia-owner",
+        displayName: "Codia Owner",
         passwordSet: true,
       },
     });

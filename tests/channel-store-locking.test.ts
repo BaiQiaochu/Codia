@@ -13,7 +13,7 @@ import {
 } from "../lib/channels/channel-store.ts";
 
 function mktemp() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "hana-channel-store-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-store-"));
 }
 
 describe("channel-store write locking", () => {

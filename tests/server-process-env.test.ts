@@ -17,17 +17,17 @@ describe("Windows server process environment", () => {
       PATHEXT: ".COM;.EXE;.BAT;.CMD",
       ComSpec: "C:\\Windows\\System32\\cmd.exe",
     }, {
-      prependPathEntries: ["C:\\G-SAP\\resources\\git\\cmd"],
-      appendPathEntries: ["C:\\Users\\gsap\\AppData\\Roaming\\npm", "c:\\program files\\nodejs"],
+      prependPathEntries: ["C:\\Codia\\resources\\git\\cmd"],
+      appendPathEntries: ["C:\\Users\\codia\\AppData\\Roaming\\npm", "c:\\program files\\nodejs"],
     });
 
     expect(env).not.toHaveProperty("Path");
     expect(env.PATH.split(";")).toEqual([
-      "C:\\G-SAP\\resources\\git\\cmd",
+      "C:\\Codia\\resources\\git\\cmd",
       "C:\\Windows\\System32",
       "C:\\Program Files\\nodejs",
       "C:\\stale\\bin",
-      "C:\\Users\\gsap\\AppData\\Roaming\\npm",
+      "C:\\Users\\codia\\AppData\\Roaming\\npm",
     ]);
     expect(env.PATHEXT).toBe(".COM;.EXE;.BAT;.CMD");
     expect(env.ComSpec).toBe("C:\\Windows\\System32\\cmd.exe");
@@ -51,12 +51,12 @@ describe("Windows server process environment", () => {
       execFile,
       env: {
         SystemRoot: "C:\\Windows",
-        USERPROFILE: "C:\\Users\\gsap",
+        USERPROFILE: "C:\\Users\\codia",
       },
     })).resolves.toEqual([
       "C:\\Windows\\System32",
       "C:\\Program Files\\nodejs",
-      "C:\\Users\\gsap\\AppData\\Roaming\\npm",
+      "C:\\Users\\codia\\AppData\\Roaming\\npm",
     ]);
     expect(execFile.mock.calls[0][0]).toBe("C:\\Windows\\System32\\reg.exe");
   });
@@ -65,12 +65,12 @@ describe("Windows server process environment", () => {
     const env = await buildWin32ServerEnv({
       Path: "C:\\Windows\\System32",
     }, {
-      prependPathEntries: ["C:\\G-SAP\\resources\\git\\cmd"],
+      prependPathEntries: ["C:\\Codia\\resources\\git\\cmd"],
       readRegistryPathEntries: async () => ["C:\\Program Files\\nodejs"],
     });
 
     expect(env).toEqual({
-      PATH: "C:\\G-SAP\\resources\\git\\cmd;C:\\Windows\\System32;C:\\Program Files\\nodejs",
+      PATH: "C:\\Codia\\resources\\git\\cmd;C:\\Windows\\System32;C:\\Program Files\\nodejs",
       PATHEXT: ".COM;.EXE;.BAT;.CMD",
       ComSpec: "C:\\Windows\\System32\\cmd.exe",
     });

@@ -13,15 +13,15 @@ import { getStableFeatureDisabledToolNames as getAvailabilityDisabledToolNames }
 
 describe("agent phone session policy", () => {
   it("uses a stable safe session directory per conversation", () => {
-    const dir = getAgentPhoneSessionDir("/agents/gsap", "dm:yui");
+    const dir = getAgentPhoneSessionDir("/agents/codia", "dm:yui");
     const normalized = dir.replace(/\\/g, "/");
-    expect(normalized).toContain("/agents/gsap/phone/sessions/");
+    expect(normalized).toContain("/agents/codia/phone/sessions/");
     expect(normalized.split("/").at(-1)).not.toContain(":");
   });
 
   it("recognizes phone sessions so memory pipelines can exclude them", () => {
-    expect(isAgentPhoneSessionPath("/agents/gsap/phone/sessions/ch_crew/session.jsonl")).toBe(true);
-    expect(isAgentPhoneSessionPath("/agents/gsap/sessions/session.jsonl")).toBe(false);
+    expect(isAgentPhoneSessionPath("/agents/codia/phone/sessions/ch_crew/session.jsonl")).toBe(true);
+    expect(isAgentPhoneSessionPath("/agents/codia/sessions/session.jsonl")).toBe(false);
   });
 
   it("maps phone tool modes to session permission modes", () => {

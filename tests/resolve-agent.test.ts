@@ -14,8 +14,8 @@ function mockCtx(agentId) {
 
 describe("resolveAgentStrict", () => {
   it("找到 agent 时正常返回", () => {
-    const engine = mockEngine({ hana: { id: "hana" }, _focus: { id: "_focus" } });
-    expect(resolveAgentStrict(engine, mockCtx("hana"))).toEqual({ id: "hana" });
+    const engine = mockEngine({ codia: { id: "codia" }, _focus: { id: "_focus" } });
+    expect(resolveAgentStrict(engine, mockCtx("codia"))).toEqual({ id: "codia" });
   });
 
   it("agentId 不存在时抛 AgentNotFoundError", () => {
@@ -31,8 +31,8 @@ describe("resolveAgentStrict", () => {
 
 describe("resolveAgent (读操作)", () => {
   it("显式传入有效 agentId 返回对应 agent", () => {
-    const engine = mockEngine({ hana: { id: "hana" }, _focus: { id: "_focus" } });
-    expect(resolveAgent(engine, mockCtx("hana"))).toEqual({ id: "hana" });
+    const engine = mockEngine({ codia: { id: "codia" }, _focus: { id: "_focus" } });
+    expect(resolveAgent(engine, mockCtx("codia"))).toEqual({ id: "codia" });
   });
 
   it("显式传入无效 agentId 抛 AgentNotFoundError", () => {

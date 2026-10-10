@@ -23,8 +23,7 @@ const MIME_EXTENSIONS = {
 };
 
 export async function materializeBridgeInboundFiles({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   sessionPath,
   files,
   registerSessionFile,
@@ -32,8 +31,8 @@ export async function materializeBridgeInboundFiles({
   if (!files?.length) {
     return { sessionFiles: [], imageAttachmentPaths: [], displayAttachments: [] };
   }
-  const home = gsapHome || hanakoHome;
-  if (!home) throw new Error("bridge inbound file materialization requires gsapHome");
+  const home = codiaHome || codiaHome;
+  if (!home) throw new Error("bridge inbound file materialization requires codiaHome");
   if (!sessionPath) throw new Error("bridge inbound file materialization requires sessionPath");
   if (typeof registerSessionFile !== "function") {
     throw new Error("bridge inbound file materialization requires registerSessionFile");

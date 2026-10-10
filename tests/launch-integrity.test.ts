@@ -11,7 +11,7 @@ const helperPath = path.join(root, "desktop", "src", "shared", "launch-integrity
 const tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-launch-integrity-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-launch-integrity-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -42,13 +42,13 @@ describe("desktop launch integrity helper", () => {
     const tmp = makeTempDir();
     const resourcesPath = path.join(tmp, "resources");
     const result = helper.checkWindowsInstallSurface({
-      execPath: path.join(tmp, "G-SAP.exe"),
+      execPath: path.join(tmp, "Codia.exe"),
       resourcesPath,
     });
 
     expect(result.ok).toBe(false);
     expect(result.missing.map(item => item.id)).toEqual([
-      "gsap-exe",
+      "codia-exe",
       "desktop-app",
       "server-exe",
       "server-bootstrap",
@@ -59,7 +59,7 @@ describe("desktop launch integrity helper", () => {
     expect(result.missing.map(item => item.relativePath)).toEqual([
       "desktop application executable",
       "resources/app.asar or resources/app",
-      "resources/server/gsap-server.exe or resources/server/hana-server.exe",
+      "resources/server/codia-server.exe or resources/server/codia-server.exe",
       "resources/server/bootstrap.js",
       "resources/server/bundle/index.js",
       "resources/server/node_modules/better-sqlite3/build/Release/better_sqlite3.node",
@@ -73,9 +73,9 @@ describe("desktop launch integrity helper", () => {
 
     const tmp = makeTempDir();
     const resourcesPath = path.join(tmp, "resources");
-    writeFile(tmp, "G-SAP.exe");
+    writeFile(tmp, "Codia.exe");
     writeFile(resourcesPath, "app.asar");
-    writeFile(resourcesPath, "server/gsap-server.exe");
+    writeFile(resourcesPath, "server/codia-server.exe");
     writeFile(resourcesPath, "server/bootstrap.js");
     writeFile(resourcesPath, "server/bundle/index.js");
     writeFile(resourcesPath, "server/node_modules/better-sqlite3/build/Release/better_sqlite3.node");
@@ -83,7 +83,7 @@ describe("desktop launch integrity helper", () => {
     writeFile(resourcesPath, "git/mingw64/bin/busybox.exe");
 
     const result = helper.checkWindowsInstallSurface({
-      execPath: path.join(tmp, "G-SAP.exe"),
+      execPath: path.join(tmp, "Codia.exe"),
       resourcesPath,
     });
 
@@ -96,9 +96,9 @@ describe("desktop launch integrity helper", () => {
 
     const tmp = makeTempDir();
     const resourcesPath = path.join(tmp, "resources");
-    writeFile(tmp, "G-SAP.exe");
+    writeFile(tmp, "Codia.exe");
     writeFile(resourcesPath, "app.asar");
-    writeFile(resourcesPath, "server/hana-server.exe");
+    writeFile(resourcesPath, "server/codia-server.exe");
     writeFile(resourcesPath, "server/bootstrap.js");
     writeFile(resourcesPath, "server/bundle/index.js");
     writeFile(resourcesPath, "server/node_modules/better-sqlite3/build/Release/better_sqlite3.node");
@@ -106,7 +106,7 @@ describe("desktop launch integrity helper", () => {
     writeFile(resourcesPath, "git/usr/bin/bash.exe");
 
     const result = helper.checkWindowsInstallSurface({
-      execPath: path.join(tmp, "G-SAP.exe"),
+      execPath: path.join(tmp, "Codia.exe"),
       resourcesPath,
     });
 
@@ -121,13 +121,13 @@ describe("desktop launch integrity helper", () => {
     const tmp = makeTempDir();
     const resourcesPath = path.join(tmp, "resources");
     const appPath = path.join(resourcesPath, "app");
-    writeFile(tmp, "G-SAP.exe");
+    writeFile(tmp, "Codia.exe");
     writeFile(appPath, "package.json", JSON.stringify({ main: "desktop/bootstrap.cjs" }));
     writeFile(appPath, "desktop/bootstrap.cjs");
     writeFile(appPath, "desktop/main.bundle.cjs");
     writeFile(appPath, "desktop/preload.bundle.cjs");
     writeFile(appPath, "desktop/dist-renderer/index.html");
-    writeFile(resourcesPath, "server/gsap-server.exe");
+    writeFile(resourcesPath, "server/codia-server.exe");
     writeFile(resourcesPath, "server/bootstrap.js");
     writeFile(resourcesPath, "server/bundle/index.js");
     writeFile(resourcesPath, "server/node_modules/better-sqlite3/build/Release/better_sqlite3.node");
@@ -135,7 +135,7 @@ describe("desktop launch integrity helper", () => {
     writeFile(resourcesPath, "git/usr/bin/bash.exe");
 
     const result = helper.checkWindowsInstallSurface({
-      execPath: path.join(tmp, "G-SAP.exe"),
+      execPath: path.join(tmp, "Codia.exe"),
       resourcesPath,
       appPath,
     });
@@ -151,7 +151,7 @@ describe("desktop launch integrity helper", () => {
     const tmp = makeTempDir();
     const diagnosticsDir = path.join(tmp, "diagnostics");
     const result = helper.checkWindowsInstallSurface({
-      execPath: path.join(tmp, "G-SAP.exe"),
+      execPath: path.join(tmp, "Codia.exe"),
       resourcesPath: path.join(tmp, "resources"),
     });
 
@@ -166,7 +166,7 @@ describe("desktop launch integrity helper", () => {
     const written = JSON.parse(fs.readFileSync(filePath, "utf-8"));
     expect(written.event).toBe("install-surface-check-failed");
     expect(written.payload.ok).toBe(false);
-    expect(written.payload.missing[0].id).toBe("gsap-exe");
+    expect(written.payload.missing[0].id).toBe("codia-exe");
   });
 });
 

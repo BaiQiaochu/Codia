@@ -1,5 +1,5 @@
 // @ts-nocheck
-// Upstream reference test migrated and debranded; skipped until the matching G-SAP source contract is migrated.
+// Upstream reference test migrated and debranded; skipped until the matching Codia source contract is migrated.
 import { describe, expect, it, vi } from "vitest";
 import os from "os";
 
@@ -36,15 +36,15 @@ describe.skip("BridgeManager platform status", () => {
     createWechatAdapter.mockReturnValue({ stop: vi.fn() });
 
     const engine = {
-      hanakoHome: os.tmpdir(),
+      codiaHome: os.tmpdir(),
       agent: null,
       getAgent: vi.fn(() => null),
     };
     const hub = { eventBus: { emit: vi.fn() } };
     const bm = new BridgeManager({ engine, hub });
 
-    bm.startPlatform("wechat", { botToken: "wx-token", hanaHome: os.tmpdir() }, "hana");
+    bm.startPlatform("wechat", { botToken: "wx-token", codiaHome: os.tmpdir() }, "codia");
 
-    expect(bm.getStatus("hana").wechat).toMatchObject({ status: "connecting", error: null });
+    expect(bm.getStatus("codia").wechat).toMatchObject({ status: "connecting", error: null });
   });
 });

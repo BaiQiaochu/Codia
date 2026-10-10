@@ -107,7 +107,7 @@ describe("package build order", () => {
   it("builds a Windows installer and folder portable output without single-file portable target", () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf-8"));
     const distWin = pkg.scripts["dist:win"];
-    const packageScript = fs.readFileSync(path.join(rootDir, "scripts", "package-gsap-win.mjs"), "utf-8");
+    const packageScript = fs.readFileSync(path.join(rootDir, "scripts", "package-codia-win.mjs"), "utf-8");
 
     expect(distWin).toContain("electron-builder --win nsis dir");
     expect(distWin).not.toContain("electron-builder --win nsis portable");
@@ -120,14 +120,14 @@ describe("package build order", () => {
       .toContain("Portable-Folder");
   });
 
-  it("routes Windows packaging through the focused G-SAP regression suite", () => {
+  it("routes Windows packaging through the focused Codia regression suite", () => {
     const scripts = packageScripts();
-    const packageScript = fs.readFileSync(path.join(rootDir, "scripts", "package-gsap-win.mjs"), "utf-8");
-    const testScript = fs.readFileSync(path.join(rootDir, "scripts", "test-gsap-regressions.mjs"), "utf-8");
+    const packageScript = fs.readFileSync(path.join(rootDir, "scripts", "package-codia-win.mjs"), "utf-8");
+    const testScript = fs.readFileSync(path.join(rootDir, "scripts", "test-codia-regressions.mjs"), "utf-8");
 
-    expect(scripts["test:gsap-regressions"]).toBe("node scripts/test-gsap-regressions.mjs");
-    expect(scripts["package:win"]).toBe("node scripts/package-gsap-win.mjs");
-    expect(packageScript).toContain('["run", "test:gsap-regressions"]');
+    expect(scripts["test:codia-regressions"]).toBe("node scripts/test-codia-regressions.mjs");
+    expect(scripts["package:win"]).toBe("node scripts/package-codia-win.mjs");
+    expect(packageScript).toContain('["run", "test:codia-regressions"]');
     expect(packageScript).toContain("scripts/package-win-release.ps1");
     expect(testScript).toContain("plan-mode-button-position.test.tsx");
     expect(testScript).toContain("todo-display-tree.test.tsx");
@@ -150,7 +150,7 @@ describe("package build order", () => {
     expect(scripts["dist:linux"]).not.toContain("prepare:vscode-runtime");
     expect(JSON.stringify(pkg.build.extraResources)).not.toContain("vscode-main");
     expect(fs.existsSync(path.join(rootDir, "scripts", "prepare-vscode-runtime.cjs"))).toBe(false);
-    expect(fs.readFileSync(path.join(rootDir, "scripts", "package-gsap-win.mjs"), "utf-8"))
+    expect(fs.readFileSync(path.join(rootDir, "scripts", "package-codia-win.mjs"), "utf-8"))
       .not.toContain("prepare:vscode-runtime");
     expect(fs.readFileSync(path.join(rootDir, "scripts", "fix-modules.cjs"), "utf-8"))
       .not.toContain("assertPackagedVscodeRuntimeReady");
@@ -160,9 +160,9 @@ describe("package build order", () => {
     const buildServer = fs.readFileSync(path.join(rootDir, "scripts", "build-server.mjs"), "utf-8");
 
     expect(buildServer).toContain("--loglevel=error");
-    expect((buildServer.match(/set "GSAP_ROOT=%~dp0"/g) || [])).toHaveLength(1);
-    expect((buildServer.match(/set "GSAP_SERVER_ENTRY=%~dp0bundle\\\\index\.js"/g) || [])).toHaveLength(1);
-    expect((buildServer.match(/export GSAP_ROOT="\$DIR"/g) || [])).toHaveLength(1);
-    expect((buildServer.match(/export GSAP_SERVER_ENTRY="\$DIR\/bundle\/index\.js"/g) || [])).toHaveLength(1);
+    expect((buildServer.match(/set "CODIA_ROOT=%~dp0"/g) || [])).toHaveLength(1);
+    expect((buildServer.match(/set "CODIA_SERVER_ENTRY=%~dp0bundle\\\\index\.js"/g) || [])).toHaveLength(1);
+    expect((buildServer.match(/export CODIA_ROOT="\$DIR"/g) || [])).toHaveLength(1);
+    expect((buildServer.match(/export CODIA_SERVER_ENTRY="\$DIR\/bundle\/index\.js"/g) || [])).toHaveLength(1);
   });
 });

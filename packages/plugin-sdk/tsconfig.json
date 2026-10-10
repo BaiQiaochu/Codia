@@ -10,7 +10,7 @@
     "allowImportingTsExtensions": false,
     "noEmit": false,
     "paths": {
-      "@g-sap/plugin-protocol": [
+      "@codia/plugin-protocol": [
         "../plugin-protocol/dist/index.d.ts"
       ]
     }

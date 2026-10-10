@@ -10,17 +10,17 @@ describe("RuntimeTraceStore", () => {
     const first = store.startTrace({
       traceId: "trace-first",
       sessionPath: "E:/sessions/one.jsonl",
-      agentId: "gsap",
+      agentId: "codia",
     });
 
     store.recordPhase(first.traceId, "input.received", { summary: "received" });
     store.endTrace(first.traceId, { status: "completed" });
-    store.startTrace({ traceId: "trace-second", agentId: "gsap" });
+    store.startTrace({ traceId: "trace-second", agentId: "codia" });
 
     expect(store.snapshot().traces).toHaveLength(1);
     expect(store.snapshot().traces[0]).toMatchObject({
       traceId: "trace-second",
-      agentId: "gsap",
+      agentId: "codia",
       status: "running",
     });
   });

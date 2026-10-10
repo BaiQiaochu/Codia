@@ -57,14 +57,14 @@ describe.skip("server startup diagnostics contract (upstream source contract pen
     expect(bootstrapSource).toContain("[server-bootstrap] server entry import completed");
 
     expect(mainSource).toContain("bootstrap.js");
-    expect(mainSource).toContain("GSAP_SERVER_ENTRY");
+    expect(mainSource).toContain("CODIA_SERVER_ENTRY");
     expect(buildSource).toContain('path.join(outDir, "bootstrap.js")');
     expect(buildSource).toContain('"$DIR/bootstrap.js"');
     expect(buildSource).toContain("bundle\\\\index.js");
   });
 
   it("resolves packaged bootstrap default root to the bootstrap directory", () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "hana-bootstrap-"));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bootstrap-"));
     const serverRoot = path.join(tmp, "resources", "server");
     try {
       fs.mkdirSync(path.join(serverRoot, "bundle"), { recursive: true });
@@ -76,8 +76,8 @@ describe.skip("server startup diagnostics contract (upstream source contract pen
       );
 
       const env = { ...process.env };
-      delete env.GSAP_ROOT;
-      delete env.GSAP_SERVER_ENTRY;
+      delete env.CODIA_ROOT;
+      delete env.CODIA_SERVER_ENTRY;
       const result = spawnSync(process.execPath, [path.join(serverRoot, "bootstrap.js")], {
         env,
         encoding: "utf-8",
@@ -97,9 +97,9 @@ describe.skip("server startup diagnostics contract (upstream source contract pen
     const mainSource = fs.readFileSync(path.join(root, "desktop", "main.cjs"), "utf-8");
     const serverSource = fs.readFileSync(path.join(root, "server", "index.ts"), "utf-8");
 
-    expect(mainSource).toContain("HANA_CREATE_STARTUP_SESSION");
+    expect(mainSource).toContain("CODIA_CREATE_STARTUP_SESSION");
     expect(mainSource).toContain('"0"');
-    expect(serverSource).toContain('process.env.HANA_CREATE_STARTUP_SESSION !== "0"');
+    expect(serverSource).toContain('process.env.CODIA_CREATE_STARTUP_SESSION !== "0"');
     expect(serverSource).toContain("③ 跳过启动期 session 创建");
   });
 
@@ -144,9 +144,9 @@ describe.skip("server startup diagnostics contract (upstream source contract pen
     const mainSource = fs.readFileSync(path.join(root, "desktop", "main.cjs"), "utf-8");
     const serverSource = fs.readFileSync(path.join(root, "server", "index.ts"), "utf-8");
 
-    expect(serverSource).toContain('ownerKind: process.env.HANA_SERVER_OWNER === "desktop" ? "desktop" : "standalone"');
-    expect(mainSource).toContain('HANA_SERVER_OWNER: "desktop"');
-    expect(mainSource).toContain("HANA_SERVER_OWNER_PID: String(process.pid)");
+    expect(serverSource).toContain('ownerKind: process.env.CODIA_SERVER_OWNER === "desktop" ? "desktop" : "standalone"');
+    expect(mainSource).toContain('CODIA_SERVER_OWNER: "desktop"');
+    expect(mainSource).toContain("CODIA_SERVER_OWNER_PID: String(process.pid)");
     expect(mainSource).toContain("let reusedServerOwned = false");
     expect(mainSource).toContain("reusedServerOwned = isDesktopOwnedServerInfo(existingInfo)");
     expect(mainSource).toContain("if (!reusedServerOwned)");

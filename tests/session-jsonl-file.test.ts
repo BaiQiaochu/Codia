@@ -46,13 +46,13 @@ describe("session-jsonl-file guards", () => {
     expect(entries).toHaveLength(3);
     const args = entries[2].message.content[0].arguments;
     expect(args.path).toBe("report-2026.txt");
-    expect(args.content).toMatch(/G-SAP session JSONL guard/);
-    expect(entries[2].gsapRepair.oversizedLineProjected).toBe(true);
+    expect(args.content).toMatch(/Codia session JSONL guard/);
+    expect(entries[2].codiaRepair.oversizedLineProjected).toBe(true);
     expect(JSON.stringify(entries[2])).not.toContain(hugeContent);
   });
 
   it("repairs oversized JSONL lines in place and keeps a repair artifact", () => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-jsonl-guard-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-jsonl-guard-"));
     const sessionPath = path.join(tempRoot, "session.jsonl");
     const hugeContent = "y".repeat(16 * 1024);
     fs.writeFileSync(sessionPath, [

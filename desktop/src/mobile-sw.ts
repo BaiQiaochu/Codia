@@ -1,4 +1,4 @@
-const CACHE_NAME = "gsap-mobile-v2";
+const CACHE_NAME = "codia-mobile-v2";
 const APP_SHELL = [
   "./",
   "./manifest.webmanifest",

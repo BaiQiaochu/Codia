@@ -3,8 +3,6 @@
  * BridgeManager._handleMessage 测试
  *
   *
-  *
-  *
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -39,7 +37,7 @@ function createMocks() {
 
   const engine = {
     getAgent: vi.fn().mockImplementation((id) => {
-      if (id === "hana") return { agentName: "TestAgent", config: { bridge: { telegram: { owner: "owner123" } } } };
+      if (id === "codia") return { agentName: "TestAgent", config: { bridge: { telegram: { owner: "owner123" } } } };
       return null;
     }),
     getBridgeReceiptEnabled: vi.fn(() => false),
@@ -47,8 +45,8 @@ function createMocks() {
     abortBridgeSession: vi.fn().mockResolvedValue(false),
     steerBridgeSession: vi.fn().mockReturnValue(false),
     agentName: "TestAgent",
-    hanakoHome: os.tmpdir(),
-    currentAgentId: "hana",
+    codiaHome: os.tmpdir(),
+    currentAgentId: "codia",
   };
 
   const hub = {
@@ -58,7 +56,7 @@ function createMocks() {
 
   const bm = new BridgeManager({ engine, hub });
   //
-  bm._platforms.set("telegram:hana", { adapter, status: "connected", agentId: "hana", platform: "telegram" });
+  bm._platforms.set("telegram:codia", { adapter, status: "connected", agentId: "codia", platform: "telegram" });
   // Disable block streaming for simpler assertions
   bm.blockStreaming = false;
 
@@ -84,13 +82,13 @@ describe("BridgeManager._handleMessage", () => {
 
       // _flushGroupMessage is fire-and-forget (not awaited), wait for it
       const promise = bm._handleMessage("telegram", {
-        sessionKey: "tg_group_g1@hana",
+        sessionKey: "tg_group_g1@codia",
         text: "hello",
         senderName: "Alice",
         userId: "user1",
         isGroup: true,
         chatId: "g1",
-        agentId: "hana",
+        agentId: "codia",
       });
       await promise;
       // flush the unresolved group message promise
@@ -98,7 +96,7 @@ describe("BridgeManager._handleMessage", () => {
 
       expect(hub.send).toHaveBeenCalledWith(
         tagged("Alice: hello"),
-        expect.objectContaining({ sessionKey: "tg_group_g1@hana", role: "guest", isGroup: true }),
+        expect.objectContaining({ sessionKey: "tg_group_g1@codia", role: "guest", isGroup: true }),
       );
       await vi.waitFor(() => expect(adapter.sendReply).toHaveBeenCalled());
       expect(adapter.sendReply).toHaveBeenCalledWith("g1", "AI response", {});
@@ -108,13 +106,13 @@ describe("BridgeManager._handleMessage", () => {
       const { bm, hub } = createMocks();
 
       await bm._handleMessage("telegram", {
-        sessionKey: "tg_group_g1@hana",
+        sessionKey: "tg_group_g1@codia",
         text: "hi there",
         senderName: "Bob",
         userId: "user2",
         isGroup: true,
         chatId: "g1",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       await vi.waitFor(() => expect(hub.send).toHaveBeenCalledWith(tagged("Bob: hi there"), expect.any(Object)));
@@ -128,18 +126,18 @@ describe("BridgeManager._handleMessage", () => {
       const { bm, hub, adapter } = createMocks();
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "hello",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "world",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       expect(hub.send).not.toHaveBeenCalled();
@@ -149,7 +147,7 @@ describe("BridgeManager._handleMessage", () => {
       expect(hub.send).toHaveBeenCalledOnce();
       expect(hub.send).toHaveBeenCalledWith(
         expect.stringMatching(/^<t>\d{2}-\d{2} \d{2}:\d{2}<\/t> hello\nworld$/),
-        expect.objectContaining({ sessionKey: "tg_dm_owner123@hana", role: "owner" }),
+        expect.objectContaining({ sessionKey: "tg_dm_owner123@codia", role: "owner" }),
       );
       expect(adapter.sendReply).toHaveBeenCalledWith("owner123", "AI response", {});
     });
@@ -158,22 +156,22 @@ describe("BridgeManager._handleMessage", () => {
       const { bm, hub } = createMocks();
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "first",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       await vi.advanceTimersByTimeAsync(1500);
       expect(hub.send).not.toHaveBeenCalled();
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "second",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       await vi.advanceTimersByTimeAsync(1500);
@@ -191,11 +189,11 @@ describe("BridgeManager._handleMessage", () => {
       const { bm, hub } = createMocks();
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "hi",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       await vi.advanceTimersByTimeAsync(2100);
@@ -210,12 +208,12 @@ describe("BridgeManager._handleMessage", () => {
       const { bm, hub } = createMocks();
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_stranger@hana",
+        sessionKey: "tg_dm_stranger@codia",
         text: "hi",
         senderName: "Stranger",
         userId: "stranger",
         chatId: "stranger",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       await vi.advanceTimersByTimeAsync(2100);
@@ -232,22 +230,22 @@ describe("BridgeManager._handleMessage", () => {
         sendReply: vi.fn().mockResolvedValue(),
         stop: vi.fn(),
       };
-      bm._platforms.set("wechat:hana", { adapter: wechatAdapter, status: "connected", agentId: "hana", platform: "wechat" });
+      bm._platforms.set("wechat:codia", { adapter: wechatAdapter, status: "connected", agentId: "codia", platform: "wechat" });
 
       bm._handleMessage("wechat", {
-        sessionKey: "wx_dm_wxid123@hana",
+        sessionKey: "wx_dm_wxid123@codia",
         text: "hi from wechat",
         senderName: "wx-user",
         userId: "wxid123",
         chatId: "wxid123",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       await vi.advanceTimersByTimeAsync(2100);
 
       expect(hub.send).toHaveBeenCalledWith(
         tagged("hi from wechat"),
-        expect.objectContaining({ role: "owner", sessionKey: "wx_dm_wxid123@hana" }),
+        expect.objectContaining({ role: "owner", sessionKey: "wx_dm_wxid123@codia" }),
       );
     });
 
@@ -264,11 +262,11 @@ describe("BridgeManager._handleMessage", () => {
       };
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "hi",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       await vi.advanceTimersByTimeAsync(2100);
@@ -292,11 +290,11 @@ describe("BridgeManager._handleMessage", () => {
       };
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "hi",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       await vi.advanceTimersByTimeAsync(2100);
@@ -313,15 +311,15 @@ describe("BridgeManager._handleMessage", () => {
         stop: vi.fn(),
         downloadImage: vi.fn().mockResolvedValue(Buffer.from([0x89, 0x50, 0x4e, 0x47])),
       };
-      bm._platforms.set("feishu:hana", { adapter: feishuAdapter, status: "connected", agentId: "hana", platform: "feishu" });
+      bm._platforms.set("feishu:codia", { adapter: feishuAdapter, status: "connected", agentId: "codia", platform: "feishu" });
 
       bm._handleMessage("feishu", {
-        sessionKey: "fs_dm_owner123@hana",
+        sessionKey: "fs_dm_owner123@codia",
         text: "",
         userId: "stranger",
         senderName: "Stranger",
         chatId: "oc_123",
-        agentId: "hana",
+        agentId: "codia",
         attachments: [{
           type: "image",
           platformRef: "img_123",
@@ -350,11 +348,11 @@ describe("BridgeManager._handleMessage", () => {
       engine.isBridgeSessionStreaming.mockReturnValue(true);
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "new msg",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       //
@@ -366,11 +364,11 @@ describe("BridgeManager._handleMessage", () => {
       engine.isBridgeSessionStreaming.mockReturnValue(false);
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "new msg",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       expect(engine.abortBridgeSession).not.toHaveBeenCalled();
@@ -385,22 +383,22 @@ describe("BridgeManager._handleMessage", () => {
       engine.abortBridgeSession.mockResolvedValue(true);
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "hello",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       await bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "/stop",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
 
-      expect(engine.abortBridgeSession).toHaveBeenCalledWith("tg_dm_owner123@hana");
+      expect(engine.abortBridgeSession).toHaveBeenCalledWith("tg_dm_owner123@codia");
 
       await vi.advanceTimersByTimeAsync(3000);
       expect(hub.send).not.toHaveBeenCalled();
@@ -411,12 +409,12 @@ describe("BridgeManager._handleMessage", () => {
       engine.isBridgeSessionStreaming.mockReturnValue(false);
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_stranger@hana",
+        sessionKey: "tg_dm_stranger@codia",
         text: "/stop",
         senderName: "Stranger",
         userId: "stranger",
         chatId: "stranger",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       //
@@ -438,17 +436,17 @@ describe("BridgeManager._handleMessage", () => {
       const kuroAdapter = { sendReply: vi.fn().mockResolvedValue(), sendBlockReply: vi.fn().mockResolvedValue(), stop: vi.fn() };
       bm._platforms.set("telegram:kuro", { adapter: kuroAdapter, status: "connected", agentId: "kuro", platform: "telegram" });
       engine.getAgent.mockImplementation((id) => {
-        if (id === "hana") return { agentName: "TestAgent", config: { bridge: { telegram: { owner: "owner123" } } } };
+        if (id === "codia") return { agentName: "TestAgent", config: { bridge: { telegram: { owner: "owner123" } } } };
         if (id === "kuro") return { agentName: "Kuro", config: { bridge: { telegram: { owner: "owner123" } } } };
         return null;
       });
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
-        text: "msg to hana",
+        sessionKey: "tg_dm_owner123@codia",
+        text: "msg to codia",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
 
       bm._handleMessage("telegram", {
@@ -465,7 +463,7 @@ describe("BridgeManager._handleMessage", () => {
       expect(hub.send).toHaveBeenCalledTimes(2);
       expect(hub.send).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({ sessionKey: "tg_dm_owner123@hana" }),
+        expect.objectContaining({ sessionKey: "tg_dm_owner123@codia" }),
       );
       expect(hub.send).toHaveBeenCalledWith(
         expect.any(String),
@@ -479,18 +477,18 @@ describe("BridgeManager._handleMessage", () => {
       const kuroAdapter = { sendReply: vi.fn().mockResolvedValue(), sendBlockReply: vi.fn().mockResolvedValue(), stop: vi.fn() };
       bm._platforms.set("telegram:kuro", { adapter: kuroAdapter, status: "connected", agentId: "kuro", platform: "telegram" });
       engine.getAgent.mockImplementation((id) => {
-        if (id === "hana") return { agentName: "TestAgent", config: { bridge: { telegram: { owner: "owner123" } } } };
+        if (id === "codia") return { agentName: "TestAgent", config: { bridge: { telegram: { owner: "owner123" } } } };
         if (id === "kuro") return { agentName: "Kuro", config: { bridge: { telegram: { owner: "owner123" } } } };
         return null;
       });
 
       //
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
-        text: "hello hana",
+        sessionKey: "tg_dm_owner123@codia",
+        text: "hello codia",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
       bm._handleMessage("telegram", {
         sessionKey: "tg_dm_owner123@kuro",
@@ -505,13 +503,13 @@ describe("BridgeManager._handleMessage", () => {
       // Each agent gets its own message, not merged
       expect(hub.send).toHaveBeenCalledTimes(2);
       const calls = hub.send.mock.calls;
-      const gsapCall = calls.find(c => c[1].sessionKey === "tg_dm_owner123@hana");
+      const codiaCall = calls.find(c => c[1].sessionKey === "tg_dm_owner123@codia");
       const kuroCall = calls.find(c => c[1].sessionKey === "tg_dm_owner123@kuro");
-      expect(gsapCall[0]).toMatch(/hello hana/);
+      expect(codiaCall[0]).toMatch(/hello codia/);
       expect(kuroCall[0]).toMatch(/hello kuro/);
       // Neither message contains the other agent's text
-      expect(gsapCall[0]).not.toMatch(/hello kuro/);
-      expect(kuroCall[0]).not.toMatch(/hello hana/);
+      expect(codiaCall[0]).not.toMatch(/hello kuro/);
+      expect(kuroCall[0]).not.toMatch(/hello codia/);
     });
   });
 
@@ -527,20 +525,20 @@ describe("BridgeManager._handleMessage", () => {
       );
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "msg1",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
       await vi.advanceTimersByTimeAsync(2100);
 
       bm._handleMessage("telegram", {
-        sessionKey: "tg_dm_owner123@hana",
+        sessionKey: "tg_dm_owner123@codia",
         text: "msg2",
         userId: "owner123",
         chatId: "owner123",
-        agentId: "hana",
+        agentId: "codia",
       });
       await vi.advanceTimersByTimeAsync(2100);
 

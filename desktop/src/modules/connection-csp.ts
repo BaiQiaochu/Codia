@@ -2,7 +2,7 @@ type CspDirectives = Record<string, string[]>;
 type SourceSet = Record<string, true>;
 
 (function installConnectionCsp() {
-  const STORAGE_KEYS = ["gsap-server-connections-v1", "hana-server-connections-v1"];
+  const STORAGE_KEYS = ["codia-server-connections-v1", "codia-server-connections-v1"];
   const BASE_CSP: CspDirectives = {
     "default-src": ["'self'"],
     "connect-src": ["'self'", "ws://127.0.0.1:*", "http://127.0.0.1:*"],

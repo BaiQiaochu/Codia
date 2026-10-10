@@ -13,8 +13,8 @@ describe("ResourceIO v0", () => {
   });
 
   function makeTree() {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-io-"));
-    const sessionPath = path.join(tmpDir, "agents", "gsap", "sessions", "main.jsonl");
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-io-"));
+    const sessionPath = path.join(tmpDir, "agents", "codia", "sessions", "main.jsonl");
     const pluginFile = path.join(tmpDir, "plugin-data", "image-gen", "generated", "cover-source.png");
     const workspace = path.join(tmpDir, "workspace");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });

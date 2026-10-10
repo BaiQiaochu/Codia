@@ -16,12 +16,13 @@ describe('local desktop development runtime', () => {
   });
 
   it.each(['-1', '65536', 'abc', '1.5'])('rejects invalid port %s', async value => {
-    await expect(resolveDesktopDevPort(value)).rejects.toThrow('GSAP_DEV_DESKTOP_PORT');
+    await expect(resolveDesktopDevPort(value)).rejects.toThrow('CODIA_DEV_DESKTOP_PORT');
   });
 
   it('keeps source startup and explicit local build startup available', () => {
     const { scripts } = JSON.parse(fs.readFileSync(path.resolve('package.json'), 'utf8'));
-    expect(scripts.start).toBe('node scripts/launch.js electron');
+    expect(scripts.start).toBe('npm run prepare:live2d && node scripts/launch.js electron');
+    expect(scripts['start:dev']).toBe('npm run prepare:live2d && node scripts/launch.js electron-dev');
     expect(scripts['start:local']).toBe('npm run build:client && npm run start:built');
     expect(scripts['start:built']).toBe('node scripts/launch.js electron-built');
     expect(scripts.build).toBe('npm run build:client && npm run build:server');

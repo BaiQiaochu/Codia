@@ -13,7 +13,7 @@ export function switchTab(tab: TabType) {
   const s = useStore.getState();
   // Persist an explicit selection even when the store already points at this tab.
   // This prevents delayed plugin-tab restoration from undoing a user's choice.
-  localStorage.setItem('gsap-tab', tab);
+  localStorage.setItem('codia-tab', tab);
   if (tab === s.currentTab) {
     if (tab === 'channels') {
       s.setActivePanel(null);
@@ -36,11 +36,11 @@ export function switchTab(tab: TabType) {
   // Plugin tabs don't have sidebar persistence
   if (typeof tab === 'string' && tab.startsWith('plugin:')) return;
 
-  const savedLeft = localStorage.getItem(`gsap-sidebar-${tab}`);
+  const savedLeft = localStorage.getItem(`codia-sidebar-${tab}`);
   const wantLeftOpen = savedLeft !== 'closed';
   if (s.sidebarOpen !== wantLeftOpen) toggleSidebar(wantLeftOpen);
 
-  const savedRight = localStorage.getItem(`gsap-jian-${tab}`);
+  const savedRight = localStorage.getItem(`codia-jian-${tab}`);
   const wantRightOpen = savedRight !== 'closed';
   if (s.jianOpen !== wantRightOpen) toggleJianSidebar(wantRightOpen);
 }

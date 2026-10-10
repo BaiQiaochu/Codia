@@ -7,11 +7,11 @@ import { useStore } from '../../stores';
 import type { Artifact } from '../../types';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: mocks.gsapFetch,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: mocks.codiaFetch,
 }));
 
 const htmlArtifact: Artifact = {
@@ -47,8 +47,8 @@ describe('ArtifactRenderer HTML isolation', () => {
       closeHtmlPreview: vi.fn(async () => true),
     };
     window.platform = legacyNativePreviewApi as unknown as typeof window.platform;
-    mocks.gsapFetch.mockReset();
-    mocks.gsapFetch.mockResolvedValue(new Response(JSON.stringify({
+    mocks.codiaFetch.mockReset();
+    mocks.codiaFetch.mockResolvedValue(new Response(JSON.stringify({
       previewUrl: 'http://127.0.0.1:14500/preview/html/pv_123?previewToken=preview_only_token',
     }), {
       status: 200,
@@ -66,7 +66,7 @@ describe('ArtifactRenderer HTML isolation', () => {
   it('registers HTML and renders the local preview document in a sandboxed iframe', async () => {
     const { container } = render(<ArtifactRenderer artifact={htmlArtifact} />);
 
-    expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/preview/html', {
+    expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/preview/html', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -129,7 +129,7 @@ describe('ArtifactRenderer HTML isolation', () => {
       filePath: '/workspace/project/pages/demo.html',
     }} />);
 
-    expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/preview/html', expect.objectContaining({
+    expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/preview/html', expect.objectContaining({
       body: JSON.stringify({
         title: 'demo.html',
         content: '<div>Hello</div>',

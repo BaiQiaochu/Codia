@@ -1,4 +1,4 @@
-import { memo, useEffect, useId, useMemo, useRef, type RefObject } from 'react';
+import { Fragment, memo, useEffect, useId, useMemo, useRef, type RefObject } from 'react';
 import type { Agent } from '../../types';
 import type { FileMentionItem } from '../../utils/file-mention-items';
 import type { AgentMentionItem, MentionTab, SessionMentionItem } from '../../utils/mention-items';
@@ -34,7 +34,22 @@ export const MentionMenu = memo(function MentionMenu({
   const selectedRef = useRef<HTMLButtonElement>(null);
   const menuId = useId();
   const { t } = useI18n();
-  const tabs: MentionTab[] = ['files', 'sessions', 'agents'];
+  const tabs: MentionTab[] = ['all', 'files', 'sessions', 'agents'];
+  const groupedItems = useMemo(() => items.map((item, index) => {
+    const group = item.kind === 'agent' || item.kind === 'assistant'
+      ? 'agents'
+      : item.kind === 'session'
+        ? 'sessions'
+        : item.kind === 'image'
+          ? 'images'
+          : 'files';
+    const previous = index > 0 ? items[index - 1] : null;
+    const previousGroup = !previous ? null
+      : previous.kind === 'agent' || previous.kind === 'assistant' ? 'agents'
+        : previous.kind === 'session' ? 'sessions'
+          : previous.kind === 'image' ? 'images' : 'files';
+    return { item, index, group, showLabel: group !== previousGroup };
+  }), [items]);
 
   useEffect(() => {
     selectedRef.current?.scrollIntoView?.({ block: 'nearest' });
@@ -74,16 +89,18 @@ export const MentionMenu = memo(function MentionMenu({
       </div>
       <div id={`${menuId}-panel`} role="tabpanel" aria-labelledby={`${menuId}-${tab}`} className={styles['mention-panel']}>
         <div className={styles['mention-results']} role="listbox" aria-label={t('input.mention.title')} aria-busy={busy}>
-          {items.map((item, index) => (
-            <MentionItemButton
-              key={item.id}
-              item={item}
-              agents={agents}
-              selected={index === selected}
-              refProp={index === selected ? selectedRef : undefined}
-              onHover={() => onHover(index)}
-              onSelect={() => onSelect(item)}
-            />
+          {groupedItems.map(({ item, index, group, showLabel }) => (
+            <Fragment key={item.id}>
+              {showLabel && <div className={styles['mention-group-label']}>{t(`input.mention.group.${group}`)}</div>}
+              <MentionItemButton
+                item={item}
+                agents={agents}
+                selected={index === selected}
+                refProp={index === selected ? selectedRef : undefined}
+                onHover={() => onHover(index)}
+                onSelect={() => onSelect(item)}
+              />
+            </Fragment>
           ))}
           {items.length === 0 && (
             <div className={styles['mention-empty']}>

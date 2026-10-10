@@ -111,7 +111,7 @@ describe("update-settings-tool", () => {
   }
 
   function makeMemoryAgent(agentId = "agent-test") {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-update-settings-memory-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-update-settings-memory-"));
     const agentDir = path.join(root, agentId);
     const memoryDir = path.join(agentDir, "memory");
     fs.mkdirSync(memoryDir, { recursive: true });
@@ -192,12 +192,12 @@ describe("update-settings-tool", () => {
       const result = await tool.execute("c-bridge-url-apply", {
         action: "apply",
         key: "bridge_media_public_base_url",
-        value: "https://gsap.example.com",
+        value: "https://codia.example.com",
       });
 
       expect(confirmStore.create).toHaveBeenCalled();
-      expect(engine.setBridgeMediaPublicBaseUrl).toHaveBeenCalledWith("https://gsap.example.com");
-      expect(engine._prefs._store.bridge.mediaPublicBaseUrl).toBe("https://gsap.example.com");
+      expect(engine.setBridgeMediaPublicBaseUrl).toHaveBeenCalledWith("https://codia.example.com");
+      expect(engine._prefs._store.bridge.mediaPublicBaseUrl).toBe("https://codia.example.com");
       expect(result.details.settingsUpdate).toMatchObject({
         status: "applied",
         key: "bridge_media_public_base_url",
@@ -206,7 +206,7 @@ describe("update-settings-tool", () => {
 
     it("allows clearing the Bridge media public URL with an empty value", async () => {
       const { tool, engine } = buildTool({
-        prefsData: { bridge: { mediaPublicBaseUrl: "https://gsap.example.com" } },
+        prefsData: { bridge: { mediaPublicBaseUrl: "https://codia.example.com" } },
       });
       const result = await tool.execute("c-bridge-url-clear", {
         action: "apply",

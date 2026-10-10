@@ -11,8 +11,8 @@ const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
 const MIN_USER_PORT = 1024;
 const MAX_PORT = 65535;
 
-export function ensureServerNetworkConfig(gsapHome, { now = new Date().toISOString() } = {}) {
-  const filePath = path.join(gsapHome, SERVER_NETWORK_FILE);
+export function ensureServerNetworkConfig(codiaHome, { now = new Date().toISOString() } = {}) {
+  const filePath = path.join(codiaHome, SERVER_NETWORK_FILE);
   const existing = readJsonIfPresent(filePath, SERVER_NETWORK_FILE);
   if (existing) {
     validateServerNetworkConfig(existing, SERVER_NETWORK_FILE);
@@ -22,13 +22,13 @@ export function ensureServerNetworkConfig(gsapHome, { now = new Date().toISOStri
   return { created: [SERVER_NETWORK_FILE] };
 }
 
-export function loadServerNetworkConfig(gsapHome) {
-  ensureServerNetworkConfig(gsapHome);
-  const config = readJsonRequired(path.join(gsapHome, SERVER_NETWORK_FILE), SERVER_NETWORK_FILE);
+export function loadServerNetworkConfig(codiaHome) {
+  ensureServerNetworkConfig(codiaHome);
+  const config = readJsonRequired(path.join(codiaHome, SERVER_NETWORK_FILE), SERVER_NETWORK_FILE);
   return validateServerNetworkConfig(config, SERVER_NETWORK_FILE);
 }
 
-export function saveServerNetworkConfig(gsapHome, config, { now = new Date().toISOString() } = {}) {
+export function saveServerNetworkConfig(codiaHome, config, { now = new Date().toISOString() } = {}) {
   const normalized = validateServerNetworkConfig({
     ...config,
     schemaVersion: SCHEMA_VERSION,
@@ -36,12 +36,12 @@ export function saveServerNetworkConfig(gsapHome, config, { now = new Date().toI
     createdAt: config?.createdAt || now,
     updatedAt: now,
   }, SERVER_NETWORK_FILE);
-  writeJsonAtomic(path.join(gsapHome, SERVER_NETWORK_FILE), normalized);
+  writeJsonAtomic(path.join(codiaHome, SERVER_NETWORK_FILE), normalized);
   return normalized;
 }
 
-export function resolveServerListenOptions(gsapHome) {
-  const config = loadServerNetworkConfig(gsapHome);
+export function resolveServerListenOptions(codiaHome) {
+  const config = loadServerNetworkConfig(codiaHome);
   return {
     mode: config.mode,
     host: config.listenHost,

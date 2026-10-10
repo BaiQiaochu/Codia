@@ -60,7 +60,7 @@ describe("desk route", () => {
   });
 
   it("rejects path-like workspace entry names instead of basename-normalizing them", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-desk-route-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-desk-route-"));
     try {
       const cwd = path.join(tempRoot, "workspace");
       fs.mkdirSync(cwd, { recursive: true });
@@ -69,7 +69,7 @@ describe("desk route", () => {
 
       const { createDeskRoute } = await import("../server/routes/desk.js");
       const app = new Hono();
-      app.route("/api", createDeskRoute({ deskCwd: cwd, homeCwd: cwd, gsapHome: tempRoot }, null));
+      app.route("/api", createDeskRoute({ deskCwd: cwd, homeCwd: cwd, codiaHome: tempRoot }, null));
 
       const createRes = await app.request("/api/desk/files", {
         method: "POST",
@@ -109,12 +109,12 @@ describe("desk route", () => {
   });
 
   it("rejects upload action with absolute source paths for non-local-owner principals", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-desk-route-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-desk-route-"));
     try {
-      const gsapHome = path.join(tempRoot, "gsap-home");
+      const codiaHome = path.join(tempRoot, "codia-home");
       const cwd = path.join(tempRoot, "workspace");
       const externalDir = path.join(tempRoot, "outside");
-      fs.mkdirSync(gsapHome, { recursive: true });
+      fs.mkdirSync(codiaHome, { recursive: true });
       fs.mkdirSync(cwd, { recursive: true });
       fs.mkdirSync(externalDir, { recursive: true });
       const externalFile = path.join(externalDir, "secret.txt");
@@ -132,7 +132,7 @@ describe("desk route", () => {
         }));
         await next();
       });
-      app.route("/api", createDeskRoute({ deskCwd: cwd, homeCwd: cwd, gsapHome }, null));
+      app.route("/api", createDeskRoute({ deskCwd: cwd, homeCwd: cwd, codiaHome }, null));
 
       const res = await app.request("/api/desk/files", {
         method: "POST",
@@ -150,12 +150,12 @@ describe("desk route", () => {
   });
 
   it("allows upload action for local-owner principals", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-desk-route-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-desk-route-"));
     try {
-      const gsapHome = path.join(tempRoot, "gsap-home");
+      const codiaHome = path.join(tempRoot, "codia-home");
       const cwd = path.join(tempRoot, "workspace");
       const externalDir = path.join(tempRoot, "drag-source");
-      fs.mkdirSync(gsapHome, { recursive: true });
+      fs.mkdirSync(codiaHome, { recursive: true });
       fs.mkdirSync(cwd, { recursive: true });
       fs.mkdirSync(externalDir, { recursive: true });
       const draggedFile = path.join(externalDir, "note.md");
@@ -172,7 +172,7 @@ describe("desk route", () => {
         }));
         await next();
       });
-      app.route("/api", createDeskRoute({ deskCwd: cwd, homeCwd: cwd, gsapHome }, null));
+      app.route("/api", createDeskRoute({ deskCwd: cwd, homeCwd: cwd, codiaHome }, null));
 
       const res = await app.request("/api/desk/files", {
         method: "POST",

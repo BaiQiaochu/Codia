@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Scheduler } from "../hub/scheduler.js";
 
 function makeRoot() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-scheduler-automation-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-scheduler-automation-"));
   const agentsDir = path.join(root, "agents");
   fs.mkdirSync(path.join(agentsDir, "agent-a"), { recursive: true });
   return {

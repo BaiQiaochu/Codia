@@ -2,7 +2,7 @@
   "id": "media",
   "name": "Media Generation",
   "version": "0.1.0",
-  "description": "Agent-facing media generation tools backed by the G-SAP media runtime.",
+  "description": "Agent-facing media generation tools backed by the Codia media runtime.",
   "trust": "full-access",
   "hidden": true
 }

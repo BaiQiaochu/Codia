@@ -11,12 +11,12 @@ describe("plugin SDK examples and docs", () => {
   it("documents the SDK package map in a top-level guide", () => {
     const guide = fs.readFileSync(path.join(root, "PLUGIN_SDK.md"), "utf-8");
 
-    expect(guide).toContain("@g-sap/plugin-protocol");
-    expect(guide).toContain("@g-sap/plugin-sdk");
-    expect(guide).toContain("@g-sap/plugin-runtime");
-    expect(guide).toContain("@g-sap/plugin-components");
-    expect(guide).toContain("gsap.assets.url");
-    expect(guide).toContain("gsap.api.fetch");
+    expect(guide).toContain("@codia/plugin-protocol");
+    expect(guide).toContain("@codia/plugin-sdk");
+    expect(guide).toContain("@codia/plugin-runtime");
+    expect(guide).toContain("@codia/plugin-components");
+    expect(guide).toContain("codia.assets.url");
+    expect(guide).toContain("codia.api.fetch");
     expect(guide).toContain("ctx.network.fetch");
     expect(guide).toContain("network.fetch");
     expect(guide).toContain("npm run build:packages");
@@ -25,12 +25,12 @@ describe("plugin SDK examples and docs", () => {
   it("documents network/API helpers in package READMEs and the plugin creator skill", () => {
     const sdkReadme = fs.readFileSync(path.join(root, "packages", "plugin-sdk", "README.md"), "utf-8");
     const runtimeReadme = fs.readFileSync(path.join(root, "packages", "plugin-runtime", "README.md"), "utf-8");
-    const creatorSkill = fs.readFileSync(path.join(root, "skills2set", "gsap-plugin-creator", "SKILL.md"), "utf-8");
+    const creatorSkill = fs.readFileSync(path.join(root, "skills2set", "codia-plugin-creator", "SKILL.md"), "utf-8");
 
-    expect(sdkReadme).toContain("gsap.api.fetch");
+    expect(sdkReadme).toContain("codia.api.fetch");
     expect(runtimeReadme).toContain("ctx.network.fetch");
     expect(creatorSkill).toContain("network.fetch");
-    expect(creatorSkill).toContain("gsap.api.fetch");
+    expect(creatorSkill).toContain("codia.api.fetch");
   });
 
   it("ships a showcase plugin manifest that exercises iframe grants and UI contributions", () => {
@@ -58,22 +58,22 @@ describe("plugin SDK examples and docs", () => {
 
     expect(index).toContain("definePlugin");
     expect(index).toContain("defineBusHandler");
-    expect(index).toContain("GSAP_BUS_SKIP");
+    expect(index).toContain("CODIA_BUS_SKIP");
     expect(tool).toContain("defineTool");
     expect(tool).toContain("createMediaDetails");
-    expect(panel).toContain("@g-sap/plugin-sdk");
-    expect(panel).toContain("@g-sap/plugin-components");
-    expect(panel).toContain("GsapThemeProvider");
+    expect(panel).toContain("@codia/plugin-sdk");
+    expect(panel).toContain("@codia/plugin-components");
+    expect(panel).toContain("CodiaThemeProvider");
     expect(readme).toContain("bundle the UI");
-    expect(readme).toContain("gsap.assets.url");
+    expect(readme).toContain("codia.assets.url");
   });
 
   it("scaffolds provider contribution plugins with explicit media capabilities", () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-provider-scaffold-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-provider-scaffold-"));
     try {
       const python = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
       execFileSync(python, [
-        path.join(root, "skills2set", "gsap-plugin-creator", "scripts", "create_gsap_plugin.py"),
+        path.join(root, "skills2set", "codia-plugin-creator", "scripts", "create_codia_plugin.py"),
         "Jimeng Provider",
         "--path",
         tmpDir,

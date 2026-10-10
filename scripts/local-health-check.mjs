@@ -13,7 +13,7 @@ const reportPath = reportArg ? path.resolve(reportArg.slice("--report=".length))
 const isWindows = process.platform === "win32";
 
 const checks = [
-  ["cli:syntax", "node", ["--check", "scripts/gsapctl.mjs"]],
+  ["cli:syntax", "node", ["--check", "scripts/codiactl.mjs"]],
   ["cli:runtime-syntax", "node", ["--check", "lib/cli/main.ts"]],
   ["source-tree:audit", "node", ["scripts/source-tree-audit.mjs", "--strict", "--report=artifacts/source-tree-audit.json", "--markdown=artifacts/source-tree-audit.md"]],
   ["build:theme", "npm", ["run", "build:theme"]],

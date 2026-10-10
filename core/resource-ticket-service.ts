@@ -18,15 +18,14 @@ export class ResourceTicketError extends Error {
 }
 
 export function issueResourceTicket({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   resourceId,
   studioId,
   principalId,
   now = new Date().toISOString(),
   ttlMs = DEFAULT_RESOURCE_TICKET_TTL_MS,
 } = {}) {
-  const home = resolveGsapHome({ gsapHome, hanakoHome });
+  const home = resolveCodiaHome({ codiaHome });
   assertNonEmpty(resourceId, "resourceId");
   assertNonEmpty(studioId, "studioId");
   assertNonEmpty(principalId, "principalId");
@@ -52,13 +51,12 @@ export function issueResourceTicket({
 }
 
 export function verifyResourceTicket({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   ticket,
   resourceId,
   now = new Date().toISOString(),
 } = {}) {
-  const home = resolveGsapHome({ gsapHome, hanakoHome });
+  const home = resolveCodiaHome({ codiaHome });
   assertNonEmpty(resourceId, "resourceId");
   if (typeof ticket !== "string" || !ticket.trim()) {
     throw new ResourceTicketError("resource ticket required");
@@ -104,20 +102,20 @@ export function verifyResourceTicket({
   });
 }
 
-export function resourceTicketKeyPath(gsapHome) {
-  assertNonEmpty(gsapHome, "gsapHome");
-  return path.join(gsapHome, "security", RESOURCE_TICKET_KEY_FILE);
+export function resourceTicketKeyPath(codiaHome) {
+  assertNonEmpty(codiaHome, "codiaHome");
+  return path.join(codiaHome, "security", RESOURCE_TICKET_KEY_FILE);
 }
 
-function signBody(gsapHome, body) {
+function signBody(codiaHome, body) {
   return crypto
-    .createHmac("sha256", readOrCreateTicketKey(gsapHome))
+    .createHmac("sha256", readOrCreateTicketKey(codiaHome))
     .update(body)
     .digest("base64url");
 }
 
-function readOrCreateTicketKey(gsapHome) {
-  const filePath = resourceTicketKeyPath(gsapHome);
+function readOrCreateTicketKey(codiaHome) {
+  const filePath = resourceTicketKeyPath(codiaHome);
   try {
     const existing = fs.readFileSync(filePath, "utf-8").trim();
     if (existing) return existing;
@@ -148,8 +146,8 @@ function assertNonEmpty(value, label) {
   if (typeof value !== "string" || !value.trim()) throw new Error(`${label} required`);
 }
 
-function resolveGsapHome({ gsapHome, hanakoHome } = {}) {
-  const home = gsapHome || hanakoHome;
-  assertNonEmpty(home, "gsapHome");
+function resolveCodiaHome({ codiaHome } = {}) {
+  const home = codiaHome || codiaHome;
+  assertNonEmpty(home, "codiaHome");
   return home;
 }

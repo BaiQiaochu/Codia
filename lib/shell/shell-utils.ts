@@ -30,13 +30,13 @@ export function resolveWin32PowerShellExecutable(token = "powershell.exe", env =
   if (isWin32PathLike(raw) || raw.includes("\\") || raw.includes("/")) return raw;
   const commandName = baseNameForShellPath(raw, { stripExe: false }).toLowerCase();
   if (commandName === "pwsh" || commandName === "pwsh.exe") {
-    return envValue(env, "GSAP_POWERSHELL") || envValue(env, "HANA_POWERSHELL") || "pwsh.exe";
+    return envValue(env, "CODIA_POWERSHELL") || "pwsh.exe";
   }
   return win32WindowsPowerShellPath(env);
 }
 
 export function resolveWin32DefaultPowerShellExecutable(env = process.env, options: Record<string, any> = {}) {
-  const override = envValue(env, "GSAP_POWERSHELL") || envValue(env, "HANA_POWERSHELL");
+    const override = envValue(env, "CODIA_POWERSHELL");
   if (override) return override;
   const useCache = options.cache !== false;
   if (useCache && cachedWin32DefaultPowerShell) return cachedWin32DefaultPowerShell;

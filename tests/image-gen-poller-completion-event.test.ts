@@ -10,7 +10,7 @@ describe("image-gen poller completion event", () => {
   let tmpDir;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-image-poller-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-image-poller-"));
   });
 
   afterEach(() => {

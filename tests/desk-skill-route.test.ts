@@ -37,9 +37,9 @@ describe('desk skill route', () => {
     fs.writeFileSync(zipPath, 'fake zip payload');
 
     const engine = {
-      currentAgentId: 'hana',
+      currentAgentId: 'codia',
       getAgent: vi.fn(() => ({
-        id: 'hana',
+        id: 'codia',
         cronStore: null,
         deskDir: workspace,
       })),

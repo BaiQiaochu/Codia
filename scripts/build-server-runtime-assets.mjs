@@ -2,9 +2,9 @@ import fs from "fs";
 import path from "path";
 
 export const SERVER_RUNTIME_ASSET_FILES = [
-  "G-SAP.png",
-  "G-SAP-Rational.jpg",
-  "gsap-original-background.jpg",
+  "codia.png",
+  "codia-rational.jpg",
+  "codia-original-background.jpg",
   "MiaoFei-Logo.jpg",
 ];
 

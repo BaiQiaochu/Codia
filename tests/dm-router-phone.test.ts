@@ -33,7 +33,7 @@ describe("DmRouter phone gate", () => {
   it("does not start DM phone processing when the phone feature is disabled", async () => {
     runAgentPhoneSessionMock.mockClear();
 
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-dm-phone-disabled-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-dm-phone-disabled-"));
     try {
       const agentsDir = path.join(root, "agents");
       const aliceDir = path.join(agentsDir, "alice");

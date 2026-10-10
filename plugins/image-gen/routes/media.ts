@@ -98,6 +98,17 @@ function normalizeImageProviderFromCapability(ctx, providerId, provider = {}) {
   };
 }
 
+function mergeImageModels(...groups) {
+  const byId = new Map();
+  for (const group of groups) {
+    for (const model of group || []) {
+      if (!model?.id) continue;
+      byId.set(model.id, { ...(byId.get(model.id) || {}), ...model });
+    }
+  }
+  return [...byId.values()];
+}
+
 function mergeImageCapabilityProviders(ctx, baseProviders, mediaProviders) {
   const result = { ...(baseProviders || {}) };
   for (const [providerId, provider] of Object.entries(mediaProviders || {})) {
@@ -109,6 +120,10 @@ function mergeImageCapabilityProviders(ctx, baseProviders, mediaProviders) {
       }
       continue;
     }
+    const imageModels = mergeImageModels(
+      existing.imageModels || existing.models || [],
+      imageProvider.models,
+    );
     result[providerId] = {
       ...existing,
       displayName: imageProvider.displayName || existing.displayName,
@@ -120,8 +135,8 @@ function mergeImageCapabilityProviders(ctx, baseProviders, mediaProviders) {
       credentialLanes: imageProvider.credentialLanes || existing.credentialLanes || [],
       activeCredentialLaneId: imageProvider.activeCredentialLaneId || existing.activeCredentialLaneId || null,
       activeCredentialProviderId: imageProvider.activeCredentialProviderId || existing.activeCredentialProviderId || null,
-      imageModels: imageProvider.models.length ? imageProvider.models : existing.imageModels || [],
-      models: imageProvider.models.length ? imageProvider.models : existing.models || [],
+      imageModels,
+      models: imageModels,
       audioModels: existing.audioModels || [],
       musicModels: existing.musicModels || [],
       videoModels: existing.videoModels || [],

@@ -19,15 +19,15 @@ export function browserScreenshotFilename({ base64, mimeType } = {}) {
   return `browser-screenshot-${hash}.${browserScreenshotExt(mimeType)}`;
 }
 
-export function browserScreenshotPath(gsapHome, sessionPath, { base64, mimeType } = {}) {
+export function browserScreenshotPath(codiaHome, sessionPath, { base64, mimeType } = {}) {
   return path.join(
-    sessionFilesCacheDir(gsapHome, sessionPath),
+    sessionFilesCacheDir(codiaHome, sessionPath),
     browserScreenshotFilename({ base64, mimeType }),
   );
 }
 
 export async function persistBrowserScreenshotFile({
-  gsapHome,
+  codiaHome,
   sessionPath,
   base64,
   mimeType = "image/png",
@@ -36,7 +36,7 @@ export async function persistBrowserScreenshotFile({
   if (typeof registerSessionFile !== "function") {
     throw new Error("browser screenshot requires registerSessionFile");
   }
-  const filePath = browserScreenshotPath(gsapHome, sessionPath, { base64, mimeType });
+  const filePath = browserScreenshotPath(codiaHome, sessionPath, { base64, mimeType });
   await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
   if (!fs.existsSync(filePath)) {
     await fs.promises.writeFile(filePath, Buffer.from(base64, "base64"));
@@ -51,7 +51,7 @@ export async function persistBrowserScreenshotFile({
 }
 
 export function persistBrowserScreenshotFileSync({
-  gsapHome,
+  codiaHome,
   sessionPath,
   base64,
   mimeType = "image/png",
@@ -60,7 +60,7 @@ export function persistBrowserScreenshotFileSync({
   if (typeof registerSessionFile !== "function") {
     throw new Error("browser screenshot requires registerSessionFile");
   }
-  const filePath = browserScreenshotPath(gsapHome, sessionPath, { base64, mimeType });
+  const filePath = browserScreenshotPath(codiaHome, sessionPath, { base64, mimeType });
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   if (!fs.existsSync(filePath)) {
     fs.writeFileSync(filePath, Buffer.from(base64, "base64"));

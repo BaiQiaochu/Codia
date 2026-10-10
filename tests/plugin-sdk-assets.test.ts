@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import { createGsapPluginSdk } from "../packages/plugin-sdk/src/index";
+import { createCodiaPluginSdk } from "../packages/plugin-sdk/src/index";
 
 function makeTargetWindow(href: string) {
   const location = new URL(href);
@@ -20,8 +20,8 @@ function makeTargetWindow(href: string) {
 
 describe("plugin SDK asset URLs", () => {
   it("builds same-origin plugin asset URLs from the current iframe route", () => {
-    const sdk = createGsapPluginSdk({
-      targetWindow: makeTargetWindow("http://127.0.0.1:14500/api/plugins/demo/panel?gsap-theme=studio-light"),
+    const sdk = createCodiaPluginSdk({
+      targetWindow: makeTargetWindow("http://127.0.0.1:14500/api/plugins/demo/panel?codia-theme=studio-light"),
       targetOrigin: "http://127.0.0.1:14500",
     });
 
@@ -34,7 +34,7 @@ describe("plugin SDK asset URLs", () => {
   });
 
   it("rejects unsafe plugin asset paths", () => {
-    const sdk = createGsapPluginSdk({
+    const sdk = createCodiaPluginSdk({
       targetWindow: makeTargetWindow("http://127.0.0.1:14500/api/plugins/demo/panel"),
       targetOrigin: "http://127.0.0.1:14500",
     });

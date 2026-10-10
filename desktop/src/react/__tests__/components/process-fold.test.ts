@@ -6,11 +6,35 @@ describe('process fold summary fallback', () => {
   it('uses Chinese fallback copy when runtime i18n is unavailable', () => {
     const text = buildProcessFoldSummary(
       { toolCount: 13, thinkingCount: 5, unsuccessfulCount: 1 },
-      'G-SAP',
+      'Codia',
     );
 
-    expect(text).toBe('G-SAP忙活了一阵子 · 13 个工具 · 5 次思考 · 1 次尝试未成功');
+    expect(text).toBe('执行过程 · 13 个工具 · 5 次思考 · 1 次尝试未成功');
     expect(text).not.toMatch(/worked through|tools|thinking blocks|unsuccessful attempts/);
+  });
+
+  it('summarizes the active action, affected files, and tool duration', () => {
+    const items = [{
+      type: 'message' as const,
+      data: {
+        id: 'assistant-active',
+        role: 'assistant' as const,
+        blocks: [{
+          type: 'tool_group' as const,
+          collapsed: false,
+          tools: [
+            { id: 'a', name: 'read', args: { file_path: 'src/a.ts' }, done: true, success: true, durationMs: 800 },
+            { id: 'b', name: 'apply_patch', args: { path: 'src/b.ts' }, done: false, success: false },
+          ],
+        }],
+      },
+    }] as unknown as ChatListItem[];
+
+    const rendered = buildTranscriptRenderItems(items, { isStreaming: true });
+    expect(rendered[0].type).toBe('process_fold');
+    if (rendered[0].type !== 'process_fold') return;
+    expect(buildProcessFoldSummary(rendered[0].stats, 'Codia'))
+      .toBe('执行过程 · 正在执行 修改文件 · 已完成 1 项 · 涉及 2 个文件 · 耗时 800ms');
   });
 
   it('ignores malformed tool groups instead of folding them', () => {
@@ -89,7 +113,7 @@ describe('process fold summary fallback', () => {
               type: 'tool_group',
               collapsed: false,
               tools: [
-                { id: 't1', name: 'hana_card_guide', args: {}, done: true, success: true },
+                { id: 't1', name: 'codia_card_guide', args: {}, done: true, success: true },
                 { id: 't2', name: 'show_card', args: {}, done: true, success: true },
                 { id: 't3', name: 'read', args: { file_path: 'a.md' }, done: true, success: true },
               ],

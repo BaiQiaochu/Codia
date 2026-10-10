@@ -5,7 +5,7 @@ const DEFAULT_STABLE_SAMPLES = 3;
 
 const READ_BROWSER_STATE_SCRIPT = `
 (() => {
-  if (!window.__gsapBrowserWaitState) {
+  if (!window.__codiaBrowserWaitState) {
     const state = { mutationAt: Date.now(), observer: null };
     try {
       state.observer = new MutationObserver(() => {
@@ -18,7 +18,7 @@ const READ_BROWSER_STATE_SCRIPT = `
         attributes: true,
       });
     } catch {}
-    window.__gsapBrowserWaitState = state;
+    window.__codiaBrowserWaitState = state;
   }
   const body = document.body;
   const root = document.documentElement;
@@ -27,7 +27,7 @@ const READ_BROWSER_STATE_SCRIPT = `
     body ? body.scrollHeight || 0 : 0,
     root ? root.scrollHeight || 0 : 0
   );
-  const mutationAt = window.__gsapBrowserWaitState.mutationAt || Date.now();
+  const mutationAt = window.__codiaBrowserWaitState.mutationAt || Date.now();
   return {
     readyState: document.readyState,
     elementCount: document.getElementsByTagName("*").length,

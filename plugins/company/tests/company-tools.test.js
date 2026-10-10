@@ -24,7 +24,7 @@ function makeCtx(overrides = {}) {
 }
 
 beforeEach(() => {
-  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-company-tools-"));
+  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-company-tools-"));
 });
 
 afterEach(() => {

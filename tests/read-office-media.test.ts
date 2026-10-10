@@ -80,7 +80,7 @@ async function writeDocxWithEmbeddedPng(filePath) {
 
 describe("wrapReadOfficeMedia", () => {
   beforeEach(async () => {
-    tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), "gsap-read-office-"));
+    tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), "codia-read-office-"));
   });
 
   afterEach(async () => {
@@ -106,7 +106,7 @@ describe("wrapReadOfficeMedia", () => {
       status: "available",
     }));
     const wrapped = wrapReadOfficeMedia(base, tmpDir, {
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       getSessionPath: () => sessionPath,
       recordFileOperation,
       getVisionBridge: () => null,
@@ -117,7 +117,7 @@ describe("wrapReadOfficeMedia", () => {
       "call-1",
       { path: docxPath },
       null,
-      null,
+      undefined,
       makeCtx(sessionPath, { id: "gpt-4o", provider: "openai", input: ["text", "image"] }),
     );
 
@@ -158,7 +158,7 @@ describe("wrapReadOfficeMedia", () => {
       status: "available",
     }));
     const wrapped = wrapReadOfficeMedia(makeReadTool({ content: [{ type: "text", text: "Doc text" }] }), tmpDir, {
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       getSessionPath: () => sessionPath,
       recordFileOperation,
       getVisionBridge: () => ({ prepareResources }),
@@ -169,7 +169,7 @@ describe("wrapReadOfficeMedia", () => {
       "call-1",
       { path: docxPath },
       null,
-      null,
+      undefined,
       makeCtx(sessionPath, { id: "deepseek-chat", provider: "deepseek", input: ["text"] }),
     );
 

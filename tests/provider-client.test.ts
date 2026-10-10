@@ -8,7 +8,7 @@ describe("provider client request headers", () => {
       apiKey: "sk-test",
     });
 
-    expect(headers["User-Agent"]).toBe("G-SAP/1.0");
+    expect(headers["User-Agent"]).toBe("Codia/1.0");
   });
 
   it("preserves an explicit provider User-Agent header", () => {

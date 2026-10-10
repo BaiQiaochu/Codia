@@ -52,10 +52,10 @@ const SDK_BUILTIN_OBJS = [
   "read", "bash", "edit", "write", "grep", "find", "ls",
 ].map(makeTool);
 
-// G-SAP custom tools — in production these come from agent.tools getter
+// Codia custom tools — in production these come from agent.tools getter
 // and flow through buildTools.customTools. create_artifact is intentionally
 // absent from fresh sessions; it is a restore-only compatibility tool.
-const GSAP_CUSTOM_OBJS = [
+const CODIA_CUSTOM_OBJS = [
   "search_memory", "pin_memory", "unpin_memory", "web_search",
   "web_fetch", "todo_write", "notify",
   "stage_files", "subagent", "channel", "record_experience",
@@ -66,7 +66,7 @@ const GSAP_CUSTOM_OBJS = [
 function allNames() {
   return [
     ...SDK_BUILTIN_OBJS.map((t) => t.name),
-    ...GSAP_CUSTOM_OBJS.map((t) => t.name),
+    ...CODIA_CUSTOM_OBJS.map((t) => t.name),
   ];
 }
 
@@ -137,7 +137,7 @@ describe("session-coordinator tool snapshot (createSession)", () => {
       id: "test",
       agentDir,
       sessionDir,
-      tools: GSAP_CUSTOM_OBJS,
+      tools: CODIA_CUSTOM_OBJS,
       get config() { return currentAgentConfig; },
       setMemoryEnabled: vi.fn(),
       buildSystemPrompt: () => "mock-prompt",
@@ -159,7 +159,7 @@ describe("session-coordinator tool snapshot (createSession)", () => {
         getAppendSystemPrompt: () => [],
       }),
       getSkills: () => null,
-      buildTools: () => ({ tools: SDK_BUILTIN_OBJS, customTools: GSAP_CUSTOM_OBJS }),
+      buildTools: () => ({ tools: SDK_BUILTIN_OBJS, customTools: CODIA_CUSTOM_OBJS }),
       emitEvent: vi.fn(),
       emitDevLog: vi.fn(),
       getHomeCwd: () => tmpDir,
@@ -493,7 +493,7 @@ describe("session-coordinator tool snapshot (createSession)", () => {
     };
     coord._d.buildTools = () => ({
       tools: SDK_BUILTIN_OBJS,
-      customTools: [...GSAP_CUSTOM_OBJS, mcpTool],
+      customTools: [...CODIA_CUSTOM_OBJS, mcpTool],
     });
     currentAgentConfig = { tools: { disabled: [] }, mcp: { servers: { github: { enabled: false } } } };
 
@@ -512,7 +512,7 @@ describe("session-coordinator tool snapshot (createSession)", () => {
     };
     coord._d.buildTools = () => ({
       tools: SDK_BUILTIN_OBJS,
-      customTools: [...GSAP_CUSTOM_OBJS, computerTool],
+      customTools: [...CODIA_CUSTOM_OBJS, computerTool],
     });
     currentAgentConfig = { tools: { disabled: [] } };
 
@@ -532,7 +532,7 @@ describe("session-coordinator tool snapshot (createSession)", () => {
     };
     coord._d.buildTools = () => ({
       tools: SDK_BUILTIN_OBJS,
-      customTools: [...GSAP_CUSTOM_OBJS, beautifyTool],
+      customTools: [...CODIA_CUSTOM_OBJS, beautifyTool],
     });
     currentAgentConfig = {};
 
@@ -551,7 +551,7 @@ describe("session-coordinator tool snapshot (createSession)", () => {
     };
     coord._d.buildTools = () => ({
       tools: SDK_BUILTIN_OBJS,
-      customTools: [...GSAP_CUSTOM_OBJS, beautifyTool],
+      customTools: [...CODIA_CUSTOM_OBJS, beautifyTool],
     });
     currentAgentConfig = { tools: { disabled: ["dm"] } };
 
@@ -644,7 +644,7 @@ describe("session-coordinator tool snapshot (createSession)", () => {
     const dynamicTool = { ...makeTool("mcp_new_dynamic_tool"), _pluginId: "mcp" };
     coord._d.buildTools = () => ({
       tools: SDK_BUILTIN_OBJS,
-      customTools: [...GSAP_CUSTOM_OBJS, dynamicTool],
+      customTools: [...CODIA_CUSTOM_OBJS, dynamicTool],
     });
     const replayList = ["read", "bash", "todo_write"];
     await fsp.writeFile(
@@ -668,7 +668,7 @@ describe("session-coordinator tool snapshot (createSession)", () => {
     };
     coord._d.buildTools = () => ({
       tools: SDK_BUILTIN_OBJS,
-      customTools: [...GSAP_CUSTOM_OBJS, mcpTool],
+      customTools: [...CODIA_CUSTOM_OBJS, mcpTool],
     });
     const replayList = ["read", "mcp_github_search"];
     await fsp.writeFile(
@@ -691,7 +691,7 @@ describe("session-coordinator tool snapshot (createSession)", () => {
     };
     coord._d.buildTools = () => ({
       tools: SDK_BUILTIN_OBJS,
-      customTools: [...GSAP_CUSTOM_OBJS, computerTool],
+      customTools: [...CODIA_CUSTOM_OBJS, computerTool],
     });
     const replayList = ["read", "computer"];
     await fsp.writeFile(
@@ -719,7 +719,7 @@ describe("session-coordinator tool snapshot (createSession)", () => {
     const dynamicTool = { ...makeTool("mcp_new_dynamic_tool"), _pluginId: "mcp" };
     coord._d.buildTools = () => ({
       tools: SDK_BUILTIN_OBJS,
-      customTools: [...GSAP_CUSTOM_OBJS, dynamicTool],
+      customTools: [...CODIA_CUSTOM_OBJS, dynamicTool],
     });
 
     const { sessionPath } = await coord.createSession(null, tmpDir, true, null, { restore: true });

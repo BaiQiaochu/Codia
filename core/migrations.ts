@@ -92,7 +92,7 @@ export const LATEST_DATA_VERSION = Math.max(...Object.keys(migrations).map(Numbe
 
 /**
  * @param {object} ctx
- * @param {string}   ctx.gsapHome
+ * @param {string}   ctx.codiaHome
  * @param {string}   ctx.agentsDir
  * @param {import('./preferences-manager.ts').PreferencesManager} ctx.prefs
  * @param {import('./provider-registry.ts').ProviderRegistry}     ctx.providerRegistry
@@ -129,11 +129,11 @@ export function runMigrations(ctx) {
 }
 
 function backfillLegacySessionFiles(ctx) {
-  const { gsapHome, agentsDir, log } = ctx;
-  if (!gsapHome || !agentsDir) return;
+  const { codiaHome, agentsDir, log } = ctx;
+  if (!codiaHome || !agentsDir) return;
 
   const registry = new SessionFileRegistry({
-    managedCacheRoot: path.join(gsapHome, "session-files"),
+    managedCacheRoot: path.join(codiaHome, "session-files"),
   });
   const sessionPaths = collectLegacySessionJsonlPaths(agentsDir);
   let registered = 0;
@@ -162,7 +162,7 @@ function backfillLegacySessionFiles(ctx) {
       if (entry?.type !== "message" || msg?.role !== "toolResult") continue;
 
       for (const ref of legacySessionFileRefs(msg)) {
-        const ok = registerLegacySessionFile({ registry, sessionPath, ref, gsapHome, log });
+        const ok = registerLegacySessionFile({ registry, sessionPath, ref, codiaHome, log });
         if (ok) registered++;
         else skipped++;
       }
@@ -171,7 +171,7 @@ function backfillLegacySessionFiles(ctx) {
       if (screenshot?.base64) {
         try {
           persistBrowserScreenshotFileSync({
-            gsapHome,
+            codiaHome,
             sessionPath,
             base64: screenshot.base64,
             mimeType: screenshot.mimeType || "image/png",
@@ -213,8 +213,8 @@ function geminiBaseUrlMode(baseUrl) {
 }
 
 function migrateGeminiOpenAICompatToNative(ctx) {
-  const { gsapHome, log } = ctx;
-  const ymlPath = path.join(gsapHome, "added-models.yaml");
+  const { codiaHome, log } = ctx;
+  const ymlPath = path.join(codiaHome, "added-models.yaml");
   const raw = safeReadYAMLSync(ymlPath, null, YAML);
   if (!raw?.providers || typeof raw.providers !== "object") {
     log?.("[migrations] #14: Gemini native API migration skipped (no providers)");
@@ -298,8 +298,8 @@ function migrateBridgeSessionKeysToAgentScoped(ctx) {
 }
 
 function migrateLocalIdentityRegistries(ctx) {
-  const { gsapHome, log } = ctx;
-  const { created } = ensureLocalIdentityRegistries(gsapHome);
+  const { codiaHome, log } = ctx;
+  const { created } = ensureLocalIdentityRegistries(codiaHome);
   log?.(`[migrations] #18: local identity registries ready${created.length ? ` (created=${created.join(",")})` : ""}`);
 }
 
@@ -356,8 +356,8 @@ function summarizeDeferredSubagentTask(task) {
 }
 
 function migrateDurableSubagentRunRegistry(ctx) {
-  const { gsapHome, agentsDir, log } = ctx;
-  const store = new SubagentRunStore(path.join(gsapHome, "subagent-runs.json"));
+  const { codiaHome, agentsDir, log } = ctx;
+  const store = new SubagentRunStore(path.join(codiaHome, "subagent-runs.json"));
   let imported = 0;
 
   for (const sessionPath of collectAgentParentSessionJsonlPaths(agentsDir)) {
@@ -402,7 +402,7 @@ function migrateDurableSubagentRunRegistry(ctx) {
     }
   }
 
-  const deferredTasksPath = path.join(gsapHome, ".ephemeral", "deferred-tasks.json");
+  const deferredTasksPath = path.join(codiaHome, ".ephemeral", "deferred-tasks.json");
   try {
     if (fs.existsSync(deferredTasksPath)) {
       const deferredTasks = JSON.parse(fs.readFileSync(deferredTasksPath, "utf-8"));
@@ -451,9 +451,9 @@ function normalizeMigratedRunStatus(status) {
 }
 
 function migrateSubagentThreadRegistry(ctx) {
-  const { gsapHome, log } = ctx;
-  const threadStore = new SubagentThreadStore(path.join(gsapHome, "subagent-threads.json"));
-  const runStore = new SubagentRunStore(path.join(gsapHome, "subagent-runs.json"));
+  const { codiaHome, log } = ctx;
+  const threadStore = new SubagentThreadStore(path.join(codiaHome, "subagent-threads.json"));
+  const runStore = new SubagentRunStore(path.join(codiaHome, "subagent-runs.json"));
   let importedRuns = 0;
   let importedReusable = 0;
 
@@ -483,7 +483,7 @@ function migrateSubagentThreadRegistry(ctx) {
     importedRuns += 1;
   }
 
-  const reusableRaw = readJsonForMigration(path.join(gsapHome, "reusable-subagents.json"));
+  const reusableRaw = readJsonForMigration(path.join(codiaHome, "reusable-subagents.json"));
   const instances = reusableRaw?.instances && typeof reusableRaw.instances === "object"
     ? reusableRaw.instances
     : {};
@@ -521,9 +521,9 @@ function pickLegacySubagentLabel(rec) {
 }
 
 function migrateSubagentDirectThreadSemantics(ctx) {
-  const { gsapHome, log } = ctx;
-  const threadsPath = path.join(gsapHome, "subagent-threads.json");
-  const runsPath = path.join(gsapHome, "subagent-runs.json");
+  const { codiaHome, log } = ctx;
+  const threadsPath = path.join(codiaHome, "subagent-threads.json");
+  const runsPath = path.join(codiaHome, "subagent-runs.json");
   let threadCount = 0;
   let runCount = 0;
 
@@ -587,8 +587,8 @@ function refreshVideoCapabilityProjection(ctx) {
 }
 
 function migrateChannelPhoneSettingsDefaults(ctx) {
-  const { gsapHome, log } = ctx;
-  const channelsDir = path.join(gsapHome, "channels");
+  const { codiaHome, log } = ctx;
+  const channelsDir = path.join(codiaHome, "channels");
   if (!fs.existsSync(channelsDir)) {
     log?.("[migrations] #22: no channels dir");
     return;
@@ -609,7 +609,7 @@ function migrateChannelPhoneSettingsDefaults(ctx) {
 }
 
 function removeAgentPhoneReplyInstructions(ctx) {
-  const { gsapHome, agentsDir, log } = ctx;
+  const { codiaHome, agentsDir, log } = ctx;
   let channelPatched = 0;
   let projectionPatched = 0;
 
@@ -621,7 +621,7 @@ function removeAgentPhoneReplyInstructions(ctx) {
     return true;
   };
 
-  const channelsDir = path.join(gsapHome, "channels");
+  const channelsDir = path.join(codiaHome, "channels");
   if (fs.existsSync(channelsDir)) {
     for (const entry of fs.readdirSync(channelsDir, { withFileTypes: true })) {
       if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
@@ -649,8 +649,8 @@ function removeAgentPhoneReplyInstructions(ctx) {
 }
 
 function migrateChannelPhoneGuardLimitDefaults(ctx) {
-  const { gsapHome, log } = ctx;
-  const channelsDir = path.join(gsapHome, "channels");
+  const { codiaHome, log } = ctx;
+  const channelsDir = path.join(codiaHome, "channels");
   if (!fs.existsSync(channelsDir)) {
     log?.("[migrations] #24: no channels dir");
     return;
@@ -671,8 +671,8 @@ function migrateChannelPhoneGuardLimitDefaults(ctx) {
 }
 
 function migrateChannelPhoneProactiveDefaults(ctx) {
-  const { gsapHome, log } = ctx;
-  const channelsDir = path.join(gsapHome, "channels");
+  const { codiaHome, log } = ctx;
+  const channelsDir = path.join(codiaHome, "channels");
   if (!fs.existsSync(channelsDir)) {
     log?.("[migrations] #25: no channels dir");
     return;
@@ -1190,7 +1190,7 @@ function migrateBridgeToPerAgent(ctx) {
 }
 
 function migrateSubagentExecutorMetadata(ctx) {
-  const { agentsDir, gsapHome, log } = ctx;
+  const { agentsDir, codiaHome, log } = ctx;
   const agentSnapshots = new Map();
   const childSessionCandidates = new Map();
 
@@ -1349,7 +1349,7 @@ function migrateSubagentExecutorMetadata(ctx) {
     log(`[migrations] subagent session sidecar patched: ${metaPath}`);
   }
 
-  const deferredTasksPath = path.join(gsapHome, ".ephemeral", "deferred-tasks.json");
+  const deferredTasksPath = path.join(codiaHome, ".ephemeral", "deferred-tasks.json");
   try {
     if (!fs.existsSync(deferredTasksPath)) return;
     const deferredTasks = JSON.parse(fs.readFileSync(deferredTasksPath, "utf-8"));
@@ -1567,10 +1567,10 @@ function repairCronJobModelRefs(ctx) {
 }
 
 function migrateCronJobsToAutomationReadModel(ctx) {
-  const { gsapHome, agentsDir, log } = ctx;
+  const { codiaHome, agentsDir, log } = ctx;
   const paths = [];
 
-  const studiosDir = path.join(gsapHome, "studios");
+  const studiosDir = path.join(codiaHome, "studios");
   try {
     for (const entry of fs.readdirSync(studiosDir, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
@@ -1622,10 +1622,10 @@ function patchCronJobsFileForAutomation(jobsPath, log) {
 }
 
 function migrateDirectNotifyAutomationsToAgentRuns(ctx) {
-  const { gsapHome, agentsDir, log } = ctx;
+  const { codiaHome, agentsDir, log } = ctx;
   const paths = [];
 
-  const studiosDir = path.join(gsapHome, "studios");
+  const studiosDir = path.join(codiaHome, "studios");
   try {
     for (const entry of fs.readdirSync(studiosDir, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
@@ -1653,10 +1653,10 @@ function migrateDirectNotifyAutomationsToAgentRuns(ctx) {
 }
 
 function repairAutomationOwnershipAfterAgentRunConsolidation(ctx) {
-  const { gsapHome, agentsDir, log } = ctx;
+  const { codiaHome, agentsDir, log } = ctx;
   const stores = [];
 
-  const studiosDir = path.join(gsapHome, "studios");
+  const studiosDir = path.join(codiaHome, "studios");
   try {
     for (const entry of fs.readdirSync(studiosDir, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
@@ -1941,11 +1941,11 @@ function migrateChannelsToGlobalDefaultOff(ctx) {
 }
 
 function migrateVisionToImage(ctx) {
-  const { gsapHome, agentsDir, log } = ctx;
+  const { codiaHome, agentsDir, log } = ctx;
   let ymlCount = 0;
   let overrideCount = 0;
 
-  const ymlPath = path.join(gsapHome, "added-models.yaml");
+  const ymlPath = path.join(codiaHome, "added-models.yaml");
   const raw = safeReadYAMLSync(ymlPath, null, YAML);
   if (raw?.providers && typeof raw.providers === "object") {
     let changed = false;

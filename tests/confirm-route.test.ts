@@ -34,7 +34,7 @@ async function makeApp({ pending, principal }) {
     resolve: vi.fn(() => true),
   };
   const engine = {
-    gsapHome: null,
+    codiaHome: null,
     getRuntimeContext: () => runtimeContext(),
     emitEvent: vi.fn(),
   };

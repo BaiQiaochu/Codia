@@ -19,7 +19,7 @@ import { createNodeWebSocket } from "@hono/node-ws";
 import { WebSocketServer } from "ws";
 import { AppError } from "../shared/errors.ts";
 import { errorBus } from "../shared/error-bus.ts";
-import { GsapEngine } from "../core/engine.ts";
+import { CodiaEngine } from "../core/engine.ts";
 import { ensureFirstRun } from "../core/first-run.ts";
 import { initDebugLog } from "../lib/debug-log.ts";
 import { redactLogLabel, redactLogText } from "../lib/log-redactor.ts";
@@ -93,7 +93,6 @@ import { createDevicesRoute } from "./routes/devices.ts";
 import { createMobileWorkbenchRoute } from "./routes/mobile-workbench.ts";
 import { createMobileStaticRoute } from "./routes/mobile-static.ts";
 import { createHtmlPreviewRoute } from "./routes/html-preview.ts";
-import { createOcrRuntimeRoute } from "./routes/ocr-runtime.ts";
 import { createPwaAuth } from "./pwa-auth.ts";
 import { createWebAuthRoute } from "./routes/web-auth.ts";
 import { createWebSocketAuthRoute } from "./routes/ws-auth.ts";
@@ -120,12 +119,12 @@ import { startCLI } from "./cli.ts";
 import { fromRoot } from "../shared/app-root.ts";
 import { callText } from "../core/llm-client.ts";
 import {
-  applyGsapHomeEnv,
+  applyCodiaHomeEnv,
   configureProcessPiSdkEnv,
-  ensureGsapPiSdkDirs,
-  resolveGsapHome,
+  ensureCodiaPiSdkDirs,
+  resolveCodiaHome,
   resolveServerInfoPath,
-} from "../shared/gsap-runtime-paths.ts";
+} from "../shared/codia-runtime-paths.ts";
 
 setMaxListeners(50);
 
@@ -271,12 +270,12 @@ function createListenPermissionStartupError(
   return err;
 }
 
-const gsapHome = resolveGsapHome();
-applyGsapHomeEnv(gsapHome);
-ensureGsapPiSdkDirs(gsapHome);
-configureProcessPiSdkEnv(gsapHome);
-const serverInfoPath = resolveServerInfoPath(gsapHome);
-const serverInfoScope = process.env.GSAP_SERVER_SCOPE || "default";
+const codiaHome = resolveCodiaHome();
+applyCodiaHomeEnv(codiaHome);
+ensureCodiaPiSdkDirs(codiaHome);
+configureProcessPiSdkEnv(codiaHome);
+const serverInfoPath = resolveServerInfoPath(codiaHome);
+const serverInfoScope = process.env.CODIA_SERVER_SCOPE || "default";
 
 // Read app version before the startup placeholder begins serving health checks.
 let appVersion = "?";
@@ -287,8 +286,8 @@ try {
   // Keep fallback version marker when package.json is unavailable.
 }
 
-const serverNetwork = resolveServerListenOptions(gsapHome);
-const envPort = Number.parseInt(process.env.GSAP_PORT || "", 10);
+const serverNetwork = resolveServerListenOptions(codiaHome);
+const envPort = Number.parseInt(process.env.CODIA_PORT || "", 10);
 const port = Number.isInteger(envPort) && envPort >= 0 ? envPort : serverNetwork.port;
 const host = serverNetwork.host;
 const accessRuntimeState = {
@@ -328,15 +327,15 @@ await bindServerTransportOwnership(server, {
 
 //
 console.log("[server] ensureFirstRun...");
-ensureFirstRun(gsapHome, productDir);
+ensureFirstRun(codiaHome, productDir);
 console.log("[server] ensureFirstRun 完成");
 
 //
-const dlog = initDebugLog(path.join(gsapHome, "logs"));
+const dlog = initDebugLog(path.join(codiaHome, "logs"));
 
 //
 console.log("[server] 创建应用引擎...");
-const engine = new GsapEngine({ gsapHome: gsapHome, productDir });
+const engine = new CodiaEngine({ codiaHome: codiaHome, productDir });
 console.log("[server] application engine constructed; starting init...");
 await engine.init((msg) => console.log(`[server] ${msg}`));
 console.log("[server] engine.init 完成");
@@ -348,7 +347,7 @@ if (process.platform === "win32") {
     ...(Array.isArray(engine.config?.cwd_history) ? engine.config.cwd_history : []),
   ].filter(Boolean);
   runWin32LegacySandboxMigration({
-    gsapHome: engine.gsapHome || gsapHome,
+    codiaHome: engine.codiaHome || codiaHome,
     workspaceRoots,
     cleanup: true,
   } as any).then((result) => {
@@ -369,7 +368,7 @@ outboundProxyRuntime.apply(engine.getNetworkProxy());
 
 // Inject runtime paths into BrowserManager without creating a module cycle.
 import { BrowserManager } from "../lib/browser/browser-manager.ts";
-BrowserManager.setGsapHome(engine.gsapHome);
+BrowserManager.setCodiaHome(engine.codiaHome);
 BrowserManager.setSessionIdResolver((sessionPath) => engine.getSessionIdForPath?.(sessionPath) || null);
 
 // Write the startup diagnostics header.
@@ -441,10 +440,10 @@ engine.cleanupCheckpoints().catch(err => {
 loadLocale(engine.getLocale?.() || engine.config?.locale);
 
 // Startup token prevents unrelated local processes from calling private APIs.
-const SERVER_TOKEN = process.env.GSAP_TOKEN || crypto.randomBytes(16).toString("hex");
+const SERVER_TOKEN = process.env.CODIA_TOKEN || crypto.randomBytes(16).toString("hex");
 const pwaAuth = createPwaAuth({ secret: SERVER_TOKEN });
 const serverAuthService = createServerAuthService({
-  gsapHome,
+  codiaHome,
   loopbackToken: SERVER_TOKEN,
   runtimeContext: () => engine.getRuntimeContext(),
 });
@@ -454,8 +453,8 @@ const webSocketTicketService = createWebSocketTicketService();
 const app = new Hono<ServerRuntimeContext>();
 const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
-// CORS defaults to localhost. GSAP_CORS_ORIGIN can expand access.
-const corsAllowedOrigin = process.env.GSAP_CORS_ORIGIN;
+// CORS defaults to localhost. CODIA_CORS_ORIGIN can expand access.
+const corsAllowedOrigin = process.env.CODIA_CORS_ORIGIN;
 function getWebAccessKey() {
   return engine.preferences?.getWebAccess?.()?.api_key || "";
 }
@@ -671,26 +670,26 @@ engine.setConfirmStore(confirmStore);
 // --- Deferred Result Store ---
 const deferredResultStore = new DeferredResultStore(
   hub.eventBus,
-  path.join(gsapHome, ".ephemeral", "deferred-tasks.json"),
+  path.join(codiaHome, ".ephemeral", "deferred-tasks.json"),
   { getSessionIdForPath: (sessionPath) => engine.getSessionIdForPath?.(sessionPath) || null },
 );
 engine.setDeferredResultStore(deferredResultStore);
 
 const subagentRunStore = new SubagentRunStore(
-  path.join(gsapHome, "subagent-runs.json"),
+  path.join(codiaHome, "subagent-runs.json"),
   { getSessionIdForPath: (sessionPath) => engine.getSessionIdForPath?.(sessionPath) || null },
 );
 engine.setSubagentRunStore(subagentRunStore);
 
 const subagentThreadStore = new SubagentThreadStore(
-  path.join(gsapHome, "subagent-threads.json"),
+  path.join(codiaHome, "subagent-threads.json"),
   { getSessionIdForPath: (sessionPath) => engine.getSessionIdForPath?.(sessionPath) || null },
 );
 engine.setSubagentThreadStore(subagentThreadStore);
 
 const WORKFLOW_ACTIVITY_TTL_MS = 72 * 60 * 60 * 1000;
 const workflowActivityStore = new WorkflowActivityStore(
-  path.join(gsapHome, "workflow-activity.json"),
+  path.join(codiaHome, "workflow-activity.json"),
 );
 workflowActivityStore.prune(WORKFLOW_ACTIVITY_TTL_MS, Date.now());
 const activityHub = new ActivityHub(
@@ -769,8 +768,8 @@ const runtimeDiagnostics = createRuntimeDiagnosticsService({
   traceStore: engine.getRuntimeTraceStore?.(),
 });
 
-const shouldCreateStartupSession = process.env.GSAP_CREATE_STARTUP_SESSION !== "0"
-  && process.env.HANA_CREATE_STARTUP_SESSION !== "0";
+const shouldCreateStartupSession = process.env.CODIA_CREATE_STARTUP_SESSION !== "0"
+  && process.env.CODIA_CREATE_STARTUP_SESSION !== "0";
 // ③ 跳过启动期 session 创建时，服务就绪不等待聊天会话预热。
 if (shouldCreateStartupSession && engine.currentModel) {
   console.log("[server] creating default session after plugins/extensions init...");
@@ -835,7 +834,7 @@ app.route("/api", createWebSocketAuthRoute({
   ticketService: webSocketTicketService,
 }));
 app.route("/api", createServerIdentityRoute({
-  gsapHome: engine.gsapHome || gsapHome,
+  codiaHome: engine.codiaHome || codiaHome,
   appVersion,
   getRuntimeContext: () => engine.getRuntimeContext(),
 }));
@@ -852,7 +851,7 @@ app.route("/api", createAccessRoute({ engine, runtimeState: accessRuntimeState }
 app.route("/api", createDevicesRoute(engine));
 app.route("/api", createMobileWorkbenchRoute(engine));
 app.route("/api", createWebAuthRoute({
-  gsapHome: engine.gsapHome || gsapHome,
+  codiaHome: engine.codiaHome || codiaHome,
   authService: serverAuthService,
   getConnectionKind: (c) => c.get("transportConnectionKind"),
   getRuntimeContext: () => engine.getRuntimeContext(),
@@ -864,7 +863,6 @@ app.route("/api", createWorkspaceToolsRoute({
   listAgents: () => engine.listAgents?.() || [],
 }));
 app.route("/api", pwaAuth.route);
-app.route("", createOcrRuntimeRoute());
 app.route("", createHtmlPreviewRoute());
 app.route("", createMobileStaticRoute({ distDir: path.join(fromRoot("desktop"), "dist-renderer") }));
 //
@@ -888,7 +886,7 @@ app.get("/api/health", async (c) => {
     version: appVersion,
     agentId: engine.currentAgentId || null,
     agent: engine.agentName,
-    agentYuan: engine.agent?.config?.agent?.yuan || "gsap",
+    agentYuan: engine.agent?.config?.agent?.yuan || "codia",
     user: engine.userName,
     model: engine.currentModel?.name,
     avatars,
@@ -1063,11 +1061,11 @@ try {
     const bm = BrowserManager.instance();
     bm.setWsTransport(ws);
 
-    // Optional browser WS trace; disabled unless GSAP_DEBUG=1.
-    const _bwsEnabled = process.env.GSAP_DEBUG === "1";
+    // Optional browser WS trace; disabled unless CODIA_DEBUG=1.
+    const _bwsEnabled = process.env.CODIA_DEBUG === "1";
     let _bwsBuf = "";
     let _bwsFlushTimer = null;
-    const _bwsLogPath = path.join(gsapHome, "browser-ws.log");
+    const _bwsLogPath = path.join(codiaHome, "browser-ws.log");
     let _bwsFlushChain = Promise.resolve();
     const _bwsFlush = () => {
       if (!_bwsBuf) return;
@@ -1141,8 +1139,8 @@ try {
       scope: serverInfoScope,
       studioId: runtimeIdentity.studioId || null,
       serverId: runtimeIdentity.serverId || null,
-      ownerKind: process.env.HANA_SERVER_OWNER === "desktop" ? "desktop" : "standalone",
-      ownerPid: Number(process.env.HANA_SERVER_OWNER_PID || process.env.GSAP_SERVER_OWNER_PID) || null,
+      ownerKind: process.env.CODIA_SERVER_OWNER === "desktop" ? "desktop" : "standalone",
+      ownerPid: Number(process.env.CODIA_SERVER_OWNER_PID) || null,
     }), { mode: 0o600 });
     try { fs.chmodSync(serverInfoPath, 0o600); } catch {
       // Some filesystems ignore mode-on-create for existing files.
@@ -1227,8 +1225,8 @@ async function gracefulShutdown() {
   process.exit(0);
 }
 
-const PROCESS_SIGNAL_HANDLER_GUARD = Symbol.for("gsap.server.process-signal-handlers-registered");
-const PROCESS_ERROR_HANDLER_GUARD = Symbol.for("gsap.server.process-error-handlers-registered");
+const PROCESS_SIGNAL_HANDLER_GUARD = Symbol.for("codia.server.process-signal-handlers-registered");
+const PROCESS_ERROR_HANDLER_GUARD = Symbol.for("codia.server.process-error-handlers-registered");
 if (!process[PROCESS_SIGNAL_HANDLER_GUARD]) {
   process[PROCESS_SIGNAL_HANDLER_GUARD] = true;
   process.on("SIGINT", gracefulShutdown);

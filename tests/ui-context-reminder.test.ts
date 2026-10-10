@@ -10,7 +10,7 @@ describe("UI context reminder", () => {
         title: "研究模式",
         description: "引用溯源、可信度、可导出报告",
       },
-    }, "E:/G-sap");
+    }, "E:/Codia");
 
     expect(reminder).toContain("<user-context>");
     expect(reminder).toContain("selected_workspace_tool:");
@@ -20,6 +20,6 @@ describe("UI context reminder", () => {
   });
 
   it("returns null when workspace tool metadata is malformed and no other UI context exists", () => {
-    expect(buildUiContextReminder({ workspaceTool: { id: "", title: "" } }, "E:/G-sap")).toBeNull();
+    expect(buildUiContextReminder({ workspaceTool: { id: "", title: "" } }, "E:/Codia")).toBeNull();
   });
 });

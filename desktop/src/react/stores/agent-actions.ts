@@ -6,7 +6,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- API 响应 JSON + Record<string, any> patch 对象 */
 
 import { useStore } from './index';
-import { gsapFetch, gsapUrl } from '../hooks/use-gsap-fetch';
+import { codiaFetch, codiaUrl } from '../hooks/use-codia-fetch';
 import { closePreview, clearOwnerPreview } from './preview-actions';
 import { getPreviewOwner } from './preview-slice';
 
@@ -52,7 +52,7 @@ export async function applyAgentIdentity(opts: any = {}): Promise<void> {
   const tasks: Promise<any>[] = [];
   if (avatars) {
     tasks.push(
-      gsapFetch('/api/health').then(r => r.json()).then(d => loadAvatars(d.avatars)).catch(() => loadAvatars()),
+      codiaFetch('/api/health').then(r => r.json()).then(d => loadAvatars(d.avatars)).catch(() => loadAvatars()),
     );
   }
   if (agents) tasks.push(loadAgents());
@@ -63,7 +63,7 @@ export async function applyAgentIdentity(opts: any = {}): Promise<void> {
 
 export async function loadAgents(): Promise<void> {
   try {
-    const res = await gsapFetch('/api/agents');
+    const res = await codiaFetch('/api/agents');
     const data = await res.json();
     if (data.error) throw new Error(data.error);
 
@@ -96,7 +96,7 @@ export function loadAvatars(avatarsInfo?: Record<string, boolean>): void {
   for (const role of ['agent', 'user'] as const) {
     const hasAvatar = avatarsInfo?.[role] ?? false;
     if (hasAvatar) {
-      const url = gsapUrl(`/api/avatar/${role}?t=${ts}`, { includeTokenQuery: true });
+      const url = codiaUrl(`/api/avatar/${role}?t=${ts}`, { includeTokenQuery: true });
       if (role === 'agent') patch.agentAvatarUrl = url;
       else patch.userAvatarUrl = url;
     } else {

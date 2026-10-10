@@ -8,7 +8,7 @@ describe("markdown cover service", () => {
   let tmpDir;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-cover-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-cover-"));
   });
 
   afterEach(() => {

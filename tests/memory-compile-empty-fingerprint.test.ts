@@ -40,7 +40,7 @@ describe("compileToday empty-sessions fingerprint trap fix", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-compile-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-compile-"));
     todayPath = path.join(tmpDir, "today.md");
     fpPath = todayPath + ".fingerprint";
   });
@@ -126,7 +126,7 @@ describe("compileWeek empty-sessions fingerprint trap fix", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-compile-week-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-compile-week-"));
     weekPath = path.join(tmpDir, "week.md");
     fpPath = weekPath + ".fingerprint";
   });
@@ -162,7 +162,7 @@ describe("compiled section formatting", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-compile-format-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-compile-format-"));
   });
 
   afterEach(() => {
@@ -304,7 +304,7 @@ describe("compiled section formatting", () => {
     const memoryPath = path.join(tmpDir, "memory.md");
     fs.writeFileSync(factsPath, "[\"用户喜欢清晰边界\"]", "utf-8");
     fs.writeFileSync(todayPath, "# 今天概要\n\n用户关注记忆系统。", "utf-8");
-    fs.writeFileSync(weekPath, "# 本周主题概要\n\n用户持续关注 Project G-SAP。", "utf-8");
+    fs.writeFileSync(weekPath, "# 本周主题概要\n\n用户持续关注 Project Codia。", "utf-8");
     fs.writeFileSync(longtermPath, "# 长期背景记录\n\n## 偏好\n\n用户偏好沉静 UI。", "utf-8");
 
     assemble(factsPath, todayPath, weekPath, longtermPath, memoryPath);
@@ -312,7 +312,7 @@ describe("compiled section formatting", () => {
     const output = fs.readFileSync(memoryPath, "utf-8");
     expect(output).toContain("## 重要事实\n\n- 用户喜欢清晰边界");
     expect(output).toContain("## 今天\n\n用户关注记忆系统。");
-    expect(output).toContain("## 本周早些时候\n\n用户持续关注 Project G-SAP。");
+    expect(output).toContain("## 本周早些时候\n\n用户持续关注 Project Codia。");
     expect(output).toContain("## 长期情况\n\n用户偏好沉静 UI。");
     expect(output).not.toContain("# 本周主题概要");
     expect(output).not.toContain("# 长期背景记录");
@@ -324,7 +324,7 @@ describe("compiled memory reset watermark filtering", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-compile-since-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-compile-since-"));
   });
 
   afterEach(() => {

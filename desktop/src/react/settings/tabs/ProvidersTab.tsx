@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useSettingsStore, type ProviderSummary } from '../store';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { t, PROVIDER_PRESETS } from '../helpers';
 import { getProviderPresetLabel } from '../../utils/provider-presets';
 import { loadSettingsConfig } from '../actions';
@@ -9,6 +9,7 @@ import { ProviderDetail } from './providers/ProviderDetail';
 import { AddCustomButton, AddProviderOverlay } from './providers/ProviderList';
 import { OtherModelsSection } from './providers/OtherModelsSection';
 import { UsageLedgerSection } from './providers/UsageLedgerSection';
+import { DeepSeekFeature } from './providers/DeepSeekFeature';
 import { SettingsSection } from '../components/SettingsSection';
 import { ProviderIcon } from '../../ui';
 import styles from '../Settings.module.css';
@@ -33,7 +34,7 @@ export function ProvidersTab() {
 
   const loadSummary = useCallback(async () => {
     try {
-      const res = await gsapFetch('/api/providers/summary');
+      const res = await codiaFetch('/api/providers/summary');
       const data = await res.json();
       useSettingsStore.setState({ providersSummary: data.providers || {} });
     } catch { /* swallow */ }
@@ -209,6 +210,8 @@ export function ProvidersTab() {
       <SettingsSection title={t('settings.api.otherModelSection')}>
         <OtherModelsSection providers={providers} />
       </SettingsSection>
+
+      <DeepSeekFeature />
 
       <UsageLedgerSection />
     </div>

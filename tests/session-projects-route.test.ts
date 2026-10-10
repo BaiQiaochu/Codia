@@ -118,39 +118,39 @@ describe("session projects route", () => {
 
   it("renames projects and persists same-level order", async () => {
     const engine = {
-      updateSessionProject: vi.fn(() => ({ id: "project-gsap", name: "Project gsap", folderId: null, order: 0 })),
+      updateSessionProject: vi.fn(() => ({ id: "project-codia", name: "Project codia", folderId: null, order: 0 })),
       reorderSessionProjects: vi.fn(() => ({
         folders: [],
         projects: [
-          { id: "project-gsap", name: "Project gsap", folderId: null, order: 0 },
+          { id: "project-codia", name: "Project codia", folderId: null, order: 0 },
           { id: "project-plugins", name: "OH-Plugins", folderId: null, order: 1 },
         ],
       })),
     };
     const app = makeApp(engine);
 
-    const renameRes = await app.request("/api/session-projects/projects/project-gsap", {
+    const renameRes = await app.request("/api/session-projects/projects/project-codia", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "Project gsap" }),
+      body: JSON.stringify({ name: "Project codia" }),
     });
     const renameBody = await renameRes.json();
 
     const orderRes = await app.request("/api/session-projects/projects/reorder", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ folderId: null, projectIds: ["project-gsap", "project-plugins"] }),
+      body: JSON.stringify({ folderId: null, projectIds: ["project-codia", "project-plugins"] }),
     });
     const orderBody = await orderRes.json();
 
     expect(renameRes.status).toBe(200);
-    expect(renameBody.project.name).toBe("Project gsap");
-    expect(engine.updateSessionProject).toHaveBeenCalledWith("project-gsap", { name: "Project gsap" });
+    expect(renameBody.project.name).toBe("Project codia");
+    expect(engine.updateSessionProject).toHaveBeenCalledWith("project-codia", { name: "Project codia" });
     expect(orderRes.status).toBe(200);
-    expect(orderBody.catalog.projects.map((project) => project.id)).toEqual(["project-gsap", "project-plugins"]);
+    expect(orderBody.catalog.projects.map((project) => project.id)).toEqual(["project-codia", "project-plugins"]);
     expect(engine.reorderSessionProjects).toHaveBeenCalledWith({
       folderId: null,
-      projectIds: ["project-gsap", "project-plugins"],
+      projectIds: ["project-codia", "project-plugins"],
     });
   });
 
@@ -175,7 +175,7 @@ describe("session projects route", () => {
     const engine = {
       deleteSessionProject: vi.fn(async (id) => ({
         catalog: { folders: [], projects: [] },
-        assignment: { projectId: "cwd:", sessionPaths: ["/tmp/agents/gsap/sessions/a.jsonl"] },
+        assignment: { projectId: "cwd:", sessionPaths: ["/tmp/agents/codia/sessions/a.jsonl"] },
       })),
       deleteSessionProjectFolder: vi.fn((id) => ({
         folders: [],
@@ -195,7 +195,7 @@ describe("session projects route", () => {
     expect(await projectRes.json()).toEqual({
       ok: true,
       catalog: { folders: [], projects: [] },
-      assignment: { projectId: "cwd:", sessionPaths: ["/tmp/agents/gsap/sessions/a.jsonl"] },
+      assignment: { projectId: "cwd:", sessionPaths: ["/tmp/agents/codia/sessions/a.jsonl"] },
     });
     expect(engine.deleteSessionProject).toHaveBeenCalledWith("project-root");
     expect(folderRes.status).toBe(200);
@@ -219,8 +219,8 @@ describe("session projects route", () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        sessionPath: "/tmp/agents/gsap/sessions/a.jsonl",
-        projectId: "project-gsap",
+        sessionPath: "/tmp/agents/codia/sessions/a.jsonl",
+        projectId: "project-codia",
       }),
     });
     const body = await res.json();
@@ -229,13 +229,13 @@ describe("session projects route", () => {
     expect(body).toEqual({
       ok: true,
       assignment: {
-        sessionPath: "/tmp/agents/gsap/sessions/a.jsonl",
-        projectId: "project-gsap",
+        sessionPath: "/tmp/agents/codia/sessions/a.jsonl",
+        projectId: "project-codia",
       },
     });
     expect(engine.setSessionProjectAssignment).toHaveBeenCalledWith({
-      sessionPath: "/tmp/agents/gsap/sessions/a.jsonl",
-      projectId: "project-gsap",
+      sessionPath: "/tmp/agents/codia/sessions/a.jsonl",
+      projectId: "project-codia",
     });
   });
 });

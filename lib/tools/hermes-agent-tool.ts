@@ -8,7 +8,7 @@ import { Type } from "@sinclair/typebox";
 
 const execFileAsync = promisify(execFile);
 
-const RESULT_MARKER = "__GSAP_HERMES_RESULT__";
+const RESULT_MARKER = "__CODIA_HERMES_RESULT__";
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
 const DEFAULT_HERMES_HOME_SUBDIR = "hermes";
 const HERMES_UNAVAILABLE_COOLDOWN_MS = 5 * 60 * 1000;
@@ -117,7 +117,7 @@ import json
 import sys
 import traceback
 
-RESULT_MARKER = "__GSAP_HERMES_RESULT__"
+RESULT_MARKER = "__CODIA_HERMES_RESULT__"
 
 def _emit(data):
     print(RESULT_MARKER + json.dumps(data, ensure_ascii=False))
@@ -214,8 +214,8 @@ export function resolveHermesAgentRoot({
   if (env.HERMES_AGENT_ROOT) {
     candidates.push(env.HERMES_AGENT_ROOT);
   }
-  if (env.GSAP_ROOT) {
-    candidates.push(path.join(env.GSAP_ROOT, "hermes-agent-runtime"));
+  if (env.CODIA_ROOT) {
+    candidates.push(path.join(env.CODIA_ROOT, "hermes-agent-runtime"));
   }
   if (resourcesPath) {
     candidates.push(path.join(resourcesPath, "server", "hermes-agent-runtime"));
@@ -349,7 +349,7 @@ export function resolveHermesPythonCandidates(root, {
 }
 
 function ensureBridgeScript() {
-  const scriptPath = path.join(os.tmpdir(), "gsap-hermes-agent-bridge.py");
+  const scriptPath = path.join(os.tmpdir(), "codia-hermes-agent-bridge.py");
   const current = fs.existsSync(scriptPath) ? fs.readFileSync(scriptPath, "utf-8") : null;
   if (current !== BRIDGE_SCRIPT) {
     fs.writeFileSync(scriptPath, BRIDGE_SCRIPT, "utf-8");
@@ -503,9 +503,8 @@ function resolveHermesWorkingDirectory(cwd = null) {
   const candidates = [
     cwd,
     process.env.TERMINAL_CWD,
-    process.env.GSAP_WORKSPACE,
-    process.env.GSAP_ROOT,
-    process.env.GSAP_ROOT,
+    process.env.CODIA_WORKSPACE,
+    process.env.CODIA_ROOT,
     process.cwd(),
   ];
   for (const candidate of candidates) {
@@ -710,9 +709,9 @@ export function buildHermesEnv(payload, hermesRoot) {
     env.OPENAI_API_KEY = env.OPENAI_API_KEY || apiKey;
   }
 
-  const gsapHome = String(process.env.GSAP_HOME || "").trim();
+  const codiaHome = String(process.env.CODIA_HOME || "").trim();
   const explicitHermesHome = String(payload?.hermes_home || "").trim();
-  const hermesHome = explicitHermesHome || (gsapHome ? path.join(gsapHome, DEFAULT_HERMES_HOME_SUBDIR) : "");
+  const hermesHome = explicitHermesHome || (codiaHome ? path.join(codiaHome, DEFAULT_HERMES_HOME_SUBDIR) : "");
   if (hermesHome) {
     env.HERMES_HOME = hermesHome;
   }
@@ -744,7 +743,7 @@ function buildHermesSystemPrompt(systemPrompt) {
   const platformNotes = [];
   if (process.platform === "win32") {
     platformNotes.push(
-      "You are running inside G-SAP on native Windows.",
+      "You are running inside Codia on native Windows.",
       "Treat local drives such as C:\\ and D:\\ as directly accessible unless a tool proves otherwise.",
       "When shell access is needed on Windows, prefer PowerShell and UTF-8-friendly commands.",
       "Do not ask whether the user is in WSL or a VM unless a tool call actually fails and you have concrete evidence.",

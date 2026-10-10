@@ -6,7 +6,7 @@ import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
-import { DEFAULT_GSAP_DEV_HOME, applyGsapHomeEnv, resolveServerInfoPath } from "../shared/gsap-home.ts";
+import { DEFAULT_CODIA_DEV_HOME, applyCodiaHomeEnv, resolveServerInfoPath } from "../shared/codia-home.ts";
 
 const projectRoot = fileURLToPath(new URL("..", import.meta.url));
 const require = createRequire(import.meta.url);
@@ -19,8 +19,8 @@ const sourceServerEntry = fs.existsSync(sourceServerEntryTs) ? sourceServerEntry
 const sourceServerBootstrap = fs.existsSync(sourceServerBootstrapTs) ? sourceServerBootstrapTs : sourceServerBootstrapJs;
 
 const launchEnv = { ...process.env };
-if (!launchEnv.GSAP_HOME) {
-  applyGsapHomeEnv(DEFAULT_GSAP_DEV_HOME, launchEnv);
+if (!launchEnv.CODIA_HOME) {
+  applyCodiaHomeEnv(DEFAULT_CODIA_DEV_HOME, launchEnv);
 }
 
 const mode = process.argv[2];
@@ -44,28 +44,26 @@ switch (mode) {
       console.error(`[launch] Missing local build files: ${missing.join(", ")}. Run 'npm run build:client' or 'npm run start:local'.`);
       process.exit(1);
     }
-    launchEnv.GSAP_LAUNCH_NODE = process.execPath;
-    launchEnv.GSAP_LAUNCH_NODE_VERSION = process.versions.node;
-    launchEnv.GSAP_PORT = launchEnv.GSAP_PORT || "0";
+    launchEnv.CODIA_LAUNCH_NODE = process.execPath;
+    launchEnv.CODIA_LAUNCH_NODE_VERSION = process.versions.node;
+    launchEnv.CODIA_PORT = launchEnv.CODIA_PORT || "0";
     delete launchEnv.VITE_DEV_URL;
-    delete launchEnv.GSAP_DEV_PRELOAD_PATH;
+    delete launchEnv.CODIA_DEV_PRELOAD_PATH;
     bin = require("electron");
     args = [projectRoot, ...extra];
     break;
   }
   case "cli":
     bin = process.execPath;
-    args = ["scripts/gsapctl.mjs", ...extra];
+    args = ["scripts/codiactl.mjs", ...extra];
     break;
   case "server":
-    launchEnv.GSAP_SERVER_SCOPE = launchEnv.GSAP_SERVER_SCOPE || "pwa";
-    launchEnv.GSAP_SERVER_INFO = launchEnv.GSAP_SERVER_INFO || resolveServerInfoPath(launchEnv.GSAP_HOME, launchEnv, "pwa");
-    launchEnv.GSAP_ROOT = launchEnv.GSAP_ROOT || projectRoot;
-    launchEnv.HANA_ROOT = launchEnv.HANA_ROOT || launchEnv.GSAP_ROOT;
-    launchEnv.GSAP_SERVER_ENTRY = launchEnv.GSAP_SERVER_ENTRY || (
+    launchEnv.CODIA_SERVER_SCOPE = launchEnv.CODIA_SERVER_SCOPE || "pwa";
+    launchEnv.CODIA_SERVER_INFO = launchEnv.CODIA_SERVER_INFO || resolveServerInfoPath(launchEnv.CODIA_HOME, launchEnv, "pwa");
+    launchEnv.CODIA_ROOT = launchEnv.CODIA_ROOT || projectRoot;
+    launchEnv.CODIA_SERVER_ENTRY = launchEnv.CODIA_SERVER_ENTRY || (
       fs.existsSync(sourceServerEntry) ? sourceServerEntry : bundledServerEntry
     );
-    launchEnv.HANA_SERVER_ENTRY = launchEnv.GSAP_SERVER_ENTRY;
     bin = process.execPath;
     args = [sourceServerBootstrap, ...extra];
     break;

@@ -8,7 +8,7 @@ import { resolveMediaParameters } from "../core/media/media-parameters.ts";
 import { SessionFileRegistry } from "../lib/session-files/session-file-registry.ts";
 
 function makeRoot() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-universal-media-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-universal-media-"));
 }
 
 function writeLegacyImageConfig(root, global) {
@@ -34,7 +34,7 @@ function makePreferences(root, initial: any = null) {
 
 function makeManager(root, preferences, extra: any = {}) {
   return new UniversalMediaManager({
-    gsapHome: root,
+    codiaHome: root,
     preferences,
     sessionFiles: extra.sessionFiles,
     providerRegistry: {
@@ -48,7 +48,7 @@ function makeManager(root, preferences, extra: any = {}) {
 }
 
 function makeSessionPath(root, name = "session.jsonl") {
-  const dir = path.join(root, "agents", "gsap", "sessions");
+  const dir = path.join(root, "agents", "codia", "sessions");
   fs.mkdirSync(dir, { recursive: true });
   const sessionPath = path.join(dir, name);
   fs.writeFileSync(sessionPath, "{}\n");
@@ -77,8 +77,6 @@ function makeBus() {
 }
 
 async function flushBackgroundWork() {
-  await Promise.resolve();
-  await Promise.resolve();
   await Promise.resolve();
 }
 
@@ -378,7 +376,7 @@ describe("UniversalMediaManager adapter registration bus contract", () => {
     roots.push(root);
     const { builtinImageGenAdapters } = await import("../plugins/image-gen/builtin-adapters.ts");
     const manager = new UniversalMediaManager({
-      gsapHome: root,
+      codiaHome: root,
       preferences: makePreferences(root),
       providerRegistry: {
         getMediaProviders: () => [],
@@ -398,7 +396,7 @@ describe("UniversalMediaManager adapter registration bus contract", () => {
     const root = makeRoot();
     roots.push(root);
     const manager = new UniversalMediaManager({
-      gsapHome: root,
+      codiaHome: root,
       preferences: makePreferences(root),
       providerRegistry: {
         getMediaProviders: () => [],
@@ -436,7 +434,7 @@ describe("UniversalMediaManager adapter registration bus contract", () => {
     const root = makeRoot();
     roots.push(root);
     const manager = new UniversalMediaManager({
-      gsapHome: root,
+      codiaHome: root,
       preferences: makePreferences(root),
       providerRegistry: {
         getMediaProviders: () => [],
@@ -560,7 +558,7 @@ describe("UniversalMediaManager response delivery", () => {
       })),
     };
     const manager = new UniversalMediaManager({
-      gsapHome: root,
+      codiaHome: root,
       preferences: makePreferences(root),
       providerRegistry,
       registerSessionFile: () => {},
@@ -619,7 +617,7 @@ describe("UniversalMediaManager response delivery", () => {
       })),
     };
     const manager = new UniversalMediaManager({
-      gsapHome: root,
+      codiaHome: root,
       preferences: makePreferences(root, {
         videoGeneration: {
           defaultVideoModel: { provider: "agnes", id: "agnes-video-v2.0" },
@@ -696,7 +694,7 @@ describe("UniversalMediaManager response delivery", () => {
       },
     };
     const manager = new UniversalMediaManager({
-      gsapHome: root,
+      codiaHome: root,
       preferences: makePreferences(root),
       providerRegistry,
       registerSessionFile: () => {},
@@ -751,7 +749,7 @@ describe("UniversalMediaManager response delivery", () => {
       })),
     };
     const manager = new UniversalMediaManager({
-      gsapHome: root,
+      codiaHome: root,
       preferences: makePreferences(root, {
         videoGeneration: {
           defaultVideoModel: { provider: "jimeng-cli", id: "seedance2.0_vip" },
@@ -835,7 +833,7 @@ describe("UniversalMediaManager response delivery", () => {
       })),
     };
     const manager = new UniversalMediaManager({
-      gsapHome: root,
+      codiaHome: root,
       preferences: makePreferences(root, {
         videoGeneration: {
           defaultVideoModel: { provider: "jimeng-cli", id: "seedance2.0fast" },

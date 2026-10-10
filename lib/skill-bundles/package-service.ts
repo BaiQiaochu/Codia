@@ -48,7 +48,7 @@ function resolveUniqueExportPath(targetDir, fileName) {
 }
 
 function resolveDefaultExportTargetDir(engine) {
-  const candidates = [engine?.cwd, engine?.gsapHome].filter(Boolean);
+  const candidates = [engine?.cwd, engine?.codiaHome].filter(Boolean);
   const targetDir = candidates.find(candidate => path.isAbsolute(candidate));
   if (!targetDir) throw new SkillBundlePackageError("export target directory is not available", 500);
   return targetDir;
@@ -192,7 +192,7 @@ function buildManifest(bundle, exportedSkills, fileName) {
 }
 
 export async function exportSkillBundlePackage(engine, bundleId, options = {}) {
-  if (!engine?.gsapHome) throw new SkillBundlePackageError("gsapHome is required for skill bundle export", 500);
+  if (!engine?.codiaHome) throw new SkillBundlePackageError("codiaHome is required for skill bundle export", 500);
   const bundle = loadBundle(engine, bundleId);
   const targetDir = options.targetDir || resolveDefaultExportTargetDir(engine);
   if (!path.isAbsolute(targetDir)) {
@@ -202,7 +202,7 @@ export async function exportSkillBundlePackage(engine, bundleId, options = {}) {
   const agentId = trimString(options.agentId) || trimString(bundle.agentId) || trimString(engine.currentAgentId);
 
   const token = `${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  const exportRoot = path.join(engine.gsapHome, ".ephemeral", "skill-bundle-exports", token);
+  const exportRoot = path.join(engine.codiaHome, ".ephemeral", "skill-bundle-exports", token);
   const packageRoot = path.join(exportRoot, "package");
   const skillIndex = buildSkillIndex(engine, agentId);
   const exportedSkills = [];

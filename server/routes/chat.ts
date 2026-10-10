@@ -290,7 +290,7 @@ export const DEFAULT_DISCONNECT_ABORT_GRACE_MS = 5 * 60_000;
 export const DEFAULT_TURN_STALL_ABORT_MS = 20 * 60_000;
 
 export function resolveDisconnectAbortGraceMs(
-  value = process.env.GSAP_WS_DISCONNECT_ABORT_GRACE_MS ?? process.env.HANA_WS_DISCONNECT_ABORT_GRACE_MS,
+  value = process.env.CODIA_WS_DISCONNECT_ABORT_GRACE_MS,
 ) {
   if (value === undefined || value === null || value === "") return DEFAULT_DISCONNECT_ABORT_GRACE_MS;
   const parsed = Number(value);
@@ -299,7 +299,7 @@ export function resolveDisconnectAbortGraceMs(
 }
 
 export function resolveTurnStallAbortMs(
-  value = process.env.GSAP_TURN_STALL_ABORT_MS ?? process.env.HANA_TURN_STALL_ABORT_MS,
+  value = process.env.CODIA_TURN_STALL_ABORT_MS,
 ) {
   if (value === undefined || value === null || value === "") return DEFAULT_TURN_STALL_ABORT_MS;
   const parsed = Number(value);
@@ -1074,8 +1074,10 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
       if (!ss) return;
       emitStreamEvent(sessionPath, ss, {
         type: "tool_end",
+        id: event.toolCallId || undefined,
         name: event.toolName || "",
         success: !event.isError,
+        durationMs: Number.isFinite(event.durationMs) ? event.durationMs : undefined,
         details: event.result?.details,
       });
 

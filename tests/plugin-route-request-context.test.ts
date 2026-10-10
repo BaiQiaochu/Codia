@@ -7,7 +7,7 @@ import {
 
 function makeBusWithSessionCreate() {
   const bus = new EventBus();
-  const handler = vi.fn(async () => ({ ok: true, sessionPath: "/agents/gsap/sessions/new.jsonl" }));
+  const handler = vi.fn(async () => ({ ok: true, sessionPath: "/agents/codia/sessions/new.jsonl" }));
   bus.handle("session:create", handler);
   return { bus, handler };
 }
@@ -35,11 +35,11 @@ describe("createPluginRouteRequestContext", () => {
     const ctx = makeContext({
       capabilities: ["session"],
       principal,
-      agentId: "gsap-agent",
+      agentId: "codia-agent",
     });
 
     expect(ctx.pluginId).toBe("media-board");
-    expect(ctx.agentId).toBe("gsap-agent");
+    expect(ctx.agentId).toBe("codia-agent");
     expect(ctx.principal).toMatchObject({
       kind: "plugin",
       pluginId: "media-board",
@@ -57,10 +57,10 @@ describe("createPluginRouteRequestContext", () => {
     const { bus, handler } = makeBusWithSessionCreate();
     const ctx = makeContext({ bus, capabilities: ["session"] });
 
-    const result = await ctx.bus.request("session:create", { agentId: "gsap-agent" });
+    const result = await ctx.bus.request("session:create", { agentId: "codia-agent" });
 
     expect(result).toMatchObject({ ok: true, sessionPath: expect.any(String) });
-    expect(handler).toHaveBeenCalledWith({ agentId: "gsap-agent" });
+    expect(handler).toHaveBeenCalledWith({ agentId: "codia-agent" });
   });
 
   it("accepts exact permission declarations through sensitiveCapabilities", async () => {

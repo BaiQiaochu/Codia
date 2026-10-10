@@ -10,7 +10,8 @@ const navItems: SettingsSearchNavItem[] = [
   { id: 'interface', label: 'Interface', categoryLabel: 'General & Devices' },
   { id: 'browser', label: 'Browser', categoryLabel: 'Work & Extensions' },
   { id: 'providers', label: 'Providers', categoryLabel: 'Models & Capabilities' },
-  { id: 'experiments', label: 'Experiments', categoryLabel: 'System & Security' },
+  { id: 'context', label: 'Context', categoryLabel: 'Models & Capabilities' },
+  { id: 'computer', label: 'Computer Use', categoryLabel: 'System & Security' },
   { id: 'plugin-native', label: 'Native Plugin', categoryLabel: 'Work & Extensions' },
 ];
 
@@ -20,7 +21,8 @@ const translate = (key: string) => {
     'settings.tabs.interface': 'Interface',
     'settings.tabs.browser': 'Browser',
     'settings.tabs.providers': 'Providers',
-    'settings.tabs.experiments': 'Experiments',
+    'settings.tabs.context': 'Context',
+    'settings.tabs.computerUse': 'Computer Use',
     'settings.api.apiKey': 'API Key',
     'settings.api.searchProvider': 'Search Service',
     'settings.search.title': 'Search Settings',
@@ -53,6 +55,12 @@ describe('settings search index', () => {
       title: 'Search Service',
       path: 'Models & Capabilities / Providers',
     });
+  });
+
+  it('routes context and computer-use searches to their formal pages', () => {
+    const entries = buildSettingsSearchEntries(navItems);
+    expect(searchSettings('compression', entries, translate)[0].tabId).toBe('context');
+    expect(searchSettings('computer use', entries, translate)[0].tabId).toBe('computer');
   });
 
   it('adds native plugin settings tabs as searchable tab-level results', () => {

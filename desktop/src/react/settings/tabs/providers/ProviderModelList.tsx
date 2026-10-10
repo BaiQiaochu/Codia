@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useSettingsStore, type ProviderSummary } from '../../store';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { invalidateConfigCache } from '../../../hooks/use-config';
 import { t, formatContext, lookupModelMeta } from '../../helpers';
 import { getErrorMessage, isModelDescriptor, type ModelDescriptor } from '../../shared-types';
@@ -73,7 +73,11 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
   const [search, setSearch] = useState('');
   const [customInput, setCustomInput] = useState('');
   const [discoveredModels, setDiscoveredModels] = useState<DiscoveredModel[]>([]);
+  const [scanning, setScanning] = useState(false);
   const [kindFilter, setKindFilter] = useState<ModelKindFilter>(() => defaultModelKindFilter(providerId, summary));
+  const scanControllerRef = useRef<AbortController | null>(null);
+  const scanRequestRef = useRef(0);
+  const discoveryLoadRef = useRef(0);
   const providerFilterSignature = `${providerId}\n${summary.display_name || ''}\n${summary.base_url || ''}`;
   const previousProviderFilterSignature = useRef(providerFilterSignature);
 
@@ -83,12 +87,22 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
     setKindFilter(defaultModelKindFilter(providerId, summary));
     setSearch('');
     setCustomInput('');
+    setDiscoveredModels([]);
+    setDropdownOpen(false);
+    scanControllerRef.current?.abort();
+    scanRequestRef.current += 1;
+    discoveryLoadRef.current += 1;
+    setScanning(false);
   }, [providerFilterSignature, providerId, summary]);
 
+  useEffect(() => () => scanControllerRef.current?.abort(), []);
+
   const loadDiscoveredModels = useCallback(async () => {
+    const requestId = ++discoveryLoadRef.current;
     try {
-      const res = await gsapFetch(`/api/providers/${encodeURIComponent(providerId)}/discovered-models`);
+      const res = await codiaFetch(`/api/providers/${encodeURIComponent(providerId)}/discovered-models`);
       const data = await res.json();
+      if (requestId !== discoveryLoadRef.current) return;
       setDiscoveredModels(data.models || []);
     } catch {
       // cache miss is fine
@@ -127,7 +141,7 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
   const addModelToProvider = async (mid: string) => {
     if (currentModelIds.includes(mid)) return;
     try {
-      await gsapFetch('/api/config', {
+      await codiaFetch('/api/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providers: { [providerId]: { models: [...rawModels, entryForModel(mid)] } } }),
@@ -143,7 +157,7 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
   const removeModelFromProvider = async (mid: string) => {
     try {
       const next = rawModels.filter((m) => modelId(m) !== mid);
-      await gsapFetch('/api/config', {
+      await codiaFetch('/api/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providers: { [providerId]: { models: next } } }),
@@ -162,7 +176,7 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
     try {
       const kind = resolveModelKind(id);
       if (summary.supports_oauth) {
-        const res = await gsapFetch(`/api/auth/oauth/${providerId}/custom-models`, {
+        const res = await codiaFetch(`/api/auth/oauth/${providerId}/custom-models`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ modelId: id }),
@@ -170,14 +184,14 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         if (kind !== 'chat') {
-          await gsapFetch(`/api/providers/${encodeURIComponent(providerId)}/models/${encodeURIComponent(id)}`, {
+          await codiaFetch(`/api/providers/${encodeURIComponent(providerId)}/models/${encodeURIComponent(id)}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: kind }),
           });
         }
       } else {
-        await gsapFetch('/api/config', {
+        await codiaFetch('/api/config', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ providers: { [providerId]: { models: [...rawModels, entryForModel(id)] } } }),
@@ -208,12 +222,18 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
     return detail ? `${base}: ${detail}` : base;
   };
 
-  const fetchModels = async (btn: HTMLButtonElement | null) => {
-    if (btn) btn.classList.add(styles['spinning']);
+  const fetchModels = async () => {
+    if (scanning) return;
+    scanControllerRef.current?.abort();
+    const controller = new AbortController();
+    scanControllerRef.current = controller;
+    const requestId = ++scanRequestRef.current;
+    setScanning(true);
     try {
       const hasHeaders = Object.keys(summary.headers || {}).length > 0;
-      const res = await gsapFetch('/api/providers/fetch-models', {
+      const res = await codiaFetch('/api/providers/fetch-models', {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: providerId,
@@ -225,25 +245,37 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
         }),
       });
       const data = await res.json();
+      if (controller.signal.aborted || requestId !== scanRequestRef.current) return;
       if (data.error) { showFetchHint(fetchFailureMessage(data.error), false); return; }
       const models = (data.models || []) as DiscoveredModel[];
-      if (models.length === 0) { showFetchHint(fetchFailureMessage(), false); return; }
+      if (models.length === 0) { showFetchHint(t('settings.providers.noModels'), false); return; }
       // Backend already cached the results; just refresh the dropdown
       setDiscoveredModels(models);
       setSearch('');
       setDropdownOpen(true);
       showFetchHint(t('settings.providers.fetchSuccess', { name: providerId, n: models.length }), true);
     } catch (err: unknown) {
+      if (controller.signal.aborted || requestId !== scanRequestRef.current) return;
       showFetchHint(fetchFailureMessage(getErrorMessage(err)), false);
     } finally {
-      if (btn) btn.classList.remove(styles['spinning']);
+      if (requestId === scanRequestRef.current) {
+        scanControllerRef.current = null;
+        setScanning(false);
+      }
     }
   };
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const customInputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({});
+  const [manualEntry, setManualEntry] = useState(false);
+
+  const openModelPanel = (manual = false) => {
+    setManualEntry(manual);
+    setDropdownOpen(true);
+  };
 
   const updateDropdownPosition = useCallback(() => {
     if (!dropdownOpen || !triggerRef.current) return;
@@ -273,21 +305,83 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
   }, [dropdownOpen, updateDropdownPosition]);
 
   useEffect(() => {
+    if (!dropdownOpen || !manualEntry) return;
+    const frame = window.requestAnimationFrame(() => customInputRef.current?.focus());
+    return () => window.cancelAnimationFrame?.(frame);
+  }, [dropdownOpen, manualEntry]);
+
+  useEffect(() => {
     if (!dropdownOpen) return;
-    const handler = (e: MouseEvent) => {
+    const pointerHandler = (e: MouseEvent) => {
       const target = e.target as Node;
       if (triggerRef.current?.contains(target)) return;
       if (panelRef.current?.contains(target)) return;
       setDropdownOpen(false);
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setDropdownOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    document.addEventListener('mousedown', pointerHandler);
+    document.addEventListener('keydown', keyHandler);
+    return () => {
+      document.removeEventListener('mousedown', pointerHandler);
+      document.removeEventListener('keydown', keyHandler);
+    };
   }, [dropdownOpen]);
 
   const [editing, setEditing] = useState<{ id: string; anchor: HTMLElement } | null>(null);
 
   return (
     <div className={styles['pv-models']}>
+      <div className={styles['pv-model-management-header']}>
+        <span className={styles['pv-models-title']}>{t('settings.providers.modelManagement')}</span>
+        <div className={styles['pv-model-management-actions']}>
+          <button
+            type="button"
+            className={`${styles['pv-fetch-btn-inline']} ${styles['primary']}${scanning ? ` ${styles['spinning']}` : ''}`}
+            title={t('settings.providers.fetchModels')}
+            disabled={scanning}
+            aria-busy={scanning}
+            onClick={fetchModels}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+            {t('settings.providers.fetchModels')}
+          </button>
+          <button type="button" className={styles['pv-manual-add-btn']} onClick={() => openModelPanel(true)}>
+            {t('settings.providers.manualAddModel')}
+          </button>
+        </div>
+      </div>
+      <div className={styles['pv-model-filter-row']} aria-label="model type filter">
+        {MODEL_KIND_FILTERS.map(kind => (
+          <button
+            key={kind}
+            type="button"
+            className={`${styles['pv-model-filter-btn']}${kindFilter === kind ? ' ' + styles['active'] : ''}`}
+            onClick={() => {
+              setKindFilter(kind);
+              setSearch('');
+            }}
+          >
+            {modelKindFilterLabel(kind)}
+          </button>
+        ))}
+      </div>
+      <button type="button" ref={triggerRef} className={styles['pv-model-dropdown-trigger']} onClick={() => openModelPanel(false)}>
+        <span>{t('settings.providers.searchOrSelectModel')}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {fetchHint && <div className={`${styles['pv-fetch-hint']} ${fetchHint.ok ? styles['ok'] : styles['fail']}`}>{fetchHint.msg}</div>}
+
       {/* Added models list */}
       {currentModelIds.length > 0 && (
         <div className={styles['pv-fav-section']}>
@@ -339,48 +433,14 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
         </div>
       )}
 
-      {/* Add model dropdown + fetch button */}
-      <div className={styles['pv-model-filter-row']} aria-label="model type filter">
-        {MODEL_KIND_FILTERS.map(kind => (
-          <button
-            key={kind}
-            type="button"
-            className={`${styles['pv-model-filter-btn']}${kindFilter === kind ? ' ' + styles['active'] : ''}`}
-            onClick={() => {
-              setKindFilter(kind);
-              setSearch('');
-            }}
-          >
-            {modelKindFilterLabel(kind)}
-          </button>
-        ))}
-      </div>
-      <div className={styles['pv-models-action-row']}>
-        <button type="button" ref={triggerRef} className={styles['pv-model-dropdown-trigger']} onClick={() => setDropdownOpen(true)}>
-          <span>{t('settings.api.addModel')}</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </button>
-        <button type="button"
-          className={styles['pv-fetch-btn-inline']}
-          title={t('settings.providers.fetchModels')}
-          onClick={(e) => fetchModels(e.currentTarget)}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" />
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-          </svg>
-          {t('settings.providers.fetchModels')}
-        </button>
-      </div>
-      {fetchHint && <div className={`${styles['pv-fetch-hint']} ${fetchHint.ok ? styles['ok'] : styles['fail']}`}>{fetchHint.msg}</div>}
       {dropdownOpen && createPortal(
         <div
           className={styles['pv-model-dropdown-panel']}
           ref={panelRef}
           style={panelStyle}
           data-provider-model-dropdown="true"
+          role="dialog"
+          aria-label={t('settings.providers.searchOrSelectModel')}
         >
           <input
             className={styles['pv-model-dropdown-search']}
@@ -388,7 +448,7 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
             placeholder={t('settings.api.searchModel')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            autoFocus
+            autoFocus={!manualEntry}
           />
           <div className={styles['pv-model-dropdown-list']}>
             {filtered.map(mid => {
@@ -420,6 +480,7 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
           </div>
           <div className={styles['pv-model-dropdown-custom']}>
             <input
+              ref={customInputRef}
               className={styles['pv-model-dropdown-custom-input']}
               type="text"
               placeholder={t('settings.oauth.customModelPlaceholder')}

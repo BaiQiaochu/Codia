@@ -15,23 +15,23 @@ describe("bridge send-media route", () => {
   });
 
   function makeApp({ bridgeManagerOverrides = {}, agentOverrides = {}, engineOverrides = {} } = {}) {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-bridge-route-"));
-    const hanakoHome = path.join(tmpDir, "gsap-home");
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bridge-route-"));
+    const codiaHome = path.join(tmpDir, "codia-home");
     const sessionDir = path.join(tmpDir, "sessions");
-    fs.mkdirSync(hanakoHome, { recursive: true });
+    fs.mkdirSync(codiaHome, { recursive: true });
     fs.mkdirSync(sessionDir, { recursive: true });
 
     const agent = {
-      id: "hana",
+      id: "codia",
       sessionDir,
       config: { bridge: {} },
-      deskManager: { homePath: hanakoHome },
+      deskManager: { homePath: codiaHome },
       ...agentOverrides,
     };
     const engine = {
-      hanakoHome,
-      currentAgentId: "hana",
-      getAgent: vi.fn((id) => id === "hana" ? agent : null),
+      codiaHome,
+      currentAgentId: "codia",
+      getAgent: vi.fn((id) => id === "codia" ? agent : null),
       registerSessionFile: vi.fn(({ sessionPath, filePath, label, origin }) => ({
         id: "sf_route",
         sessionPath,
@@ -59,15 +59,15 @@ describe("bridge send-media route", () => {
     };
     const app = new Hono();
     app.route("/api", createBridgeRoute(engine, bridgeManager));
-    return { app, engine, bridgeManager, hanakoHome };
+    return { app, engine, bridgeManager, codiaHome };
   }
 
   it("registers the local file as a session_file before bridge delivery", async () => {
-    const { app, engine, bridgeManager, hanakoHome } = makeApp();
-    const filePath = path.join(hanakoHome, "out.txt");
+    const { app, engine, bridgeManager, codiaHome } = makeApp();
+    const filePath = path.join(codiaHome, "out.txt");
     fs.writeFileSync(filePath, "ok");
 
-    const res = await app.request("/api/bridge/send-media?agentId=hana", {
+    const res = await app.request("/api/bridge/send-media?agentId=codia", {
       method: "POST",
       body: JSON.stringify({
         platform: "telegram",
@@ -81,7 +81,7 @@ describe("bridge send-media route", () => {
     expect(res.status).toBe(200);
     expect(body).toEqual({ ok: true, fileId: "sf_route" });
     expect(engine.registerSessionFile).toHaveBeenCalledWith({
-      sessionPath: "bridge:hana:telegram:chat-1",
+      sessionPath: "bridge:codia:telegram:chat-1",
       filePath: fs.realpathSync(filePath),
       label: "out.txt",
       origin: "bridge_manual_send",
@@ -89,22 +89,22 @@ describe("bridge send-media route", () => {
     expect(bridgeManager.sendMediaItem).toHaveBeenCalledWith(
       "telegram",
       "chat-1",
-      { type: "session_file", fileId: "sf_route", sessionPath: "bridge:hana:telegram:chat-1" },
-      "hana",
+      { type: "session_file", fileId: "sf_route", sessionPath: "bridge:codia:telegram:chat-1" },
+      "codia",
     );
   });
 
   it("allows manual sends from the configured agent workspace", async () => {
-    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-bridge-route-workspace-"));
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bridge-route-workspace-"));
     const { app, engine, bridgeManager } = makeApp({
       agentOverrides: { deskManager: { homePath: workspace } },
-      engineOverrides: { getHomeCwd: vi.fn((agentId) => agentId === "hana" ? workspace : null) },
+      engineOverrides: { getHomeCwd: vi.fn((agentId) => agentId === "codia" ? workspace : null) },
     });
     const filePath = path.join(workspace, "workspace-output.txt");
     fs.writeFileSync(filePath, "ok");
 
     try {
-      const res = await app.request("/api/bridge/send-media?agentId=hana", {
+      const res = await app.request("/api/bridge/send-media?agentId=codia", {
         method: "POST",
         body: JSON.stringify({
           platform: "telegram",
@@ -128,17 +128,17 @@ describe("bridge send-media route", () => {
 
   it("returns explicit JSON errors from unsupported platform delivery", async () => {
     const deliveryError = new Error("QQ adapter cannot send this staged local file directly; public_url fallback is required");
-    const { app, hanakoHome } = makeApp({
+    const { app, codiaHome } = makeApp({
       bridgeManagerOverrides: {
         sendMediaItem: vi.fn(async () => {
           throw deliveryError;
         }),
       },
     });
-    const filePath = path.join(hanakoHome, "out.txt");
+    const filePath = path.join(codiaHome, "out.txt");
     fs.writeFileSync(filePath, "ok");
 
-    const res = await app.request("/api/bridge/send-media?agentId=hana", {
+    const res = await app.request("/api/bridge/send-media?agentId=codia", {
       method: "POST",
       body: JSON.stringify({
         platform: "qq",
@@ -156,11 +156,11 @@ describe("bridge send-media route", () => {
   });
 
   it("serves tokenized bridge media files from the media publisher", async () => {
-    const { app, hanakoHome } = makeApp({
+    const { app, codiaHome } = makeApp({
       bridgeManagerOverrides: {
         mediaPublisher: {
           resolve: vi.fn((token) => token === "token_123" ? {
-            realPath: path.join(hanakoHome, "published.txt"),
+            realPath: path.join(codiaHome, "published.txt"),
             filename: "published.txt",
             mime: "text/plain",
             size: 5,
@@ -169,7 +169,7 @@ describe("bridge send-media route", () => {
         },
       },
     });
-    const filePath = path.join(hanakoHome, "published.txt");
+    const filePath = path.join(codiaHome, "published.txt");
     fs.writeFileSync(filePath, "hello");
 
     const res = await app.request("/api/bridge/media/token_123");
@@ -184,11 +184,11 @@ describe("bridge send-media route", () => {
   });
 
   it("serves images inline for platform media fetches", async () => {
-    const { app, hanakoHome } = makeApp({
+    const { app, codiaHome } = makeApp({
       bridgeManagerOverrides: {
         mediaPublisher: {
           resolve: vi.fn((token) => token === "token_123" ? {
-            realPath: path.join(hanakoHome, "published.png"),
+            realPath: path.join(codiaHome, "published.png"),
             filename: "published.png",
             mime: "image/png",
             size: 4,
@@ -197,7 +197,7 @@ describe("bridge send-media route", () => {
         },
       },
     });
-    const filePath = path.join(hanakoHome, "published.png");
+    const filePath = path.join(codiaHome, "published.png");
     fs.writeFileSync(filePath, Buffer.from([0x89, 0x50, 0x4E, 0x47]));
 
     const res = await app.request("/api/bridge/media/token_123");

@@ -55,10 +55,10 @@ describe('link-open', () => {
 
     const { openInternalLink } = await import('../../utils/link-open');
 
-    await openInternalLink('C:%5CUsers%5Croce%5C.gsap%5Cagents%5Cgsap%5Clearned-skills%5Cskill-a%5CSKILL.md');
+    await openInternalLink('C:%5CUsers%5Croce%5C.codia%5Cagents%5Ccodia%5Clearned-skills%5Cskill-a%5CSKILL.md');
 
     expect(openSkillViewer).toHaveBeenCalledWith({
-      skillPath: 'C:\\Users\\roce\\.gsap\\agents\\gsap\\learned-skills\\skill-a\\SKILL.md',
+      skillPath: 'C:\\Users\\roce\\.codia\\agents\\codia\\learned-skills\\skill-a\\SKILL.md',
     });
     expect(openExternal).not.toHaveBeenCalled();
     expect(openFile).not.toHaveBeenCalled();

@@ -7,7 +7,7 @@ import { PROVIDER_PRESETS } from '../constants';
 import type { ProviderPreset } from '../constants';
 import { getProviderPresetLabel } from '../../utils/provider-presets';
 import { testConnection, saveProvider as saveProviderAction } from '../onboarding-actions';
-import type { gsapFetch } from '../onboarding-actions';
+import type { codiaFetch } from '../onboarding-actions';
 import { StepContainer, Multiline } from '../onboarding-ui';
 import { SelectWidget } from '../../settings/widgets/SelectWidget';
 
@@ -29,14 +29,14 @@ const EyeOffIcon = () => (
 
 interface ProviderStepProps {
   preview: boolean;
-  gsapFetch: gsapFetch;
+  codiaFetch: codiaFetch;
   goToStep: (index: number) => void;
   showError: (msg: string) => void;
   onProviderReady: (providerName: string, providerUrl: string, providerApi: string, apiKey: string) => void;
 }
 
 export function ProviderStep({
-  preview, gsapFetch, goToStep, showError, onProviderReady,
+  preview, codiaFetch, goToStep, showError, onProviderReady,
 }: ProviderStepProps) {
   // ── Provider state ──
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
@@ -129,7 +129,7 @@ export function ProviderStep({
     }
     setTestStatus({ type: 'loading', text: t('onboarding.provider.testing') });
     try {
-      const result = await testConnection({ gsapFetch, providerUrl, providerApi, apiKey });
+      const result = await testConnection({ codiaFetch, providerUrl, providerApi, apiKey });
       if (result.ok) {
         setTestStatus({ type: 'success', text: result.text });
         setConnectionTested(true);
@@ -142,21 +142,21 @@ export function ProviderStep({
       setTestStatus({ type: 'error', text: msg });
       setConnectionTested(false);
     }
-  }, [preview, gsapFetch, providerName, providerUrl, providerApi, apiKey]);
+  }, [preview, codiaFetch, providerName, providerUrl, providerApi, apiKey]);
 
   // ── Next ──
   const onNext = useCallback(async () => {
     if (preview) { goToStep(3); return; }
     if (!connectionTested) return;
     try {
-      await saveProviderAction({ gsapFetch, providerName, providerUrl, apiKey, providerApi });
+      await saveProviderAction({ codiaFetch, providerName, providerUrl, apiKey, providerApi });
       onProviderReady(providerName, providerUrl, providerApi, apiKey);
       goToStep(3);
     } catch (err) {
       console.error('[onboarding] save provider failed:', err);
       showError(t('onboarding.provider.testFailed'));
     }
-  }, [preview, connectionTested, gsapFetch, providerName, providerUrl, apiKey, providerApi, goToStep, showError, onProviderReady]);
+  }, [preview, connectionTested, codiaFetch, providerName, providerUrl, apiKey, providerApi, goToStep, showError, onProviderReady]);
 
   return (
     <StepContainer>

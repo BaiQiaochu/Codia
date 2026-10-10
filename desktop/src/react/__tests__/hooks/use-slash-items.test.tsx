@@ -7,20 +7,20 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useStore } from '../../stores';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn<(path: string, opts?: RequestInit) => Promise<Response>>(async () => new Response(JSON.stringify({
+  codiaFetch: vi.fn<(path: string, opts?: RequestInit) => Promise<Response>>(async () => new Response(JSON.stringify({
     skills: [{ name: 'mio_skill', description: 'Mio skill', hidden: false, enabled: true }],
   }), { status: 200 })),
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (path: string, opts?: RequestInit) => mocks.gsapFetch(path, opts),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (path: string, opts?: RequestInit) => mocks.codiaFetch(path, opts),
 }));
 
 describe('useSkillSlashItems', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useStore.setState({
-      currentAgentId: 'hana',
+      currentAgentId: 'codia',
       selectedAgentId: 'mio',
     } as never);
   });
@@ -31,7 +31,7 @@ describe('useSkillSlashItems', () => {
     const { result } = renderHook(() => useSkillSlashItems({ enabled: true, agentId: 'mio' }));
 
     await waitFor(() => expect(result.current.map(item => item.name)).toEqual(['mio_skill']));
-    expect(mocks.gsapFetch.mock.calls[0]?.[0]).toBe('/api/skills?agentId=mio&runtime=1');
-    expect(mocks.gsapFetch.mock.calls.map(call => call[0])).not.toContain('/api/skills?agentId=hana&runtime=1');
+    expect(mocks.codiaFetch.mock.calls[0]?.[0]).toBe('/api/skills?agentId=mio&runtime=1');
+    expect(mocks.codiaFetch.mock.calls.map(call => call[0])).not.toContain('/api/skills?agentId=codia&runtime=1');
   });
 });

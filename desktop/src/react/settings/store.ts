@@ -173,7 +173,7 @@ export const useSettingsStore = create<SettingsStore>()((set, get) => ({
   settingsAgentId: null,
   agentName: '助手',
   userName: 'User',
-  agentYuan: 'gsap',
+  agentYuan: 'codia',
   agentAvatarUrl: null,
   userAvatarUrl: null,
 

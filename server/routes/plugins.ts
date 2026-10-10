@@ -48,17 +48,16 @@ const PLUGIN_IFRAME_TICKET_QUERY = "pluginIframeTicket";
 const PLUGIN_IFRAME_HOST_QUERY_PARAMS = new Set([
   PLUGIN_IFRAME_TICKET_QUERY,
   "agentId",
-  "gsap-theme",
-  "gsap-css",
-  "gsap-theme",
-  "gsap-css",
+  "codia-theme",
+  "codia-css",
+  "codia-theme",
+  "codia-css",
   "token",
   "api_key",
 ]);
 const MARKETPLACE_COMPAT_TOKENS = [
-  "g-sap-plugin",
-  "gsap-plugin",
-  "gsap.plugin",
+  "codia-plugin",
+  "codia.plugin",
   ["open", ["h", "anako"].join(""), "-plugin"].join(""),
 ];
 function latestMarketplaceVersion(extension) {
@@ -105,7 +104,7 @@ function marketplaceCompatibility(extension, version) {
   const installable = MARKETPLACE_COMPAT_TOKENS.some((token) => text.includes(token));
   if (installable) {
     return {
-      kind: "gsap-plugin",
+      kind: "codia-plugin",
       installable: true,
       reason: "Marketplace metadata declares compatible plugin support.",
     };
@@ -226,7 +225,7 @@ function createPluginRouteError(message: string, status = 400, code = "PLUGIN_ER
 }
 
 export function parsePluginIframeSurfaceRoute(routeUrl) {
-  const parsed = new URL(String(routeUrl || ""), "http://gsap.local");
+  const parsed = new URL(String(routeUrl || ""), "http://codia.local");
   const match = /^\/api\/plugins\/([^/]+)(\/.*)?$/.exec(parsed.pathname);
   if (!match) {
     throw createPluginRouteError("plugin iframe routeUrl must target /api/plugins/:pluginId/*", 400, "PLUGIN_IFRAME_ROUTE_INVALID");
@@ -267,7 +266,7 @@ function verifyPluginIframeTicketForRequest(c, engine, pluginId) {
     throw new PluginIframeTicketError("plugin iframe ticket plugin mismatch");
   }
   return verifyPluginIframeTicket({
-    gsapHome: engine.gsapHome,
+    codiaHome: engine.codiaHome,
     ticket,
     pluginId,
     surfacePath: surface.surfacePath,
@@ -292,7 +291,7 @@ function responseNeedsPluginAssetSession(c, response, iframeTicket) {
 
 function appendPluginAssetSessionCookie(c, engine, pluginId, response, iframeTicket) {
   if (!responseNeedsPluginAssetSession(c, response, iframeTicket)) return response;
-  if (!engine?.gsapHome && !engine?.hanakoHome) return response;
+  if (!engine?.codiaHome && !engine?.codiaHome) return response;
   const principal = readAuthPrincipal(c);
   const principalId = iframeTicket?.principalId
     || principal?.principalId
@@ -301,8 +300,7 @@ function appendPluginAssetSessionCookie(c, engine, pluginId, response, iframeTic
     || principal?.credentialId;
   if (!principalId) return response;
   const issued = issuePluginAssetSession({
-    gsapHome: engine.gsapHome,
-    hanakoHome: engine.hanakoHome,
+    codiaHome: engine.codiaHome,
     pluginId,
     principalId,
   });
@@ -334,7 +332,7 @@ export function verifyPluginIframeTicketForHostRequest(c, engine, { requireTicke
   const surface = pluginIframeSurfaceRouteFromRequest(c);
   assertPluginIframeSurfaceAllowed(surface);
   return verifyPluginIframeTicket({
-    gsapHome: engine.gsapHome,
+    codiaHome: engine.codiaHome,
     ticket,
     pluginId: surface.pluginId,
     surfacePath: surface.surfacePath,
@@ -350,7 +348,7 @@ function assertPluginIframeSurfaceAllowed(surface) {
       code: "plugin_iframe_ticket_route_forbidden",
     });
   }
-  const pathname = new URL(surface.surfacePath, "http://gsap.local").pathname;
+  const pathname = new URL(surface.surfacePath, "http://codia.local").pathname;
   if (PLUGIN_HOST_ROUTE_SURFACE_PATHS.has(pathname)) {
     throw new PluginIframeTicketError("plugin iframe ticket cannot target plugin host routes", {
       code: "plugin_iframe_ticket_route_forbidden",
@@ -588,7 +586,7 @@ async function installPluginFromPath({
     }
 
     backup = createPluginInstallBackup({
-      gsapHome: engine.gsapHome,
+      codiaHome: engine.codiaHome,
       pluginId: desc.id,
       pluginDir: targetDir,
       version: installedVersion,
@@ -658,7 +656,7 @@ async function downloadMarketplaceRelease({ engine, plugin }) {
     err.status = 500;
     throw err;
   }
-  if (!engine.gsapHome) {
+  if (!engine.codiaHome) {
     const err: any = new Error("The application data directory is unavailable for plugin release installation");
     err.status = 500;
     throw err;
@@ -692,7 +690,7 @@ async function downloadMarketplaceRelease({ engine, plugin }) {
 
   const pluginId = safePathSegment(plugin.id, "plugin");
   const version = safePathSegment(plugin.version, "0.0.0");
-  const downloadsDir = path.join(engine.gsapHome, "plugin-install-sources", pluginId, version);
+  const downloadsDir = path.join(engine.codiaHome, "plugin-install-sources", pluginId, version);
   fs.mkdirSync(downloadsDir, { recursive: true });
   const packagePath = path.join(downloadsDir, `${pluginId}-${version}.zip`);
   fs.writeFileSync(packagePath, body);
@@ -778,7 +776,7 @@ function sanitizeMarketplacePluginForClient(plugin) {
   *
  * @param {import("hono").Hono} pluginApp
  * @param {string} pluginId
- * @param {string} [agentId] - 当前 agent id，注入到子请求的 X-GSAP-Agent-Id header
+ * @param {string} [agentId] - 当前 agent id，注入到子请求的 X-CODIA-Agent-Id header
  */
 async function proxyToPlugin(c, pluginApp, pluginId, agentId, requestPrincipal = null) {
   const url = new URL(c.req.url);
@@ -792,8 +790,8 @@ async function proxyToPlugin(c, pluginApp, pluginId, agentId, requestPrincipal =
 
   const headers = new Headers(c.req.raw.headers);
   if (agentId) {
-    headers.set("X-GSAP-Agent-Id", agentId);
-    headers.set("X-gsap-Agent-Id", agentId);
+    headers.set("X-CODIA-Agent-Id", agentId);
+    headers.set("X-codia-Agent-Id", agentId);
   }
 
   const hasBody = c.req.method !== "GET" && c.req.method !== "HEAD";
@@ -851,7 +849,7 @@ export function createPluginProxyRoute(routeRegistry: any) {
 
 /**
  * Plugin management REST API + route proxy (combined).
- * @param {import('../../core/engine.ts').GsapEngine} engine
+ * @param {import('../../core/engine.ts').CodiaEngine} engine
  */
 export function createPluginsRoute(engine: any) {
   const route = new Hono<any>();
@@ -1040,7 +1038,7 @@ export function createPluginsRoute(engine: any) {
 
   function getMarketplace() {
     return engine.pluginMarketplace || createDefaultPluginMarketplace({
-      gsapHome: engine.gsapHome,
+      codiaHome: engine.codiaHome,
       fetchImpl: engine.fetch,
     });
   }
@@ -1438,7 +1436,7 @@ export function createPluginsRoute(engine: any) {
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json;api-version=7.2-preview.1",
-          "User-Agent": "BYOUNG Plugin Store",
+          "User-Agent": "CODIA Plugin Store",
         },
         body: JSON.stringify(createMarketplaceQuery(query, pageSize, pageNumber)),
         signal: AbortSignal.timeout(12_000),
@@ -1474,23 +1472,23 @@ export function createPluginsRoute(engine: any) {
     if (compatibility.installable !== true) {
       return c.json({ error: "Marketplace entry is not installable by this application" }, 400);
     }
-    if (!["gsap-plugin", "vscode-extension"].includes(compatibility.kind)) {
+    if (!["codia-plugin", "vscode-extension"].includes(compatibility.kind)) {
       return c.json({ error: "Marketplace compatibility kind is not supported" }, 400);
     }
 
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-marketplace-plugin-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-marketplace-plugin-"));
     const tmpFile = path.join(tmpDir, "plugin.vsix");
     const fetchImpl = engine.fetch || globalThis.fetch;
     try {
       const res = await fetchImpl(installUrl, {
-        headers: { "User-Agent": "BYOUNG Plugin Store" },
+        headers: { "User-Agent": "CODIA Plugin Store" },
         signal: AbortSignal.timeout(30_000),
       });
       if (!res.ok) return c.json({ error: `Marketplace download failed: ${res.status}` }, 502);
       const buffer = Buffer.from(await res.arrayBuffer());
       fs.writeFileSync(tmpFile, buffer);
       return await installPluginSource(c, tmpFile, body.sessionPath, {
-        requireManifest: compatibility.kind === "gsap-plugin",
+        requireManifest: compatibility.kind === "codia-plugin",
         allowVsCodeExtension: compatibility.kind === "vscode-extension",
         installRecord: {
           source: "coding-marketplace",
@@ -1720,7 +1718,7 @@ export function createPluginsRoute(engine: any) {
         || principal?.credentialId
         || "principal_unknown";
       const issued = issuePluginIframeTicket({
-        gsapHome: engine.gsapHome,
+        codiaHome: engine.codiaHome,
         pluginId,
         surfacePath,
         principalId,
@@ -1755,7 +1753,6 @@ export function createPluginsRoute(engine: any) {
     }
     let css = fs.readFileSync(found, "utf-8");
     // Flatten selectors for iframe consumption:
- //
  //
     css = css.replace(/\[data-theme="[^"]*"\](?:,\s*:root:not\(\[data-theme\]\))?/g, ":root");
     c.header("Content-Type", "text/css");

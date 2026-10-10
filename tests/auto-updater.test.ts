@@ -22,7 +22,7 @@ vi.mock("electron", () => ({
     isPackaged: true,
     getVersion: () => mockAppVersion,
     getPath: (name) => {
-      if (name === "exe") return "/Applications/G-SAP.app/Contents/MacOS/G-SAP";
+      if (name === "exe") return "/Applications/Codia.app/Contents/MacOS/Codia";
       if (name === "userData") return "/tmp/test-userdata";
       return "/tmp";
     },
@@ -42,7 +42,7 @@ describe("auto-updater", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.resetModules();
-    delete process.env.GSAP_UPDATE_FEED_URL;
+    delete process.env.CODIA_UPDATE_FEED_URL;
     mockAppVersion = "1.0.0";
     handlers = {};
     ipcHandlers = {};
@@ -105,7 +105,7 @@ describe("auto-updater", () => {
   });
 
   it("treats missing latest metadata during manual check as latest", async () => {
-    process.env.GSAP_UPDATE_FEED_URL = "https://updates.example.invalid";
+    process.env.CODIA_UPDATE_FEED_URL = "https://updates.example.invalid";
     mockAutoUpdater.checkForUpdates.mockRejectedValueOnce(new Error("latest.yml not found 404"));
     initWithMockWindow();
 

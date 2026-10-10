@@ -22,7 +22,7 @@ describe("agent appearance summary", () => {
   let agentDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-agent-appearance-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-agent-appearance-"));
     agentDir = path.join(tmpDir, "agents", "agent-a");
     fs.mkdirSync(path.join(agentDir, "avatars"), { recursive: true });
     fs.writeFileSync(path.join(agentDir, "avatars", "agent.png"), PNG_BYTES);

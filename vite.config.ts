@@ -95,7 +95,7 @@ const CSP_PROFILES: Record<string, string> = {
 
 function injectCsp(): Plugin {
   return {
-    name: 'gsap-inject-csp',
+    name: 'codia-inject-csp',
     transformIndexHtml: {
       order: 'pre',
       handler(html, ctx) {
@@ -134,14 +134,14 @@ function injectCsp(): Plugin {
  * 鍋氭硶锛氬湪 HTML 澶勭悊鍓嶆妸鏃?CSS link 鏇挎崲鎴愬崰浣嶇锛宐uild 鍚庡啀杩樺師銆? */
 function preserveLegacyCss(): Plugin {
   return {
-    name: 'gsap-preserve-legacy-css',
+    name: 'codia-preserve-legacy-css',
     enforce: 'pre',
     transformIndexHtml: {
       order: 'pre',
       handler(html) {
         return html.replace(
           /<link\s+rel="stylesheet"\s+href="([^"]+)"([^>]*)>/g,
-          (_match, href, rest) => `<!--GSAP_CSS:${href}${rest}-->`
+          (_match, href, rest) => `<!--CODIA_CSS:${href}${rest}-->`
         );
       },
     },
@@ -150,14 +150,14 @@ function preserveLegacyCss(): Plugin {
 
 function restoreLegacyCss(): Plugin {
   return {
-    name: 'gsap-restore-legacy-css',
+    name: 'codia-restore-legacy-css',
     enforce: 'post',
     transformIndexHtml: {
       order: 'post',
       handler(html) {
         // 鎶婂崰浣嶇杩樺師涓?<link> 鏍囩
         return html.replace(
-          /<!--GSAP_CSS:(.*?)-->/g,
+          /<!--CODIA_CSS:(.*?)-->/g,
           (_match, content) => {
             // content 鏄?"styles.css" 鎴?"themes/warm-paper.css" id="themeSheet"
             const parts = content.split(/\s+/);
@@ -176,14 +176,14 @@ function restoreLegacyCss(): Plugin {
 function preserveClassicScripts(): Plugin {
   const classicScripts = new Set(['modules/connection-csp.js']);
   return {
-    name: 'gsap-preserve-classic-scripts',
+    name: 'codia-preserve-classic-scripts',
     enforce: 'pre',
     transformIndexHtml: {
       order: 'pre',
       handler(html) {
         return html.replace(
           /<script\s+src="([^"]+)"\s*><\/script>/g,
-          (match, src) => classicScripts.has(src) ? `<!--GSAP_SCRIPT:${src}-->` : match,
+          (match, src) => classicScripts.has(src) ? `<!--CODIA_SCRIPT:${src}-->` : match,
         );
       },
     },
@@ -192,13 +192,13 @@ function preserveClassicScripts(): Plugin {
 
 function restoreClassicScripts(): Plugin {
   return {
-    name: 'gsap-restore-classic-scripts',
+    name: 'codia-restore-classic-scripts',
     enforce: 'post',
     transformIndexHtml: {
       order: 'post',
       handler(html) {
         return html.replace(
-          /<!--GSAP_SCRIPT:(.*?)-->/g,
+          /<!--CODIA_SCRIPT:(.*?)-->/g,
           (_match, src) => `<script src="${src}"></script>`,
         );
       },
@@ -208,7 +208,7 @@ function restoreClassicScripts(): Plugin {
 
 function resolveRuntimeTsScripts(): Plugin {
   return {
-    name: 'gsap-resolve-runtime-ts-scripts',
+    name: 'codia-resolve-runtime-ts-scripts',
     enforce: 'pre',
     resolveId(source) {
       const mapped = RUNTIME_MODULE_ALIASES.get(normalizeRuntimeRequest(source));
@@ -221,7 +221,7 @@ function serveCompiledRuntimeScripts(): Plugin {
   const srcDir = path.resolve(__dirname, 'desktop/src');
   const entries = new Map(RUNTIME_SCRIPT_BUILDS.map((entry) => [entry.dest, entry]));
   return {
-    name: 'gsap-serve-compiled-runtime-scripts',
+    name: 'codia-serve-compiled-runtime-scripts',
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
@@ -247,7 +247,7 @@ function serveCompiledRuntimeScripts(): Plugin {
 
 function copyLegacyFiles(): Plugin {
   return {
-    name: 'gsap-copy-legacy-files',
+    name: 'codia-copy-legacy-files',
     async closeBundle() {
       const srcDir = path.resolve(__dirname, 'desktop/src');
       const outDir = path.resolve(__dirname, 'desktop/dist-renderer');
@@ -285,90 +285,10 @@ function copyLegacyFiles(): Plugin {
   };
 }
 
-const PADDLE_OCR_ENTRY = 'node_modules/@paddleocr/paddleocr-js/dist/index.mjs';
-const PADDLE_OCR_ENTRY_RE = /node_modules[\\/]@paddleocr[\\/]paddleocr-js[\\/]dist[\\/]index\.mjs(?:\?.*)?$/;
-const OPENCV_JS_ENTRY = 'node_modules/@techstark/opencv-js/dist/opencv.js';
-const OPENCV_JS_ENTRY_RE = /node_modules[\\/]@techstark[\\/]opencv-js[\\/]dist[\\/]opencv\.js(?:\?.*)?$/;
-
-function patchPaddleOcrRendererRuntime(code: string): string {
-  let patched = code.replace(
-    'import cvModule from "@techstark/opencv-js";',
-    'const cvModule = import("@techstark/opencv-js").then((mod) => mod.default ?? mod);',
-  );
-
-  // Upstream checks globalThis.location.protocol === "file:" and aborts.
-  // PaddleOCR.js file-origin guard is bypassed because G-SAP serves packaged
-  // OCR models and ORT wasm from http://127.0.0.1:<port>/ocr-runtime/.
-  patched = patched.replace(
-    /function ensureServedFromHttp\(\) \{\s*if \(globalThis\.location\.protocol === "file:"\) \{\s*throw new Error\("PaddleOCR\.js requires an HTTP\(S\) origin so model assets can be fetched\."\);\s*\}\s*\}/,
-    'function ensureServedFromHttp() {}',
-  );
-
-  patched = patched.replace(
-    /function createDefaultWorker\(\) \{\s*if \(typeof Worker !== "function"\) \{\s*throw new Error\("worker mode requires Web Worker support in this environment\."\);\s*\}\s*return \(\(\) => \{ const _w = new URL\("\.\/assets\/worker-entry-[^"]+\.js", import\.meta\.url\); return new Worker\(_w, \{\s*type: "module"\s*\}\); \}\)\(\);\s*\}/,
-    'function createDefaultWorker() { throw new Error("PaddleOCR worker mode is disabled in this renderer; OCR uses worker:false."); }',
-  );
-
-  return patched;
-}
-
-function optimizePaddleOcrForRenderer(): Plugin {
-  return {
-    name: 'gsap-paddleocr-renderer-optimize',
-    enforce: 'pre',
-    transform: {
-      filter: { id: PADDLE_OCR_ENTRY_RE },
-      handler(code, id) {
-        const normalized = id.replace(/\\/g, '/');
-        if (!normalized.endsWith(PADDLE_OCR_ENTRY)) return null;
-
-        const patched = patchPaddleOcrRendererRuntime(code);
-        return patched === code ? null : { code: patched, map: null };
-      },
-    },
-  };
-}
-
-function sanitizeOpenCvForRenderer(): Plugin {
-  return {
-    name: 'gsap-opencv-renderer-sanitize',
-    enforce: 'pre',
-    transform: {
-      filter: { id: OPENCV_JS_ENTRY_RE },
-      handler(code, id) {
-        const normalized = id.replace(/\\/g, '/');
-        if (!normalized.endsWith(OPENCV_JS_ENTRY)) return null;
-
-        const fsStub = '({ readFileSync() { throw new Error("fs is unavailable in the renderer"); } })';
-        const pathStub = '({ normalize(value) { return value; } })';
-        const cryptoStub = '({ randomBytes() { throw new Error("crypto is unavailable in the renderer"); } })';
-        const patched = code
-          .replace(/require\("fs"\)/g, fsStub)
-          .replace(/require\("path"\)/g, pathStub)
-          .replace(/require\("crypto"\)/g, cryptoStub);
-
-        return patched === code ? null : { code: patched, map: null };
-      },
-    },
-  };
-}
-
 function rendererManualChunks(id: string): string | undefined {
   const normalized = id.replace(/\\/g, '/');
 
   if (normalized.includes('/node_modules/')) {
-    if (normalized.includes('/@techstark/opencv-js/')) {
-      return 'ocr-opencv-vendor';
-    }
-    if (
-      normalized.includes('/@paddleocr/paddleocr-js/') ||
-      normalized.includes('/clipper-lib/')
-    ) {
-      return 'ocr-vendor';
-    }
-    if (normalized.includes('/onnxruntime-web/')) {
-      return 'ocr-ort-vendor';
-    }
     if (
       normalized.includes('/@codemirror/lang-javascript/') ||
       normalized.includes('/@lezer/javascript/')
@@ -524,20 +444,20 @@ function rendererManualChunks(id: string): string | undefined {
 }
 
 function readDevWebClientConfig(): DevWebClientConfig | null {
-  if (process.env.GSAP_DEV_WEB !== '1') return null;
-  const apiBaseUrl = process.env.GSAP_DEV_WEB_API_BASE_URL?.trim();
-  if (!apiBaseUrl) throw new Error('GSAP_DEV_WEB requires GSAP_DEV_WEB_API_BASE_URL');
+  if (process.env.CODIA_DEV_WEB !== '1') return null;
+  const apiBaseUrl = process.env.CODIA_DEV_WEB_API_BASE_URL?.trim();
+  if (!apiBaseUrl) throw new Error('CODIA_DEV_WEB requires CODIA_DEV_WEB_API_BASE_URL');
   const parsed = new URL(apiBaseUrl);
-  const serverPort = process.env.GSAP_DEV_WEB_CLIENT_PORT?.trim() || parsed.port;
+  const serverPort = process.env.CODIA_DEV_WEB_CLIENT_PORT?.trim() || parsed.port;
   if (!serverPort) {
-    throw new Error('GSAP_DEV_WEB requires GSAP_DEV_WEB_CLIENT_PORT or a port in GSAP_DEV_WEB_API_BASE_URL');
+    throw new Error('CODIA_DEV_WEB requires CODIA_DEV_WEB_CLIENT_PORT or a port in CODIA_DEV_WEB_API_BASE_URL');
   }
   return { serverPort, apiBaseUrl };
 }
 
 function injectDevWebConfig(): Plugin {
   return {
-    name: 'gsap-inject-dev-web-config',
+    name: 'codia-inject-dev-web-config',
     apply: 'serve',
     transformIndexHtml: {
       order: 'pre',
@@ -546,18 +466,18 @@ function injectDevWebConfig(): Plugin {
         const config = readDevWebClientConfig();
         if (!config) return html;
         const payload = JSON.stringify(config).replace(/</g, '\\u003c');
-        return html.replace('</head>', `<script>window.__GSAP_DEV_WEB__=${payload};</script>\n</head>`);
+        return html.replace('</head>', `<script>window.__CODIA_DEV_WEB__=${payload};</script>\n</head>`);
       },
     },
   };
 }
 
 function createDevWebProxy(): Record<string, ProxyOptions> | undefined {
-  if (process.env.GSAP_DEV_WEB !== '1') return undefined;
-  const target = process.env.GSAP_DEV_WEB_SERVER_URL?.trim();
-  const token = process.env.GSAP_DEV_WEB_SERVER_TOKEN?.trim();
+  if (process.env.CODIA_DEV_WEB !== '1') return undefined;
+  const target = process.env.CODIA_DEV_WEB_SERVER_URL?.trim();
+  const token = process.env.CODIA_DEV_WEB_SERVER_TOKEN?.trim();
   if (!target || !token) {
-    throw new Error('GSAP_DEV_WEB proxy requires GSAP_DEV_WEB_SERVER_URL and GSAP_DEV_WEB_SERVER_TOKEN');
+    throw new Error('CODIA_DEV_WEB proxy requires CODIA_DEV_WEB_SERVER_URL and CODIA_DEV_WEB_SERVER_TOKEN');
   }
   const auth = `Bearer ${token}`;
   const targetUrl = new URL(target);
@@ -584,7 +504,6 @@ function createDevWebProxy(): Record<string, ProxyOptions> | undefined {
     '/api': withAuth(target),
     '/preview': withAuth(target),
     '/plugins': withAuth(target),
-    '/ocr-runtime': withAuth(target),
     '/ws': withAuth(wsTarget, { ws: true }),
   };
 }
@@ -597,7 +516,7 @@ function serveMobilePwaStaticFiles(): Plugin {
   ]);
 
   return {
-    name: 'gsap-serve-mobile-pwa-static-files',
+    name: 'codia-serve-mobile-pwa-static-files',
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
@@ -624,8 +543,8 @@ function serveMobilePwaStaticFiles(): Plugin {
 
 export default defineConfig({
   define: {
-    __GSAP_PRODUCT_VARIANT__: JSON.stringify(process.env.GSAP_PRODUCT_VARIANT || 'g-sap-professional'),
-    __BYOUNG_APP_VERSION__: JSON.stringify(packageVersion),
+    __CODIA_PRODUCT_VARIANT__: JSON.stringify(process.env.CODIA_PRODUCT_VARIANT || 'codia-professional'),
+    __CODIA_APP_VERSION__: JSON.stringify(packageVersion),
   },
   root: rendererRoot,
   base: './',
@@ -633,8 +552,6 @@ export default defineConfig({
     preserveLegacyCss(),
     preserveClassicScripts(),
     resolveRuntimeTsScripts(),
-    sanitizeOpenCvForRenderer(),
-    optimizePaddleOcrForRenderer(),
     react(),
     injectCsp(),
     injectDevWebConfig(),
@@ -647,14 +564,14 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: '@', replacement: path.resolve(__dirname, 'desktop/src/react') },
-      { find: '@g-sap/plugin-components', replacement: path.resolve(__dirname, 'packages/plugin-components/src/index.ts') },
-      { find: '@g-sap/plugin-protocol', replacement: path.resolve(__dirname, 'packages/plugin-protocol/src/index.ts') },
-      { find: '@g-sap/plugin-runtime', replacement: path.resolve(__dirname, 'packages/plugin-runtime/src/index.ts') },
-      { find: '@g-sap/plugin-sdk', replacement: path.resolve(__dirname, 'packages/plugin-sdk/src/index.ts') },
-      { find: '@hana/plugin-components', replacement: path.resolve(__dirname, 'packages/plugin-components/src/index.ts') },
-      { find: '@hana/plugin-protocol', replacement: path.resolve(__dirname, 'packages/plugin-protocol/src/index.ts') },
-      { find: '@hana/plugin-runtime', replacement: path.resolve(__dirname, 'packages/plugin-runtime/src/index.ts') },
-      { find: '@hana/plugin-sdk', replacement: path.resolve(__dirname, 'packages/plugin-sdk/src/index.ts') },
+      { find: '@codia/plugin-components', replacement: path.resolve(__dirname, 'packages/plugin-components/src/index.ts') },
+      { find: '@codia/plugin-protocol', replacement: path.resolve(__dirname, 'packages/plugin-protocol/src/index.ts') },
+      { find: '@codia/plugin-runtime', replacement: path.resolve(__dirname, 'packages/plugin-runtime/src/index.ts') },
+      { find: '@codia/plugin-sdk', replacement: path.resolve(__dirname, 'packages/plugin-sdk/src/index.ts') },
+      { find: '@codia/plugin-components', replacement: path.resolve(__dirname, 'packages/plugin-components/src/index.ts') },
+      { find: '@codia/plugin-protocol', replacement: path.resolve(__dirname, 'packages/plugin-protocol/src/index.ts') },
+      { find: '@codia/plugin-runtime', replacement: path.resolve(__dirname, 'packages/plugin-runtime/src/index.ts') },
+      { find: '@codia/plugin-sdk', replacement: path.resolve(__dirname, 'packages/plugin-sdk/src/index.ts') },
       { find: /^katex$/, replacement: path.resolve(__dirname, 'node_modules/katex/dist/katex.min.js') },
     ],
   },
@@ -703,16 +620,16 @@ export default defineConfig({
       "**/dist-server-bundle/**",
       "**/dist-folder/**",
       "**/coverage/**",
-      "**/openhanako-0.*/**",
-      "**/openhanako-main1.6/**",
+      "**/codia-0.*/**",
+      "**/codia-main1.6/**",
       "**/hermes-agent-main/**",
       `${projectRoot.replace(/\\/g, '/')}/dist/**`,
       `${projectRoot.replace(/\\/g, '/')}/dist-server/**`,
       `${projectRoot.replace(/\\/g, '/')}/dist-renderer/**`,
       `${projectRoot.replace(/\\/g, '/')}/dist-server-bundle/**`,
       `${projectRoot.replace(/\\/g, '/')}/dist-folder/**`,
-      `${projectRoot.replace(/\\/g, '/')}/openhanako-main1.6/**`,
-      `${projectRoot.replace(/\\/g, '/')}/openhanako-0.101.4/**`,
+      `${projectRoot.replace(/\\/g, '/')}/codia-main1.6/**`,
+      `${projectRoot.replace(/\\/g, '/')}/codia-0.101.4/**`,
       `${projectRoot.replace(/\\/g, '/')}/hermes-agent-main/**`,
     ],
   },

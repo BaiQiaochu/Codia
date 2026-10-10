@@ -36,7 +36,7 @@ describe("web access preferences route", () => {
     const generated = await genRes.json();
     expect(genRes.status).toBe(200);
     expect(generated.enabled).toBe(true);
-    expect(generated.api_key).toMatch(/^gsap_/);
+    expect(generated.api_key).toMatch(/^codia_/);
     expect(generated.created_at).toBeTruthy();
     expect(engine.preferences.setWebAccess).toHaveBeenCalledWith({
       api_key: generated.api_key,
@@ -79,8 +79,8 @@ describe("web access preferences route", () => {
       ["/api/health", { headers: { Authorization: "bearer web-key" } }],
       ["/api/health", { headers: { Authorization: "Token web-key" } }],
       ["/api/health", { headers: { "X-API-Key": "web-key" } }],
-      ["/api/health", { headers: { "X-GSAP-API-Key": "web-key" } }],
-      ["/api/health", { headers: { "X-gsap-API-Key": "web-key" } }],
+      ["/api/health", { headers: { "X-CODIA-API-Key": "web-key" } }],
+      ["/api/health", { headers: { "X-codia-API-Key": "web-key" } }],
       ["/api/health", { headers: { Authorization: "Bearer server-token" } }],
     ];
 

@@ -133,7 +133,8 @@
     "searchFailed": "Search failed",
     "projects": {
       "newFolder": "New folder"
-    }
+    },
+    "automationRecords": "Automation records"
   },
   "session": {
     "untitled": "New Chat",
@@ -314,10 +315,13 @@
     "removeRecentWorkspace": "Remove recent workspace",
     "planMode": "Access mode",
     "accessMode": "Session access mode",
-    "autoMode": "Auto mode",
-    "operateMode": "Auto operation",
-    "askMode": "Ask before acting",
-    "readOnlyMode": "Read-only mode",
+    "autoMode": "Approve for me",
+    "autoModeDescription": "Ask only when an operation is detected as risky",
+    "operateMode": "Full access",
+    "operateModeDescription": "Access the internet and any file on your computer without restrictions",
+    "askMode": "Request approval",
+    "askModeDescription": "Always ask before editing external files or using the internet",
+    "readOnlyMode": "Request approval",
     "accessModeLocked": "Access mode cannot be changed right now",
     "confirmMoreOptions": "More approval options",
     "noAskThisConversation": "Do not ask again in this chat",
@@ -381,9 +385,53 @@
       "tab": {
         "files": "Files",
         "sessions": "Conversations",
-        "agents": "Agents"
+        "agents": "Agents",
+        "all": "All"
       },
-      "empty": "No matches"
+      "empty": "No matches",
+      "group": {
+        "agents": "Agents",
+        "sessions": "Conversations",
+        "images": "Images",
+        "files": "Files"
+      }
+    },
+    "addMenu": "Add",
+    "add": {
+      "title": "Add",
+      "file": "File",
+      "fileDetail": "Choose files from your computer",
+      "folder": "Folder",
+      "folderDetail": "Add a working folder",
+      "link": "Link",
+      "linkDetail": "Add a web address to the message",
+      "plugins": "Plugins",
+      "pluginsDetail": "Use enabled plugins",
+      "skills": "Skills",
+      "skillCount": "{count} skills available",
+      "tools": "Tools",
+      "toolsDetail": "Choose a tool for this task",
+      "addLink": "Add link",
+      "linkAddress": "Link address",
+      "confirm": "Add",
+      "back": "Back",
+      "selectSkills": "Choose a skill",
+      "selectPlugins": "Choose a plugin",
+      "selectTools": "Choose a tool",
+      "searchSkills": "Search skills",
+      "searchPlugins": "Search plugins",
+      "normalChat": "Regular chat",
+      "normalChatDetail": "Do not use a dedicated tool",
+      "loadingPlugins": "Loading plugins…",
+      "noSkills": "No matching skills",
+      "noPlugins": "No enabled plugins"
+    },
+    "slash": {
+      "title": "Commands and skills",
+      "group": {
+        "commands": "Commands",
+        "skills": "Skills"
+      }
     }
   },
   "slash": {
@@ -459,25 +507,25 @@
   },
   "yuan": {
     "types": {
-      "gsap": {
+      "codia": {
         "name": "Balanced",
         "label": "Balanced expression and execution",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "butter": {
         "name": "Empathetic",
         "label": "More emotionally aware",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "ming": {
         "name": "Analytical",
         "label": "Calmer and more analytical",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "kong": {
         "name": "Original",
         "label": "The model's original style",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       }
     },
     "title": "Yuan",
@@ -784,6 +832,8 @@
       "providers": "Providers",
       "media": "Media",
       "experiments": "Experiments",
+      "context": "Context",
+      "computerUse": "Computer Use",
       "models": "Models",
       "memory": "Memory",
       "work": "Workspace",
@@ -1214,7 +1264,10 @@
       "headers": "Headers",
       "addBtn": "Add",
       "empty": "No providers registered yet",
-      "fetchModels": "Fetch Models",
+      "fetchModels": "Scan Models",
+      "modelManagement": "Model management",
+      "manualAddModel": "Add manually",
+      "searchOrSelectModel": "Search or select a scanned model…",
       "delete": "Delete provider",
       "modelCount": "{n} models",
       "fetchSuccess": "Fetched {n} models from {name}",
@@ -1837,7 +1890,7 @@
       "light": "Light",
       "dark": "Dark",
       "sakura": "Collaboration Teal",
-      "gsap": "Institutional Teal",
+      "codia": "Institutional Teal",
       "mobile": "Mobile",
       "desktop": "Desktop",
       "mobileTitle": "Mobile Layout",
@@ -1891,7 +1944,7 @@
       "permissionMode": "Permission mode",
       "permissionModeDesc": "Controls what social-platform sessions can do when replying through the agent",
       "permissionModeAuto": "Auto review",
-      "permissionModeOperate": "Auto operation",
+      "permissionModeOperate": "Full access",
       "permissionModeReadOnly": "Read-only",
       "receiptEnabled": "Reply receipt",
       "receiptEnabledDesc": "Send a short \"received and replying\" notice before the actual response",
@@ -2281,8 +2334,8 @@
     "error": "Something went wrong. Please try again."
   },
   "activity": {
-    "title": "Activity",
-    "empty": "No activity yet. Patrols, scheduled tasks, and background tasks will appear here.",
+    "title": "Automation records",
+    "empty": "No automation records yet. Patrols, scheduled tasks, subagents, and background automations will appear here.",
     "back": "Back",
     "heartbeat": "Patrol",
     "subagent": "Subagent task",
@@ -2871,7 +2924,7 @@
       "channelDesc": "Channel name (required for read/post)",
       "contentDesc": "Message content (required for post)",
       "nameDesc": "New channel name (required for create)",
-      "membersDesc": "Member list (required for create), e.g. [\"gsap\", \"butter\"]",
+      "membersDesc": "Member list (required for create), e.g. [\"codia\", \"butter\"]",
       "introDesc": "Channel description (optional for create)",
       "countDesc": "Number of messages to read (optional for read, default 20)"
     },
@@ -3374,9 +3427,21 @@
     }
   },
   "processFold": {
-    "summary": "✨ {name} worked for a while",
+    "summary": "Execution progress",
+    "running": "Running {name}",
+    "completed": "{n} completed",
     "tools": "{n} tools",
     "thinking": "{n} thoughts",
+    "files": "{n} files",
+    "duration": "{value}",
+    "action": {
+      "write": "updating files",
+      "read": "searching the project",
+      "command": "running checks",
+      "agent": "coordinating assistants",
+      "integration": "using an integration",
+      "tool": "using {name}"
+    },
     "unsuccessful": "{n} attempts not successful"
   },
   "mermaid": {

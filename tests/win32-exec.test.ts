@@ -83,7 +83,7 @@ describe("createWin32Exec", () => {
 
   it("rejects invalid cwd before command routing or spawn", async () => {
     const error = Object.assign(new Error("Working directory does not exist: C:\\gone"), {
-      code: "GSAP_EXEC_CWD_MISSING",
+      code: "CODIA_EXEC_CWD_MISSING",
       cwd: "C:\\gone",
     });
     assertExecutionCwd.mockImplementation(() => {
@@ -98,7 +98,7 @@ describe("createWin32Exec", () => {
       signal: undefined,
       timeout: 5,
       env: { PATH: "C:\\Windows\\System32" },
-    })).rejects.toMatchObject({ code: "GSAP_EXEC_CWD_MISSING", cwd: "C:\\gone" });
+    })).rejects.toMatchObject({ code: "CODIA_EXEC_CWD_MISSING", cwd: "C:\\gone" });
 
     expect(classifyWin32Command).not.toHaveBeenCalled();
     expect(spawnAndStream).not.toHaveBeenCalled();
@@ -163,7 +163,7 @@ describe("createWin32Exec", () => {
     const createWin32Exec = await loadExecFactory();
     const exec = createWin32Exec();
 
-    await exec('"C:\\work\\run tests.ps1" -Name Gsap', "C:\\work", {
+    await exec('"C:\\work\\run tests.ps1" -Name Codia', "C:\\work", {
       onData: () => {},
       signal: undefined,
       timeout: 5,
@@ -180,7 +180,7 @@ describe("createWin32Exec", () => {
         "-File",
         "C:\\work\\run tests.ps1",
         "-Name",
-        "Gsap",
+        "Codia",
       ],
       expect.objectContaining({ cwd: "C:\\work" }),
     );
@@ -213,7 +213,7 @@ describe("createWin32Exec", () => {
         return { status: 0, stdout: "C:\\mock\\bash.exe\r\n", stderr: "" };
       }
       if (cmd === "C:\\mock\\bash.exe" && args?.[0] === "-c") {
-        return { status: 0, stdout: "__gsap_probe_ok__\n", stderr: "" };
+        return { status: 0, stdout: "__codia_probe_ok__\n", stderr: "" };
       }
       return { status: 1, stdout: "", stderr: "" };
     });
@@ -241,7 +241,7 @@ describe("createWin32Exec", () => {
     existsSync.mockImplementation((p) => p === bundledAsh);
     spawnSync.mockImplementation((cmd, args) => {
       if (cmd === bundledAsh && args?.[0] === "-c") {
-        return { status: 0, stdout: "__gsap_probe_ok__\n", stderr: "" };
+        return { status: 0, stdout: "__codia_probe_ok__\n", stderr: "" };
       }
       return { status: 1, stdout: "", stderr: "" };
     });
@@ -288,7 +288,7 @@ describe("createWin32Exec", () => {
 
   it("routes cmd commands through the restricted-token helper when sandbox is enabled", async () => {
     classifyWin32Command.mockReturnValue({ runner: "cmd", reason: "windows-system-executable" });
-    resolveWin32SandboxHelper.mockReturnValue("C:\\app\\sandbox\\windows\\gsap-win-sandbox.exe");
+    resolveWin32SandboxHelper.mockReturnValue("C:\\app\\sandbox\\windows\\codia-win-sandbox.exe");
     buildWin32SandboxGrants.mockReturnValue({ readPaths: ["C:\\work"], writePaths: ["C:\\work"], denyWritePaths: [] });
     const createWin32Exec = await loadExecFactory();
     const exec = createWin32Exec({ sandbox: { policy: { mode: "standard" } } });
@@ -301,7 +301,7 @@ describe("createWin32Exec", () => {
     });
 
     expect(spawnAndStream).toHaveBeenCalledWith(
-      "C:\\app\\sandbox\\windows\\gsap-win-sandbox.exe",
+      "C:\\app\\sandbox\\windows\\codia-win-sandbox.exe",
       expect.arrayContaining(["--cwd", "C:\\work", "--writable-root", "C:\\work", "--", expect.stringMatching(/cmd\.exe$/i), "/d", "/s", "/c", "chcp 65001 >NUL & ipconfig /all"]),
       expect.objectContaining({ cwd: "C:\\work" })
     );
@@ -309,7 +309,7 @@ describe("createWin32Exec", () => {
 
   it("does not pass network capability flags to the restricted-token helper", async () => {
     classifyWin32Command.mockReturnValue({ runner: "cmd", reason: "windows-system-executable" });
-    resolveWin32SandboxHelper.mockReturnValue("C:\\app\\sandbox\\windows\\gsap-win-sandbox.exe");
+    resolveWin32SandboxHelper.mockReturnValue("C:\\app\\sandbox\\windows\\codia-win-sandbox.exe");
     const createWin32Exec = await loadExecFactory();
     const exec = createWin32Exec({
       sandbox: {
@@ -328,7 +328,7 @@ describe("createWin32Exec", () => {
     const helperArgs = spawnAndStream.mock.calls[0][1];
     expect(helperArgs).not.toContain("--network");
     expect(spawnAndStream).toHaveBeenCalledWith(
-      "C:\\app\\sandbox\\windows\\gsap-win-sandbox.exe",
+      "C:\\app\\sandbox\\windows\\codia-win-sandbox.exe",
       helperArgs,
       expect.objectContaining({ cwd: "C:\\work" })
     );
@@ -336,7 +336,7 @@ describe("createWin32Exec", () => {
 
   it("rejects sandboxed commands when Windows sandbox networking is explicitly disabled", async () => {
     classifyWin32Command.mockReturnValue({ runner: "cmd", reason: "windows-system-executable" });
-    resolveWin32SandboxHelper.mockReturnValue("C:\\app\\sandbox\\windows\\gsap-win-sandbox.exe");
+    resolveWin32SandboxHelper.mockReturnValue("C:\\app\\sandbox\\windows\\codia-win-sandbox.exe");
     const createWin32Exec = await loadExecFactory();
     const exec = createWin32Exec({
       sandbox: {
@@ -361,11 +361,11 @@ describe("createWin32Exec", () => {
     existsSync.mockImplementation((p) => p === bundledAsh);
     spawnSync.mockImplementation((cmd, args) => {
       if (cmd === bundledAsh && args?.[0] === "-c") {
-        return { status: 0, stdout: "__gsap_probe_ok__\n", stderr: "" };
+        return { status: 0, stdout: "__codia_probe_ok__\n", stderr: "" };
       }
       return { status: 1, stdout: "", stderr: "" };
     });
-    resolveWin32SandboxHelper.mockReturnValue("C:\\app\\sandbox\\windows\\gsap-win-sandbox.exe");
+    resolveWin32SandboxHelper.mockReturnValue("C:\\app\\sandbox\\windows\\codia-win-sandbox.exe");
     buildWin32SandboxGrants.mockImplementation(() => ({
       readPaths: [],
       writePaths: ["C:\\work"],
@@ -382,7 +382,7 @@ describe("createWin32Exec", () => {
     });
 
     expect(spawnAndStream).toHaveBeenCalledWith(
-      "C:\\app\\sandbox\\windows\\gsap-win-sandbox.exe",
+      "C:\\app\\sandbox\\windows\\codia-win-sandbox.exe",
       expect.arrayContaining(["--writable-root", "C:\\work", "--", bundledAsh, "-c", "git status"]),
       expect.objectContaining({ cwd: "C:\\work" })
     );
@@ -398,7 +398,7 @@ describe("createWin32Exec", () => {
     classifyWin32Command.mockReturnValue({ runner: "python", reason: "python-command" });
     const pythonExe = "C:\\Users\\Me\\AppData\\Local\\Programs\\Python\\Python311\\python.exe";
     const pythonRoot = "C:\\Users\\Me\\AppData\\Local\\Programs\\Python\\Python311";
-    resolveWin32SandboxHelper.mockReturnValue("C:\\app\\sandbox\\windows\\gsap-win-sandbox.exe");
+    resolveWin32SandboxHelper.mockReturnValue("C:\\app\\sandbox\\windows\\codia-win-sandbox.exe");
     existsSync.mockImplementation((p) => p === pythonExe || p === pythonRoot);
     spawnSync.mockImplementation((cmd, args) => {
       if (cmd === "where" && args?.[0] === "python") {
@@ -418,7 +418,7 @@ describe("createWin32Exec", () => {
     });
 
     expect(spawnAndStream).toHaveBeenCalledWith(
-      "C:\\app\\sandbox\\windows\\gsap-win-sandbox.exe",
+      "C:\\app\\sandbox\\windows\\codia-win-sandbox.exe",
       expect.arrayContaining(["--", pythonExe, "tools\\make_doc.py"]),
       expect.objectContaining({ cwd: "C:\\work" })
     );

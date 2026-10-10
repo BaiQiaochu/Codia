@@ -11,7 +11,7 @@ describe("file-text-io", () => {
   let dir;
 
   beforeEach(() => {
-    dir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-file-text-io-"));
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-file-text-io-"));
   });
 
   afterEach(() => {

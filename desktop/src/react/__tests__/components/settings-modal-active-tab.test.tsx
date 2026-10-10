@@ -46,15 +46,20 @@ describe('SettingsModalShell active tab sync', () => {
     expect(useStore.getState().settingsModal.activeTab).toBe('plugin-marketplace');
   });
 
-  it('normalizes the legacy computer settings tab to experiments before opening', async () => {
+  it('opens the formal computer-use settings route directly', async () => {
     openSettingsModal('computer');
 
-    expect(useStore.getState().settingsModal.activeTab).toBe('experiments');
+    expect(useStore.getState().settingsModal.activeTab).toBe('computer');
 
     render(<SettingsModalShell />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('settings-content').getAttribute('data-active-tab')).toBe('experiments');
+      expect(screen.getByTestId('settings-content').getAttribute('data-active-tab')).toBe('computer');
     });
+  });
+
+  it('redirects the retired experiments route to context settings', () => {
+    openSettingsModal('experiments');
+    expect(useStore.getState().settingsModal.activeTab).toBe('context');
   });
 });

@@ -8,7 +8,7 @@ import {
 } from "../../shared/provider-endpoints.ts";
 import { normalizeProviderHeaders } from "../../shared/provider-auth.ts";
 
-export const DEFAULT_PROVIDER_USER_AGENT = "G-SAP/1.0";
+export const DEFAULT_PROVIDER_USER_AGENT = "Codia/1.0";
 
 type ProviderRequestHeaderOptions = {
   api?: string;

@@ -29,12 +29,12 @@ describe('runtime diagnostics slice', () => {
       severity: 'error',
       category: 'model',
       userMessage: 'Model call failed. Diagnostics were saved.',
-      technicalMessage: 'provider rejected api key sk-secret-token at C:/Users/ghost/.hanako/config.json',
+      technicalMessage: 'provider rejected api key sk-secret-token at C:/Users/ghost/.codia/config.json',
       suggestion: 'Check provider credentials and retry.',
       model: { provider: 'openai', id: 'gpt-5.5' },
       sanitizedDetails: {
         authorization: 'Bearer sk-secret-token',
-        filePath: 'C:/Users/ghost/.hanako/config.json',
+        filePath: 'C:/Users/ghost/.codia/config.json',
       },
     });
 

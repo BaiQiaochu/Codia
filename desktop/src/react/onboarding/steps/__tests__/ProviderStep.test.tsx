@@ -39,7 +39,7 @@ describe('ProviderStep', () => {
     render(
       <ProviderStep
         preview={false}
-        gsapFetch={vi.fn()}
+        codiaFetch={vi.fn()}
         goToStep={goToStep}
         showError={vi.fn()}
         onProviderReady={onProviderReady}

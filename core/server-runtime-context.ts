@@ -4,7 +4,7 @@ import { createRuntimeExecutionBoundary } from "./execution-boundary.ts";
 const LOCAL_CAPABILITIES = ["chat", "resources", "files", "tools"];
 
 type RuntimeContextOptions = {
-  gsapHome?: string;
+  codiaHome?: string;
   appVersion?: string;
 };
 
@@ -71,8 +71,8 @@ function deepFreeze<T>(value: T): T {
   return Object.freeze(value);
 }
 
-export function createServerRuntimeContext({ gsapHome, appVersion = "?" }: RuntimeContextOptions = {}) {
-  const identity = loadServerIdentity(gsapHome) as RuntimeIdentity;
+export function createServerRuntimeContext({ codiaHome, appVersion = "?" }: RuntimeContextOptions = {}) {
+  const identity = loadServerIdentity(codiaHome) as RuntimeIdentity;
   const spaceId = identity.spaceId;
   const runtimeContext: RuntimeContext = {
     schemaVersion: 1,

@@ -29,14 +29,14 @@ async function jsonBody(c) {
 
 export default function registerMindMapRoutes(app, ctx) {
   app.get("/page", (c) => {
-    const themeCss = c.req.query("gsap-css") || "";
+    const themeCss = c.req.query("codia-css") || "";
     const token = c.req.query("token") || c.req.query("api_key") || c.req.query("apikey") || "";
     const filePath = c.req.query("path") || c.req.query("filePath") || "";
     return c.html(renderMindMapHtml({ mode: "page", themeCss, token, filePath }));
   });
 
   app.get("/card", (c) => {
-    const themeCss = c.req.query("gsap-css") || "";
+    const themeCss = c.req.query("codia-css") || "";
     const token = c.req.query("token") || c.req.query("api_key") || c.req.query("apikey") || "";
     const filePath = c.req.query("path") || "";
     return c.html(renderMindMapHtml({ mode: "card", themeCss, token, filePath }));

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSettingsStore, type ProviderSummary } from '../../store';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { invalidateConfigCache } from '../../../hooks/use-config';
 import { t } from '../../helpers';
 import { OAuthCredentials } from './OAuthCredentials';
@@ -88,7 +88,7 @@ function ProviderDeleteButton({ providerId, onRefresh }: { providerId: string; o
 
   const handleDelete = async () => {
     try {
-      const res = await gsapFetch('/api/config', {
+      const res = await codiaFetch('/api/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providers: { [providerId]: null } }),

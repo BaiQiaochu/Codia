@@ -193,13 +193,13 @@ export async function extractDocxEmbeddedImages(docxPath) {
 async function materializeDocxImages({
   docxPath,
   images,
-  gsapHome,
+  codiaHome,
   sessionPath,
   recordFileOperation,
 }) {
   const warnings = [];
   if (!images.length) return { entries: [], warnings };
-  if (!gsapHome || !sessionPath || typeof recordFileOperation !== "function") {
+  if (!codiaHome || !sessionPath || typeof recordFileOperation !== "function") {
     warnings.push("Docx embedded images were extracted but could not be registered without session file context.");
     return {
       entries: images.map((image) => {
@@ -216,7 +216,7 @@ async function materializeDocxImages({
     };
   }
 
-  const dir = sessionFilesCacheDir(gsapHome, sessionPath);
+  const dir = sessionFilesCacheDir(codiaHome, sessionPath);
   await fs.mkdir(dir, { recursive: true });
   const docBase = safeFilenamePart(path.basename(docxPath, path.extname(docxPath)), "document");
   const entries = [];
@@ -316,8 +316,7 @@ async function adaptForTextOnlyModel(result, {
 }
 
 export function wrapReadOfficeMedia(tool, cwd, {
-  gsapHome,
-  legacyHome,
+  codiaHome,
   getVisionBridge,
   isVisionAuxiliaryEnabled,
   getSessionPath,
@@ -347,7 +346,7 @@ export function wrapReadOfficeMedia(tool, cwd, {
       const { entries, warnings } = await materializeDocxImages({
         docxPath: absolutePath,
         images,
-        gsapHome: gsapHome || legacyHome,
+        codiaHome,
         sessionPath,
         recordFileOperation,
       });

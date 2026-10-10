@@ -3,11 +3,11 @@ import { Hono } from "hono";
 import { createServerRuntimeContext, toServerIdentityResponse } from "../../core/server-runtime-context.ts";
 
 export function createServerIdentityRoute({
-  gsapHome,
+  codiaHome,
   appVersion = "?",
   getRuntimeContext,
 }: {
-  gsapHome?: string;
+  codiaHome?: string;
   appVersion?: string;
   getRuntimeContext?: () => unknown;
 } = {}) {
@@ -17,7 +17,7 @@ export function createServerIdentityRoute({
     try {
       const runtimeContext = typeof getRuntimeContext === "function"
         ? getRuntimeContext()
-        : createServerRuntimeContext({ gsapHome, appVersion });
+        : createServerRuntimeContext({ codiaHome, appVersion });
       return c.json(toServerIdentityResponse(runtimeContext, { appVersion }));
     } catch (err: any) {
       return c.json({

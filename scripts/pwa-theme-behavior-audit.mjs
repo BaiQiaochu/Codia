@@ -144,7 +144,7 @@ if (jsonOnly) {
 process.exit(report.ok ? 0 : 1);
 
 function prepareMobileDistFixture() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-pwa-theme-audit-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-pwa-theme-audit-"));
   fs.mkdirSync(path.join(dir, "assets"), { recursive: true });
   fs.mkdirSync(path.join(dir, "lib"), { recursive: true });
   fs.mkdirSync(path.join(dir, "locales"), { recursive: true });
@@ -363,8 +363,8 @@ async function expectPageState(page, { surface, titleIncludes, expectedTheme, ex
     title: document.title,
     dataTheme: document.documentElement.getAttribute("data-theme"),
     cssHref: document.getElementById("themeSheet")?.getAttribute("href") || "",
-    stored: localStorage.getItem("gsap-theme"),
-    legacyStored: localStorage.getItem("gsap-theme"),
+    stored: localStorage.getItem("codia-theme"),
+    legacyStored: localStorage.getItem("codia-theme"),
   }));
   if (!state.title.includes(titleIncludes)) {
     blockers.push({ surface, message: `Expected title to include "${titleIncludes}", got "${state.title}".` });

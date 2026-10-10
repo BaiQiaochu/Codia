@@ -1,11 +1,11 @@
 // @ts-nocheck
 import { describe, expect, it, vi } from "vitest";
-import { GsapEngine } from "../core/engine.ts";
+import { CodiaEngine } from "../core/engine.ts";
 import { autoProjectIdForCwd, UNCATEGORIZED_PROJECT_ID } from "../shared/session-projects.ts";
 
-describe("GsapEngine session API", () => {
+describe("CodiaEngine session API", () => {
   it("exposes session model switch state without leaking coordinator internals", () => {
-    const engine = Object.create(GsapEngine.prototype);
+    const engine = Object.create(CodiaEngine.prototype);
     engine._sessionCoord = {
       isSessionSwitching: vi.fn(() => true),
     };
@@ -15,7 +15,7 @@ describe("GsapEngine session API", () => {
   });
 
   it("exposes session runtime reload for stale compact retries", async () => {
-    const engine = Object.create(GsapEngine.prototype);
+    const engine = Object.create(CodiaEngine.prototype);
     const reloadedSession = { id: "reloaded" };
     engine._sessionCoord = {
       reloadSessionRuntime: vi.fn(async () => reloadedSession),
@@ -31,16 +31,16 @@ describe("GsapEngine session API", () => {
   });
 
   it("deletes a project by moving explicit and cwd-derived sessions to uncategorized", async () => {
-    const engine = Object.create(GsapEngine.prototype);
-    const cwdProjectId = autoProjectIdForCwd("/tmp/project-gsap");
+    const engine = Object.create(CodiaEngine.prototype);
+    const cwdProjectId = autoProjectIdForCwd("/tmp/project-codia");
     engine._sessionProjects = {
       deleteProject: vi.fn(() => ({ folders: [], projects: [] })),
     };
     engine._sessionCoord = {
       listSessions: vi.fn(async () => [
-        { path: "/tmp/agents/gsap/sessions/explicit.jsonl", cwd: "/elsewhere", projectId: cwdProjectId },
-        { path: "/tmp/agents/gsap/sessions/implicit.jsonl", cwd: "/tmp/project-gsap", projectId: null },
-        { path: "/tmp/agents/gsap/sessions/other.jsonl", cwd: "/tmp/other", projectId: null },
+        { path: "/tmp/agents/codia/sessions/explicit.jsonl", cwd: "/elsewhere", projectId: cwdProjectId },
+        { path: "/tmp/agents/codia/sessions/implicit.jsonl", cwd: "/tmp/project-codia", projectId: null },
+        { path: "/tmp/agents/codia/sessions/other.jsonl", cwd: "/tmp/other", projectId: null },
       ]),
       writeSessionMeta: vi.fn(async () => undefined),
     };
@@ -50,11 +50,11 @@ describe("GsapEngine session API", () => {
     expect(engine._sessionProjects.deleteProject).toHaveBeenCalledWith(cwdProjectId);
     expect(engine._sessionCoord.writeSessionMeta).toHaveBeenCalledTimes(2);
     expect(engine._sessionCoord.writeSessionMeta).toHaveBeenCalledWith(
-      "/tmp/agents/gsap/sessions/explicit.jsonl",
+      "/tmp/agents/codia/sessions/explicit.jsonl",
       { projectId: UNCATEGORIZED_PROJECT_ID },
     );
     expect(engine._sessionCoord.writeSessionMeta).toHaveBeenCalledWith(
-      "/tmp/agents/gsap/sessions/implicit.jsonl",
+      "/tmp/agents/codia/sessions/implicit.jsonl",
       { projectId: UNCATEGORIZED_PROJECT_ID },
     );
     expect(result).toEqual({
@@ -62,15 +62,15 @@ describe("GsapEngine session API", () => {
       assignment: {
         projectId: UNCATEGORIZED_PROJECT_ID,
         sessionPaths: [
-          "/tmp/agents/gsap/sessions/explicit.jsonl",
-          "/tmp/agents/gsap/sessions/implicit.jsonl",
+          "/tmp/agents/codia/sessions/explicit.jsonl",
+          "/tmp/agents/codia/sessions/implicit.jsonl",
         ],
       },
     });
   });
 
   it("uses the upstream cache-preserving compaction wrapper for desktop compact", async () => {
-    const engine = Object.create(GsapEngine.prototype);
+    const engine = Object.create(CodiaEngine.prototype);
     const session = {
       isCompacting: false,
       compact: vi.fn(async () => undefined),
@@ -103,7 +103,7 @@ describe("GsapEngine session API", () => {
   });
 
   it("rebuilds ResourceIO when the focused session workspace scope changes", () => {
-    const engine = Object.create(GsapEngine.prototype);
+    const engine = Object.create(CodiaEngine.prototype);
     const scopes = {
       "/sessions/a.jsonl": {
         cwd: "/workspace/a",
@@ -118,10 +118,10 @@ describe("GsapEngine session API", () => {
         permissionMode: "read_only",
       },
     };
-    engine.gsapHome = "/gsap-home";
-    engine.userDir = "/gsap-home/user";
-    engine.agentsDir = "/gsap-home/agents";
-    engine._agentMgr = { agent: { dir: "/gsap-home/agents/gsap" } };
+    engine.codiaHome = "/codia-home";
+    engine.userDir = "/codia-home/user";
+    engine.agentsDir = "/codia-home/agents";
+    engine._agentMgr = { agent: { dir: "/codia-home/agents/codia" } };
     engine._runtimeContext = { studioId: null };
     engine._sessionFiles = null;
     engine._resourceIO = null;
@@ -155,7 +155,7 @@ describe("GsapEngine session API", () => {
   });
 
   it("reloads the desktop runtime and retries when compact sees a stale extension context", async () => {
-    const engine = Object.create(GsapEngine.prototype);
+    const engine = Object.create(CodiaEngine.prototype);
     const staleSession = {
       isCompacting: false,
       compact: vi.fn(async () => {
@@ -193,7 +193,7 @@ describe("GsapEngine session API", () => {
   });
 
   it("fresh-compacts a loaded desktop session and refreshes the capability snapshot", async () => {
-    const engine = Object.create(GsapEngine.prototype);
+    const engine = Object.create(CodiaEngine.prototype);
     const session = {
       isCompacting: false,
       compact: vi.fn(async () => undefined),
@@ -231,7 +231,7 @@ describe("GsapEngine session API", () => {
   });
 
   it("reloads the desktop runtime before refreshing snapshots when the compaction hook is missing", async () => {
-    const engine = Object.create(GsapEngine.prototype);
+    const engine = Object.create(CodiaEngine.prototype);
     const staleSession = {
       isCompacting: false,
       compact: vi.fn(),

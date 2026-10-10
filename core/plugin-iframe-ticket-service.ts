@@ -27,15 +27,14 @@ export class PluginIframeTicketError extends Error {
 }
 
 export function issuePluginIframeTicket({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   pluginId,
   surfacePath,
   principalId,
   now = new Date().toISOString(),
   ttlMs = DEFAULT_PLUGIN_IFRAME_TICKET_TTL_MS,
 }: AnyRecord = {}) {
-  const home = resolveHome(gsapHome, hanakoHome);
+  const home = resolveHome(codiaHome);
   assertNonEmpty(pluginId, "pluginId");
   assertNonEmpty(surfacePath, "surfacePath");
   assertNonEmpty(principalId, "principalId");
@@ -61,14 +60,13 @@ export function issuePluginIframeTicket({
 }
 
 export function verifyPluginIframeTicket({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   ticket,
   pluginId,
   surfacePath,
   now = new Date().toISOString(),
 }: AnyRecord = {}) {
-  const home = resolveHome(gsapHome, hanakoHome);
+  const home = resolveHome(codiaHome);
   assertNonEmpty(pluginId, "pluginId");
   assertNonEmpty(surfacePath, "surfacePath");
   if (typeof ticket !== "string" || !ticket.trim()) {
@@ -118,26 +116,25 @@ export function verifyPluginIframeTicket({
   });
 }
 
-function resolveHome(gsapHome: unknown, hanakoHome: unknown): string {
-  const home = gsapHome || hanakoHome;
-  assertNonEmpty(home, "gsapHome");
-  return home;
+function resolveHome(codiaHome: unknown): string {
+  assertNonEmpty(codiaHome, "codiaHome");
+  return codiaHome;
 }
 
-function pluginIframeTicketKeyPath(gsapHome: unknown): string {
-  assertNonEmpty(gsapHome, "gsapHome");
-  return path.join(gsapHome, "security", PLUGIN_IFRAME_TICKET_KEY_FILE);
+function pluginIframeTicketKeyPath(codiaHome: unknown): string {
+  assertNonEmpty(codiaHome, "codiaHome");
+  return path.join(codiaHome, "security", PLUGIN_IFRAME_TICKET_KEY_FILE);
 }
 
-function signBody(gsapHome: string, body: string): string {
+function signBody(codiaHome: string, body: string): string {
   return crypto
-    .createHmac("sha256", readOrCreateTicketKey(gsapHome))
+    .createHmac("sha256", readOrCreateTicketKey(codiaHome))
     .update(body)
     .digest("base64url");
 }
 
-function readOrCreateTicketKey(gsapHome: string): string {
-  const filePath = pluginIframeTicketKeyPath(gsapHome);
+function readOrCreateTicketKey(codiaHome: string): string {
+  const filePath = pluginIframeTicketKeyPath(codiaHome);
   try {
     const existing = fs.readFileSync(filePath, "utf-8").trim();
     if (existing) return existing;

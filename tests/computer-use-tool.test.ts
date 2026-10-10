@@ -21,13 +21,13 @@ function makeTool(
   const tool = createComputerUseTool({
     getComputerHost: () => host,
     getSessionModel: () => model,
-    getAgentId: () => "hana",
+    getAgentId: () => "codia",
     isAgentToolEnabled: () => enabled,
     emitEvent: (event, sessionPath) => emitted.push({ event, sessionPath }),
   });
   const ctx = {
     sessionManager: { getSessionFile: () => "/tmp/session.jsonl" },
-    agentId: "hana",
+    agentId: "codia",
     model,
   };
   return { tool, ctx, emitted };
@@ -53,13 +53,13 @@ function makeForegroundTool() {
   const tool = createComputerUseTool({
     getComputerHost: () => host,
     getSessionModel: () => ({ id: "gpt-5.5", provider: "openai", input: ["text", "image"] }),
-    getAgentId: () => "hana",
+    getAgentId: () => "codia",
     isAgentToolEnabled: () => true,
     emitEvent: (event, sessionPath) => emitted.push({ event, sessionPath }),
   });
   const ctx = {
     sessionManager: { getSessionFile: () => "/tmp/session.jsonl" },
-    agentId: "hana",
+    agentId: "codia",
     model: { id: "gpt-5.5", provider: "openai", input: ["text", "image"] },
   };
   return { tool, ctx, emitted };
@@ -79,13 +79,13 @@ function makeNativeCursorTool() {
   const tool = createComputerUseTool({
     getComputerHost: () => host,
     getSessionModel: () => ({ id: "gpt-5.5", provider: "openai", input: ["text", "image"] }),
-    getAgentId: () => "hana",
+    getAgentId: () => "codia",
     isAgentToolEnabled: () => true,
     emitEvent: (event, sessionPath) => emitted.push({ event, sessionPath }),
   });
   const ctx = {
     sessionManager: { getSessionFile: () => "/tmp/session.jsonl" },
-    agentId: "hana",
+    agentId: "codia",
     model: { id: "gpt-5.5", provider: "openai", input: ["text", "image"] },
   };
   return { tool, ctx, emitted };
@@ -112,13 +112,13 @@ function makeCoordinateOnlyTool() {
   const tool = createComputerUseTool({
     getComputerHost: () => host,
     getSessionModel: () => ({ id: "gpt-5.5", provider: "openai", input: ["text", "image"] }),
-    getAgentId: () => "hana",
+    getAgentId: () => "codia",
     isAgentToolEnabled: () => true,
     emitEvent: (event, sessionPath) => emitted.push({ event, sessionPath }),
   });
   const ctx = {
     sessionManager: { getSessionFile: () => "/tmp/session.jsonl" },
-    agentId: "hana",
+    agentId: "codia",
     model: { id: "gpt-5.5", provider: "openai", input: ["text", "image"] },
   };
   return { tool, ctx, emitted };
@@ -145,13 +145,13 @@ function makeHybridCoordinateTool() {
   const tool = createComputerUseTool({
     getComputerHost: () => host,
     getSessionModel: () => ({ id: "gpt-5.5", provider: "openai", input: ["text", "image"] }),
-    getAgentId: () => "hana",
+    getAgentId: () => "codia",
     isAgentToolEnabled: () => true,
     emitEvent: (event, sessionPath) => emitted.push({ event, sessionPath }),
   });
   const ctx = {
     sessionManager: { getSessionFile: () => "/tmp/session.jsonl" },
-    agentId: "hana",
+    agentId: "codia",
     model: { id: "gpt-5.5", provider: "openai", input: ["text", "image"] },
   };
   return { tool, ctx, emitted };
@@ -180,13 +180,13 @@ function makeCleanElementOnlyTool() {
   const tool = createComputerUseTool({
     getComputerHost: () => host,
     getSessionModel: () => ({ id: "gpt-5.5", provider: "openai", input: ["text", "image"] }),
-    getAgentId: () => "hana",
+    getAgentId: () => "codia",
     isAgentToolEnabled: () => true,
     emitEvent: (event, sessionPath) => emitted.push({ event, sessionPath }),
   });
   const ctx = {
     sessionManager: { getSessionFile: () => "/tmp/session.jsonl" },
-    agentId: "hana",
+    agentId: "codia",
     model: { id: "gpt-5.5", provider: "openai", input: ["text", "image"] },
   };
   return { tool, ctx, emitted };
@@ -223,7 +223,7 @@ function makeApprovalTool(confirmAction = "confirmed", {
   const tool = createComputerUseTool({
     getComputerHost: () => host,
     getSessionModel: () => model,
-    getAgentId: () => "hana",
+    getAgentId: () => "codia",
     getConfirmStore: () => confirmStore,
     getPermissionMode: () => permissionMode,
     getApprovalGateway: () => approvalGateway,
@@ -233,7 +233,7 @@ function makeApprovalTool(confirmAction = "confirmed", {
   });
   const ctx = {
     sessionManager: { getSessionFile: () => "/tmp/session.jsonl" },
-    agentId: "hana",
+    agentId: "codia",
     model,
   };
   return { tool, ctx, emitted, confirmStore, approve, approvalGateway };
@@ -493,7 +493,7 @@ describe("computer tool", () => {
     ]);
     expect(overlayEvents.every((event) => event.type === "computer_overlay")).toBe(true);
     expect(overlayEvents.every((event) => event.sessionPath === "/tmp/session.jsonl")).toBe(true);
-    expect(overlayEvents.every((event) => event.agentId === "hana")).toBe(true);
+    expect(overlayEvents.every((event) => event.agentId === "codia")).toBe(true);
     expect(overlayEvents.at(-1)).toMatchObject({
       action: "click_element",
       leaseId: (started.details as any).leaseId,

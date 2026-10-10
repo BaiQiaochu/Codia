@@ -19,8 +19,8 @@ describe("session thinking level capabilities", () => {
     expect(normalizeRequestThinkingLevel("bad-value", "off")).toBe("off");
   });
 
-  it("maps the visible max level to Pi SDK xhigh only at the SDK boundary", () => {
-    expect(normalizePiSdkThinkingLevel("max")).toBe("xhigh");
+  it("preserves max for Pi SDK 1.1 at the SDK boundary", () => {
+    expect(normalizePiSdkThinkingLevel("max")).toBe("max");
     expect(normalizePiSdkThinkingLevel("xhigh")).toBe("xhigh");
     expect(normalizePiSdkThinkingLevel("auto")).toBe("medium");
   });

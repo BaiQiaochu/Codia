@@ -137,8 +137,7 @@ describe('chat image send preflight', () => {
     expect(getModelVideoInputMode({ input: ['text'] })).toBe('no-native-video');
     expect(getModelVideoInputMode({ input: ['text', 'video'] })).toBe('native-video');
     expect(getModelVideoInputMode({})).toBe('unknown');
-    expect(getModelVideoInputMode({ input: ['text'], compat: { gsapVideoInput: true } })).toBe('native-video');
-    expect(getModelVideoInputMode({ input: ['text'], compat: { hanaVideoInput: true } })).toBe('native-video');
+    expect(getModelVideoInputMode({ input: ['text'], compat: { codiaVideoInput: true } })).toBe('native-video');
 
     await expect(evaluateChatVideoSendPreflight({
       attachments: [{ path: '/tmp/a.mp4', name: 'a.mp4' }],
@@ -160,7 +159,7 @@ describe('chat image send preflight', () => {
 
     await expect(evaluateChatVideoSendPreflight({
       attachments: [{ path: '/tmp/a.mp4', name: 'a.mp4' }],
-      model: { id: 'compat-video-model', provider: 'test', input: ['text'], compat: { gsapVideoInput: true } },
+      model: { id: 'compat-video-model', provider: 'test', input: ['text'], compat: { codiaVideoInput: true } },
     })).resolves.toEqual({
       ok: true,
       reason: 'native-video',

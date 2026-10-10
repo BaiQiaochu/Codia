@@ -152,10 +152,10 @@ export function createBrowserTool(getSessionPath, options = {}) {
 
   async function persistScreenshotFile(sessionPath, base64, mimeType) {
     if (!sessionPath || typeof options.registerSessionFile !== "function") return null;
-    const gsapHome = options.getGsapHome?.() || options.getHanakoHome?.();
-    if (!gsapHome) return null;
+    const codiaHome = options.getCodiaHome?.() || options.getCodiaHome?.();
+    if (!codiaHome) return null;
     return await persistBrowserScreenshotFile({
-      gsapHome,
+      codiaHome,
       sessionPath,
       base64,
       mimeType,

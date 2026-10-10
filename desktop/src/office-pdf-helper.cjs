@@ -4,8 +4,8 @@ const { pathToFileURL } = require("url");
 const { app, BrowserWindow } = require("electron");
 const { buildFontInjectionCss } = require("./office-pdf-fonts.cjs");
 
-const OFFICE_PDF_HELPER_FLAG = "--gsap-office-html-to-pdf";
-const LEGACY_OFFICE_PDF_HELPER_FLAG = "--hana-office-html-to-pdf";
+const OFFICE_PDF_HELPER_FLAG = "--codia-office-html-to-pdf";
+const LEGACY_OFFICE_PDF_HELPER_FLAG = "--codia-office-html-to-pdf";
 const DEFAULT_TIMEOUT_MS = 60000;
 
 function isHelperFlag(arg) {
@@ -72,7 +72,7 @@ function normalizeJob(raw) {
     landscape: raw.landscape === true,
     margins: raw.margins && typeof raw.margins === "object" ? raw.margins : undefined,
     allowJavaScript: raw.allowJavaScript === true,
-    embedGsapFonts: raw.embedGsapFonts !== false && raw.embedHanaFonts !== false,
+    embedCodiaFonts: raw.embedCodiaFonts !== false && raw.embedCodiaFonts !== false,
     settleMs: normalizeNumber(raw.settleMs, 250, 0, 30000),
     timeoutMs: normalizeNumber(raw.timeoutMs, DEFAULT_TIMEOUT_MS, 1000, 5 * 60 * 1000),
   };
@@ -100,7 +100,7 @@ async function waitForPageAssets(webContents, settleMs) {
 }
 
 async function renderJob(job) {
-  const fontCss = job.embedGsapFonts ? buildFontInjectionCss() : null;
+  const fontCss = job.embedCodiaFonts ? buildFontInjectionCss() : null;
   const win = new BrowserWindow({
     show: false,
     width: job.viewport.width,

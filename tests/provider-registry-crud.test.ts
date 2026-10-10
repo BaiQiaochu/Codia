@@ -12,7 +12,7 @@ import path from "path";
 import YAML from "js-yaml";
 import { ProviderRegistry } from "../core/provider-registry.js";
 
-const tmpDir = path.join(os.tmpdir(), "gsap-test-pr-crud-" + Date.now());
+const tmpDir = path.join(os.tmpdir(), "codia-test-pr-crud-" + Date.now());
 
 function writeAddedModels(providers) {
   const ymlPath = path.join(tmpDir, "added-models.yaml");

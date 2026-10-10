@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-server-identity-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-server-identity-"));
 }
 
 function writeJson(filePath, data) {
@@ -45,7 +45,7 @@ function writeValidIdentity(root, overrides = {}) {
       ownerUserId: "user_test",
       label: "Test Space",
       kind: "personal",
-      storage: { provider: "legacy_gsap_home", legacyRoot: true },
+      storage: { provider: "legacy_codia_home", legacyRoot: true },
       membershipModel: "single_user_implicit",
       createdAt: "2026-05-09T00:00:00.000Z",
       updatedAt: "2026-05-09T00:00:00.000Z",
@@ -82,7 +82,7 @@ describe("server identity loader", () => {
       userKind: "legacy_owner",
       spaceKind: "personal",
       membershipModel: "single_user_implicit",
-      storage: { provider: "legacy_gsap_home", legacyRoot: true },
+      storage: { provider: "legacy_codia_home", legacyRoot: true },
     });
   });
 
@@ -102,7 +102,7 @@ describe("server identity loader", () => {
           ownerUserId: "user_other",
           label: "Test Space",
           kind: "personal",
-          storage: { provider: "legacy_gsap_home", legacyRoot: true },
+          storage: { provider: "legacy_codia_home", legacyRoot: true },
           membershipModel: "single_user_implicit",
         }],
       },
@@ -122,7 +122,7 @@ describe("server identity loader", () => {
           ownerUserId: "user_deleted",
           label: "Test Space",
           kind: "personal",
-          storage: { provider: "legacy_gsap_home", legacyRoot: true },
+          storage: { provider: "legacy_codia_home", legacyRoot: true },
           membershipModel: "single_user_implicit",
           createdAt: "2026-05-09T00:00:00.000Z",
           updatedAt: "2026-05-09T00:00:00.000Z",

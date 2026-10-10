@@ -5,7 +5,7 @@ import { normalizeWin32ShellPath } from "../sandbox/win32-path.ts";
 const RESOURCE_IO_FILE_TOOL_NAMES = new Set(["read", "write", "edit", "grep", "find", "ls"]);
 const WRITE_TOOL_NAMES = new Set(["write", "edit"]);
 const MATERIALIZED_TOOL_NAMES = new Set(["grep", "find"]);
-const SYNTHETIC_RESOURCE_ROOT = ".gsap-resource-io-targets";
+const SYNTHETIC_RESOURCE_ROOT = ".codia-resource-io-targets";
 
 function textResult(text) {
   return { content: [{ type: "text", text }] };

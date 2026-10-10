@@ -40,9 +40,9 @@ describe("Windows icon contract", () => {
     expect(main).toContain(`const APP_USER_MODEL_ID = "${pkg.build.appId}"`);
     expect(main).toContain("app.setAppUserModelId(runtimeAppUserModelId())");
     expect(main).toContain("return APP_USER_MODEL_ID;");
-    expect(main).not.toContain("GSAP_IDE_APP_USER_MODEL_ID");
-    expect(main).not.toContain("gsap-ide");
-    expect(main).not.toMatch(/hana-ide|hanaide|HanaIDE/);
+    expect(main).not.toContain("CODIA_IDE_APP_USER_MODEL_ID");
+    expect(main).not.toContain("codia-ide");
+    expect(main).not.toMatch(/codia-ide|codiaide|CodiaIDE/);
     expect(main).not.toMatch(/runtimeAppUserModelId[\s\S]*?\.portable/);
   });
 
@@ -52,7 +52,7 @@ describe("Windows icon contract", () => {
     expect(main).toContain('const RUNTIME_DISPLAY_NAME = "Codia"');
     expect(main).toContain("function runtimeProductName()");
     expect(main).toContain("return RUNTIME_DISPLAY_NAME;");
-    expect(main).not.toContain('"G-SAP IDE"');
+    expect(main).not.toContain('"Codia IDE"');
   });
 
   it("uses the Codia app icon and display name for the Windows tray hover surface", () => {
@@ -88,7 +88,7 @@ describe("Windows icon contract", () => {
 
     for (const relativePath of [
       path.join("desktop", "src", "assets", "codia", "codia-brand-emblem.png"),
-      path.join("desktop", "src", "assets", "G-SAP.png"),
+      path.join("desktop", "src", "assets", "codia.png"),
       path.join("desktop", "src", "assets", "about-icon.png"),
     ]) {
       expect(sha256(path.join(root, relativePath))).toBe(iconHash);
@@ -123,20 +123,19 @@ describe("Windows icon contract", () => {
     expect(icns.length).toBeGreaterThan(1024);
   });
 
-  it("uses Codia process names while retaining legacy upgrade cleanup hooks", () => {
+  it("uses Codia process names without retired upgrade identifiers", () => {
     const installer = fs.readFileSync(path.join(root, "build", "installer.nsh"), "utf-8");
 
     expect(installer).toContain("Codia.exe");
-    expect(installer).toContain("BYOUNG.exe");
-    expect(installer).toContain("G-SAP星河智域专业版0.001.0.exe");
-    expect(installer).toContain("gsap-server.exe");
-    expect(installer).toContain("GSAP_INSTALL_DIR");
+    expect(installer).not.toMatch(/CodiaCodia|星河智域|BYOUNG|G-SAP|Hanako/i);
+    expect(installer).toContain("codia-server.exe");
+    expect(installer).toContain("CODIA_INSTALL_DIR");
     expect(installer).toContain('RMDir /r "$INSTDIR\\resources\\app"');
     const visibleInstallerCopy = installer
       .split(/\r?\n/u)
       .filter(line => /\bDetailPrint\b|\bMessageBox\b/u.test(line))
       .join("\n");
-    expect(visibleInstallerCopy).not.toMatch(/G-SAP|GSAP|星河智域/u);
-    expect(installer).not.toMatch(/Hanako|Hana-owned|hana-server\.exe|HANA_INSTALL_DIR/);
+    expect(visibleInstallerCopy).toMatch(/Codia/u);
+    expect(installer).not.toMatch(/星河智域|BYOUNG|G-SAP|Hanako|OpenHanako/i);
   });
 });

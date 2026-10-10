@@ -5,7 +5,7 @@
  */
 
 import { useStore } from './index';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import { clearChat } from './agent-actions';
 import type { DeskFile, DeskSearchResult, StudioWorkspace } from '../types';
 import { DESK_OWNER, type WorkspaceDeskState } from './desk-slice';
@@ -117,7 +117,7 @@ export async function loadStudioWorkspaces(): Promise<StudioWorkspace[]> {
   const s = useStore.getState();
   if (!s.serverPort) return [];
   try {
-    const res = await gsapFetch('/api/studio/workspaces');
+    const res = await codiaFetch('/api/studio/workspaces');
     const data = await res.json();
     if (data.error) throw new Error(getApiErrorMessage(data));
     const workspaces = (Array.isArray(data.workspaces) ? data.workspaces : [])
@@ -136,7 +136,7 @@ export async function createLocalStudioWorkspaceFromFolder(folder: string): Prom
   const s = useStore.getState();
   if (!normalized || !s.serverPort) return null;
   try {
-    const res = await gsapFetch('/api/studio/workspaces', {
+    const res = await codiaFetch('/api/studio/workspaces', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: normalized }),
@@ -188,7 +188,7 @@ export async function removeStudioWorkspace(mountId: string): Promise<boolean> {
       .filter((workspace: StudioWorkspace) => workspace.mountId !== normalized),
   }));
   try {
-    const res = await gsapFetch(`/api/studio/workspaces/${encodeURIComponent(normalized)}`, {
+    const res = await codiaFetch(`/api/studio/workspaces/${encodeURIComponent(normalized)}`, {
       method: 'DELETE',
     });
     const data = await res.json();
@@ -537,7 +537,7 @@ export async function loadDeskFiles(subdir?: string, overrideDir?: string | null
     const curPath = subdir !== undefined ? subdir : s.deskCurrentPath;
     if (curPath) params.set('subdir', curPath);
     const qs = params.toString() ? `?${params}` : '';
-    const res = await gsapFetch(`${mountId ? '/api/workbench/files' : '/api/desk/files'}${qs}`);
+    const res = await codiaFetch(`${mountId ? '/api/workbench/files' : '/api/desk/files'}${qs}`);
     const data = await res.json();
 
     if (myVersion !== _deskLoadVersion) return;
@@ -590,7 +590,7 @@ export async function loadDeskTreeFiles(subdir = '', options: { force?: boolean;
     if (normalizedSubdir) params.set('subdir', normalizedSubdir);
     if (!mountId) addSelectedDeskAgentParam(params, s);
     const qs = params.toString() ? `?${params}` : '';
-    const res = await gsapFetch(`${mountId ? '/api/workbench/files' : '/api/desk/files'}${qs}`);
+    const res = await codiaFetch(`${mountId ? '/api/workbench/files' : '/api/desk/files'}${qs}`);
     const data = await res.json();
     if (_deskTreeLoadVersion.get(key) !== myVersion) return false;
     if (data.error) throw new Error(getApiErrorMessage(data));
@@ -632,7 +632,7 @@ export async function searchDeskFiles(query: string): Promise<DeskSearchResult[]
     }
     if (!mountId) addSelectedDeskAgentParam(params, s);
     params.set('q', trimmed);
-    const res = await gsapFetch(`${mountId ? '/api/workbench/search' : '/api/desk/search-files'}?${params}`);
+    const res = await codiaFetch(`${mountId ? '/api/workbench/search' : '/api/desk/search-files'}?${params}`);
     const data = await res.json();
     if (data.error) throw new Error(getApiErrorMessage(data));
     return Array.isArray(data.results) ? data.results : [];
@@ -672,7 +672,7 @@ export async function loadJianContent(expected?: DeskSnapshot): Promise<void> {
     if (snapshot.currentPath) params.set('subdir', snapshot.currentPath);
     addSelectedDeskAgentParam(params, s);
     const qs = params.toString() ? `?${params}` : '';
-    const res = await gsapFetch(`/api/desk/jian${qs}`);
+    const res = await codiaFetch(`/api/desk/jian${qs}`);
     const data = await res.json();
 
     if (!isSameDeskSnapshot(snapshot)) return;
@@ -692,7 +692,7 @@ export async function saveJianContent(content?: string): Promise<void> {
   const snapshot = captureDeskSnapshot();
 
   try {
-    await gsapFetch('/api/desk/jian', {
+    await codiaFetch('/api/desk/jian', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -711,7 +711,7 @@ export async function saveJianContent(content?: string): Promise<void> {
     if (snapshot.currentPath) params.set('subdir', snapshot.currentPath);
     addSelectedDeskAgentParam(params, useStore.getState());
     const qs = params.toString() ? `?${params}` : '';
-    const res2 = await gsapFetch(`/api/desk/files${qs}`);
+    const res2 = await codiaFetch(`/api/desk/files${qs}`);
     const data2 = await res2.json();
 
     if (!isSameDeskSnapshot(snapshot)) return;
@@ -724,7 +724,7 @@ export async function saveJianContent(content?: string): Promise<void> {
 export async function deskUploadFiles(paths: string[]): Promise<void> {
   const snapshot = captureDeskSnapshot();
   try {
-    const res = await gsapFetch('/api/desk/files', {
+    const res = await codiaFetch('/api/desk/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -747,7 +747,7 @@ export async function deskUploadFilesToSubdir(paths: string[], subdir: string): 
   const snapshot = captureDeskSnapshot();
   const normalizedSubdir = normalizeSubdir(subdir);
   try {
-    const res = await gsapFetch('/api/desk/files', {
+    const res = await codiaFetch('/api/desk/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -777,7 +777,7 @@ export async function deskUploadBrowserFilesToSubdir(files: File[], subdir: stri
       type: file.type || '',
       contentBase64: await blobToBase64(file),
     })));
-    const res = await gsapFetch('/api/workbench/upload', {
+    const res = await codiaFetch('/api/workbench/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -814,7 +814,7 @@ export async function deskCreateFile(text: string): Promise<boolean> {
   const name = nextAvailableDeskFileName(`${ts}-${prefix}.md`);
 
   try {
-    const res = await gsapFetch('/api/desk/files', {
+    const res = await codiaFetch('/api/desk/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -849,7 +849,7 @@ export async function deskCreateMindmap(): Promise<boolean> {
   const name = nextAvailableDeskFileName(t('desk.newMindmapFile'));
 
   try {
-    const res = await gsapFetch('/api/desk/files', {
+    const res = await codiaFetch('/api/desk/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -887,7 +887,7 @@ export async function deskCreateMindmapFromDocument(sourceName: string, options:
   const name = nextAvailableDeskFileName(mindmapNameFromDocumentName(sourceName));
 
   try {
-    const res = await gsapFetch('/api/desk/files', {
+    const res = await codiaFetch('/api/desk/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -924,7 +924,7 @@ export async function deskCreateMindmapFromDocument(sourceName: string, options:
 export async function deskMoveFiles(names: string[], destFolder: string): Promise<void> {
   const snapshot = captureDeskSnapshot();
   try {
-    const res = await gsapFetch('/api/desk/files', {
+    const res = await codiaFetch('/api/desk/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -989,7 +989,7 @@ export async function deskMoveTreeFiles(items: DeskTreeMoveItem[], destSubdir: s
   if (items.length === 0) return;
   const normalizedDest = normalizeSubdir(destSubdir);
   try {
-    const res = await gsapFetch('/api/desk/files', {
+    const res = await codiaFetch('/api/desk/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1029,7 +1029,7 @@ export async function deskRenameTreeItem(sourceSubdir: string, oldName: string, 
   if (!isPlainFileName(oldName) || !isPlainFileName(trimmed)) return false;
   if (oldName === trimmed) return true;
   try {
-    const res = await gsapFetch('/api/desk/files', {
+    const res = await codiaFetch('/api/desk/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1112,7 +1112,7 @@ async function deskSafeDeleteMobileWorkbenchItems(items: DeskTreeMoveItem[]): Pr
   try {
     for (const item of paths) {
       if (!isPlainFileName(item.name)) break;
-      const res = await gsapFetch('/api/workbench/actions', {
+      const res = await codiaFetch('/api/workbench/actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1139,7 +1139,7 @@ async function deskSafeDeleteMobileWorkbenchItems(items: DeskTreeMoveItem[]): Pr
 export async function deskRemoveFile(name: string): Promise<void> {
   const snapshot = captureDeskSnapshot();
   try {
-    const res = await gsapFetch('/api/desk/files', {
+    const res = await codiaFetch('/api/desk/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1170,7 +1170,7 @@ export async function deskMkdir(): Promise<string | null> {
   }
 
   try {
-    const res = await gsapFetch('/api/desk/files', {
+    const res = await codiaFetch('/api/desk/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1196,7 +1196,7 @@ export async function deskMkdir(): Promise<string | null> {
 export async function deskRenameFile(oldName: string, newName: string): Promise<boolean> {
   const snapshot = captureDeskSnapshot();
   try {
-    const res = await gsapFetch('/api/desk/files', {
+    const res = await codiaFetch('/api/desk/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1251,7 +1251,7 @@ async function persistWorkspaceHistory(folder: string): Promise<void> {
   const s = useStore.getState();
   if (!s.serverPort) return;
   try {
-    const res = await gsapFetch('/api/config/workspaces/recent', {
+    const res = await codiaFetch('/api/config/workspaces/recent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: folder }),
@@ -1275,7 +1275,7 @@ export async function removeRecentWorkspace(folder: string): Promise<void> {
   const s = useStore.getState();
   if (!s.serverPort) return;
   try {
-    const res = await gsapFetch('/api/config/workspaces/recent', {
+    const res = await codiaFetch('/api/config/workspaces/recent', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: normalized }),
@@ -1295,7 +1295,7 @@ export async function clearRecentWorkspaces(): Promise<void> {
   const s = useStore.getState();
   if (!s.serverPort) return;
   try {
-    const res = await gsapFetch('/api/config/workspaces/recent/all', {
+    const res = await codiaFetch('/api/config/workspaces/recent/all', {
       method: 'DELETE',
     });
     const data = await res.json();
@@ -1340,16 +1340,16 @@ export function toggleJianSidebar(forceOpen?: boolean): void {
   const newOpen = forceOpen !== undefined ? forceOpen : !s.jianOpen;
   s.setJianOpen(newOpen);
   const tab = s.currentTab || 'chat';
-  localStorage.setItem(`gsap-jian-${tab}`, newOpen ? 'open' : 'closed');
+  localStorage.setItem(`codia-jian-${tab}`, newOpen ? 'open' : 'closed');
   if (forceOpen === undefined) s.setJianAutoCollapsed(false);
 }
 
 export function initJian(): void {
-  const legacy = localStorage.getItem('gsap-jian');
-  if (legacy && !localStorage.getItem('gsap-jian-chat')) {
-    localStorage.setItem('gsap-jian-chat', legacy);
+  const legacy = localStorage.getItem('codia-jian');
+  if (legacy && !localStorage.getItem('codia-jian-chat')) {
+    localStorage.setItem('codia-jian-chat', legacy);
   }
-  const savedJian = localStorage.getItem('gsap-jian-chat');
+  const savedJian = localStorage.getItem('codia-jian-chat');
   if (savedJian !== null) useStore.getState().setJianOpen(savedJian !== 'closed');
   const s = useStore.getState();
   void activateWorkspaceDesk(s.selectedFolder || s.homeFolder || null);

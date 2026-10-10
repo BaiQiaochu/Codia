@@ -82,7 +82,7 @@ export async function registerMcpOAuthClient({
   registrationEndpoint,
   redirectUri,
   scope = "",
-  clientName = "G-SAP",
+  clientName = "Codia",
   fetchImpl = globalThis.fetch,
 } = {}) {
   if (!registrationEndpoint) throw new Error("registrationEndpoint is required");
@@ -319,7 +319,7 @@ async function fetchAuthChallenge(connectorUrl, fetchImpl, protocolVersion = MCP
       params: {
         protocolVersion,
         capabilities: {},
-        clientInfo: { name: "gsap", title: "G-SAP", version: "0.6.7" },
+        clientInfo: { name: "codia", title: "Codia", version: "0.6.7" },
       },
     }),
   });

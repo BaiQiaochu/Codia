@@ -92,26 +92,26 @@ function applyProviderModelMetadata(model, metadataByModel) {
 }
 
 export class ModelManager {
-  constructor({ gsapHome, hanakoHome } = {}) {
-    this._gsapHome = gsapHome || hanakoHome;
+  constructor({ codiaHome } = {}) {
+    this._codiaHome = codiaHome || codiaHome;
     this._modelRegistry = null;
     this._modelRuntime = null;
     this._defaultModel = null;
     this._availableModels = [];
 
-    this.providerRegistry = new ProviderRegistry(gsapHome);
+    this.providerRegistry = new ProviderRegistry(codiaHome);
     this.executionRouter = null;
   }
 
   async init() {
-    fs.mkdirSync(this._gsapHome, { recursive: true });
-    const authJsonPath = path.join(this._gsapHome, "auth.json");
+    fs.mkdirSync(this._codiaHome, { recursive: true });
+    const authJsonPath = path.join(this._codiaHome, "auth.json");
     if (!fs.existsSync(authJsonPath)) fs.writeFileSync(authJsonPath, "{}\n", { mode: 0o600 });
     this.providerRegistry.reload();
     await this._removeApiKeyProviderAuthEntries();
     this._modelRuntime = await ModelRuntime.create({
       authPath: authJsonPath,
-      modelsPath: path.join(this._gsapHome, "models.json"),
+      modelsPath: path.join(this._codiaHome, "models.json"),
       allowModelNetwork: false,
     });
     await this._applyRuntimeApiKeyOverrides(this.providerRegistry.getAllProvidersRaw());
@@ -129,11 +129,10 @@ export class ModelManager {
   set defaultModel(m) { this._defaultModel = m; }
   get currentModel() { return this._defaultModel; }
   get availableModels() { return this._availableModels; }
-  get modelsJsonPath() { return path.join(this._gsapHome, "models.json"); }
-  get authJsonPath() { return path.join(this._gsapHome, "auth.json"); }
+  get modelsJsonPath() { return path.join(this._codiaHome, "models.json"); }
+  get authJsonPath() { return path.join(this._codiaHome, "auth.json"); }
 
   /**
-  *
   *
    * - "provider/id"
    *
@@ -239,7 +238,7 @@ export class ModelManager {
           name: this.providerRegistry.get(providerId)?.name || providerId,
           baseUrl: provider?.base_url || this.providerRegistry.get(providerId)?.baseUrl,
           api: provider?.api || this.providerRegistry.get(providerId)?.api || "openai-completions",
-          apiKey: "$GSAP_RUNTIME_API_KEY",
+          apiKey: "$CODIA_RUNTIME_API_KEY",
           headers: provider?.headers,
           authHeader: provider?.auth_header,
         });
@@ -283,11 +282,11 @@ export class ModelManager {
   async _removeApiKeyProviderAuthEntries() {
     if (!this.providerRegistry) return;
     migrateLegacyApiKeyAuthToProviders({
-      gsapHome: this._gsapHome,
+      codiaHome: this._codiaHome,
       providerRegistry: this.providerRegistry,
     });
     let credentials = {};
-    try { credentials = JSON.parse(fs.readFileSync(path.join(this._gsapHome, "auth.json"), "utf8")); } catch {}
+    try { credentials = JSON.parse(fs.readFileSync(path.join(this._codiaHome, "auth.json"), "utf8")); } catch {}
     let changed = false;
     for (const entry of this.providerRegistry.getAll().values()) {
       if (entry.authType === "oauth") continue;
@@ -300,7 +299,7 @@ export class ModelManager {
         }
       }
     }
-    if (changed) atomicWriteSync(path.join(this._gsapHome, "auth.json"), `${JSON.stringify(credentials, null, 2)}\n`, { mode: 0o600 });
+    if (changed) atomicWriteSync(path.join(this._codiaHome, "auth.json"), `${JSON.stringify(credentials, null, 2)}\n`, { mode: 0o600 });
   }
 
   setDefaultModel(modelId, provider) {

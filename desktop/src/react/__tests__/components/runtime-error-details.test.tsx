@@ -86,9 +86,9 @@ describe('runtime error toast details', () => {
     const mobileCss = readFileSync(path.join(process.cwd(), 'desktop/src/react/mobile/mobile-entry.css'), 'utf8');
 
     for (const css of [desktopCss, mobileCss]) {
-      expect(extractRule(css, '.gsap-toast.error')).toContain('color: var(--text-primary)');
-      expect(extractRule(css, '.gsap-toast-diagnostic')).toContain('background: var(--bg-elevated');
-      expect(extractRule(css, '.gsap-toast-diagnostic-row strong')).toContain('overflow-wrap: anywhere');
+      expect(extractRule(css, '.codia-toast.error')).toContain('color: var(--text-primary)');
+      expect(extractRule(css, '.codia-toast-diagnostic')).toContain('background: var(--bg-elevated');
+      expect(extractRule(css, '.codia-toast-diagnostic-row strong')).toContain('overflow-wrap: anywhere');
     }
   });
 });

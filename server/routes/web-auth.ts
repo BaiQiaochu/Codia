@@ -11,7 +11,7 @@ import { normalizeAccessProfile, scopesForAccessProfile } from "../../shared/acc
 const DEFAULT_SESSION_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 
 type WebAuthRouteContext = {
-  gsapHome?: string;
+  codiaHome?: string;
   authService?: any;
   getConnectionKind?: (c: any) => string;
   getRuntimeContext?: () => any;
@@ -20,14 +20,14 @@ type WebAuthRouteContext = {
 };
 
 export function createWebAuthRoute({
-  gsapHome,
+  codiaHome,
   authService,
   getConnectionKind,
   getRuntimeContext,
   secureCookies = false,
   now = () => new Date().toISOString(),
 }: WebAuthRouteContext = {}) {
-  if (!gsapHome) throw new Error("gsapHome required");
+  if (!codiaHome) throw new Error("codiaHome required");
   if (!authService) throw new Error("authService required");
   const route = new Hono();
 
@@ -44,7 +44,7 @@ export function createWebAuthRoute({
         now: now(),
       })
       : authenticatePasswordLogin(c, {
-        gsapHome,
+        codiaHome,
         body,
         connectionKind,
         getRuntimeContext,
@@ -52,7 +52,7 @@ export function createWebAuthRoute({
     if (principal?.error) return c.json({ error: principal.error }, principal.status || 400);
     if (!principal) return c.json({ error: "forbidden" }, 403);
 
-    const issued = createWebSession(gsapHome, {
+    const issued = createWebSession(codiaHome, {
       principal,
       userAgent: c.req.header("user-agent"),
       now: now(),
@@ -86,7 +86,7 @@ export function createWebAuthRoute({
   });
 
   route.post("/web-auth/logout", async (c) => {
-    revokeWebSession(gsapHome, c.req.header("cookie"), { now: now() });
+    revokeWebSession(codiaHome, c.req.header("cookie"), { now: now() });
     c.header("Set-Cookie", clearSessionCookie({ secure: secureCookies === true }));
     return c.json({ ok: true });
   });
@@ -95,12 +95,12 @@ export function createWebAuthRoute({
 }
 
 function authenticatePasswordLogin(c: any, {
-  gsapHome,
+  codiaHome,
   body,
   connectionKind,
   getRuntimeContext,
 }: {
-  gsapHome: string;
+  codiaHome: string;
   body: any;
   connectionKind: string;
   getRuntimeContext?: () => any;
@@ -112,7 +112,7 @@ function authenticatePasswordLogin(c: any, {
   if (connectionKind !== "local" && !isSecureRequest(c)) {
     return { error: "password_login_requires_secure_context", status: 400 };
   }
-  const verified = verifyLocalAccountPassword(gsapHome, { username, password });
+  const verified = verifyLocalAccountPassword(codiaHome, { username, password });
   if (!verified.ok) return null;
   const runtimeContext = typeof getRuntimeContext === "function" ? getRuntimeContext() : {};
   return {

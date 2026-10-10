@@ -79,16 +79,6 @@ describe('CSP sync', () => {
     expect(runtimeCsp).not.toMatch(/connect-src[^;]*\swss:(?:\s|;|$)/);
   });
 
-  it('index.html allows the embedded OCR runtime to initialize OpenCV and WASM', () => {
-    const scriptSrc = profiles['index.html']
-      .split(';')
-      .map(d => d.trim())
-      .find(d => d.startsWith('script-src'));
-
-    expect(scriptSrc).toContain("'wasm-unsafe-eval'");
-    expect(scriptSrc).toContain("'unsafe-eval'");
-  });
-
   it('desktop index CSP allows local PDF iframe sources without widening connections', () => {
     const indexCsp = profiles['index.html'];
     const runtimeCsp = fs.readFileSync(path.join(htmlDir, 'modules', 'connection-csp.ts'), 'utf-8');

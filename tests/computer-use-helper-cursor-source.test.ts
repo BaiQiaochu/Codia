@@ -4,10 +4,10 @@ import { describe, expect, it } from "vitest";
 
 const helperSourceDir = path.join(
   process.cwd(),
-  "desktop/native/GsapComputerUseHelper/Sources/GsapComputerUseHelper",
+  "desktop/native/CodiaComputerUseHelper/Sources/CodiaComputerUseHelper",
 );
 
-describe("G-SAP computer-use helper cursor integration", () => {
+describe("Codia computer-use helper cursor integration", () => {
   it("leaves native cursor visibility under provider control", () => {
     const main = fs.readFileSync(path.join(helperSourceDir, "main.swift"), "utf8");
 
@@ -24,11 +24,11 @@ describe("G-SAP computer-use helper cursor integration", () => {
     expect(main).toContain("AgentCursor.shared.apply(config: config.agentCursor)");
   });
 
-  it("applies G-SAP runtime cursor overrides inside the helper process", () => {
+  it("applies Codia runtime cursor overrides inside the helper process", () => {
     const main = fs.readFileSync(path.join(helperSourceDir, "main.swift"), "utf8");
 
-    expect(main).toContain("GSAP_AGENT_CURSOR_CONFIG_JSON");
-    expect(main).toContain("applyGsapCursorRuntimeConfig");
+    expect(main).toContain("CODIA_AGENT_CURSOR_CONFIG_JSON");
+    expect(main).toContain("applyCodiaCursorRuntimeConfig");
     expect(main).toContain("AgentCursor.shared.glideDurationSeconds");
     expect(main).toContain("AgentCursor.shared.dwellAfterClickSeconds");
     expect(main).toContain("AgentCursor.shared.idleHideDelay");

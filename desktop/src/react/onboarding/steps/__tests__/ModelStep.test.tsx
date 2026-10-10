@@ -46,7 +46,7 @@ describe('ModelStep', () => {
     render(
       <ModelStep
         preview={false}
-        gsapFetch={vi.fn()}
+        codiaFetch={vi.fn()}
         providerName="deepseek"
         providerUrl="https://api.deepseek.com"
         providerApi="openai-completions"
@@ -85,7 +85,7 @@ describe('ModelStep', () => {
     render(
       <ModelStep
         preview={false}
-        gsapFetch={vi.fn()}
+        codiaFetch={vi.fn()}
         providerName="deepseek"
         providerUrl="https://api.deepseek.com"
         providerApi="openai-completions"
@@ -118,7 +118,7 @@ describe('ModelStep', () => {
     render(
       <ModelStep
         preview={false}
-        gsapFetch={vi.fn()}
+        codiaFetch={vi.fn()}
         providerName="custom-provider"
         providerUrl="https://api.example.com/v1"
         providerApi="openai-completions"

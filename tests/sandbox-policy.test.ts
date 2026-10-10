@@ -9,7 +9,7 @@ describe("sandbox workspace roots", () => {
   let tempRoot;
 
   beforeEach(() => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-sandbox-roots-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-sandbox-roots-"));
   });
 
   afterEach(() => {
@@ -18,17 +18,17 @@ describe("sandbox workspace roots", () => {
 
   it("grants full access to explicit extra workspace folders and read-only access to ordinary external paths", () => {
     const agentDir = path.join(tempRoot, "agents", "main");
-    const gsapHome = path.join(tempRoot, "home");
+    const codiaHome = path.join(tempRoot, "home");
     const primary = path.join(tempRoot, "project");
     const extra = path.join(tempRoot, "reference");
     const sibling = path.join(tempRoot, "private");
-    for (const dir of [agentDir, gsapHome, primary, extra, sibling]) {
+    for (const dir of [agentDir, codiaHome, primary, extra, sibling]) {
       fs.mkdirSync(dir, { recursive: true });
     }
 
     const policy = deriveSandboxPolicy({
       agentDir,
-      gsapHome,
+      codiaHome,
       workspace: primary,
       workspaceFolders: [extra],
       mode: "standard",
@@ -48,17 +48,17 @@ describe("sandbox workspace roots", () => {
 
   it("treats cwd and runtime roots as scoped write roots", () => {
     const agentDir = path.join(tempRoot, "agents", "main");
-    const gsapHome = path.join(tempRoot, "home");
+    const codiaHome = path.join(tempRoot, "home");
     const workspace = path.join(tempRoot, "project");
     const cwd = path.join(tempRoot, "scratch");
     const runtimeRoot = path.join(tempRoot, "runtime-cache");
-    for (const dir of [agentDir, gsapHome, workspace, cwd, runtimeRoot]) {
+    for (const dir of [agentDir, codiaHome, workspace, cwd, runtimeRoot]) {
       fs.mkdirSync(dir, { recursive: true });
     }
 
     const policy = deriveSandboxPolicy({
       agentDir,
-      gsapHome,
+      codiaHome,
       workspace,
       workspaceFolders: [],
       cwd,
@@ -81,16 +81,16 @@ describe("sandbox workspace roots", () => {
 
   it("grants scoped writes to user-authorized session folders", () => {
     const agentDir = path.join(tempRoot, "agents", "main");
-    const gsapHome = path.join(tempRoot, "home");
+    const codiaHome = path.join(tempRoot, "home");
     const workspace = path.join(tempRoot, "project");
     const authorized = path.join(tempRoot, "shared-assets");
-    for (const dir of [agentDir, gsapHome, workspace, authorized]) {
+    for (const dir of [agentDir, codiaHome, workspace, authorized]) {
       fs.mkdirSync(dir, { recursive: true });
     }
 
     const policy = deriveSandboxPolicy({
       agentDir,
-      gsapHome,
+      codiaHome,
       workspace,
       authorizedFolders: [authorized],
       mode: "standard",

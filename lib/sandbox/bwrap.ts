@@ -91,13 +91,13 @@ function addMount(args, op, source, target, createdDirs, opts = {}) {
 }
 
 function addPrivateRuntimeEnv(args) {
-  const runtimeDirs = ["/tmp/gsap-home", "/tmp/gsap-cache", "/tmp/gsap-npm-cache", "/tmp/gsap-pip-cache"];
+  const runtimeDirs = ["/tmp/codia-home", "/tmp/codia-cache", "/tmp/codia-npm-cache", "/tmp/codia-pip-cache"];
   for (const dir of runtimeDirs) args.push("--dir", dir);
   args.push(
-    "--setenv", "HOME", "/tmp/gsap-home",
-    "--setenv", "XDG_CACHE_HOME", "/tmp/gsap-cache",
-    "--setenv", "npm_config_cache", "/tmp/gsap-npm-cache",
-    "--setenv", "PIP_CACHE_DIR", "/tmp/gsap-pip-cache",
+    "--setenv", "HOME", "/tmp/codia-home",
+    "--setenv", "XDG_CACHE_HOME", "/tmp/codia-cache",
+    "--setenv", "npm_config_cache", "/tmp/codia-npm-cache",
+    "--setenv", "PIP_CACHE_DIR", "/tmp/codia-pip-cache",
   );
 }
 

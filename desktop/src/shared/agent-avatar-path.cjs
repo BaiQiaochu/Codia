@@ -13,11 +13,11 @@ function isSafeAgentId(agentId) {
   );
 }
 
-function resolveAgentAvatarPath(gsapHome, agentId) {
-  if (typeof gsapHome !== "string" || gsapHome.length === 0) return null;
+function resolveAgentAvatarPath(codiaHome, agentId) {
+  if (typeof codiaHome !== "string" || codiaHome.length === 0) return null;
   if (!isSafeAgentId(agentId)) return null;
 
-  const avatarDir = path.join(gsapHome, "agents", agentId, "avatars");
+  const avatarDir = path.join(codiaHome, "agents", agentId, "avatars");
   for (const ext of AVATAR_EXTS) {
     const candidate = path.join(avatarDir, `agent.${ext}`);
     if (fs.existsSync(candidate)) return candidate;

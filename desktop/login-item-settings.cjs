@@ -1,5 +1,5 @@
-const START_AT_LOGIN_ARG = "--gsap-start-at-login";
-const LEGACY_START_AT_LOGIN_ARG = "--gsap-start-at-login";
+const START_AT_LOGIN_ARG = "--codia-start-at-login";
+const LEGACY_START_AT_LOGIN_ARG = "--codia-start-at-login";
 
 function isAutoLaunchSupported(platform) {
   return platform === "darwin" || platform === "win32";
@@ -53,7 +53,7 @@ function getAutoLaunchStatus({ app, platform = process.platform, argv = process.
   let rawSettings = app.getLoginItemSettings(options);
   if (platform === "win32") {
     const path = require("node:path");
-    const legacyOptions = getLoginItemOptions(platform, path.join(path.dirname(execPath), "BYOUNG.exe"));
+    const legacyOptions = getLoginItemOptions(platform, path.join(path.dirname(execPath), "CODIA.exe"));
     legacyOptions.args = [LEGACY_START_AT_LOGIN_ARG];
     const legacySettings = app.getLoginItemSettings(legacyOptions);
     if (legacySettings.openAtLogin === true) {

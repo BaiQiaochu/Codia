@@ -46,7 +46,7 @@ async function loadMermaid(): Promise<MermaidApi> {
 
 function nextMermaidId(): string {
   idSeq += 1;
-  return `gsap-mermaid-${idSeq}`;
+  return `codia-mermaid-${idSeq}`;
 }
 
 function errorMessage(err: unknown): string {

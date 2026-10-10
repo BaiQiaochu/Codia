@@ -14,20 +14,20 @@ describe("ChannelRouter background model filtering", () => {
   it("skips agents without runnable background models", () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "channel-router-no-model-"));
     const agentsDir = path.join(tmpDir, "agents");
-    fs.mkdirSync(path.join(agentsDir, "hana"), { recursive: true });
+    fs.mkdirSync(path.join(agentsDir, "codia"), { recursive: true });
     fs.mkdirSync(path.join(agentsDir, "mika"), { recursive: true });
-    fs.writeFileSync(path.join(agentsDir, "hana", "channels.md"), "", "utf8");
+    fs.writeFileSync(path.join(agentsDir, "codia", "channels.md"), "", "utf8");
     fs.writeFileSync(path.join(agentsDir, "mika", "channels.md"), "", "utf8");
 
     const router = new ChannelRouter({
       hub: {
         engine: {
           agentsDir,
-          canRunBackgroundTask: vi.fn((agentId) => agentId === "hana"),
+          canRunBackgroundTask: vi.fn((agentId) => agentId === "codia"),
         },
       },
     });
 
-    expect(router.getAgentOrder()).toEqual(["hana"]);
+    expect(router.getAgentOrder()).toEqual(["codia"]);
   });
 });

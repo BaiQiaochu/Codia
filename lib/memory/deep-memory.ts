@@ -1,7 +1,6 @@
 // @ts-nocheck
 /**
   *
-  *
  * 通过 snapshot diff 发现新增内容，调 LLM 拆成元事-+ 打标签，
   *
   * */
@@ -227,5 +226,5 @@ Time rule: use only dates from this time context or dates explicitly present in 
 }
 
 function buildFactExtractionPolicyOverride() {
-  return `\n\n## Memory Fact Scope Override\n- 只提取用户画像和粗颗粒近况。禁止提取工作方式偏好、协作流程偏好、工具偏好、项目工程规则、助手执行规则、文件名、命令、测试、发布、commit、push 或其他执行细节。\n- 如果一条事实描述的是“以后遇到类似任务应该怎么做”，它属于项目说明、经验库或 skill，不属于记忆事实。\n- Extract only user-profile and coarse current-state facts: identity, traits, aesthetics, interests, likes/dislikes, long-term relationships, life orientation, and broad current themes.\n- Do not extract work-style preferences, collaboration-process preferences, tool preferences, project engineering rules, assistant execution rules, filenames, commands, tests, releases, commits, pushes, or other execution details.\n- If a fact describes how to handle similar tasks in the future, it belongs in explicit project instructions, an experience library, or a skill, not memory facts.\n- If a fact describes a concrete subproblem, concrete solution, or concrete change inside a theme, do not extract it.\n- The time field must use YYYY-MM-DDTHH:MM only when supported by the summary body or Time Context. Use null when the source spans multiple local dates and the summary only has HH:MM.\n- Use broad themes such as "the user has recently been focused on memory systems" or "the user worked on G-SAP" instead of detailed execution records.`;
+  return `\n\n## Memory Fact Scope Override\n- 只提取用户画像和粗颗粒近况。禁止提取工作方式偏好、协作流程偏好、工具偏好、项目工程规则、助手执行规则、文件名、命令、测试、发布、commit、push 或其他执行细节。\n- 如果一条事实描述的是“以后遇到类似任务应该怎么做”，它属于项目说明、经验库或 skill，不属于记忆事实。\n- Extract only user-profile and coarse current-state facts: identity, traits, aesthetics, interests, likes/dislikes, long-term relationships, life orientation, and broad current themes.\n- Do not extract work-style preferences, collaboration-process preferences, tool preferences, project engineering rules, assistant execution rules, filenames, commands, tests, releases, commits, pushes, or other execution details.\n- If a fact describes how to handle similar tasks in the future, it belongs in explicit project instructions, an experience library, or a skill, not memory facts.\n- If a fact describes a concrete subproblem, concrete solution, or concrete change inside a theme, do not extract it.\n- The time field must use YYYY-MM-DDTHH:MM only when supported by the summary body or Time Context. Use null when the source spans multiple local dates and the summary only has HH:MM.\n- Use broad themes such as "the user has recently been focused on memory systems" or "the user worked on Codia" instead of detailed execution records.`;
 }

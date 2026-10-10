@@ -16,13 +16,13 @@ describe('settings toggle styles', () => {
     const globalCss = fs.readFileSync(path.join(ROOT, 'desktop/src/styles.css'), 'utf8');
     const settingsCss = fs.readFileSync(path.join(ROOT, 'desktop/src/react/settings/Settings.module.css'), 'utf8');
 
-    expect(cssBlock(globalCss, '.hana-toggle')).toMatch(/width:\s*36px/);
-    expect(cssBlock(globalCss, '.hana-toggle')).toMatch(/height:\s*20px/);
-    expect(cssBlock(globalCss, '.hana-toggle::after')).toMatch(/left:\s*3px/);
-    expect(cssBlock(globalCss, '.hana-toggle.on::after')).toMatch(/transform:\s*translateX\(16px\)/);
+    expect(cssBlock(globalCss, '.codia-toggle')).toMatch(/width:\s*36px/);
+    expect(cssBlock(globalCss, '.codia-toggle')).toMatch(/height:\s*20px/);
+    expect(cssBlock(globalCss, '.codia-toggle::after')).toMatch(/left:\s*3px/);
+    expect(cssBlock(globalCss, '.codia-toggle.on::after')).toMatch(/transform:\s*translateX\(16px\)/);
 
-    expect(cssBlock(settingsCss, ':global(.hana-toggle.mini)')).toMatch(/width:\s*36px/);
-    expect(cssBlock(settingsCss, ':global(.hana-toggle.mini)')).toMatch(/height:\s*20px/);
-    expect(cssBlock(settingsCss, ':global(.hana-toggle.mini.on)::after')).not.toMatch(/left\s*:/);
+    expect(cssBlock(settingsCss, ':global(.codia-toggle.mini)')).toMatch(/width:\s*36px/);
+    expect(cssBlock(settingsCss, ':global(.codia-toggle.mini)')).toMatch(/height:\s*20px/);
+    expect(cssBlock(settingsCss, ':global(.codia-toggle.mini.on)::after')).not.toMatch(/left\s*:/);
   });
 });

@@ -21,9 +21,6 @@ export function FileBadgeView({ node }: NodeViewProps) {
       {isAudio && (
         <span className={styles.audioIcon} aria-hidden="true" data-testid="file-badge-audio-wave">
           <span />
-          <span />
-          <span />
-          <span />
         </span>
       )}
       <span className={styles.name}>{name}</span>

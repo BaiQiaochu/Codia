@@ -37,7 +37,7 @@ describe("execution lease registry", () => {
       issueExecutionLease,
       consumeExecutionLease,
     } = await import("../core/execution-lease-registry.js");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-leases-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-leases-"));
 
     expect(ensureExecutionLeaseRegistry(tmpDir)).toMatchObject({ schemaVersion: 1, leases: [] });
     const issued = issueExecutionLease(tmpDir, baseLease(), {
@@ -58,7 +58,7 @@ describe("execution lease registry", () => {
       consumeExecutionLease,
       revokeExecutionLease,
     } = await import("../core/execution-lease-registry.js");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-leases-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-leases-"));
 
     expect(() => issueExecutionLease(tmpDir, baseLease({
       leaseId: "lease_write",

@@ -18,7 +18,7 @@ const checks = [
     id: "connector-configuration",
     title: "Connector configuration",
     desktop: [exists("desktop/src/react/settings/tabs/BridgeTab.tsx"), contains("desktop/src/react/settings/tabs/bridge/useBridgeState.ts", "/api/bridge/config")],
-    pwa: [contains("desktop/src/react/settings/api.ts", "__GSAP_PWA__"), contains("scripts/launch.js", "GSAP_SERVER_SCOPE")],
+    pwa: [contains("desktop/src/react/settings/api.ts", "__CODIA_PWA__"), contains("scripts/launch.js", "CODIA_SERVER_SCOPE")],
     cli: [contains("lib/cli/bridge-status.ts", "readBridgeStatusSafe"), contains("lib/cli/bridge-status.ts", "/bridge/status")],
   },
   {
@@ -64,14 +64,14 @@ const checks = [
     id: "session-recovery",
     title: "Session recovery",
     desktop: [anyExists(["server/routes/sessions.ts", "server/routes/sessions.js"]), containsAny(["core/bridge-session-manager.ts", "core/bridge-session-manager.js"], "readIndex")],
-    pwa: [contains("desktop/src/react/hooks/use-gsap-fetch.ts", "serverUrl")],
+    pwa: [contains("desktop/src/react/hooks/use-codia-fetch.ts", "serverUrl")],
     cli: [contains("lib/cli/main.ts", "commandSessions"), contains("lib/cli/main.ts", "sessions/switch")],
   },
   {
     id: "model-context-length",
     title: "Model context length",
     desktop: [anyExists(["core/model-token-limits.ts", "core/model-token-limits.js"]), exists("desktop/src/react/settings/helpers.ts")],
-    pwa: [contains("desktop/src/react/settings/api.ts", "gsapFetch")],
+    pwa: [contains("desktop/src/react/settings/api.ts", "codiaFetch")],
     cli: [contains("lib/cli/main.ts", "models")],
   },
   {
@@ -83,7 +83,7 @@ const checks = [
       exists("lib/cli/main.ts"),
       exists("lib/cli/commands.ts"),
       exists("lib/cli/permission-mode.ts"),
-      contains("scripts/gsapctl.mjs", "runCliMain"),
+      contains("scripts/codiactl.mjs", "runCliMain"),
     ],
   },
   {

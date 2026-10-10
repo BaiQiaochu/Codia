@@ -16,9 +16,9 @@ const MODULES = [
 ] as const;
 
 const CARD_GUIDE = `
-G-SAP interactive card design handbook for show_card.
+Codia interactive card design handbook for show_card.
 
-You are generating HTML or SVG fragments that render inside an iframe in G-SAP chat.
+You are generating HTML or SVG fragments that render inside an iframe in Codia chat.
 Follow these rules exactly. The card should feel like a compact paper extension of the conversation, not an unrelated embedded web page.
 
 Section 0. Design philosophy
@@ -319,10 +319,10 @@ Section 13. Fallback rules
 
 export function createCardGuideTool() {
   return {
-    name: "hana_card_guide",
-    label: "G-SAP Card Guide",
+    name: "codia_card_guide",
+    label: "Codia Card Guide",
     description:
-      "Return the G-SAP interactive card design rules. This legacy tool name is kept for SDK compatibility.",
+      "Return the Codia interactive card design rules. This legacy tool name is kept for SDK compatibility.",
     parameters: Type.Object({
       modules: Type.Optional(Type.Array(Type.String(), {
         description: "Optional guide modules to focus on.",

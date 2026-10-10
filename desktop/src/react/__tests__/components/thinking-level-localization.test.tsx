@@ -10,8 +10,8 @@ vi.mock('../../hooks/use-i18n', () => ({
   }),
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: vi.fn(),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: vi.fn(),
 }));
 
 const storeState = {

@@ -51,8 +51,8 @@ export function projectOversizedSessionEntry(entry, { originalByteLength = null 
   if (projected && typeof projected === "object" && !Array.isArray(projected)) {
     return {
       ...projected,
-      gsapRepair: {
-        ...(projected.gsapRepair || {}),
+      codiaRepair: {
+        ...(projected.codiaRepair || {}),
         oversizedLineProjected: true,
         ...(originalByteLength ? { originalByteLength } : {}),
       },
@@ -82,7 +82,7 @@ function projectSessionValue(value, seen, context) {
   if (typeof value === "string") {
     const limit = context.inToolArgs ? 512 : DEFAULT_SESSION_JSONL_MAX_STRING_CHARS;
     if (value.length <= limit) return value;
-    return `[omitted ${value.length} chars by G-SAP session JSONL guard]`;
+    return `[omitted ${value.length} chars by Codia session JSONL guard]`;
   }
   if (!value || typeof value !== "object") return value;
   if (seen.has(value)) return "[circular]";
@@ -93,7 +93,7 @@ function projectSessionValue(value, seen, context) {
       .slice(0, DEFAULT_SESSION_JSONL_MAX_ARRAY_ITEMS)
       .map((item) => projectSessionValue(item, seen, context));
     if (value.length > DEFAULT_SESSION_JSONL_MAX_ARRAY_ITEMS) {
-      items.push(`[omitted ${value.length - DEFAULT_SESSION_JSONL_MAX_ARRAY_ITEMS} items by G-SAP session JSONL guard]`);
+      items.push(`[omitted ${value.length - DEFAULT_SESSION_JSONL_MAX_ARRAY_ITEMS} items by Codia session JSONL guard]`);
     }
     seen.delete(value);
     return items;
@@ -109,7 +109,7 @@ function projectSessionValue(value, seen, context) {
     count += 1;
     const inToolArgs = context.inToolArgs || TOOL_ARG_KEYS.has(key);
     if ((LARGE_SESSION_ENTRY_KEYS.has(key) || inToolArgs) && typeof item === "string" && item.length > 512) {
-      out[key] = `[omitted ${item.length} chars by G-SAP session JSONL guard]`;
+      out[key] = `[omitted ${item.length} chars by Codia session JSONL guard]`;
       continue;
     }
     out[key] = projectSessionValue(item, seen, { ...context, inToolArgs });

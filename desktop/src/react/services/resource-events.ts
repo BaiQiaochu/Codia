@@ -1,4 +1,4 @@
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 
 export type ResourceRef =
   | { kind: 'local-file'; path: string }
@@ -69,7 +69,7 @@ export function retainResourceWatch(ref: ResourceRef): () => void {
 
 function subscribeEntry(entry: WatchEntry): Promise<void> {
   entry.released = false;
-  return gsapFetch('/api/resource-io/subscribe', {
+  return codiaFetch('/api/resource-io/subscribe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ purpose: 'resource-watch', resources: [entry.ref] }),
@@ -103,7 +103,7 @@ function releaseEntry(entry: WatchEntry): void {
   const subscriptionId = entry.subscriptionId;
   entry.subscriptionId = null;
   entry.released = true;
-  void gsapFetch(`/api/resource-io/subscriptions/${encodeURIComponent(subscriptionId)}`, {
+  void codiaFetch(`/api/resource-io/subscriptions/${encodeURIComponent(subscriptionId)}`, {
     method: 'DELETE',
   }).catch((err) => {
     console.warn('[resource-events] unwatch failed:', err);
@@ -124,7 +124,7 @@ export async function catchUpResourceEventsAfterReconnect(
   const since = lastResourceEventSequence;
   let result: ResourceCatchUpResult | null = null;
   try {
-    const response = await gsapFetch(`/api/resource-io/events?since=${encodeURIComponent(String(since))}`);
+    const response = await codiaFetch(`/api/resource-io/events?since=${encodeURIComponent(String(since))}`);
     result = await response.json();
   } catch (err) {
     console.warn('[resource-events] catch-up failed:', err);

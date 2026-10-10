@@ -2,10 +2,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FileRef } from '../../../types/file-ref';
 
-const gsapUrlMock = vi.fn((path: string) => `https://pwa.local${path}`);
+const codiaUrlMock = vi.fn((path: string) => `https://pwa.local${path}`);
 
-vi.mock('../../../hooks/use-gsap-fetch', () => ({
-  gsapUrl: (path: string) => gsapUrlMock(path),
+vi.mock('../../../hooks/use-codia-fetch', () => ({
+  codiaUrl: (path: string) => codiaUrlMock(path),
 }));
 
 function remoteImageRef(): FileRef {

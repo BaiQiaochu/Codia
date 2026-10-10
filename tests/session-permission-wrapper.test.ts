@@ -27,7 +27,7 @@ describe("session permission wrapper", () => {
     const result = await wrapped.execute("call-1", { path: "x" }, null, null, {
       ...ctx,
       traceId: "trace-permission",
-      agentId: "gsap",
+      agentId: "codia",
     });
 
     expect(tool.execute).not.toHaveBeenCalled();
@@ -36,7 +36,7 @@ describe("session permission wrapper", () => {
       traceId: "trace-permission",
       toolName: "write",
       source: "builtin",
-      agentId: "gsap",
+      agentId: "codia",
       permission: expect.objectContaining({
         mode: "read_only",
         decision: "denied",
@@ -56,7 +56,7 @@ describe("session permission wrapper", () => {
     const result = await wrapped.execute("call-1", { command: "bash -lc \"git push origin main\"" }, null, null, {
       ...ctx,
       traceId: "trace-safety",
-      agentId: "gsap",
+      agentId: "codia",
     });
 
     expect(tool.execute).not.toHaveBeenCalled();

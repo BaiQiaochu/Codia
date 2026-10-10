@@ -10,7 +10,7 @@ function textPayload(result) {
   return JSON.parse(result.content[0].text);
 }
 
-function makeCtx(sessionPath = "/tmp/agents/gsap/sessions/s1.jsonl") {
+function makeCtx(sessionPath = "/tmp/agents/codia/sessions/s1.jsonl") {
   return {
     sessionManager: {
       getSessionFile: () => sessionPath,
@@ -21,7 +21,7 @@ function makeCtx(sessionPath = "/tmp/agents/gsap/sessions/s1.jsonl") {
 const tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-current-status-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-current-status-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -54,7 +54,7 @@ describe("current_status tool", () => {
     const tool = createCurrentStatusTool({
       now: () => new Date("2026-05-03T19:30:00.000Z"),
       getTimezone: () => "Asia/Shanghai",
-      getAgent: () => ({ id: "gsap", agentName: "G-SAP" }),
+      getAgent: () => ({ id: "codia", agentName: "Codia" }),
       getSessionModel: () => ({ id: "claude-sonnet-4-5", provider: "anthropic", name: "Claude Sonnet 4.5" }),
     });
 
@@ -73,7 +73,7 @@ describe("current_status tool", () => {
     ]);
     expect(payload.usage).toContain("list");
     expect(payload.usage).toContain("get");
-    expect(JSON.stringify(payload)).not.toContain("G-SAP");
+    expect(JSON.stringify(payload)).not.toContain("Codia");
     expect(JSON.stringify(payload)).not.toContain("claude-sonnet-4-5");
     expect(JSON.stringify(payload)).not.toContain("2026-05-03T19:30:00.000Z");
   });
@@ -82,7 +82,7 @@ describe("current_status tool", () => {
     const tool = createCurrentStatusTool({
       now: () => new Date("2026-05-03T19:30:00.000Z"),
       getTimezone: () => "Asia/Shanghai",
-      getAgent: () => ({ id: "gsap", agentName: "G-SAP" }),
+      getAgent: () => ({ id: "codia", agentName: "Codia" }),
       getSessionModel: () => ({ id: "claude-sonnet-4-5", provider: "anthropic", name: "Claude Sonnet 4.5" }),
     });
 
@@ -96,7 +96,7 @@ describe("current_status tool", () => {
         utcOffset: "+08:00",
       },
     });
-    expect(JSON.stringify(payload)).not.toContain("G-SAP");
+    expect(JSON.stringify(payload)).not.toContain("Codia");
     expect(JSON.stringify(payload)).not.toContain("claude-sonnet-4-5");
   });
 
@@ -119,7 +119,7 @@ describe("current_status tool", () => {
 
   it("returns only agent fields for get agent", async () => {
     const tool = createCurrentStatusTool({
-      getAgent: () => ({ id: "gsap", agentName: "G-SAP" }),
+      getAgent: () => ({ id: "codia", agentName: "Codia" }),
       now: () => new Date("2026-05-03T19:30:00.000Z"),
     });
 
@@ -127,8 +127,8 @@ describe("current_status tool", () => {
 
     expect(payload).toEqual({
       agent: {
-        id: "gsap",
-        name: "G-SAP",
+        id: "codia",
+        name: "Codia",
       },
     });
   });
@@ -136,14 +136,14 @@ describe("current_status tool", () => {
   it("returns direct avatar image blocks for appearance when the current model supports images", async () => {
     const root = makeTempDir();
     const userDir = path.join(root, "user");
-    const agentDir = path.join(root, "agents", "gsap");
+    const agentDir = path.join(root, "agents", "codia");
     writeAvatar(userDir, "user", "user image bytes");
     writeAvatar(agentDir, "agent", "agent image bytes");
 
     const tool = createCurrentStatusTool({
       getAgent: () => ({
-        id: "gsap",
-        agentName: "G-SAP",
+        id: "codia",
+        agentName: "Codia",
         userName: "Sample User",
         userDir,
         agentDir,
@@ -169,19 +169,19 @@ describe("current_status tool", () => {
   it("returns no appearance image when only the built-in default avatar exists", async () => {
     const root = makeTempDir();
     const userDir = path.join(root, "user");
-    const agentDir = path.join(root, "agents", "gsap");
+    const agentDir = path.join(root, "agents", "codia");
     fs.mkdirSync(path.join(root, "desktop", "src", "assets"), { recursive: true });
-    fs.writeFileSync(path.join(root, "desktop", "src", "assets", "G-SAP.png"), Buffer.from("default-avatar"));
+    fs.writeFileSync(path.join(root, "desktop", "src", "assets", "codia.png"), Buffer.from("default-avatar"));
 
     const tool = createCurrentStatusTool({
       getAgent: () => ({
-        id: "gsap",
-        agentName: "G-SAP",
+        id: "codia",
+        agentName: "Codia",
         userName: "User",
         userDir,
         agentDir,
         productDir: root,
-        config: { agent: { name: "G-SAP", yuan: "gsap" } },
+        config: { agent: { name: "Codia", yuan: "codia" } },
       }),
       getCurrentModel: () => ({ id: "gpt-4o", provider: "openai", input: ["text", "image"] }),
     });
@@ -199,14 +199,14 @@ describe("current_status tool", () => {
   it("returns explicit unavailable appearance when avatars exist but neither auxiliary vision nor direct image input is available", async () => {
     const root = makeTempDir();
     const userDir = path.join(root, "user");
-    const agentDir = path.join(root, "agents", "gsap");
+    const agentDir = path.join(root, "agents", "codia");
     writeAvatar(userDir, "user", "user image bytes");
     writeAvatar(agentDir, "agent", "agent image bytes");
 
     const tool = createCurrentStatusTool({
       getAgent: () => ({
-        id: "gsap",
-        agentName: "G-SAP",
+        id: "codia",
+        agentName: "Codia",
         userName: "Sample User",
         userDir,
         agentDir,
@@ -232,7 +232,7 @@ describe("current_status tool", () => {
   it("summarizes custom avatar appearance through the auxiliary vision bridge when available", async () => {
     const root = makeTempDir();
     const userDir = path.join(root, "user");
-    const agentDir = path.join(root, "agents", "gsap");
+    const agentDir = path.join(root, "agents", "codia");
     writeAvatar(userDir, "user", "user image bytes");
     writeAvatar(agentDir, "agent", "agent image bytes");
     const summarizeResources = vi.fn(async ({ resources }) => ({
@@ -246,8 +246,8 @@ describe("current_status tool", () => {
 
     const tool = createCurrentStatusTool({
       getAgent: () => ({
-        id: "gsap",
-        agentName: "G-SAP",
+        id: "codia",
+        agentName: "Codia",
         userName: "Sample User",
         userDir,
         agentDir,
@@ -260,7 +260,7 @@ describe("current_status tool", () => {
     const payload = textPayload(result);
 
     expect(summarizeResources).toHaveBeenCalledWith(expect.objectContaining({
-      sessionPath: "/tmp/agents/gsap/sessions/s1.jsonl",
+      sessionPath: "/tmp/agents/codia/sessions/s1.jsonl",
       userRequest: expect.stringContaining("appearance"),
       resources: [
         expect.objectContaining({ label: "user custom avatar" }),
@@ -367,7 +367,7 @@ describe("current_status tool", () => {
 
     expect(payload).toEqual({
       session_files: {
-        sessionPath: "/tmp/agents/gsap/sessions/s1.jsonl",
+        sessionPath: "/tmp/agents/codia/sessions/s1.jsonl",
         registryAvailable: true,
         files: [{
           fileId: "sf_browser",
@@ -407,7 +407,7 @@ describe("current_status tool", () => {
             platformLabel: "WeChat",
             chatType: "dm",
             role: "owner",
-            sessionKey: "wx_dm_owner@gsap",
+            sessionKey: "wx_dm_owner@codia",
             notificationHint: {
               channels: ["bridge_owner"],
               bridgePlatforms: ["wechat"],
@@ -426,7 +426,7 @@ describe("current_status tool", () => {
         platformLabel: "WeChat",
         chatType: "dm",
         role: "owner",
-        sessionKey: "wx_dm_owner@gsap",
+        sessionKey: "wx_dm_owner@codia",
         agentId: null,
         userId: null,
         chatId: null,

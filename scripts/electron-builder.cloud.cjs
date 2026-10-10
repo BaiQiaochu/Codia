@@ -3,7 +3,7 @@ const { build } = require('../package.json');
 
 module.exports = {
   ...build,
-  publish: [{ provider: 'github', owner: 'BaiQiaochu', repo: 'g-sap-ggow' }],
+  publish: [{ provider: 'github', owner: 'BaiQiaochu', repo: 'Codia' }],
   mac: {
     ...build.mac,
     // Ad-hoc signing supports Apple Silicon; Developer ID/notarization is separate.

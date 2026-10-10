@@ -29,8 +29,8 @@ function createMocks() {
     stop: vi.fn(),
   };
   const engine = {
-    getAgent: vi.fn((id) => id === "hana"
-      ? { id: "hana", agentName: "T", config: { bridge: { telegram: { owner: "owner123" } }, models: { chat: { id: "gpt-5", provider: "openai" } } }, sessionDir: os.tmpdir() }
+    getAgent: vi.fn((id) => id === "codia"
+      ? { id: "codia", agentName: "T", config: { bridge: { telegram: { owner: "owner123" } }, models: { chat: { id: "gpt-5", provider: "openai" } } }, sessionDir: os.tmpdir() }
       : null),
     isBridgeSessionStreaming: vi.fn(() => false),
     isSessionStreaming: vi.fn(() => false),
@@ -38,8 +38,8 @@ function createMocks() {
     steerBridgeSession: vi.fn(() => false),
     bridgeSessionManager: { injectMessage: vi.fn(() => true), readIndex: () => ({}), writeIndex: () => {} },
     agentName: "T",
-    hanakoHome: os.tmpdir(),
-    currentAgentId: "hana",
+    codiaHome: os.tmpdir(),
+    currentAgentId: "codia",
     listSessions: vi.fn(async () => []),
   };
   const hub = {
@@ -52,7 +52,7 @@ function createMocks() {
   (engine as any).rcState = slashSystem.rcState;
 
   const bm = new BridgeManager({ engine, hub });
-  bm._platforms.set("telegram:hana", { adapter, status: "connected", agentId: "hana", platform: "telegram" });
+  bm._platforms.set("telegram:codia", { adapter, status: "connected", agentId: "codia", platform: "telegram" });
   bm.blockStreaming = false;
 
   return { bm, adapter, engine, hub, rcState: slashSystem.rcState };
@@ -64,7 +64,7 @@ function primeRcPending({ rcState, engine, sessionKey, options }) {
     promptText: "menu",
     options,
   });
-  engine.listSessions.mockResolvedValue(options.map(option => ({ path: option.path, agentId: "hana" })));
+  engine.listSessions.mockResolvedValue(options.map(option => ({ path: option.path, agentId: "codia" })));
 }
 
 describe("BridgeManager RC pending-selection interception", () => {
@@ -76,16 +76,16 @@ describe("BridgeManager RC pending-selection interception", () => {
     primeRcPending({
       rcState,
       engine,
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       options: [{ path: "/fake/s.jsonl", title: "架构" }],
     });
 
     await bm._handleMessage("telegram", {
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       text: "1",
       userId: "owner123",
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     // hub.send 不应被调用（消息被 rc 拦截）
@@ -96,7 +96,7 @@ describe("BridgeManager RC pending-selection interception", () => {
     expect(replies.some(r => /正在接管/.test(r))).toBe(true);
     expect(replies.some(r => /已接管/.test(r))).toBe(true);
     // 接管态已建立
-    expect(rcState.isAttached("tg_dm_owner123@hana")).toBe(true);
+    expect(rcState.isAttached("tg_dm_owner123@codia")).toBe(true);
   });
 
   it("non-numeric input when pending active → replies '请输入数字', does NOT send to hub", async () => {
@@ -104,16 +104,16 @@ describe("BridgeManager RC pending-selection interception", () => {
     primeRcPending({
       rcState,
       engine,
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       options: [{ path: "/a.jsonl", title: "A" }, { path: "/b.jsonl", title: "B" }],
     });
 
     await bm._handleMessage("telegram", {
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       text: "昨天那个",
       userId: "owner123",
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     await vi.advanceTimersByTimeAsync(3000);
@@ -122,7 +122,7 @@ describe("BridgeManager RC pending-selection interception", () => {
     const replies = adapter.sendReply.mock.calls.map(c => c[1]);
     expect(replies.some(r => /请输入数字编号.*1-2/.test(r))).toBe(true);
     // pending 保留
-    expect(rcState.isPending("tg_dm_owner123@hana")).toBe(true);
+    expect(rcState.isPending("tg_dm_owner123@codia")).toBe(true);
   });
 
   it("slash command ALWAYS wins over pending-selection (priority rule)", async () => {
@@ -131,16 +131,16 @@ describe("BridgeManager RC pending-selection interception", () => {
     primeRcPending({
       rcState,
       engine,
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       options: [{ path: "/a.jsonl", title: "A" }],
     });
 
     await bm._handleMessage("telegram", {
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       text: "/exitrc",
       userId: "owner123",
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     await vi.advanceTimersByTimeAsync(3000);
@@ -148,8 +148,8 @@ describe("BridgeManager RC pending-selection interception", () => {
     const replies = adapter.sendReply.mock.calls.map(c => c[1]);
     expect(replies.some(r => /已退出接管/.test(r))).toBe(true);
     // pending 和 attachment 都被 /exitrc 清掉
-    expect(rcState.isPending("tg_dm_owner123@hana")).toBe(false);
-    expect(rcState.isAttached("tg_dm_owner123@hana")).toBe(false);
+    expect(rcState.isPending("tg_dm_owner123@codia")).toBe(false);
+    expect(rcState.isAttached("tg_dm_owner123@codia")).toBe(false);
   });
 
   it("non-owner numeric input when pending active → NOT intercepted (pending is owner-only)", async () => {
@@ -160,22 +160,22 @@ describe("BridgeManager RC pending-selection interception", () => {
     primeRcPending({
       rcState,
       engine,
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       options: [{ path: "/a.jsonl", title: "A" }],
     });
 
     await bm._handleMessage("telegram", {
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       text: "1",
       userId: "random-guest",      // 非 owner
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     await vi.advanceTimersByTimeAsync(3000);
     // pending 仍保留（未被 guest 选中）
-    expect(rcState.isPending("tg_dm_owner123@hana")).toBe(true);
-    expect(rcState.isAttached("tg_dm_owner123@hana")).toBe(false);
+    expect(rcState.isPending("tg_dm_owner123@codia")).toBe(true);
+    expect(rcState.isAttached("tg_dm_owner123@codia")).toBe(false);
   });
 
   it("group messages do not consume rc pending-selection state", async () => {
@@ -183,23 +183,23 @@ describe("BridgeManager RC pending-selection interception", () => {
     primeRcPending({
       rcState,
       engine,
-      sessionKey: "tg_group_42@hana",
+      sessionKey: "tg_group_42@codia",
       options: [{ path: "/a.jsonl", title: "A" }],
     });
 
     await bm._handleMessage("telegram", {
-      sessionKey: "tg_group_42@hana",
+      sessionKey: "tg_group_42@codia",
       text: "1",
       userId: "owner123",
       chatId: "42",
       isGroup: true,
-      agentId: "hana",
+      agentId: "codia",
       senderName: "Owner",
     });
 
     await vi.advanceTimersByTimeAsync(3000);
-    expect(rcState.isPending("tg_group_42@hana")).toBe(true);
-    expect(rcState.isAttached("tg_group_42@hana")).toBe(false);
+    expect(rcState.isPending("tg_group_42@codia")).toBe(true);
+    expect(rcState.isAttached("tg_group_42@codia")).toBe(false);
     expect(hub.send).toHaveBeenCalledOnce();
   });
 
@@ -207,11 +207,11 @@ describe("BridgeManager RC pending-selection interception", () => {
     const { bm, hub } = createMocks();
 
     bm._handleMessage("telegram", {
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       text: "2",
       userId: "owner123",
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     await vi.advanceTimersByTimeAsync(2500);

@@ -37,6 +37,7 @@ import { SessionConfirmationPrompt } from './input/SessionConfirmationPrompt';
 import { CapabilityDriftNotice } from './input/CapabilityDriftNotice';
 import { InputStatusBars } from './input/InputStatusBars';
 import { InputUtilityButtons } from './input/InputUtilityButtons';
+import { ComposerAddMenu } from './input/ComposerAddMenu';
 import { AnchoredPortal } from '../ui/AnchoredPortal';
 import { serializeEditor } from '../utils/editor-serializer';
 import { buildFileMentionItems, mergeEditorFileRefs } from '../utils/file-mention-items';
@@ -53,7 +54,7 @@ import {
 import { useSkillSlashItems } from '../hooks/use-slash-items';
 import { notifyPasteUploadFailure } from '../utils/paste-upload-feedback';
 import { extractPlainUrlPaste } from '../utils/plain-url-paste';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import { prepareChatImageUpload } from '../utils/chat-image-upload-compression';
 import { requestPromptOptimization } from '../utils/prompt-optimizer';
 import { requestResearchReport } from '../utils/research-mode';
@@ -268,7 +269,7 @@ async function buildPromptWsMessage({
     finalText = finalText ? `${finalText}\n\n${fileBlock}` : fileBlock;
   }
 
-  const gsap = getDesktopApi();
+  const codia = getDesktopApi();
   const images: Array<{ type: 'image'; data: string; mimeType: string }> = [];
   const videos: Array<{ type: 'video'; data: string; mimeType: string }> = [];
   const imageBase64Map = new Map<string, { base64Data: string; mimeType: string }>();
@@ -278,7 +279,7 @@ async function buildPromptWsMessage({
     try {
       const prepared = await prepareImageAttachmentForVision(
         img,
-        gsap?.readFileBase64 ? gsap.readFileBase64.bind(gsap) : undefined,
+        codia?.readFileBase64 ? codia.readFileBase64.bind(codia) : undefined,
       );
       if (prepared.base64Data && prepared.mimeType) {
         imageBase64Map.set(prepared.path, { base64Data: prepared.base64Data, mimeType: prepared.mimeType });
@@ -295,8 +296,8 @@ async function buildPromptWsMessage({
         const mimeType = chatVideoMimeTypeForName(video.name, video.mimeType);
         videoBase64Map.set(video.path, { base64Data: video.base64Data, mimeType });
         videos.push({ type: 'video', data: video.base64Data, mimeType });
-      } else if (gsap?.readFileBase64) {
-        const base64 = await gsap.readFileBase64(video.path);
+      } else if (codia?.readFileBase64) {
+        const base64 = await codia.readFileBase64(video.path);
         if (base64) {
           const mimeType = chatVideoMimeTypeForName(video.name, video.mimeType);
           videoBase64Map.set(video.path, { base64Data: base64, mimeType });
@@ -511,11 +512,11 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
   const [researching, setResearching] = useState(false);
   const workspaceTool = useStore(s => s.workspaceTool);
   const setWorkspaceTool = useStore(s => s.setWorkspaceTool);
-  const [workspaceToolMenuOpen, setWorkspaceToolMenuOpen] = useState(false);
-  const slashBtnRef = useRef<HTMLButtonElement>(null);
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
+  const addMenuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (!visible) setWorkspaceToolMenuOpen(false);
+    if (!visible) setAddMenuOpen(false);
   }, [visible]);
 
   const isComposing = useRef(false);
@@ -527,11 +528,10 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
   const fileMentionSearchSeqRef = useRef(0);
   const slashAutoInsertTextRef = useRef<string | null>(null);
   const inputWrapperRef = useRef<HTMLDivElement | null>(null);
-  const workspaceToolMenuRef = useRef<HTMLDivElement | null>(null);
   const focusFrameRef = useRef<number | null>(null);
   const [inputText, setInputText] = useState('');
   const [fileMenuOpen, setFileMenuOpen] = useState(false);
-  const [mentionTab, setMentionTab] = useState<MentionTab>('files');
+  const [mentionTab, setMentionTab] = useState<MentionTab>('all');
   const [fileSelected, setFileSelected] = useState(0);
   const [fileMentionRange, setFileMentionRange] = useState<FileMentionRange | null>(null);
   const [fileMentionQuery, setFileMentionQuery] = useState('');
@@ -576,8 +576,8 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
       setSlashResult({ text, type, deskDir, filePath });
       setTimeout(() => setSlashResult(null), 3000);
     };
-    window.addEventListener('gsap-inline-notice', handler);
-    return () => window.removeEventListener('gsap-inline-notice', handler);
+    window.addEventListener('codia-inline-notice', handler);
+    return () => window.removeEventListener('codia-inline-notice', handler);
   }, []);
 
   // ── Placeholder ──
@@ -683,7 +683,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
   const clearDraft = useStore(s => s.clearDraft);
 
   const loadVisionAuxiliaryConfig = useCallback(async () => {
-    const res = await gsapFetch('/api/models/auxiliary-vision');
+    const res = await codiaFetch('/api/models/auxiliary-vision');
     const data = await res.json();
     const status = data?.auxiliaryVision;
     return {
@@ -806,7 +806,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
       const detail = readWorkspaceToolSelectionDetail((event as CustomEvent).detail);
       if (detail) {
         setWorkspaceTool(detail);
-        setWorkspaceToolMenuOpen(false);
+        setAddMenuOpen(false);
       }
     };
     window.addEventListener(WORKSPACE_TOOL_SELECT_EVENT, handleWorkspaceToolSelect);
@@ -815,7 +815,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
 
   const handleWorkspaceToolPick = useCallback((tool: WorkspaceToolSelection | null) => {
     setWorkspaceTool(tool ? { ...tool } : null);
-    setWorkspaceToolMenuOpen(false);
+    setAddMenuOpen(false);
   }, []);
 
   const handleOptimizePrompt = useCallback(async () => {
@@ -1151,6 +1151,11 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
   const mentionItems = useMemo<MentionMenuItem[]>(() => {
     if (mentionTab === 'sessions') return sessionMentionItems;
     if (mentionTab === 'agents') return agentMentionItems;
+    if (mentionTab === 'all') {
+      const images = fileMentionItems.filter(item => item.kind === 'image');
+      const files = fileMentionItems.filter(item => item.kind !== 'image');
+      return [...agentMentionItems, ...sessionMentionItems, ...images, ...files].slice(0, 30);
+    }
     return fileMentionItems;
   }, [mentionTab, sessionMentionItems, agentMentionItems, fileMentionItems]);
   const handleMentionTabChange = useCallback((tab: MentionTab) => {
@@ -1182,7 +1187,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
 
   useEffect(() => {
     const seq = ++fileMentionSearchSeqRef.current;
-    if (!fileMenuOpen || mentionTab !== 'files') {
+    if (!fileMenuOpen || (mentionTab !== 'files' && mentionTab !== 'all')) {
       setFileMentionSearchResults([]);
       setFileMentionBusy(false);
       return;
@@ -1281,7 +1286,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
       if (JSON.stringify(document) !== JSON.stringify(editor.getJSON())) {
         editor.commands.setContent(document, { emitUpdate: false });
       }
-    } else if (draft !== current || ['fileBadge', 'skillBadge', 'sessionBadge', 'agentBadge', 'quickActionBadge'].some(name => editorHasInlineNode(editor, name))) {
+    } else if (draft !== current || ['fileBadge', 'skillBadge', 'pluginBadge', 'sessionBadge', 'agentBadge', 'quickActionBadge'].some(name => editorHasInlineNode(editor, name))) {
       if (!draft) {
         editor.commands.setContent('', { emitUpdate: false });
       } else {
@@ -1295,7 +1300,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
   }, [editor, currentSessionPath]);
 
   useEffect(() => {
-    const e2e = window.__GSAP_E2E__;
+    const e2e = window.__CODIA_E2E__;
     if (!editor || !e2e) return;
 
     e2e.setInputText = (text: string) => {
@@ -1317,7 +1322,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
     if (!slashMenuOpen) return;
     const handler = (e: MouseEvent) => {
       if (slashMenuRef.current?.contains(e.target as Node)) return;
-      if (slashBtnRef.current?.contains(e.target as Node)) return;
+      if (addMenuButtonRef.current?.contains(e.target as Node)) return;
       dismissSlashMenu();
     };
     document.addEventListener('mousedown', handler);
@@ -1327,6 +1332,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
   //
   const hasContent = inputText.trim().length > 0 || attachedFiles.length > 0 || docContextAttached || quotedSelections.length > 0
     || editorHasInlineNode(editor, 'skillBadge')
+    || editorHasInlineNode(editor, 'pluginBadge')
     || editorHasInlineNode(editor, 'fileBadge')
     || editorHasInlineNode(editor, 'sessionBadge')
     || editorHasInlineNode(editor, 'agentBadge')
@@ -1387,7 +1393,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
             base64Data,
             mimeType,
           });
-          const res = await gsapFetch('/api/upload-blob', {
+          const res = await codiaFetch('/api/upload-blob', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1457,8 +1463,18 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
     }
   }, [deletedAgentReadOnly, restoreEditorFocus, surface]);
 
+  const handleAttachFolder = useCallback(async () => {
+    if (deletedAgentReadOnly) return;
+    try {
+      const folder = await window.platform?.selectFolder?.();
+      if (folder) await attachFilesFromPaths([folder]);
+    } finally {
+      restoreEditorFocus();
+    }
+  }, [deletedAgentReadOnly, restoreEditorFocus]);
+
   const showVoiceNotice = useCallback((text: string, type: 'success' | 'error' = 'error') => {
-    window.dispatchEvent(new CustomEvent('gsap-inline-notice', {
+    window.dispatchEvent(new CustomEvent('codia-inline-notice', {
       detail: { text, type },
     }));
   }, []);
@@ -1529,7 +1545,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
         if (currentSessionPath) formData.append('sessionPath', currentSessionPath);
 
         try {
-          const res = await gsapFetch('/api/voice/transcribe', {
+          const res = await codiaFetch('/api/voice/transcribe', {
             method: 'POST',
             body: formData,
             timeout: 120000,
@@ -1648,8 +1664,8 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
         setPermissionMode(detail.enabled ? 'read_only' : 'operate');
       }
     };
-    window.addEventListener('gsap-plan-mode', handler);
-    return () => window.removeEventListener('gsap-plan-mode', handler);
+    window.addEventListener('codia-plan-mode', handler);
+    return () => window.removeEventListener('codia-plan-mode', handler);
   }, [serverPort, setThinkingLevel]);
 
   // ── Handle slash selection (builtin vs skill) ──
@@ -1682,6 +1698,32 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
     slashDismissedTextRef.current = null;
     setSlashMenuOpen(false);
   }, [editor, handleSlashSelect]);
+
+  const handleAddSkill = useCallback((item: SlashItem) => {
+    if (!editor || item.type !== 'skill') return;
+    editor.chain()
+      .focus()
+      .insertContent({ type: 'skillBadge', attrs: { name: item.name } })
+      .insertContent(' ')
+      .run();
+    setInputText(editor.getText());
+  }, [editor]);
+
+  const handleAddPlugin = useCallback((plugin: { id: string; name: string }) => {
+    if (!editor) return;
+    editor.chain()
+      .focus()
+      .insertContent({ type: 'pluginBadge', attrs: { id: plugin.id, name: plugin.name || plugin.id } })
+      .insertContent(' ')
+      .run();
+    setInputText(editor.getText());
+  }, [editor]);
+
+  const handleAddLink = useCallback((url: string) => {
+    if (!editor) return;
+    editor.chain().focus().insertContent(`${url} `).run();
+    setInputText(editor.getText());
+  }, [editor]);
 
   // ── Send message ──
   const handleFileMentionSelect = useCallback((item: MentionMenuItem) => {
@@ -1823,7 +1865,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
     if (fileMenuOpen) {
       if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
         e.preventDefault();
-        const tabs: MentionTab[] = ['files', 'sessions', 'agents'];
+        const tabs: MentionTab[] = ['all', 'files', 'sessions', 'agents'];
         const direction = e.key === 'ArrowRight' ? 1 : -1;
         handleMentionTabChange(tabs[(tabs.indexOf(mentionTab) + direction + tabs.length) % tabs.length]);
         return true;
@@ -2057,7 +2099,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
             onTabChange={handleMentionTabChange}
             items={mentionItems}
             selected={fileSelected}
-            busy={mentionTab === 'files' && fileMentionBusy}
+            busy={(mentionTab === 'files' || mentionTab === 'all') && fileMentionBusy}
             onSelect={handleFileMentionSelect}
             onHover={(i) => setFileSelected(i)}
           />
@@ -2135,81 +2177,37 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
           <div className={styles['input-actions']}>
             <InputUtilityButtons
               t={t}
-              onAttach={handleAttach}
-              attachDisabled={deletedAgentReadOnly}
-              mobileCommands={surface === 'mobile' ? {
-                open: slashMenuOpen,
-                buttonRef: slashBtnRef,
+              addMenu={{
+                open: addMenuOpen,
+                buttonRef: addMenuButtonRef,
                 onToggle: () => {
-                  if (slashMenuOpen) dismissSlashMenu();
-                  else {
-                    slashDismissedTextRef.current = null;
-                    setSlashMenuOpen(true);
-                  }
+                  dismissSlashMenu();
+                  setFileMenuOpen(false);
+                  setAddMenuOpen(open => !open);
                 },
-              } : undefined}
-              onBeforeOpenSkills={() => {
-                dismissSlashMenu();
-                setWorkspaceToolMenuOpen(false);
               }}
             />
-            <div ref={workspaceToolMenuRef} className={styles['workspace-tool-menu-wrap']} data-no-input-focus>
-              <button
-                type="button"
-                className={`${styles['workspace-tool-menu-button']}${workspaceTool ? ` ${styles['workspace-tool-menu-button-active']}` : ''}`}
-                title={workspaceTool ? `当前工具：${workspaceTool.title}` : '选择工具'}
-                aria-label={workspaceTool ? `当前工具：${workspaceTool.title}` : '选择工具'}
-                aria-haspopup="menu"
-                aria-expanded={workspaceToolMenuOpen}
-                data-testid="workspace-tool-menu-button"
-                onClick={() => setWorkspaceToolMenuOpen(open => !open)}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M4 7h16" />
-                  <path d="M4 12h10" />
-                  <path d="M4 17h7" />
-                  <path d="m16 16 2 2 3-4" />
-                </svg>
-                <span>{workspaceTool?.title || '工具'}</span>
-              </button>
-              <AnchoredPortal
-                open={visible && workspaceToolMenuOpen}
-                anchorRef={workspaceToolMenuRef}
-                align="start"
-                offset={8}
-                viewportPadding={8}
-                onClose={() => setWorkspaceToolMenuOpen(false)}
-                className={styles['workspace-tool-menu']}
-                role="menu"
-              >
-                  <button
-                    type="button"
-                    className={`${styles['workspace-tool-menu-item']}${!workspaceTool ? ` ${styles['workspace-tool-menu-item-active']}` : ''}`}
-                    role="menuitemradio"
-                    aria-checked={!workspaceTool}
-                    onClick={() => handleWorkspaceToolPick(null)}
-                  >
-                    <span>不使用工具</span>
-                    <small>普通聊天</small>
-                  </button>
-                  {WORKSPACE_TOOL_OPTIONS.map(tool => {
-                    const active = workspaceTool?.id === tool.id;
-                    return (
-                      <button
-                        key={tool.id}
-                        type="button"
-                        className={`${styles['workspace-tool-menu-item']}${active ? ` ${styles['workspace-tool-menu-item-active']}` : ''}`}
-                        role="menuitemradio"
-                        aria-checked={active}
-                        onClick={() => handleWorkspaceToolPick(tool)}
-                      >
-                        <span>{tool.title}</span>
-                        <small>{tool.description}</small>
-                      </button>
-                    );
-                  })}
-              </AnchoredPortal>
-            </div>
+            <AnchoredPortal
+              open={visible && addMenuOpen}
+              anchorRef={addMenuButtonRef}
+              align="start"
+              offset={8}
+              viewportPadding={8}
+              onClose={() => setAddMenuOpen(false)}
+            >
+              <ComposerAddMenu
+                skills={skillItems}
+                workspaceTool={workspaceTool}
+                workspaceTools={WORKSPACE_TOOL_OPTIONS}
+                onClose={() => setAddMenuOpen(false)}
+                onAttachFiles={() => { void handleAttach(); }}
+                onAttachFolder={() => { void handleAttachFolder(); }}
+                onInsertLink={handleAddLink}
+                onSelectSkill={handleAddSkill}
+                onSelectPlugin={handleAddPlugin}
+                onSelectTool={handleWorkspaceToolPick}
+              />
+            </AnchoredPortal>
             {voiceInputSupported && (
               <button type="button"
                 className={`${styles['attach-btn']} ${styles['voice-btn']}${voiceRecording ? ` ${styles['voice-btn-active']}` : ''}`}

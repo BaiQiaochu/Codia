@@ -10,7 +10,7 @@ import { sanitizeArtifactFilename, sanitizeFilenameBase } from "../../shared/fil
 
 let _counter = 0;
 
-export function createArtifactTool({ getGsapHome, getHanakoHome, registerSessionFile, getSessionPath } = {}) {
+export function createArtifactTool({ getCodiaHome, registerSessionFile, getSessionPath } = {}) {
   return {
     name: "create_artifact",
     label: t("toolDef.artifact.label"),
@@ -34,8 +34,7 @@ export function createArtifactTool({ getGsapHome, getHanakoHome, registerSession
         artifactId,
         params,
         ctx,
-        getGsapHome,
-        getHanakoHome,
+        getCodiaHome,
         registerSessionFile,
         getSessionPath,
       });
@@ -59,21 +58,20 @@ async function persistArtifactFile({
   artifactId,
   params,
   ctx,
-  getGsapHome,
-  getHanakoHome,
+  getCodiaHome,
   registerSessionFile,
   getSessionPath,
 }) {
   if (typeof registerSessionFile !== "function") return null;
   const sessionPath = getToolSessionPath(ctx) || ctx?.sessionPath || getSessionPath?.() || null;
   if (!sessionPath) return null;
-  const gsapHome = getGsapHome?.() || getHanakoHome?.() || null;
-  if (!gsapHome) throw new Error("create_artifact requires gsapHome to persist generated artifacts");
+  const codiaHome = getCodiaHome?.() || getCodiaHome?.() || null;
+  if (!codiaHome) throw new Error("create_artifact requires codiaHome to persist generated artifacts");
 
   const ext = artifactExt(params);
   const label = sanitizeArtifactFilename(params.title || "artifact", ext);
   const filename = `${safeFilenameBase(params.title || "artifact")}-${artifactId}.${ext}`;
-  const dir = sessionFilesCacheDir(gsapHome, sessionPath);
+  const dir = sessionFilesCacheDir(codiaHome, sessionPath);
   const filePath = path.join(dir, filename);
   await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(filePath, params.content || "", "utf-8");

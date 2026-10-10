@@ -89,7 +89,7 @@ describe("SessionSummaryManager rolling summary format repair", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-rolling-format-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-rolling-format-"));
   });
 
   afterEach(() => {
@@ -152,7 +152,7 @@ describe("runMemoryReflection rolling summary format repair", () => {
       reason: "memory.reflection",
       model,
       cacheKeyParams: {},
-      systemPrompt: "You are G-SAP.",
+      systemPrompt: "You are Codia.",
       tools: [],
       messages,
     });
@@ -202,7 +202,7 @@ describe("compileFacts legacy free-form summary compatibility", () => {
     for (const logger of loggers.values()) {
       logger.warn.mockClear();
     }
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-compile-legacy-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-compile-legacy-"));
   });
 
   afterEach(() => {

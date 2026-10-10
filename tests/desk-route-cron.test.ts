@@ -34,7 +34,7 @@ describe("desk cron route", () => {
   });
 
   it("lists the studio cron store independent of the focused agent", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "hana-desk-cron-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-desk-cron-"));
     roots.push(root);
     const agentsDir = path.join(root, "agents");
     writeLegacyJobs(root, "agent-a", [
@@ -43,7 +43,7 @@ describe("desk cron route", () => {
     writeLegacyJobs(root, "agent-b", [
       { id: "job_1", type: "cron", schedule: "0 10 * * *", prompt: "b", label: "B", enabled: true, nextRunAt: "2026-05-21T02:00:00.000Z" },
     ]);
-    const service = new StudioCronService({ gsapHome: root, agentsDir, getStudioId: () => "studio-main" });
+    const service = new StudioCronService({ codiaHome: root, agentsDir, getStudioId: () => "studio-main" });
     const engine = {
       currentAgentId: "agent-a",
       getAgent: (id) => ({ id, agentName: id }),
@@ -64,10 +64,10 @@ describe("desk cron route", () => {
   });
 
   it("mutates jobs by studio job id without resolving the focused agent", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "hana-desk-cron-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-desk-cron-"));
     roots.push(root);
     const agentsDir = path.join(root, "agents");
-    const service = new StudioCronService({ gsapHome: root, agentsDir, getStudioId: () => "studio-main" });
+    const service = new StudioCronService({ codiaHome: root, agentsDir, getStudioId: () => "studio-main" });
     const job = service.addJob({
       type: "cron",
       schedule: "0 9 * * *",
@@ -104,10 +104,10 @@ describe("desk cron route", () => {
   });
 
   it("adds studio jobs only with explicit actorAgentId and executionContext", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "hana-desk-cron-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-desk-cron-"));
     roots.push(root);
     const service = new StudioCronService({
-      gsapHome: root,
+      codiaHome: root,
       agentsDir: path.join(root, "agents"),
       getStudioId: () => "studio-main",
     });
@@ -161,10 +161,10 @@ describe("desk cron route", () => {
   });
 
   it("updates schedule type and normalizes interval minutes", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "hana-desk-cron-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-desk-cron-"));
     roots.push(root);
     const service = new StudioCronService({
-      gsapHome: root,
+      codiaHome: root,
       agentsDir: path.join(root, "agents"),
       getStudioId: () => "studio-main",
     });
@@ -200,10 +200,10 @@ describe("desk cron route", () => {
   });
 
   it("allows creating a disabled Agent automation draft without a prompt", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "hana-desk-cron-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-desk-cron-"));
     roots.push(root);
     const service = new StudioCronService({
-      gsapHome: root,
+      codiaHome: root,
       agentsDir: path.join(root, "agents"),
       getStudioId: () => "studio-main",
     });
@@ -246,10 +246,10 @@ describe("desk cron route", () => {
   });
 
   it("rejects direct notify executors through the cron compatibility route", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "hana-desk-cron-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-desk-cron-"));
     roots.push(root);
     const service = new StudioCronService({
-      gsapHome: root,
+      codiaHome: root,
       agentsDir: path.join(root, "agents"),
       getStudioId: () => "studio-main",
     });
@@ -294,10 +294,10 @@ describe("desk cron route", () => {
   });
 
   it("rejects plugin-action executors through the cron compatibility route", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "hana-desk-cron-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-desk-cron-"));
     roots.push(root);
     const service = new StudioCronService({
-      gsapHome: root,
+      codiaHome: root,
       agentsDir: path.join(root, "agents"),
       getStudioId: () => "studio-main",
     });
@@ -339,10 +339,10 @@ describe("desk cron route", () => {
   });
 
   it("rejects removed file.create direct-action jobs through the cron route", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "hana-desk-cron-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-desk-cron-"));
     roots.push(root);
     const service = new StudioCronService({
-      gsapHome: root,
+      codiaHome: root,
       agentsDir: path.join(root, "agents"),
       getStudioId: () => "studio-main",
     });

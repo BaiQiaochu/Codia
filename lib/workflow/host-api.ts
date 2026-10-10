@@ -3,7 +3,7 @@ import { createStructuredOutputTool } from "./structured-output.ts";
 import { WorkflowJournal } from "./journal.ts";
 import { resolveSubagentToolAccess } from "../tools/subagent-tool-policy.ts";
 
-export const WORKFLOW_RUNTIME_CONTRACT = Symbol.for("gsap.workflow.runtimeContract");
+export const WORKFLOW_RUNTIME_CONTRACT = Symbol.for("codia.workflow.runtimeContract");
 
 const AGENT_OPTION_KEYS = new Set(["label", "model", "agentType", "toolFilter", "access", "schema"]);
 

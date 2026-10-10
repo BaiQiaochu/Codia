@@ -560,7 +560,7 @@ export function createSkillsRoute(engine: any) {
 
       // 删除目录
       rmDirSync(skillPath);
-      if (engine.gsapHome) {
+      if (engine.codiaHome) {
         removeSkillsFromBundles(engine, [name]);
       }
 

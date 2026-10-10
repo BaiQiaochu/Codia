@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
   saveGlobalSettings: vi.fn(),
   saveBridgeConfig: vi.fn(),
   savePublicIshiki: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock('../../helpers', () => ({
 }));
 
 vi.mock('../../api', () => ({
-  gsapFetch: (...args: unknown[]) => mocks.gsapFetch(...args),
+  codiaFetch: (...args: unknown[]) => mocks.codiaFetch(...args),
 }));
 
 vi.mock('../../widgets/Toggle', () => ({
@@ -63,7 +63,7 @@ vi.mock('../bridge/useBridgeState', () => ({
     },
     testingPlatform: null,
     reconnectingPlatform: null,
-    selectedAgentId: 'gsap',
+    selectedAgentId: 'codia',
     publicIshiki: '',
     tgToken: 'telegram-token',
     fsAppId: '',
@@ -103,7 +103,7 @@ function expectSettingsSectionHeader(headingText: string) {
 describe('settings tab layout parity', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.gsapFetch.mockImplementation(async (path: string) => {
+    mocks.codiaFetch.mockImplementation(async (path: string) => {
       if (path.startsWith('/api/plugins/image-gen/providers')) {
         return {
           json: async () => ({
@@ -170,7 +170,7 @@ describe('settings tab layout parity', () => {
     });
     useSettingsStore.setState({
       ready: true,
-      currentAgentId: 'gsap',
+      currentAgentId: 'codia',
       settingsAgentId: null,
       serverPort: 52022,
     });

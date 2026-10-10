@@ -50,15 +50,15 @@ function atomicWriteJSON(filePath, data) {
 /**
   *
  *
- * @param {string} gsapHome - 用户数据根目录（~/.gsap-dev- * @param {string} agentsDir - agents 目录
+ * @param {string} codiaHome - 用户数据根目录（~/.codia-dev- * @param {string} agentsDir - agents 目录
  * @param {(msg: string) => void} log - 日志回调
  */
-export function migrateToProvidersYaml(gsapHome, agentsDir, log = () => {}) {
-  const providersPath = path.join(gsapHome, "added-models.yaml");
-  const prefsPath = path.join(gsapHome, "user", "preferences.json");
+export function migrateToProvidersYaml(codiaHome, agentsDir, log = () => {}) {
+  const providersPath = path.join(codiaHome, "added-models.yaml");
+  const prefsPath = path.join(codiaHome, "user", "preferences.json");
 
  //
-  const oldPath = path.join(gsapHome, "providers.yaml");
+  const oldPath = path.join(codiaHome, "providers.yaml");
   if (fs.existsSync(oldPath) && !fs.existsSync(providersPath)) {
     fs.renameSync(oldPath, providersPath);
     log("[migrate-providers] providers.yaml renamed to added-models.yaml");
@@ -82,7 +82,7 @@ export function migrateToProvidersYaml(gsapHome, agentsDir, log = () => {}) {
     const data = existingRaw || {};
     data._migrated = true;
     const header =
-      "# G-SAP 供应商配置（全局，跨 agent 共享）\n" +
+      "# Codia 供应商配置（全局，跨 agent 共享）\n" +
       "# 由设置页面管理\n\n";
     atomicWriteYAML(providersPath, data, header);
     log("[migrate-providers] no legacy data to migrate; marked complete");
@@ -189,7 +189,7 @@ export function migrateToProvidersYaml(gsapHome, agentsDir, log = () => {}) {
   raw.providers = providers;
   raw._migrated = true;
   const header =
-    "# G-SAP 供应商配置（全局，跨 agent 共享）\n" +
+    "# Codia 供应商配置（全局，跨 agent 共享）\n" +
     "# 由设置页面管理\n\n";
   atomicWriteYAML(providersPath, raw, header);
   log("[migrate-providers] added-models.yaml updated");

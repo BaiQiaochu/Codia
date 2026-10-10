@@ -1,10 +1,10 @@
 import { normalizeYuanKey } from './yuan';
 import { getYuanVisual } from '../../../../shared/yuan-visuals.ts';
 
-export const DEFAULT_ASSISTANT_AVATAR = 'character-cards/gsap-default-avatar.png';
+export const DEFAULT_ASSISTANT_AVATAR = 'character-cards/codia-default-avatar.png';
 
 export const YUAN_FALLBACK_AVATARS: Record<string, string> = {
-  gsap: DEFAULT_ASSISTANT_AVATAR,
+  codia: DEFAULT_ASSISTANT_AVATAR,
   hermes: DEFAULT_ASSISTANT_AVATAR,
   butter: DEFAULT_ASSISTANT_AVATAR,
   ming: DEFAULT_ASSISTANT_AVATAR,

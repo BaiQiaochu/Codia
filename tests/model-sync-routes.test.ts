@@ -928,7 +928,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -957,7 +957,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: (id) => id === "openai-codex" ? ["gpt-5.4", "gpt-5.3-codex"] : [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -989,8 +989,7 @@ describe("model sync related routes", () => {
         getDefaultModels: (id) => id === "openai" ? ["gpt-5.5", "gpt-5.4"] : [],
         allowsMissingApiKey: () => false,
       },
-      gsapHome: "/tmp",
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1029,7 +1028,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1074,7 +1073,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1116,7 +1115,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1166,7 +1165,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1208,7 +1207,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1249,7 +1248,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1301,7 +1300,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1346,7 +1345,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1386,7 +1385,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1432,7 +1431,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1484,7 +1483,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1578,7 +1577,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1620,7 +1619,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1655,7 +1654,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1690,7 +1689,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1735,7 +1734,7 @@ describe("model sync related routes", () => {
           ];
         },
       },
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1782,8 +1781,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: (id) => id === "zhipu" ? ["glm-5.1", "glm-5", "glm-4.7-flash"] : [],
       },
-      hanakoHome: "/tmp",
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1826,8 +1824,7 @@ describe("model sync related routes", () => {
           },
         }),
       },
-      hanakoHome: "/tmp",
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1944,7 +1941,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: () => "openai-codex",
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -1974,7 +1971,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2004,7 +2001,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: (id) => id === "deepseek" ? ["deepseek-v4-pro", "deepseek-v4-flash"] : [],
       },
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2039,7 +2036,7 @@ describe("model sync related routes", () => {
           return null;
         },
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2079,7 +2076,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2134,7 +2131,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2187,7 +2184,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2227,8 +2224,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2275,7 +2271,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2311,7 +2307,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2344,7 +2340,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: (id) => id === "minimax-token-plan" ? ["MiniMax-M2.7"] : [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2380,7 +2376,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2420,7 +2416,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2455,8 +2451,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2495,7 +2490,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2528,7 +2523,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: (id) => id === "kimi-coding" ? ["kimi-k2.6", "kimi-k2.5"] : [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));
@@ -2561,7 +2556,7 @@ describe("model sync related routes", () => {
         getAuthJsonKey: (id) => id,
         getDefaultModels: () => [],
       },
-      hanakoHome: "/tmp",
+      codiaHome: "/tmp",
     });
 
     app.route("/api", createProvidersRoute(engine));

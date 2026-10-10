@@ -3,7 +3,7 @@
  */
 
 import { useStore } from '../stores';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import type { Model } from '../types';
 import { errorBus } from '../../../../shared/error-bus.ts';
 import { AppError } from '../../../../shared/errors.ts';
@@ -36,7 +36,7 @@ export async function loadModels(options: { sessionPath?: string | null } = {}):
   try {
     healStaleSessionState();
     const requestSessionPath = options.sessionPath ?? useStore.getState().currentSessionPath ?? null;
-    const res = await gsapFetch('/api/models');
+    const res = await codiaFetch('/api/models');
     const data = await res.json() as { activeModel?: Pick<Model, 'id' | 'provider'> | null; models?: Model[] };
     const state = useStore.getState();
     if (requestSessionPath && state.currentSessionPath !== requestSessionPath) return;

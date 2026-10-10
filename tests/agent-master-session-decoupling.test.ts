@@ -52,7 +52,7 @@ function bootstrapAgentDir(rootDir) {
     [
       "agent:",
       "  name: TestAgent",
-      "  yuan: gsap",
+      "  yuan: codia",
       "user:",
       "  name: Tester",
       "locale: en",
@@ -87,7 +87,7 @@ describe("agent prompt cache decoupling", () => {
   let agentsDir;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-master-decouple-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-master-decouple-"));
     ({ agentsDir } = bootstrapAgentDir(tmpDir));
   });
 
@@ -232,12 +232,12 @@ describe("agent prompt cache decoupling", () => {
 
     const prompt = agent.buildSystemPrompt({
       forceMemoryEnabled: false,
-      cwdOverride: "/workspace/Desktop/project-gsap",
+      cwdOverride: "/workspace/Desktop/project-codia",
     });
 
     expect(prompt).toContain("## 数据存放");
     expect(prompt).toMatch(/用户所说的.*数据存放.*工作空间.*当前工作目录.*不是系统桌面/s);
-    expect(prompt).toContain("当前工作目录：/workspace/Desktop/project-gsap");
+    expect(prompt).toContain("当前工作目录：/workspace/Desktop/project-codia");
     expect(prompt).not.toContain("## 书桌");
 
     await agent.dispose();

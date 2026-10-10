@@ -166,7 +166,6 @@ export class PreferencesManager {
   }
 
  //
- //
 
  /** @private 获取可修改的浅拷贝（setter 专用-*/
   _mutableCopy() {

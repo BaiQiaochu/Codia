@@ -1,7 +1,6 @@
 // @ts-nocheck
 /**
   *
-  *
  * @typedef {Object} BrowserTransport
  * @property {(msg: object) => void} send
  * @property {(handler: (msg: object) => void) => void} onMessage

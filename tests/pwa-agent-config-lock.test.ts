@@ -15,9 +15,9 @@ describe("PWA agent config lock", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-pwa-agent-lock-"));
-    fs.mkdirSync(path.join(tempRoot, "gsap"), { recursive: true });
-    fs.writeFileSync(path.join(tempRoot, "gsap", "config.yaml"), "agent:\n  name: G-SAP\n", "utf-8");
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-pwa-agent-lock-"));
+    fs.mkdirSync(path.join(tempRoot, "codia"), { recursive: true });
+    fs.writeFileSync(path.join(tempRoot, "codia", "config.yaml"), "agent:\n  name: Codia\n", "utf-8");
   });
 
   afterEach(() => {
@@ -29,9 +29,9 @@ describe("PWA agent config lock", () => {
     const app = new Hono();
     const engine = {
       agentsDir: tempRoot,
-      currentAgentId: "gsap",
+      currentAgentId: "codia",
       setLocale: vi.fn(),
-      getAgent: vi.fn(() => ({ agentName: "G-SAP" })),
+      getAgent: vi.fn(() => ({ agentName: "Codia" })),
       invalidateAgentListCache: vi.fn(),
       updateConfig: vi.fn().mockResolvedValue(undefined),
       onProviderChanged: vi.fn().mockResolvedValue(undefined),
@@ -46,7 +46,7 @@ describe("PWA agent config lock", () => {
     route.route("/api", createAgentsRoute(engine));
     app.route("", route);
 
-    const res = await app.request("/api/agents/gsap/config", {
+    const res = await app.request("/api/agents/codia/config", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ models: { chat: { id: "gpt-4o", provider: "openai" } } }),

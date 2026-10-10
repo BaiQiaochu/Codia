@@ -14,7 +14,7 @@ export function Toggle({ on, onChange, label, ariaLabel, disabled = false, title
   const visualOn = on === true;
   const effectiveDisabled = disabled || loading;
   const className = [
-    'gsap-toggle',
+    'codia-toggle',
     visualOn ? 'on' : '',
     loading ? 'loading' : '',
   ].filter(Boolean).join(' ');
@@ -36,7 +36,7 @@ export function Toggle({ on, onChange, label, ariaLabel, disabled = false, title
           onChange(!visualOn);
         }}
       />
-      {label && <span className="gsap-toggle-label">{label}</span>}
+      {label && <span className="codia-toggle-label">{label}</span>}
     </div>
   );
 }

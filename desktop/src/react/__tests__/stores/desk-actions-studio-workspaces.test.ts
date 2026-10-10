@@ -127,7 +127,7 @@ function jsonResponse(data: unknown) {
 }
 
 let testStore = createTestStore();
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 const clearChatMock = vi.fn();
 
 vi.mock('../../stores/index', () => ({
@@ -142,8 +142,8 @@ vi.mock('../../stores/index', () => ({
   },
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 vi.mock('../../stores/agent-actions', () => ({
@@ -153,7 +153,7 @@ vi.mock('../../stores/agent-actions', () => ({
 describe('desk-actions studio workspaces', () => {
   beforeEach(() => {
     testStore = createTestStore();
-    gsapFetchMock.mockReset();
+    codiaFetchMock.mockReset();
     clearChatMock.mockReset();
   });
 
@@ -166,7 +166,7 @@ describe('desk-actions studio workspaces', () => {
       },
       deskJianContent: 'keep jian',
     });
-    gsapFetchMock.mockRejectedValue(new Error('network down'));
+    codiaFetchMock.mockRejectedValue(new Error('network down'));
     const mod = await import('../../stores/desk-actions');
 
     await mod.loadDeskFiles('', '/desk-a');
@@ -186,7 +186,7 @@ describe('desk-actions studio workspaces', () => {
         src: [{ name: 'keep.ts' }],
       },
     });
-    gsapFetchMock.mockRejectedValue(new Error('network down'));
+    codiaFetchMock.mockRejectedValue(new Error('network down'));
     const mod = await import('../../stores/desk-actions');
 
     await mod.loadDeskTreeFiles('src', { force: true, overrideDir: '/desk-a' });
@@ -195,7 +195,7 @@ describe('desk-actions studio workspaces', () => {
   });
 
   it('loads and normalizes studio workspaces', async () => {
-    gsapFetchMock.mockResolvedValue(jsonResponse({
+    codiaFetchMock.mockResolvedValue(jsonResponse({
       workspaces: [
         { workspaceId: 'default', mountId: 'default', label: 'Default', isDefault: true, capabilities: ['read'] },
         { workspaceId: 'docs', mountId: 'mount_docs', label: 'Docs', sourceKind: 'storage', provider: 'local_fs', presentation: 'folder', capabilities: ['read', 'write'] },
@@ -232,7 +232,7 @@ describe('desk-actions studio workspaces', () => {
   });
 
   it('applies a studio workspace through the workbench file API', async () => {
-    gsapFetchMock.mockImplementation((url: string) => {
+    codiaFetchMock.mockImplementation((url: string) => {
       if (url === '/api/workbench/files?mountId=mount_docs') {
         return Promise.resolve(jsonResponse({
           mountId: 'mount_docs',
@@ -274,7 +274,7 @@ describe('desk-actions studio workspaces', () => {
         { workspaceId: 'docs', mountId: 'mount_docs', label: 'Docs', sourceKind: 'storage', provider: 'local_fs', presentation: 'folder', capabilities: [], isDefault: false, nativeRootPath: null },
       ],
     });
-    gsapFetchMock.mockImplementation((url: string, init?: { method?: string }) => {
+    codiaFetchMock.mockImplementation((url: string, init?: { method?: string }) => {
       if (url === '/api/studio/workspaces/mount_docs' && init?.method === 'DELETE') {
         return Promise.resolve(jsonResponse({ ok: true }));
       }
@@ -292,7 +292,7 @@ describe('desk-actions studio workspaces', () => {
     await expect(mod.removeStudioWorkspace('mount_docs')).resolves.toBe(true);
 
     const state = testStore.getState();
-    expect(gsapFetchMock).toHaveBeenCalledWith('/api/studio/workspaces/mount_docs', { method: 'DELETE' });
+    expect(codiaFetchMock).toHaveBeenCalledWith('/api/studio/workspaces/mount_docs', { method: 'DELETE' });
     expect(state.studioWorkspaces.map(item => item.mountId)).toEqual(['default']);
     expect(state.selectedWorkspaceMountId).toBeNull();
     expect(state.selectedWorkspaceLabel).toBeNull();

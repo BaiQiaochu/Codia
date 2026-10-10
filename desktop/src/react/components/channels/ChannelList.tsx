@@ -95,7 +95,7 @@ export function ChannelListSidebar() {
         <div className={styles.channelToggleBar}>
           <span className={styles.channelToggleBarLabel}>{t('channel.toggleLabel')}</span>
           <button type="button"
-            className={`gsap-toggle${channelsEnabled ? ' on' : ''}`}
+            className={`codia-toggle${channelsEnabled ? ' on' : ''}`}
             onClick={handleToggle}
           />
         </div>

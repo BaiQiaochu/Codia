@@ -28,7 +28,7 @@ type UseSettingsStoreMock = (() => MockSettingsStore) & {
 const loadAgentsMock = vi.fn(async (..._args: unknown[]) => {});
 const loadAvatarsMock = vi.fn(async (..._args: unknown[]) => {});
 const loadSettingsSnapshotMock = vi.fn(async (..._args: unknown[]) => {});
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
 let storeState: MockSettingsStore;
 
@@ -49,7 +49,7 @@ vi.mock('../../settings/store', () => ({
 }));
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 vi.mock('../../settings/actions', () => ({
@@ -78,6 +78,8 @@ vi.mock('../../settings/tabs/SkillsTab', () => ({ SkillsTab: stubComponent('Skil
 vi.mock('../../settings/tabs/BridgeTab', () => ({ BridgeTab: stubComponent('BridgeTab') }));
 vi.mock('../../settings/tabs/ProvidersTab', () => ({ ProvidersTab: stubComponent('ProvidersTab') }));
 vi.mock('../../settings/tabs/MediaTab', () => ({ MediaTab: stubComponent('MediaTab') }));
+vi.mock('../../settings/tabs/ContextTab', () => ({ ContextTab: stubComponent('ContextTab') }));
+vi.mock('../../settings/tabs/ComputerUseSection', () => ({ ComputerUseSection: stubComponent('ComputerUseSection') }));
 vi.mock('../../settings/tabs/AboutTab', () => ({ AboutTab: stubComponent('AboutTab') }));
 vi.mock('../../settings/tabs/PluginsTab', () => ({ PluginsTab: stubComponent('PluginsTab') }));
 vi.mock('../../settings/tabs/DiagnosticsTab', () => ({ DiagnosticsTab: stubComponent('DiagnosticsTab') }));
@@ -112,7 +114,7 @@ describe('settings app smoke', () => {
       showToast: vi.fn(),
     };
 
-    gsapFetchMock.mockResolvedValue({
+    codiaFetchMock.mockResolvedValue({
       json: async () => ({ locale: 'en' }),
     });
   });
@@ -131,7 +133,7 @@ describe('settings app smoke', () => {
     const { SettingsContent } = await import('../../settings/SettingsContent');
     const { rerender } = render(<SettingsContent variant="modal" />);
     expect(screen.queryByTestId('AgentTab')).toBeNull();
-    expect(gsapFetchMock).not.toHaveBeenCalled();
+    expect(codiaFetchMock).not.toHaveBeenCalled();
     await act(async () => { resolvePort(8123); });
     await waitFor(() => expect(storeState.ready).toBe(true));
     // This file's store mock is not reactive; render the resolved state explicitly.

@@ -1,4 +1,4 @@
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import registry from '../../shared/theme-registry';
 import { refreshPreviewItemsFromFile } from './preview-file-refresh';
 import {
@@ -30,7 +30,7 @@ export async function requestMarkdownCoverGeneration({
   executorAgentId?: string;
   userGuidance?: string;
 } & MarkdownCoverTargetInput): Promise<{ ok: true; activity?: unknown } | { ok: false; error: string }> {
-  const res = await gsapFetch('/api/desk/beautify/cover', {
+  const res = await codiaFetch('/api/desk/beautify/cover', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -54,7 +54,7 @@ export async function applyMarkdownCoverImage({
   image,
 }: MarkdownCoverTargetInput & MarkdownCoverImageInput): Promise<{ ok: true; cover?: unknown } | { ok: false; error: string }> {
   const targetInput = { filePath, target } as MarkdownCoverTargetInput;
-  const res = await gsapFetch('/api/desk/beautify/cover/apply', {
+  const res = await codiaFetch('/api/desk/beautify/cover/apply', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -78,7 +78,7 @@ export async function applyMarkdownCoverPreset({
   presetId: string;
 }): Promise<{ ok: true; cover?: unknown } | { ok: false; error: string }> {
   const targetInput = { filePath, target } as MarkdownCoverTargetInput;
-  const res = await gsapFetch('/api/desk/beautify/cover/preset/apply', {
+  const res = await codiaFetch('/api/desk/beautify/cover/preset/apply', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -116,7 +116,7 @@ async function refreshAfterCover(input: MarkdownCoverTargetInput): Promise<void>
 }
 
 export function dispatchCoverNotice(text: string, type: 'success' | 'error' = 'success'): void {
-  window.dispatchEvent(new CustomEvent('gsap-inline-notice', {
+  window.dispatchEvent(new CustomEvent('codia-inline-notice', {
     detail: { text, type },
   }));
 }

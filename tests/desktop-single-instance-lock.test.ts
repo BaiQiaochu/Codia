@@ -27,11 +27,11 @@ function makeApp({ gotLock = true } = {}) {
 describe("desktop client single instance lock", () => {
   it("sets the dev userData namespace before requesting the lock", () => {
     const { app } = makeApp();
-    const defaultHome = path.join("C:", "Users", "me", ".gsap");
-    const devHome = path.join("C:", "Users", "me", ".gsap-dev");
+    const defaultHome = path.join("C:", "Users", "me", ".codia");
+    const devHome = path.join("C:", "Users", "me", ".codia-dev");
 
     const acquired = configureClientSingleInstance(app, {
-      hanakoHome: devHome,
+      codiaHome: devHome,
       defaultHome,
       onSecondInstance: vi.fn(),
     });
@@ -39,7 +39,7 @@ describe("desktop client single instance lock", () => {
     expect(acquired).toBe(true);
     expect(app.setPath).toHaveBeenCalledWith(
       "userData",
-      path.join("C:", "Users", "me", "AppData", "Roaming", "G-SAP-dev"),
+      path.join("C:", "Users", "me", "AppData", "Roaming", "Codia-dev"),
     );
     expect(app.setPath.mock.invocationCallOrder[0]).toBeLessThan(
       app.requestSingleInstanceLock.mock.invocationCallOrder[0],
@@ -48,10 +48,10 @@ describe("desktop client single instance lock", () => {
 
   it("keeps production in the legacy Electron userData namespace", () => {
     const { app } = makeApp();
-    const defaultHome = path.join("C:", "Users", "me", ".gsap");
+    const defaultHome = path.join("C:", "Users", "me", ".codia");
 
     const acquired = configureClientSingleInstance(app, {
-      hanakoHome: defaultHome,
+      codiaHome: defaultHome,
       defaultHome,
       onSecondInstance: vi.fn(),
     });
@@ -59,7 +59,7 @@ describe("desktop client single instance lock", () => {
     expect(acquired).toBe(true);
     expect(app.setPath).toHaveBeenCalledWith(
       "userData",
-      path.join("C:", "Users", "me", "AppData", "Roaming", "G-SAP"),
+      path.join("C:", "Users", "me", "AppData", "Roaming", "Codia"),
     );
     expect(app.requestSingleInstanceLock).toHaveBeenCalledTimes(1);
   });
@@ -68,8 +68,8 @@ describe("desktop client single instance lock", () => {
     const { app } = makeApp({ gotLock: false });
 
     const acquired = configureClientSingleInstance(app, {
-      hanakoHome: path.join("C:", "Users", "me", ".gsap"),
-      defaultHome: path.join("C:", "Users", "me", ".gsap"),
+      codiaHome: path.join("C:", "Users", "me", ".codia"),
+      defaultHome: path.join("C:", "Users", "me", ".codia"),
       onSecondInstance: vi.fn(),
     });
 
@@ -84,8 +84,8 @@ describe("desktop client single instance lock", () => {
     const onSecondInstance = vi.fn();
 
     configureClientSingleInstance(app, {
-      hanakoHome: path.join("C:", "Users", "me", ".gsap"),
-      defaultHome: path.join("C:", "Users", "me", ".gsap"),
+      codiaHome: path.join("C:", "Users", "me", ".codia"),
+      defaultHome: path.join("C:", "Users", "me", ".codia"),
       onSecondInstance,
     });
 

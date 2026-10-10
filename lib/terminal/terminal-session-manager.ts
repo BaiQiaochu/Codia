@@ -6,8 +6,7 @@ import { randomBytes } from "crypto";
 const TERMINAL_ROOT = path.join(".ephemeral", "terminal-sessions");
 
 export interface TerminalSessionManagerOptions {
-  gsapHome?: string;
-  hanakoHome?: string;
+  codiaHome?: string;
   createBackend?: () => Promise<{
     spawn(options: any): {
       write?: (data: string) => void;
@@ -74,15 +73,14 @@ function publicEntry(entry) {
 
 export class TerminalSessionManager {
   constructor({
-    gsapHome,
-    hanakoHome,
+    codiaHome,
     createBackend = createDefaultBackend,
     now = defaultNow,
     emitEvent = null,
   }: TerminalSessionManagerOptions = {}) {
-    const home = gsapHome || hanakoHome;
-    this.gsapHome = asNonEmptyString(home, "gsapHome");
-    this.root = path.join(this.gsapHome, TERMINAL_ROOT);
+    const home = codiaHome || codiaHome;
+    this.codiaHome = asNonEmptyString(home, "codiaHome");
+    this.root = path.join(this.codiaHome, TERMINAL_ROOT);
     this._createBackend = createBackend;
     this._now = now;
     this._emitEvent = emitEvent;

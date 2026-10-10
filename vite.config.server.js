@@ -41,7 +41,7 @@ export default defineConfig({
         // Keep the server in one file; splitting causes TDZ issues across shared/core/lib/hub.
         codeSplitting: false,
         // Some bundled CJS dependencies still call require("fs") from inside the ESM bundle.
-        intro: 'import { createRequire as __gsapCreateRequire } from "node:module"; const require = __gsapCreateRequire(import.meta.url);',
+        intro: 'import { createRequire as __codiaCreateRequire } from "node:module"; const require = __codiaCreateRequire(import.meta.url);',
       },
     },
     target: "node24",

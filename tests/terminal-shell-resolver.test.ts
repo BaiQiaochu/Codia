@@ -70,15 +70,15 @@ describe("resolveTerminalShell", () => {
 
   it("uses an explicit Git Bash profile when requested", () => {
     const shellInfo = {
-      shell: "C:\\G-SAP\\resources\\git\\bin\\bash.exe",
+      shell: "C:\\Codia\\resources\\git\\bin\\bash.exe",
       args: ["-lc"],
-      bundledRoot: "C:\\G-SAP\\resources\\git",
+      bundledRoot: "C:\\Codia\\resources\\git",
     };
-    const shellEnv = { Path: "C:\\G-SAP\\resources\\git\\bin;C:\\Windows\\System32" };
+    const shellEnv = { Path: "C:\\Codia\\resources\\git\\bin;C:\\Windows\\System32" };
     const resolveWin32ShellRuntime = vi.fn(() => shellInfo);
     const getWin32ShellEnvForRuntime = vi.fn(() => shellEnv);
 
-    const resolved = resolveTerminalShell('codex exec "hello world from gsap"', {
+    const resolved = resolveTerminalShell('codex exec "hello world from codia"', {
       platform: "win32",
       profile: "git-bash",
       env: { Path: "C:\\Windows\\System32" },
@@ -88,7 +88,7 @@ describe("resolveTerminalShell", () => {
 
     expect(resolved).toEqual({
       file: shellInfo.shell,
-      args: ["-lc", 'codex exec "hello world from gsap"'],
+      args: ["-lc", 'codex exec "hello world from codia"'],
       env: shellEnv,
     });
     expect(resolveWin32ShellRuntime).toHaveBeenCalledWith({

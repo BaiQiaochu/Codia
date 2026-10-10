@@ -1,6 +1,6 @@
 /**
  * Windows manual smoke test:
- *   $env:GSAP_WIN32_SMOKE="1"; npx vitest run tests/manual/win32-packaged-smoke.test.ts
+ *   $env:CODIA_WIN32_SMOKE="1"; npx vitest run tests/manual/win32-packaged-smoke.test.ts
  *
  * Run from a development tree or unpacked install tree to verify the real Windows
  * process-launch paths. Non-Windows hosts and normal test runs skip this suite.
@@ -10,14 +10,14 @@ import os from "os";
 import path from "path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-const SMOKE_ENABLED = process.platform === "win32" && process.env.GSAP_WIN32_SMOKE === "1";
+const SMOKE_ENABLED = process.platform === "win32" && process.env.CODIA_WIN32_SMOKE === "1";
 const smokeDescribe = SMOKE_ENABLED ? describe : describe.skip;
 
 smokeDescribe("win32 packaged smoke", () => {
   let workDir: string;
 
   beforeAll(() => {
-    workDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-win32-smoke-"));
+    workDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-win32-smoke-"));
   });
 
   afterAll(async () => {
@@ -80,21 +80,21 @@ smokeDescribe("win32 packaged smoke", () => {
     const { resolveWin32SandboxHelper } = await import("../../lib/sandbox/win32-sandbox-helper.ts");
     const helper = resolveWin32SandboxHelper({ env: process.env });
     if (!helper) {
-      console.warn("[smoke] gsap-win-sandbox.exe not found; sandbox chain not verified in this tree");
+      console.warn("[smoke] codia-win-sandbox.exe not found; sandbox chain not verified in this tree");
       return;
     }
-    const gsapHome = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-smoke-home-"));
+    const codiaHome = fs.mkdtempSync(path.join(os.tmpdir(), "codia-smoke-home-"));
     try {
       const { deriveSandboxPolicy } = await import("../../lib/sandbox/policy.ts");
       const policy = deriveSandboxPolicy({
-        agentDir: gsapHome,
+        agentDir: codiaHome,
         cwd: workDir,
         workspace: workDir,
         workspaceFolders: [],
-        gsapHome,
+        codiaHome,
         mode: "standard",
       });
-      const exec = (await loadExec())({ sandbox: { policy, gsapHome, helperPath: helper } });
+      const exec = (await loadExec())({ sandbox: { policy, codiaHome, helperPath: helper } });
       const result = await exec("ipconfig", workDir, {
         onData: () => {},
         signal: undefined,
@@ -103,23 +103,23 @@ smokeDescribe("win32 packaged smoke", () => {
       });
       expect(result.exitCode).toBe(0);
     } finally {
-      fs.rmSync(gsapHome, { recursive: true, force: true });
+      fs.rmSync(codiaHome, { recursive: true, force: true });
     }
   });
 
   it("5. node-pty terminal launches and exits cleanly", async () => {
-    const gsapHome = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-smoke-term-"));
+    const codiaHome = fs.mkdtempSync(path.join(os.tmpdir(), "codia-smoke-term-"));
     try {
       const { TerminalSessionManager } = await import("../../lib/terminal/terminal-session-manager.ts");
-      const manager = new TerminalSessionManager({ gsapHome });
-      const sessionPath = path.join(gsapHome, "smoke-session.jsonl");
+      const manager = new TerminalSessionManager({ codiaHome });
+      const sessionPath = path.join(codiaHome, "smoke-session.jsonl");
       const started = await manager.start({ sessionPath, agentId: "smoke", cwd: workDir });
       expect(started.status).toBe("running");
       expect(started.terminalId).toBeTruthy();
       manager.close({ sessionPath, terminalId: started.terminalId });
       await new Promise((resolve) => setTimeout(resolve, 200));
     } finally {
-      fs.rmSync(gsapHome, { recursive: true, force: true });
+      fs.rmSync(codiaHome, { recursive: true, force: true });
     }
   });
 
@@ -133,6 +133,6 @@ smokeDescribe("win32 packaged smoke", () => {
         timeout: 30,
         env: process.env,
       }),
-    ).rejects.toMatchObject({ code: "GSAP_EXEC_CWD_MISSING" });
+    ).rejects.toMatchObject({ code: "CODIA_EXEC_CWD_MISSING" });
   });
 });

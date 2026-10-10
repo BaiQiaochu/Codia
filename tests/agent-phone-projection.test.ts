@@ -12,7 +12,7 @@ import {
 } from "../lib/conversations/agent-phone-projection.ts";
 
 function mktemp() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "hana-agent-phone-test-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-agent-phone-test-"));
 }
 
 describe("agent phone projection", () => {
@@ -27,36 +27,36 @@ describe("agent phone projection", () => {
   });
 
   it("stores each agent conversation projection under that agent directory", async () => {
-    const hanaDir = path.join(tmpDir, "agents", "hana");
+    const codiaDir = path.join(tmpDir, "agents", "codia");
     const yuiDir = path.join(tmpDir, "agents", "yui");
 
-    const hanaPath = await ensureAgentPhoneProjection({
-      agentDir: hanaDir,
-      agentId: "hana",
+    const codiaPath = await ensureAgentPhoneProjection({
+      agentDir: codiaDir,
+      agentId: "codia",
       conversationId: "dm:yui",
       conversationType: "dm",
     });
     const yuiPath = await ensureAgentPhoneProjection({
       agentDir: yuiDir,
       agentId: "yui",
-      conversationId: "dm:hana",
+      conversationId: "dm:codia",
       conversationType: "dm",
     });
 
-    expect(hanaPath).toContain(path.join("hana", "phone", "conversations"));
+    expect(codiaPath).toContain(path.join("codia", "phone", "conversations"));
     expect(yuiPath).toContain(path.join("yui", "phone", "conversations"));
-    expect(hanaPath).not.toBe(yuiPath);
-    expect(path.basename(hanaPath)).not.toContain(":");
-    expect(fs.existsSync(hanaPath)).toBe(true);
+    expect(codiaPath).not.toBe(yuiPath);
+    expect(path.basename(codiaPath)).not.toContain(":");
+    expect(fs.existsSync(codiaPath)).toBe(true);
     expect(fs.existsSync(yuiPath)).toBe(true);
   });
 
   it("records viewed state and keeps activity in the agent projection document", async () => {
-    const agentDir = path.join(tmpDir, "agents", "hana");
+    const agentDir = path.join(tmpDir, "agents", "codia");
 
     await recordAgentPhoneActivity({
       agentDir,
-      agentId: "hana",
+      agentId: "codia",
       conversationId: "ch_crew",
       conversationType: "channel",
       state: "viewed",
@@ -69,7 +69,7 @@ describe("agent phone projection", () => {
     const projection = readAgentPhoneProjection(projectionPath);
 
     expect(projection.meta).toMatchObject({
-      agentId: "hana",
+      agentId: "codia",
       conversationId: "ch_crew",
       conversationType: "channel",
       state: "viewed",
@@ -85,10 +85,10 @@ describe("agent phone projection", () => {
   });
 
   it("updates projection metadata without removing activity history", async () => {
-    const agentDir = path.join(tmpDir, "agents", "hana");
+    const agentDir = path.join(tmpDir, "agents", "codia");
     await recordAgentPhoneActivity({
       agentDir,
-      agentId: "hana",
+      agentId: "codia",
       conversationId: "ch_crew",
       conversationType: "channel",
       state: "viewed",
@@ -98,7 +98,7 @@ describe("agent phone projection", () => {
 
     await updateAgentPhoneProjectionMeta({
       agentDir,
-      agentId: "hana",
+      agentId: "codia",
       conversationId: "ch_crew",
       conversationType: "channel",
       patch: { toolMode: "write" },
@@ -110,10 +110,10 @@ describe("agent phone projection", () => {
   });
 
   it("resets a projection visibility boundary and clears the old phone session snapshot", async () => {
-    const agentDir = path.join(tmpDir, "agents", "hana");
+    const agentDir = path.join(tmpDir, "agents", "codia");
     await updateAgentPhoneProjectionMeta({
       agentDir,
-      agentId: "hana",
+      agentId: "codia",
       conversationId: "dm:yui",
       conversationType: "dm",
       patch: {
@@ -125,11 +125,11 @@ describe("agent phone projection", () => {
 
     await resetAgentPhoneProjection({
       agentDir,
-      agentId: "hana",
+      agentId: "codia",
       conversationId: "dm:yui",
       conversationType: "dm",
       visibleAfterTimestamp: "2026-05-24 11:00:00",
-      resetBy: "hana",
+      resetBy: "codia",
       timestamp: "2026-05-24T03:00:00.000Z",
     });
 
@@ -137,7 +137,7 @@ describe("agent phone projection", () => {
     expect(projection.meta).toMatchObject({
       visibleAfterTimestamp: "2026-05-24 11:00:00",
       resetAt: "2026-05-24T03:00:00.000Z",
-      resetBy: "hana",
+      resetBy: "codia",
     });
     expect((projection.meta as any).phoneSessionFile).toBeUndefined();
     expect((projection.meta as any).promptSnapshot).toBeUndefined();

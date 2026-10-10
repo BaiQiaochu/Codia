@@ -65,7 +65,7 @@ describe("office plugin tools", () => {
   let tempDir;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-office-plugin-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-office-plugin-"));
   });
 
   afterEach(() => {
@@ -177,16 +177,16 @@ describe("office plugin tools", () => {
       },
       {
         env: {
-          GSAP_DESKTOP_EXEC_PATH: "/Applications/G-SAP.app/Contents/MacOS/G-SAP",
-          GSAP_DESKTOP_IS_PACKAGED: "1",
+          CODIA_DESKTOP_EXEC_PATH: "/Applications/Codia.app/Contents/MacOS/Codia",
+          CODIA_DESKTOP_IS_PACKAGED: "1",
         },
         spawn: fakeSpawn,
       },
     );
 
     expect(observedCommand).toMatchObject({
-      command: "/Applications/G-SAP.app/Contents/MacOS/G-SAP",
-      args: ["--gsap-office-html-to-pdf", expect.stringMatching(/job\.json$/)],
+      command: "/Applications/Codia.app/Contents/MacOS/Codia",
+      args: ["--codia-office-html-to-pdf", expect.stringMatching(/job\.json$/)],
     });
     expect(fs.readFileSync(result.outputPath, "utf-8")).toContain("%PDF-1.4");
     expect(stageFile).toHaveBeenCalledWith({

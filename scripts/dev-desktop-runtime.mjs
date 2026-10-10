@@ -3,7 +3,7 @@ import net from "node:net";
 export async function resolveDesktopDevPort(value) {
   const port = Number(value);
   if (!Number.isInteger(port) || port < 0 || port > 65535) {
-    throw new Error("GSAP_DEV_DESKTOP_PORT must be an integer between 0 and 65535.");
+    throw new Error("CODIA_DEV_DESKTOP_PORT must be an integer between 0 and 65535.");
   }
   if (port !== 0) return port;
   // Vite treats port=0 as its default port. Resolve an OS-assigned port first;

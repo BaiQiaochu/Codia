@@ -9,15 +9,15 @@ import {
 import { SessionManifestStore } from "../core/session-manifest/store.ts";
 
 describe("session manifest startup migration", () => {
-  let gsapHome;
+  let codiaHome;
   let store;
   let nextId;
 
   beforeEach(() => {
-    gsapHome = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-manifest-startup-"));
+    codiaHome = fs.mkdtempSync(path.join(os.tmpdir(), "codia-manifest-startup-"));
     nextId = 1;
     store = new SessionManifestStore({
-      dbPath: path.join(gsapHome, "session-manifest.db"),
+      dbPath: path.join(codiaHome, "session-manifest.db"),
       idGenerator: () => `sess_startup_${String(nextId++).padStart(4, "0")}`,
       now: () => "2026-06-18T06:00:00.000Z",
     });
@@ -25,11 +25,11 @@ describe("session manifest startup migration", () => {
 
   afterEach(() => {
     store?.close();
-    fs.rmSync(gsapHome, { recursive: true, force: true });
+    fs.rmSync(codiaHome, { recursive: true, force: true });
   });
 
   function writeLegacySession(agentId, fileName) {
-    const sessionDir = path.join(gsapHome, "agents", agentId, "sessions");
+    const sessionDir = path.join(codiaHome, "agents", agentId, "sessions");
     const sessionPath = path.join(sessionDir, fileName);
     fs.mkdirSync(sessionDir, { recursive: true });
     fs.writeFileSync(sessionPath, `${JSON.stringify({
@@ -41,10 +41,10 @@ describe("session manifest startup migration", () => {
   }
 
   it("creates a rollback checkpoint before migrating legacy sessions once", () => {
-    const sessionPath = writeLegacySession("gsap", "alpha.jsonl");
+    const sessionPath = writeLegacySession("codia", "alpha.jsonl");
 
     const first = ensureLegacySessionManifestMigration({
-      gsapHome,
+      codiaHome,
       store,
       appVersion: "9.9.9",
       startedAt: "2026-06-18T06:01:00.000Z",
@@ -64,7 +64,7 @@ describe("session manifest startup migration", () => {
     const secondCheckpoint = vi.fn();
     const secondMigration = vi.fn(() => ({ scanned: 1, created: 0, existing: 1, skipped: 0 }));
     const second = ensureLegacySessionManifestMigration({
-      gsapHome,
+      codiaHome,
       store,
       createCheckpoint: secondCheckpoint,
       migrate: secondMigration,
@@ -73,7 +73,7 @@ describe("session manifest startup migration", () => {
     expect(second.status).toBe("rescanned");
     expect(secondCheckpoint).not.toHaveBeenCalled();
     expect(secondMigration).toHaveBeenCalledWith({
-      gsapHome,
+      codiaHome,
       store,
       migratedAt: expect.any(String),
       stopOnError: undefined,
@@ -88,7 +88,7 @@ describe("session manifest startup migration", () => {
 
   it("records startup migration failures without throwing", () => {
     const failure = ensureLegacySessionManifestMigration({
-      gsapHome,
+      codiaHome,
       store,
       startedAt: "2026-06-18T06:02:00.000Z",
       createCheckpoint: () => {

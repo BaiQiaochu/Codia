@@ -2,7 +2,7 @@
  * WhatsApp Web bridge adapter.
  *
  * Uses whatsapp-web.js + a local Chrome/Edge executable. Auth state is stored
- * under G-SAP data/bridge/whatsapp, so users only need to scan once.
+ * under Codia data/bridge/whatsapp, so users only need to scan once.
  */
 import fs from "fs";
 import path from "path";
@@ -13,8 +13,8 @@ import { debugLog } from "../debug-log.ts";
 export const WHATSAPP_ADAPTER_VERSION = "whatsapp-web.js";
 
 function findBrowserExecutable() {
-  const envPath = process.env.GSAP_WHATSAPP_CHROME
-    || process.env.GSAP_WHATSAPP_CHROME
+  const envPath = process.env.CODIA_WHATSAPP_CHROME
+    || process.env.CODIA_WHATSAPP_CHROME
     || process.env.PUPPETEER_EXECUTABLE_PATH;
   if (envPath && fs.existsSync(envPath)) return envPath;
 
@@ -98,7 +98,7 @@ export function classifyWhatsAppError(error) {
   return { type: "unknown", detail };
 }
 
-export function createWhatsAppAdapter({ hanaHome, agentId, onMessage, onStatus }) {
+export function createWhatsAppAdapter({ codiaHome, agentId, onMessage, onStatus }) {
   let client = null;
   let MessageMediaCtor = null;
   let ready = false;
@@ -109,8 +109,8 @@ export function createWhatsAppAdapter({ hanaHome, agentId, onMessage, onStatus }
   let lastErrorDetail = null;
   let readyPromise = Promise.resolve();
 
-  const dataPath = path.join(hanaHome || path.join(os.homedir(), ".gsap"), "bridge", "whatsapp");
-  const clientId = `g-sap-${agentId || "default"}`.replace(/[^\w-]/g, "_");
+  const dataPath = path.join(codiaHome || path.join(os.homedir(), ".codia"), "bridge", "whatsapp");
+  const clientId = `codia-${agentId || "default"}`.replace(/[^\w-]/g, "_");
 
   async function init() {
     try {
@@ -119,7 +119,7 @@ export function createWhatsAppAdapter({ hanaHome, agentId, onMessage, onStatus }
       lastErrorDetail = null;
       const executablePath = findBrowserExecutable();
       if (!executablePath) {
-        throw new Error("未找到 Chrome/Edge。请安装 Chrome 或设置 GSAP_WHATSAPP_CHROME 指向浏览器路径。");
+        throw new Error("未找到 Chrome/Edge。请安装 Chrome 或设置 CODIA_WHATSAPP_CHROME 指向浏览器路径。");
       }
 
       const imported = await import("whatsapp-web.js");

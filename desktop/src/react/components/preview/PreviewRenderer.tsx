@@ -30,7 +30,7 @@ import { parseCSV, injectCopyButtons } from '../../utils/format';
 import { fileIconSvg } from '../../utils/icons';
 import { useMermaidDiagrams } from '../../hooks/use-mermaid-diagrams';
 import { bindMarkdownVisualControls } from '../../utils/markdown-visual-controls';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { openInternalLink, resolveLinkTarget, type LinkOpenContext } from '../../utils/link-open';
 import { useStore } from '../../stores';
 import { upsertArtifact } from '../../stores/preview-actions';
@@ -911,7 +911,7 @@ function HtmlPreview({ artifact }: { artifact: Artifact }) {
     setPreviewUrl(null);
     setError(null);
 
-    gsapFetch('/api/preview/html', {
+    codiaFetch('/api/preview/html', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

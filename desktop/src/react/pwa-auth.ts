@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'gsap-pwa-session';
+const STORAGE_KEY = 'codia-pwa-session';
 
 export type PwaLoginMode = 'accessKey' | 'password';
 
@@ -37,13 +37,13 @@ export function savePwaSession(session: PwaSession): void {
     return;
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-  localStorage.setItem('gsap-token', session.token);
+  localStorage.setItem('codia-token', session.token);
 }
 
 export function clearPwaSession(): void {
   localStorage.removeItem(STORAGE_KEY);
-  const currentToken = localStorage.getItem('gsap-token') || '';
-  if (currentToken.startsWith('pwa.')) localStorage.removeItem('gsap-token');
+  const currentToken = localStorage.getItem('codia-token') || '';
+  if (currentToken.startsWith('pwa.')) localStorage.removeItem('codia-token');
 }
 
 export async function legacyValidatePwaSession(session: PwaSession | null): Promise<boolean> {

@@ -3,9 +3,9 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GsapEngine } from "../core/engine.js";
+import { CodiaEngine } from "../core/engine.js";
 
-describe("GsapEngine Computer Use lazy runtime", () => {
+describe("CodiaEngine Computer Use lazy runtime", () => {
   let tmpDir = null;
   let engine = null;
 
@@ -29,11 +29,11 @@ describe("GsapEngine Computer Use lazy runtime", () => {
   });
 
   function createEngine() {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-engine-computer-use-"));
-    engine = new GsapEngine({
-      gsapHome: tmpDir,
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-engine-computer-use-"));
+    engine = new CodiaEngine({
+      codiaHome: tmpDir,
       productDir: tmpDir,
-      agentId: "gsap",
+      agentId: "codia",
     });
     return engine;
   }

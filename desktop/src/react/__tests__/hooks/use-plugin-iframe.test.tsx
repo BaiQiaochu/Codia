@@ -9,7 +9,7 @@ import {
   PLUGIN_UI_ERROR_CODE,
   PLUGIN_UI_PROTOCOL,
   PLUGIN_UI_PROTOCOL_VERSION,
-} from '@g-sap/plugin-protocol';
+} from '@codia/plugin-protocol';
 import { usePluginIframe } from '../../hooks/use-plugin-iframe';
 
 vi.mock('../../components/channels/tab-router', () => ({
@@ -77,7 +77,7 @@ describe('usePluginIframe', () => {
   });
 
   it('handles same-origin relative plugin URLs used by the PWA backend proxy', () => {
-    render(<Harness routeUrl="/__gsap_backend__/api/plugins/demo/page?token=abc" />);
+    render(<Harness routeUrl="/__codia_backend__/api/plugins/demo/page?token=abc" />);
     const iframe = screen.getByTestId('iframe') as HTMLIFrameElement;
     const trustedWindow = { postMessage: vi.fn() } as unknown as Window & { postMessage: ReturnType<typeof vi.fn> };
     attachIframeWindow(iframe, trustedWindow);
@@ -159,7 +159,7 @@ describe('usePluginIframe', () => {
           protocol: PLUGIN_UI_PROTOCOL,
           version: PLUGIN_UI_PROTOCOL_VERSION,
           kind: 'event',
-          type: 'gsap.ready',
+          type: 'codia.ready',
         },
         origin: 'http://127.0.0.1:3210',
         source: trustedWindow,

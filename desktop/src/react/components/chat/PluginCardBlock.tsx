@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useMemo } from 'react';
+import { lazy, Suspense, useRef, useEffect, useState, useMemo } from 'react';
 import { usePluginSurfaceUrl } from '../../hooks/use-plugin-surface-url';
 import { DEFAULT_PLUGIN_UI_CAPABILITIES } from '../../plugin-ui/capabilities';
 import {
@@ -14,7 +14,10 @@ import type { PluginCardDetails } from '../../types';
 import type { FileKind, FileRef } from '../../types/file-ref';
 import s from './PluginCardBlock.module.css';
 import { openMediaViewerForRef } from '../../utils/open-media-viewer';
-import { ChatMessageSurface } from './ChatMessageSurface';
+
+const LazyChatMessageSurface = lazy(() => import('./ChatMessageSurface').then(module => ({
+  default: module.ChatMessageSurface,
+})));
 
 interface Props {
   card: PluginCardDetails;
@@ -95,7 +98,9 @@ function PluginChatSurfaceCard({ card }: { card: PluginCardDetails }) {
         </div>
       )}
       <div className={`${s.chatSurfaceBody}${hasTitle ? '' : ` ${s.chatSurfaceBodyFull}`}`}>
-        <ChatMessageSurface sessionPath={sessionPath} active variant="card" />
+        <Suspense fallback={null}>
+          <LazyChatMessageSurface sessionPath={sessionPath} active variant="card" />
+        </Suspense>
       </div>
     </div>
   );

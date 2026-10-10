@@ -49,6 +49,24 @@ const KNOWN_MODELS = {
     "glm-4.7-flash": { name: "GLM-4.7 Flash", context: 200000, maxOutput: 128000, reasoning: true },
   },
   openai: {
+    "gpt-6.1-sol": {
+      name: "GPT-6.1 Sol",
+      api: "openai-responses",
+      context: 1048576,
+      maxOutput: 128000,
+      image: true,
+      reasoning: true,
+      thinkingLevels: ["low", "medium", "high", "xhigh", "max"],
+      thinkingLevelMap: {
+        off: null,
+        minimal: "low",
+        low: "low",
+        medium: "medium",
+        high: "high",
+        xhigh: "xhigh",
+        max: "max",
+      },
+    },
     "gpt-4o": {
       name: "GPT-4o",
       context: 128000,
@@ -182,7 +200,7 @@ vi.mock("../shared/known-models.ts", () => ({
   },
 }));
 
-const tmpDir = path.join(os.tmpdir(), "gsap-test-model-sync-" + Date.now());
+const tmpDir = path.join(os.tmpdir(), "codia-test-model-sync-" + Date.now());
 let modelsJsonPath;
 let authJsonPath;
 
@@ -202,6 +220,26 @@ async function loadSync() {
 }
 
 describe("syncModels", () => {
+  it("routes current OpenAI tool models through Responses even when the provider has a legacy default", async () => {
+    const syncModels = await loadSync();
+    syncModels({
+      openai: {
+        base_url: "https://api.openai.com/v1",
+        api: "openai-completions",
+        api_key: "sk-test",
+        models: ["gpt-6.1-sol"],
+      },
+    }, { modelsJsonPath });
+
+    const result = JSON.parse(fs.readFileSync(modelsJsonPath, "utf-8"));
+    expect(result.providers.openai.models[0]).toMatchObject({
+      id: "gpt-6.1-sol",
+      api: "openai-responses",
+      reasoning: true,
+    });
+    expect(result.providers.openai.models[0].thinkingLevelMap.off).toBeNull();
+  });
+
   it("writes providers with credentials and models to models.json", async () => {
     const syncModels = await loadSync();
 
@@ -524,7 +562,7 @@ describe("syncModels", () => {
       name: "Kimi 自定义显示名",
       maxTokens: 16000,
       input: ["text", "image"],
-      compat: { hanaVideoInput: true },
+      compat: { codiaVideoInput: true },
     });
   });
 
@@ -598,7 +636,7 @@ describe("syncModels", () => {
         thinkingFormat: "anthropic",
       },
     });
-    expect(result.providers["minimax-token-plan"].models[0].compat?.hanaVideoInput).toBeUndefined();
+    expect(result.providers["minimax-token-plan"].models[0].compat?.codiaVideoInput).toBeUndefined();
   });
 
   it("projects MiniMax Anthropic providers with x-api-key auth", async () => {
@@ -686,7 +724,7 @@ describe("syncModels", () => {
     expect(model.input).toEqual(["text"]);
   });
 
-  it("projects explicit video capability into Hana compat and keeps Pi input schema-compatible", async () => {
+  it("projects explicit video capability into Codia compat and keeps Pi input schema-compatible", async () => {
     const syncModels = await loadSync();
 
     const providers = {
@@ -705,14 +743,14 @@ describe("syncModels", () => {
     syncModels(providers, { modelsJsonPath });
 
     const result = JSON.parse(fs.readFileSync(modelsJsonPath, "utf-8"));
-    expect(result.providers.custom.models.map((m) => [m.id, m.input, m.compat?.hanaVideoInput])).toEqual([
+    expect(result.providers.custom.models.map((m) => [m.id, m.input, m.compat?.codiaVideoInput])).toEqual([
       ["custom-video", ["text"], true],
       ["custom-multimodal", ["text", "image"], true],
       ["custom-unknown", ["text"], undefined],
     ]);
   });
 
-  it("projects explicit audio capability into Hana compat and keeps Pi input schema-compatible", async () => {
+  it("projects explicit audio capability into Codia compat and keeps Pi input schema-compatible", async () => {
     const syncModels = await loadSync();
 
     const providers = {
@@ -731,14 +769,14 @@ describe("syncModels", () => {
     syncModels(providers, { modelsJsonPath });
 
     const result = JSON.parse(fs.readFileSync(modelsJsonPath, "utf-8"));
-    expect(result.providers.custom.models.map((m) => [m.id, m.input, m.compat?.hanaVideoInput, m.compat?.hanaAudioInput])).toEqual([
+    expect(result.providers.custom.models.map((m) => [m.id, m.input, m.compat?.codiaVideoInput, m.compat?.codiaAudioInput])).toEqual([
       ["custom-audio", ["text"], undefined, true],
       ["custom-full-modal", ["text", "image"], true, true],
       ["custom-unknown", ["text"], undefined, undefined],
     ]);
   });
 
-  it("projects known OpenAI audio models into Hana compat without invalid Pi input", async () => {
+  it("projects known OpenAI audio models into Codia compat without invalid Pi input", async () => {
     const syncModels = await loadSync();
 
     const providers = {
@@ -756,11 +794,11 @@ describe("syncModels", () => {
     expect(result.providers.openai.models[0]).toMatchObject({
       id: "gpt-audio-mini",
       input: ["text"],
-      compat: { hanaAudioInput: true },
+      compat: { codiaAudioInput: true },
     });
   });
 
-  it("projects known video-capable models into Hana compat without invalid Pi input", async () => {
+  it("projects known video-capable models into Codia compat without invalid Pi input", async () => {
     const syncModels = await loadSync();
 
     const providers = {
@@ -776,10 +814,10 @@ describe("syncModels", () => {
 
     const result = JSON.parse(fs.readFileSync(modelsJsonPath, "utf-8"));
     expect(result.providers.dashscope.models[0].input).toEqual(["text", "image"]);
-    expect(result.providers.dashscope.models[0].compat.hanaVideoInput).toBe(true);
+    expect(result.providers.dashscope.models[0].compat.codiaVideoInput).toBe(true);
   });
 
-  it("projects Moonshot Kimi official video capability into Hana compat", async () => {
+  it("projects Moonshot Kimi official video capability into Codia compat", async () => {
     const syncModels = await loadSync();
 
     const providers = {
@@ -797,7 +835,7 @@ describe("syncModels", () => {
     expect(result.providers.moonshot.models[0]).toMatchObject({
       id: "kimi-k2.6",
       input: ["text", "image"],
-      compat: { hanaVideoInput: true },
+      compat: { codiaVideoInput: true },
     });
   });
 
@@ -827,8 +865,8 @@ describe("syncModels", () => {
     });
     expect(model.compat).toMatchObject({
       supportsDeveloperRole: false,
-      hanaVideoInput: true,
-      hanaAudioInput: true,
+      codiaVideoInput: true,
+      codiaAudioInput: true,
       thinkingFormat: "qwen-chat-template",
       reasoningProfile: "mimo-openai",
     });
@@ -910,7 +948,7 @@ describe("syncModels", () => {
     expect(mimo.compat).not.toHaveProperty("reasoningProfile");
   });
 
-  it("writes Pi-loadable models when G-SAP video compatibility is enabled", async () => {
+  it("writes Pi-loadable models when Codia video compatibility is enabled", async () => {
     const syncModels = await loadSync();
     const { ModelRuntime, createModelRegistry } = await import("../lib/pi-sdk/index.ts");
 
@@ -934,7 +972,7 @@ describe("syncModels", () => {
       id: "qwen3-vl-plus",
       provider: "dashscope",
       input: ["text", "image"],
-      compat: { hanaVideoInput: true },
+      compat: { codiaVideoInput: true },
     });
   });
 
@@ -1169,7 +1207,7 @@ describe("syncModels", () => {
       "",
     ].join("\n"), "utf-8");
 
-    const mm = new ModelManager({ gsapHome: tmpDir });
+    const mm = new ModelManager({ codiaHome: tmpDir });
     mm._modelRegistry = {
       refresh: vi.fn(),
       getAvailable: vi.fn().mockResolvedValue([{ id: "llama3", provider: "ollama" }]),
@@ -1189,7 +1227,7 @@ describe("syncModels", () => {
     const { ModelManager } = await import("../core/model-manager.ts");
     fs.writeFileSync(path.join(tmpDir, "added-models.yaml"), "providers: {}\n", "utf-8");
 
-    const mm = new ModelManager({ gsapHome: tmpDir });
+    const mm = new ModelManager({ codiaHome: tmpDir });
     mm._modelRegistry = {
       refresh: vi.fn(),
       getAvailable: vi.fn().mockResolvedValue([
@@ -1232,7 +1270,7 @@ describe("syncModels", () => {
       "",
     ].join("\n"), "utf-8");
 
-    const mm = new ModelManager({ gsapHome: tmpDir });
+    const mm = new ModelManager({ codiaHome: tmpDir });
     mm._modelRegistry = {
       refresh: vi.fn(),
       getAvailable: vi.fn().mockResolvedValue([
@@ -1265,7 +1303,7 @@ describe("syncModels", () => {
       "",
     ].join("\n"), "utf-8");
 
-    const mm = new ModelManager({ gsapHome: tmpDir });
+    const mm = new ModelManager({ codiaHome: tmpDir });
     mm._modelRegistry = {
       refresh: vi.fn(),
       getAvailable: vi.fn().mockResolvedValue([

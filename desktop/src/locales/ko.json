@@ -133,7 +133,8 @@
     "searchFailed": "검색 실패",
     "projects": {
       "newFolder": "새 폴더"
-    }
+    },
+    "automationRecords": "자동화 기록"
   },
   "session": {
     "pin": "고정",
@@ -314,10 +315,13 @@
     "removeRecentWorkspace": "최근 작업 공간 제거",
     "planMode": "접근 모드",
     "accessMode": "세션 접근 모드",
-    "autoMode": "자동 모드",
-    "operateMode": "자동 작업",
-    "askMode": "작업 전 묻기",
-    "readOnlyMode": "읽기 전용 모드",
+    "autoMode": "대신 승인",
+    "autoModeDescription": "위험이 감지된 작업만 승인을 요청합니다",
+    "operateMode": "전체 접근 권한",
+    "operateModeDescription": "인터넷과 컴퓨터의 모든 파일에 제한 없이 접근합니다",
+    "askMode": "승인 요청",
+    "askModeDescription": "외부 파일을 편집하거나 인터넷을 사용할 때 항상 묻습니다",
+    "readOnlyMode": "승인 요청",
     "accessModeLocked": "지금은 접근 모드를 변경할 수 없습니다",
     "confirmMoreOptions": "추가 승인 옵션",
     "noAskThisConversation": "이 대화에서는 다시 묻지 않기",
@@ -381,9 +385,53 @@
       "tab": {
         "files": "파일",
         "sessions": "대화",
-        "agents": "에이전트"
+        "agents": "에이전트",
+        "all": "전체"
       },
-      "empty": "일치하는 항목이 없습니다"
+      "empty": "일치하는 항목이 없습니다",
+      "group": {
+        "agents": "에이전트",
+        "sessions": "대화",
+        "images": "이미지",
+        "files": "파일"
+      }
+    },
+    "addMenu": "추가",
+    "add": {
+      "title": "추가",
+      "file": "파일",
+      "fileDetail": "컴퓨터에서 파일 선택",
+      "folder": "폴더",
+      "folderDetail": "작업 폴더 추가",
+      "link": "링크",
+      "linkDetail": "메시지에 웹 주소 추가",
+      "plugins": "플러그인",
+      "pluginsDetail": "활성화된 플러그인 사용",
+      "skills": "스킬",
+      "skillCount": "사용 가능한 스킬 {count}개",
+      "tools": "도구",
+      "toolsDetail": "현재 작업 도구 선택",
+      "addLink": "링크 추가",
+      "linkAddress": "링크 주소",
+      "confirm": "추가",
+      "back": "뒤로",
+      "selectSkills": "스킬 선택",
+      "selectPlugins": "플러그인 선택",
+      "selectTools": "도구 선택",
+      "searchSkills": "스킬 검색",
+      "searchPlugins": "플러그인 검색",
+      "normalChat": "일반 대화",
+      "normalChatDetail": "전용 도구를 사용하지 않음",
+      "loadingPlugins": "플러그인 불러오는 중…",
+      "noSkills": "일치하는 스킬이 없습니다",
+      "noPlugins": "활성화된 플러그인이 없습니다"
+    },
+    "slash": {
+      "title": "명령과 스킬",
+      "group": {
+        "commands": "명령",
+        "skills": "스킬"
+      }
     }
   },
   "slash": {
@@ -459,25 +507,25 @@
   },
   "yuan": {
     "types": {
-      "gsap": {
+      "codia": {
         "name": "균형",
         "label": "표현과 실행의 균형 유지",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "butter": {
         "name": "감성",
         "label": "감정 맥락을 더 잘 반영",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "ming": {
         "name": "이성",
         "label": "더 차분하고 분석적",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "kong": {
         "name": "오리지널",
         "label": "모델 본래의 스타일",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       }
     },
     "title": "元",
@@ -781,6 +829,8 @@
       "me": "나",
       "providers": "제공자",
       "experiments": "실험",
+      "context": "컨텍스트",
+      "computerUse": "컴퓨터 사용",
       "models": "모델",
       "memory": "기억",
       "work": "워크스페이스",
@@ -1186,7 +1236,10 @@
       "apiKey": "API Key",
       "addBtn": "추가",
       "empty": "아직 등록된 Provider가 없어요",
-      "fetchModels": "모델 가져오기",
+      "fetchModels": "모델 스캔",
+      "modelManagement": "모델 관리",
+      "manualAddModel": "직접 추가",
+      "searchOrSelectModel": "스캔한 모델 검색 또는 선택…",
       "delete": "Provider 삭제",
       "modelCount": "{n}개 모델",
       "fetchSuccess": "{name}에서 {n}개 모델을 가져왔어요",
@@ -1767,7 +1820,7 @@
       "light": "라이트",
       "dark": "다크",
       "sakura": "협업 틸",
-      "gsap": "기관 틸",
+      "codia": "기관 틸",
       "mobile": "모바일",
       "desktop": "데스크톱",
       "mobileTitle": "모바일 레이아웃",
@@ -1806,7 +1859,7 @@
       "permissionMode": "권한 모드",
       "permissionModeDesc": "소셜 플랫폼 세션이 에이전트를 통해 답변할 때 허용되는 작업을 제어합니다",
       "permissionModeAuto": "자동 검토",
-      "permissionModeOperate": "자동 작업",
+      "permissionModeOperate": "전체 접근 권한",
       "permissionModeReadOnly": "읽기 전용",
       "receiptEnabled": "응답 전 안내",
       "receiptEnabledDesc": "메시지를 받으면 실제 답변 전에 '받았고 답변 중'이라는 짧은 안내를 먼저 보냅니다",
@@ -2238,8 +2291,8 @@
     "error": "오류가 발생했습니다. 다시 시도해 주세요."
   },
   "activity": {
-    "title": "활동",
-    "empty": "아직 활동이 없어요. 순찰과 예약 작업이 여기에 표시돼요.",
+    "title": "자동화 기록",
+    "empty": "아직 자동화 기록이 없어요. 순찰, 예약 작업, 하위 에이전트, 백그라운드 자동화가 여기에 표시됩니다.",
     "back": "뒤로",
     "heartbeat": "정기 순찰",
     "subagent": "서브 에이전트 작업",
@@ -2826,7 +2879,7 @@
       "channelDesc": "채널 이름 (read/post에 필수)",
       "contentDesc": "메시지 내용 (post에 필수)",
       "nameDesc": "새 채널 이름 (create에 필수)",
-      "membersDesc": "멤버 목록 (create에 필수), 예: [\"gsap\", \"butter\"]",
+      "membersDesc": "멤버 목록 (create에 필수), 예: [\"codia\", \"butter\"]",
       "introDesc": "채널 소개 (create에 선택)",
       "countDesc": "읽을 메시지 수 (read에 선택, 기본값 20)"
     },
@@ -3329,9 +3382,21 @@
     }
   },
   "processFold": {
-    "summary": "✨ {name}이(가) 한동안 바쁘게 움직였어요",
+    "summary": "실행 과정",
+    "running": "{name} 실행 중",
+    "completed": "{n}개 완료",
     "tools": "{n}개 도구",
     "thinking": "{n}번 생각",
+    "files": "파일 {n}개",
+    "duration": "소요 시간 {value}",
+    "action": {
+      "write": "파일 수정 중",
+      "read": "프로젝트 검색 중",
+      "command": "검사 실행 중",
+      "agent": "도우미 조정 중",
+      "integration": "연동 사용 중",
+      "tool": "{name} 사용 중"
+    },
     "unsuccessful": "{n}번 시도 미성공"
   },
   "settings.work.heartbeatOperationalNotice": "순찰은 백그라운드에서 도구를 실행하고 작업 공간 파일에 접근할 수 있습니다. 무인 실행을 맡길 수 있는 Agent에만 켜세요.",

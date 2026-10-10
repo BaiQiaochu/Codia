@@ -1,23 +1,29 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { Check, HandPalm, ShieldCheck, ShieldWarning } from '@phosphor-icons/react';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { useI18n } from '../../hooks/use-i18n';
 import { useStore } from '../../stores';
 import styles from './InputArea.module.css';
 
 export type PermissionMode = 'auto' | 'operate' | 'ask' | 'read_only';
 
-const PERMISSION_MODES: PermissionMode[] = ['auto', 'operate', 'ask', 'read_only'];
+const PERMISSION_MODES: Array<Exclude<PermissionMode, 'read_only'>> = ['ask', 'auto', 'operate'];
 const DROPDOWN_VIEWPORT_PADDING = 8;
 const DROPDOWN_GAP = 6;
-const DROPDOWN_MIN_WIDTH = 128;
-const DROPDOWN_ESTIMATED_ROW_HEIGHT = 34;
+const DROPDOWN_MIN_WIDTH = 360;
+const DROPDOWN_ESTIMATED_ROW_HEIGHT = 58;
 const PERMISSION_MODE_LABEL_FALLBACKS: Record<PermissionMode, string> = {
-  auto: '自动模式',
-  operate: '自动操作',
-  ask: '操作前询问',
-  read_only: '只读模式',
+  auto: '帮我批准',
+  operate: '完全访问权限',
+  ask: '请求批准',
+  read_only: '请求批准',
+};
+const PERMISSION_MODE_DESCRIPTION_FALLBACKS: Record<Exclude<PermissionMode, 'read_only'>, string> = {
+  ask: '编辑外部文件和使用互联网时始终询问',
+  auto: '仅对检测到的风险操作请求批准',
+  operate: '可不受限制地访问互联网和你电脑上的任何文件',
 };
 
 interface PlanModeDropdownPosition {
@@ -36,7 +42,7 @@ function calculatePlanModeDropdownPosition(
 ): PlanModeDropdownPosition {
   const viewportWidth = window.innerWidth || 0;
   const viewportHeight = window.innerHeight || 0;
-  const availableWidth = Math.max(DROPDOWN_MIN_WIDTH, viewportWidth - (DROPDOWN_VIEWPORT_PADDING * 2));
+  const availableWidth = Math.max(0, viewportWidth - (DROPDOWN_VIEWPORT_PADDING * 2)) || DROPDOWN_MIN_WIDTH;
   const minWidth = Math.min(Math.max(anchorRect.width, DROPDOWN_MIN_WIDTH), availableWidth);
   const dropdownWidth = Math.min(
     Math.max(dropdownRect?.width || 0, minWidth),
@@ -77,7 +83,7 @@ function calculatePlanModeDropdownPosition(
 
 function permissionModeLabelKey(mode: PermissionMode) {
   if (mode === 'auto') return 'input.autoMode';
-  if (mode === 'read_only') return 'input.readOnlyMode';
+  if (mode === 'read_only') return 'input.askMode';
   if (mode === 'ask') return 'input.askMode';
   return 'input.operateMode';
 }
@@ -88,36 +94,16 @@ function permissionModeLabel(t: (key: string) => string, mode: PermissionMode) {
   return label && label !== key ? label : PERMISSION_MODE_LABEL_FALLBACKS[mode];
 }
 
+function permissionModeDescription(t: (key: string) => string, mode: Exclude<PermissionMode, 'read_only'>) {
+  const key = `input.${mode === 'ask' ? 'ask' : mode}ModeDescription`;
+  const description = t(key);
+  return description && description !== key ? description : PERMISSION_MODE_DESCRIPTION_FALLBACKS[mode];
+}
+
 export function PermissionModeIcon({ mode }: { mode: PermissionMode }) {
-  if (mode === 'auto') {
-    return (
-      <svg data-permission-mode={mode} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 3.5 19 6v5.4c0 4.1-2.7 7.5-7 9.1-4.3-1.6-7-5-7-9.1V6l7-2.5Z" />
-      </svg>
-    );
-  }
-  if (mode === 'read_only') {
-    return (
-      <svg data-permission-mode={mode} width="14" height="14" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
-        <path d="M30 25c0 1.104-.927 1.656-2 2 0 0-5.443 1.515-11 2.977V5l11-3c1.104 0 2 .896 2 2v21ZM15 29.998C9.538 28.53 4 27 4 27c-1.136-.312-2-.896-2-2V4c0-1.104.896-2 2-2l11 3v24.998ZM28 0s-5.789 1.594-11.05 3c-.659.025-1.323 0-1.983 0C9.955 1.656 4 0 4 0 1.791 0 0 1.791 0 4v21c0 2.209 1.885 3.313 4 4 0 0 5.393 1.5 10.967 3h2.025C22.612 30.5 28 29 28 29c2.053-.531 4-1.791 4-4V4c0-2.209-1.791-4-4-4Z" />
-      </svg>
-    );
-  }
-  if (mode === 'ask') {
-    return (
-      <svg data-permission-mode={mode} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.7-2.5 2-2.5 4" />
-        <path d="M12 17h.01" />
-      </svg>
-    );
-  }
-  return (
-    <svg data-permission-mode={mode} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="4 17 10 11 4 5" />
-      <line x1="12" y1="19" x2="20" y2="19" />
-    </svg>
-  );
+  if (mode === 'ask' || mode === 'read_only') return <HandPalm data-permission-mode={mode} size={16} weight="regular" aria-hidden="true" />;
+  if (mode === 'auto') return <ShieldCheck data-permission-mode={mode} size={16} weight="regular" aria-hidden="true" />;
+  return <ShieldWarning data-permission-mode={mode} size={16} weight="regular" aria-hidden="true" />;
 }
 
 export function PlanModeButton({ mode, onChange, locked = false }: {
@@ -196,7 +182,7 @@ export function PlanModeButton({ mode, onChange, locked = false }: {
       const pendingNewSession = state.pendingNewSession === true;
       const sessionPath = pendingNewSession ? null : state.currentSessionPath;
       if (pendingNewSession) {
-        const res = await gsapFetch('/api/preferences/session-permission-default', {
+        const res = await codiaFetch('/api/preferences/session-permission-default', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ permissionMode: nextMode }),
@@ -205,7 +191,7 @@ export function PlanModeButton({ mode, onChange, locked = false }: {
         onChange((data.permissionMode || nextMode) as PermissionMode);
         return;
       }
-      const res = await gsapFetch('/api/session-permission-mode', {
+      const res = await codiaFetch('/api/session-permission-mode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -216,7 +202,7 @@ export function PlanModeButton({ mode, onChange, locked = false }: {
       });
       const data = await res.json();
       if (data.locked) {
-        window.dispatchEvent(new CustomEvent('gsap-inline-notice', {
+        window.dispatchEvent(new CustomEvent('codia-inline-notice', {
           detail: { text: t('input.accessModeLocked'), type: 'error' },
         }));
       }
@@ -226,7 +212,8 @@ export function PlanModeButton({ mode, onChange, locked = false }: {
     }
   }, [mode, onChange, t]);
 
-  const label = permissionModeLabel(t, mode);
+  const displayMode: Exclude<PermissionMode, 'read_only'> = mode === 'read_only' ? 'ask' : mode;
+  const label = permissionModeLabel(t, displayMode);
   const dropdown = open && typeof document !== 'undefined'
     ? createPortal(
         <div
@@ -237,11 +224,15 @@ export function PlanModeButton({ mode, onChange, locked = false }: {
           {PERMISSION_MODES.map((permissionMode) => (
             <button type="button"
               key={permissionMode}
-              className={`${styles['thinking-option']} ${styles['plan-mode-option']} ${styles[`plan-mode-option-${permissionMode}`] || ''}${permissionMode === mode ? ` ${styles.active}` : ''}`}
+              className={`${styles['thinking-option']} ${styles['plan-mode-option']} ${styles[`plan-mode-option-${permissionMode}`] || ''}${permissionMode === displayMode ? ` ${styles.active}` : ''}`}
               onClick={() => selectMode(permissionMode)}
             >
               <PermissionModeIcon mode={permissionMode} />
-              <span>{permissionModeLabel(t, permissionMode)}</span>
+              <span className={styles['plan-mode-option-copy']}>
+                <strong>{permissionModeLabel(t, permissionMode)}</strong>
+                <small>{permissionModeDescription(t, permissionMode)}</small>
+              </span>
+              {permissionMode === displayMode && <Check className={styles['plan-mode-option-check']} size={18} weight="bold" aria-hidden="true" />}
             </button>
           ))}
         </div>,
@@ -252,12 +243,12 @@ export function PlanModeButton({ mode, onChange, locked = false }: {
   return (
     <div className={`${styles['thinking-selector']} ${styles['plan-mode-selector']}${open ? ` ${styles.open}` : ''}`} ref={ref}>
       <button type="button"
-        className={`${styles['plan-mode-btn']} ${styles[`plan-mode-${mode}`] || ''}`}
+        className={`${styles['plan-mode-btn']} ${styles[`plan-mode-${displayMode}`] || ''}`}
         title={locked ? t('input.accessModeLocked') : t('input.accessMode')}
         onClick={toggleDropdown}
         disabled={locked}
       >
-        <PermissionModeIcon mode={mode} />
+        <PermissionModeIcon mode={displayMode} />
         <span className={styles['plan-mode-label']}>{label}</span>
       </button>
       {dropdown}

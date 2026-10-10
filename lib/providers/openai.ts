@@ -2,21 +2,34 @@
  * OpenAI provider plugin
  */
 
+import { OPENAI_IMAGE_MODELS } from "../../shared/openai-image-models.ts";
+
+const openAIImageCapabilityModels = OPENAI_IMAGE_MODELS.map((model) => ({
+  id: model.id,
+  displayName: model.name,
+  protocolId: "openai-images",
+  inputs: ["text", "image"],
+  outputs: ["image"],
+  supportsEdit: true,
+  ...(model.aliases ? { aliases: [...model.aliases] } : {}),
+}));
+
 /** @type {import('../../core/provider-registry.ts').ProviderPlugin} */
 export const openaiPlugin = {
   id: "openai",
   displayName: "OpenAI",
   authType: "api-key",
   defaultBaseUrl: "https://api.openai.com/v1",
-  defaultApi: "openai-completions",
+  // Current OpenAI reasoning models require Responses for tool use and
+  // encrypted reasoning history. Individual custom providers may still choose
+  // Chat Completions explicitly.
+  defaultApi: "openai-responses",
   capabilities: {
     media: {
       imageGeneration: {
         defaultModelId: "gpt-image-1.5",
         models: [
-          { id: "gpt-image-1.5", displayName: "GPT Image 1.5", protocolId: "openai-images", inputs: ["text", "image"], outputs: ["image"], supportsEdit: true, aliases: ["1.5"] },
-          { id: "gpt-image-1", displayName: "GPT Image 1", protocolId: "openai-images", inputs: ["text", "image"], outputs: ["image"], supportsEdit: true, aliases: ["1"] },
-          { id: "gpt-image-1-mini", displayName: "GPT Image 1 Mini", protocolId: "openai-images", inputs: ["text", "image"], outputs: ["image"], supportsEdit: true, aliases: ["1-mini", "mini"] },
+          ...openAIImageCapabilityModels,
           { id: "dall-e-3", displayName: "DALL-E 3", protocolId: "openai-images", inputs: ["text"], outputs: ["image"], aliases: ["dalle3"] },
         ],
       },

@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from '../../stores';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { resolveBrowserFilePaths } from '../../utils/browser-file-paths';
 import { isWebRuntime } from '../../utils/platform-runtime';
 import type { CwdSkillInfo } from '../../stores/desk-slice';
@@ -33,7 +33,7 @@ async function loadCwdSkills() {
   try {
     const params = new URLSearchParams({ dir: snapshot.deskBasePath });
     if (snapshot.selectedAgentId) params.set('agentId', snapshot.selectedAgentId);
-    const res = await gsapFetch(
+    const res = await codiaFetch(
       `/api/desk/skills?${params}`,
     );
     const data = await res.json();
@@ -129,7 +129,7 @@ export function DeskCwdSkillsPanel() {
   const deleteSkill = useCallback(async (skill: CwdSkillInfo) => {
     if (!skill.baseDir) return;
     try {
-      await gsapFetch('/api/desk/delete-skill', {
+      await codiaFetch('/api/desk/delete-skill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ skillDir: skill.baseDir }),
@@ -154,7 +154,7 @@ export function DeskCwdSkillsPanel() {
       console.log('[cwd-skills] filePath=', filePath, 'file.name=', nameMap[filePath]);
       try {
         const s = useStore.getState();
-        const res = await gsapFetch('/api/desk/install-skill', {
+        const res = await codiaFetch('/api/desk/install-skill', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ filePath, dir, ...(s.selectedAgentId ? { agentId: s.selectedAgentId } : {}) }),
@@ -175,7 +175,7 @@ export function DeskCwdSkillsPanel() {
     for (const file of uploadOnlyFiles) {
       try {
         const s = useStore.getState();
-        const res = await gsapFetch('/api/desk/install-skill', {
+        const res = await codiaFetch('/api/desk/install-skill', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

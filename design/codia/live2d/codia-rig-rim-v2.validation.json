@@ -1,7 +1,7 @@
 {
   "status": "independent lower-opening mask candidate, no Editor or runtime acceptance",
-  "input": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v1.psd",
-  "output": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v2.psd",
+  "input": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-rim-v1.psd",
+  "output": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-rim-v2.psd",
   "inputSha256": "7ae3d643e10b0b63a780e918d0c3b6285ded3a2eb3524ecffab786cd7119bf0a",
   "outputSha256": "cfb196f3a37511d36aa4d1bcdc0678537f2505684193efad7dc7e1c0c67f4f0b",
   "width": 1254,
@@ -135,14 +135,14 @@
     "Hands remain outside HeadGroup and require their own HandOpeningMask ClipIDs. Neutral alpha is preserved; actual Reach/BodyRise shapes must still be checked for full concealment at zero. Existing eye/body/neck quality limitations are not resolved by these masks."
   ],
   "assets": [
-    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\HeadOpeningMask.svg",
-    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\HeadOpeningMask.png",
-    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\HandOpeningMask.svg",
-    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\HandOpeningMask.png",
-    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\geometry.json"
+    "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\HeadOpeningMask.svg",
+    "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\HeadOpeningMask.png",
+    "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\HandOpeningMask.svg",
+    "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\HandOpeningMask.png",
+    "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-rim-v2\\geometry.json"
   ],
   "previews": [
-    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v2.neutral.png",
-    "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-rim-v2.mask-comparison.png"
+    "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-rim-v2.neutral.png",
+    "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-rim-v2.mask-comparison.png"
   ]
 }

@@ -8,7 +8,7 @@ vi.mock('../../../store', () => ({
 }));
 
 vi.mock('../../../api', () => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
 }));
 
 vi.mock('../../../../hooks/use-config', () => ({
@@ -16,7 +16,7 @@ vi.mock('../../../../hooks/use-config', () => ({
 }));
 
 import { MediaProviderDetail } from '../MediaProviderDetail';
-import { gsapFetch } from '../../../api';
+import { codiaFetch } from '../../../api';
 
 describe('MediaProviderDetail', () => {
   beforeEach(() => {
@@ -187,7 +187,7 @@ describe('MediaProviderDetail', () => {
 
   it('removes media-only image models through the provider model endpoint', async () => {
     const onRefresh = vi.fn(async () => undefined);
-    vi.mocked(gsapFetch).mockResolvedValue({
+    vi.mocked(codiaFetch).mockResolvedValue({
       json: async () => ({ ok: true }),
     } as Response);
 
@@ -219,7 +219,7 @@ describe('MediaProviderDetail', () => {
     fireEvent.click(screen.getByTitle('settings.api.removeModel'));
 
     await waitFor(() => {
-      expect(gsapFetch).toHaveBeenCalledWith(
+      expect(codiaFetch).toHaveBeenCalledWith(
         '/api/plugins/image-gen/providers/minimax/models/image-01',
         expect.objectContaining({ method: 'DELETE' }),
       );
@@ -229,7 +229,7 @@ describe('MediaProviderDetail', () => {
 
   it('adds typed audio models through the media type endpoint from preset candidates', async () => {
     const onRefresh = vi.fn(async () => undefined);
-    vi.mocked(gsapFetch).mockResolvedValue({
+    vi.mocked(codiaFetch).mockResolvedValue({
       json: async () => ({ ok: true }),
     } as Response);
 
@@ -263,7 +263,7 @@ describe('MediaProviderDetail', () => {
     fireEvent.click(screen.getByRole('button', { name: /MiniMax Speech 2\.8 HD/ }));
 
     await waitFor(() => {
-      expect(gsapFetch).toHaveBeenCalledWith(
+      expect(codiaFetch).toHaveBeenCalledWith(
         '/api/providers/minimax/models/speech-2.8-hd',
         expect.objectContaining({
           method: 'PUT',

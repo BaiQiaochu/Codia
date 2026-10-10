@@ -7,7 +7,7 @@ import {
 } from "./execution-lease-registry.ts";
 
 export function issueRemoteWriteLease({
-  gsapHome,
+  codiaHome,
   requestContext,
   decision,
   agentId,
@@ -17,12 +17,12 @@ export function issueRemoteWriteLease({
   now = new Date().toISOString(),
   ttlMs = 5 * 60 * 1000,
 } = {}) {
-  if (!gsapHome || isLocalOwner(requestContext)) return null;
+  if (!codiaHome || isLocalOwner(requestContext)) return null;
   const principal = requestContext?.authPrincipal;
   if (!principal || principal.kind === "unknown") return null;
   if (!principal?.principalId) return null;
   const issuedAtMs = Date.parse(now);
-  const lease = issueExecutionLease(gsapHome, {
+  const lease = issueExecutionLease(codiaHome, {
     schemaVersion: 1,
     leaseId: `lease_${crypto.randomUUID()}`,
     studioId: requestContext.studioId || principal.studioId || "studio_unknown",
@@ -42,14 +42,14 @@ export function issueRemoteWriteLease({
   return lease;
 }
 
-export function consumeRemoteWriteLease(gsapHome, lease, { now = new Date().toISOString() } = {}) {
-  if (!gsapHome || !lease?.leaseId) return null;
-  return consumeExecutionLease(gsapHome, lease.leaseId, { now });
+export function consumeRemoteWriteLease(codiaHome, lease, { now = new Date().toISOString() } = {}) {
+  if (!codiaHome || !lease?.leaseId) return null;
+  return consumeExecutionLease(codiaHome, lease.leaseId, { now });
 }
 
-export function revokeRemoteWriteLease(gsapHome, lease, { now = new Date().toISOString() } = {}) {
-  if (!gsapHome || !lease?.leaseId) return null;
-  return revokeExecutionLease(gsapHome, lease.leaseId, { now });
+export function revokeRemoteWriteLease(codiaHome, lease, { now = new Date().toISOString() } = {}) {
+  if (!codiaHome || !lease?.leaseId) return null;
+  return revokeExecutionLease(codiaHome, lease.leaseId, { now });
 }
 
 function isLocalOwner(requestContext) {

@@ -65,7 +65,7 @@ describe("FactStore CJK full-text search", () => {
   let store;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-fact-store-cjk-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-fact-store-cjk-"));
     dbPath = path.join(tmpDir, "facts.db");
     store = new FactStore(dbPath);
   });

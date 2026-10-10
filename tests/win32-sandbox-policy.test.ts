@@ -18,43 +18,43 @@ describe("Windows sandbox policy projection", () => {
   });
 
   function makeTree() {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "hana-win32-sandbox-"));
-    const hanakoHome = path.join(tempRoot, "gsap-home");
-    const agentDir = path.join(hanakoHome, "agents", "hana");
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-win32-sandbox-"));
+    const codiaHome = path.join(tempRoot, "codia-home");
+    const agentDir = path.join(codiaHome, "agents", "codia");
     const workspace = path.join(tempRoot, "workspace");
     const externalDir = path.join(tempRoot, "external");
     for (const dir of [
-      hanakoHome,
+      codiaHome,
       agentDir,
       workspace,
       path.join(workspace, ".git"),
       externalDir,
       path.join(agentDir, "memory"),
       path.join(agentDir, "sessions"),
-      path.join(hanakoHome, "user"),
-      path.join(hanakoHome, "skills"),
-      path.join(hanakoHome, "session-files"),
-      path.join(hanakoHome, ".ephemeral"),
+      path.join(codiaHome, "user"),
+      path.join(codiaHome, "skills"),
+      path.join(codiaHome, "session-files"),
+      path.join(codiaHome, ".ephemeral"),
     ]) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: G-SAP\n");
+    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: Codia\n");
     fs.writeFileSync(path.join(agentDir, "pinned.md"), "pinned");
-    fs.writeFileSync(path.join(hanakoHome, "auth.json"), "{}");
+    fs.writeFileSync(path.join(codiaHome, "auth.json"), "{}");
     fs.writeFileSync(path.join(externalDir, "reference.md"), "outside");
-    return { hanakoHome, agentDir, workspace, externalDir };
+    return { codiaHome, agentDir, workspace, externalDir };
   }
 
   const real = (p) => fs.realpathSync(p);
 
   it("projects restricted-token write roots without external read grants", () => {
-    const { hanakoHome, agentDir, workspace, externalDir } = makeTree();
+    const { codiaHome, agentDir, workspace, externalDir } = makeTree();
     const externalFile = path.join(externalDir, "reference.md");
     const policy = deriveSandboxPolicy({
       agentDir,
       workspace,
       workspaceFolders: [],
-      hanakoHome,
+      codiaHome,
       mode: "standard",
     });
 
@@ -74,18 +74,18 @@ describe("Windows sandbox policy projection", () => {
     expect(grants.optionalReadPaths).toEqual([]);
     expect(grants.denyReadPaths).toEqual([]);
     expect(grants.writePaths).not.toContain(real(externalFile));
-    expect(grants.optionalWritePaths).toContain(real(path.join(hanakoHome, ".ephemeral")));
+    expect(grants.optionalWritePaths).toContain(real(path.join(codiaHome, ".ephemeral")));
     expect(grants.denyWritePaths).not.toContain(real(path.join(workspace, ".git")));
-    expect(grants.denyWritePaths).not.toContain(real(path.join(hanakoHome, "session-files")));
+    expect(grants.denyWritePaths).not.toContain(real(path.join(codiaHome, "session-files")));
   });
 
   it("keeps the Windows write model functionality-first for Git worktrees", () => {
-    const { hanakoHome, agentDir, workspace } = makeTree();
+    const { codiaHome, agentDir, workspace } = makeTree();
     const policy = deriveSandboxPolicy({
       agentDir,
       workspace,
       workspaceFolders: [],
-      hanakoHome,
+      codiaHome,
       mode: "standard",
     });
 
@@ -95,18 +95,18 @@ describe("Windows sandbox policy projection", () => {
     });
 
     expect(grants.writePaths).toContain(real(workspace));
-    expect(grants.optionalWritePaths).toContain(real(path.join(hanakoHome, ".ephemeral")));
+    expect(grants.optionalWritePaths).toContain(real(path.join(codiaHome, ".ephemeral")));
     expect(grants.denyWritePaths).not.toContain(real(path.join(workspace, ".git")));
     expect(grants.denyReadPaths).toEqual([]);
   });
 
   it("does not project ordinary system-readable roots into ACL work", () => {
-    const { hanakoHome, agentDir, workspace, externalDir } = makeTree();
+    const { codiaHome, agentDir, workspace, externalDir } = makeTree();
     const policy = deriveSandboxPolicy({
       agentDir,
       workspace,
       workspaceFolders: [],
-      hanakoHome,
+      codiaHome,
       mode: "standard",
     });
 
@@ -124,14 +124,14 @@ describe("Windows sandbox policy projection", () => {
   });
 
   it("keeps non-Git protected paths inside write roots as deny-write grants", () => {
-    const { hanakoHome, agentDir, workspace } = makeTree();
+    const { codiaHome, agentDir, workspace } = makeTree();
     const protectedBuildCache = path.join(workspace, "protected-cache");
     fs.mkdirSync(protectedBuildCache, { recursive: true });
     const policy = deriveSandboxPolicy({
       agentDir,
       workspace,
       workspaceFolders: [],
-      hanakoHome,
+      codiaHome,
       mode: "standard",
     });
     policy.protectedPaths.push(protectedBuildCache);
@@ -146,14 +146,14 @@ describe("Windows sandbox policy projection", () => {
   });
 
   it("projects explicit runtime writable roots for language caches and bundled runtimes", () => {
-    const { hanakoHome, agentDir, workspace } = makeTree();
-    const runtimeRoot = path.join(hanakoHome, ".ephemeral", "runtime-cache");
+    const { codiaHome, agentDir, workspace } = makeTree();
+    const runtimeRoot = path.join(codiaHome, ".ephemeral", "runtime-cache");
     fs.mkdirSync(runtimeRoot, { recursive: true });
     const policy = deriveSandboxPolicy({
       agentDir,
       workspace,
       workspaceFolders: [],
-      hanakoHome,
+      codiaHome,
       runtimeWritablePaths: [runtimeRoot],
       mode: "standard",
     });
@@ -166,8 +166,8 @@ describe("Windows sandbox policy projection", () => {
     expect(grants.optionalWritePaths).toContain(real(runtimeRoot));
   });
 
-  it("keeps read-only G-SAP prompt files out of Windows ACL projection", () => {
-    const { hanakoHome, agentDir, workspace, externalDir } = makeTree();
+  it("keeps read-only Codia prompt files out of Windows ACL projection", () => {
+    const { codiaHome, agentDir, workspace, externalDir } = makeTree();
     const externalFile = path.join(externalDir, "reference.md");
     const optionalPrompt = path.join(agentDir, "config.yaml");
     const missingLegacyPrompt = path.join(agentDir, "yuan.md");
@@ -175,7 +175,7 @@ describe("Windows sandbox policy projection", () => {
       agentDir,
       workspace,
       workspaceFolders: [],
-      hanakoHome,
+      codiaHome,
       mode: "standard",
     });
 
@@ -193,10 +193,10 @@ describe("Windows sandbox policy projection", () => {
   });
 
   it("derives read-only external grants from active session files without re-granting workspace or managed-cache files", () => {
-    const { hanakoHome, workspace, externalDir } = makeTree();
+    const { codiaHome, workspace, externalDir } = makeTree();
     const externalFile = path.join(externalDir, "reference.md");
     const workspaceFile = path.join(workspace, "owned.md");
-    const managedFile = path.join(hanakoHome, "session-files", "cache", "image.png");
+    const managedFile = path.join(codiaHome, "session-files", "cache", "image.png");
     fs.mkdirSync(path.dirname(managedFile), { recursive: true });
     fs.writeFileSync(workspaceFile, "workspace");
     fs.writeFileSync(managedFile, "cache");
@@ -208,7 +208,7 @@ describe("Windows sandbox policy projection", () => {
       { filePath: path.join(externalDir, "missing.md"), storageKind: "external", status: "missing" },
     ], {
       workspaceRoots: [workspace],
-      hanakoHome,
+      codiaHome,
     });
 
     expect(grants).toEqual([real(externalFile)]);

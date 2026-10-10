@@ -101,7 +101,7 @@ function makeAgent(rootDir, id = "agent-a") {
 
 function makeDeps(agent, rootDir) {
   return {
-    getHanakoHome: () => rootDir,
+    getCodiaHome: () => rootDir,
     getAgent: () => agent,
     getAgentById: (id) => (id === agent.id ? agent : null),
     getAgents: () => new Map([[agent.id, agent]]),

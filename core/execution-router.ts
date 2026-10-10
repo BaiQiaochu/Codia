@@ -279,7 +279,6 @@ export class ExecutionRouter {
    *
    * @param {object} agentConfig
     *
-    *
    */
   resolveUtilityConfig(agentConfig, sharedModels, utilApiOverride) {
     const cfg = agentConfig || {};

@@ -9,7 +9,7 @@ function read(rel: string) {
 }
 
 describe('plugin store entry wiring', () => {
-  it('keeps G-SAP plugin management inside settings instead of the app chrome', () => {
+  it('keeps Codia plugin management inside settings instead of the app chrome', () => {
     const app = read('App.tsx');
     const pluginsTab = read('settings/tabs/PluginsTab.tsx');
     const settingsContent = read('settings/SettingsContent.tsx');

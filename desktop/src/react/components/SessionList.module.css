@@ -617,12 +617,12 @@
     border-radius: 50%;
     background: var(--accent, #b89a7a);
     flex-shrink: 0;
-    animation: hana-pulse 2s ease-in-out infinite;
+    animation: codia-pulse 2s ease-in-out infinite;
 }
 
 .sessionStreamingDot[data-state="pending"] {
     opacity: 0.78;
-    animation: hana-pulse 1.2s ease-in-out infinite;
+    animation: codia-pulse 1.2s ease-in-out infinite;
 }
 
 /* 浏览器标记 */

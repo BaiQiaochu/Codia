@@ -39,8 +39,8 @@ vi.mock("../lib/debug-log.js", () => ({
 import { SessionCoordinator } from "../core/session-coordinator.ts";
 
 const agentsDir = "/tmp/agents";
-const sessionPath = `${agentsDir}/hana/sessions/session.jsonl`;
-const missingSessionPath = `${agentsDir}/hana/sessions/missing.jsonl`;
+const sessionPath = `${agentsDir}/codia/sessions/session.jsonl`;
+const missingSessionPath = `${agentsDir}/codia/sessions/missing.jsonl`;
 
 describe("SessionCoordinator.switchSessionModel", () => {
   beforeEach(() => {
@@ -53,8 +53,8 @@ describe("SessionCoordinator.switchSessionModel", () => {
   it("reports per-session model switch state through a public query", () => {
     const coord = new SessionCoordinator({
       agentsDir,
-      getAgent: () => ({ sessionDir: `${agentsDir}/hana/sessions` }),
-      getActiveAgentId: () => "hana",
+      getAgent: () => ({ sessionDir: `${agentsDir}/codia/sessions` }),
+      getActiveAgentId: () => "codia",
       getModels: () => null,
       getResourceLoader: () => null,
       getSkills: () => null,
@@ -83,8 +83,8 @@ describe("SessionCoordinator.switchSessionModel", () => {
   it("does not crash when context usage exists and adaptation is needed", async () => {
     const coord = new SessionCoordinator({
       agentsDir,
-      getAgent: () => ({ sessionDir: `${agentsDir}/hana/sessions` }),
-      getActiveAgentId: () => "hana",
+      getAgent: () => ({ sessionDir: `${agentsDir}/codia/sessions` }),
+      getActiveAgentId: () => "codia",
       getModels: () => null,
       getResourceLoader: () => null,
       getSkills: () => null,
@@ -147,8 +147,8 @@ describe("SessionCoordinator.switchSessionModel", () => {
   it("passes model-switch lifecycle options through _compactWithModel", async () => {
     const coord = new SessionCoordinator({
       agentsDir,
-      getAgent: () => ({ sessionDir: `${agentsDir}/hana/sessions` }),
-      getActiveAgentId: () => "hana",
+      getAgent: () => ({ sessionDir: `${agentsDir}/codia/sessions` }),
+      getActiveAgentId: () => "codia",
       getModels: () => null,
       getResourceLoader: () => null,
       getSkills: () => null,
@@ -215,8 +215,8 @@ describe("SessionCoordinator.switchSessionModel", () => {
   it("emits lifecycle and session_compact events for model-switch hard truncation", async () => {
     const coord = new SessionCoordinator({
       agentsDir,
-      getAgent: () => ({ sessionDir: `${agentsDir}/hana/sessions` }),
-      getActiveAgentId: () => "hana",
+      getAgent: () => ({ sessionDir: `${agentsDir}/codia/sessions` }),
+      getActiveAgentId: () => "codia",
       getModels: () => null,
       getResourceLoader: () => null,
       getSkills: () => null,
@@ -294,8 +294,8 @@ describe("SessionCoordinator.switchSessionModel", () => {
   it("falls back from xhigh to high when switching to a model without max thinking support", async () => {
     const coord = new SessionCoordinator({
       agentsDir,
-      getAgent: () => ({ sessionDir: `${agentsDir}/hana/sessions` }),
-      getActiveAgentId: () => "hana",
+      getAgent: () => ({ sessionDir: `${agentsDir}/codia/sessions` }),
+      getActiveAgentId: () => "codia",
       getModels: () => null,
       getResourceLoader: () => null,
       getSkills: () => null,

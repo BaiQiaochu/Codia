@@ -51,7 +51,7 @@ import {
 const BRIDGE_OWNER_DENIED_TOOL_NAMES = Object.freeze([
   "computer",
   "browser",
-  "hana_card_guide",
+  "codia_card_guide",
   "show_card",
 ]);
 
@@ -157,7 +157,7 @@ function recordBridgeAssistantUsage({ ledger, event, sessionPath, agent, model, 
 
 function withVisionExtension(resourceLoader, getBridge, getSessionPath, isEnabled, warn, resolveSessionFile, getTargetModel) {
   return withVisionContextInjectionExtension(resourceLoader, {
-    path: "hana-vision-context-injection",
+    path: "codia-vision-context-injection",
     sessionPathRef: () => getSessionPath?.() || null,
     targetModelRef: () => getTargetModel?.() || null,
     getVisionBridge: getBridge,
@@ -756,7 +756,7 @@ export class BridgeSessionManager {
       }
       if (opts.inboundFiles?.length && activeSessionPath) {
         const materialized = await materializeBridgeInboundFiles({
-          gsapHome: this._deps.getGsapHome?.() || this._deps.getHanakoHome?.(),
+          codiaHome: this._deps.getCodiaHome?.() || this._deps.getCodiaHome?.(),
           sessionPath: activeSessionPath,
           files: opts.inboundFiles,
           registerSessionFile: this._deps.registerSessionFile,

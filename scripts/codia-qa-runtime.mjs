@@ -11,7 +11,7 @@ export async function startIsolatedVisualRuntime(root, mockOptions = {}) {
   const workspace = path.join(home, 'visual-workspace');
   fs.mkdirSync(workspace);
   fs.writeFileSync(path.join(workspace, 'readme.md'), '# Codia visual fixture\n');
-  const configPath = path.join(home, 'agents', 'gsap', 'config.yaml');
+  const configPath = path.join(home, 'agents', 'codia', 'config.yaml');
   const config = YAML.load(fs.readFileSync(configPath, 'utf8'));
   config.desk.home_folder = workspace;
   fs.writeFileSync(configPath, YAML.dump(config));
@@ -21,11 +21,11 @@ export async function startIsolatedVisualRuntime(root, mockOptions = {}) {
     cwd: root,
     env: {
       ...process.env,
-      GSAP_HOME: home,
-      GSAP_DEV_HOME: home,
-      GSAP_PORT: '0',
-      GSAP_E2E: '1',
-      GSAP_DEV_WEB_CLIENT_PORT: String(port),
+      CODIA_HOME: home,
+      CODIA_DEV_HOME: home,
+      CODIA_PORT: '0',
+      CODIA_E2E: '1',
+      CODIA_DEV_WEB_CLIENT_PORT: String(port),
     },
     windowsHide: true,
     stdio: ['ignore', 'pipe', 'pipe'],

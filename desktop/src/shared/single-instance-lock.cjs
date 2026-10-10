@@ -5,14 +5,14 @@ function normalizeForCompare(filePath) {
   return process.platform === "win32" ? resolved.toLowerCase() : resolved;
 }
 
-function getUserDataAppName(gsapHome, defaultHome) {
-  if (normalizeForCompare(gsapHome) === normalizeForCompare(defaultHome)) {
-    return "G-SAP";
+function getUserDataAppName(codiaHome, defaultHome) {
+  if (normalizeForCompare(codiaHome) === normalizeForCompare(defaultHome)) {
+    return "Codia";
   }
-  const suffix = path.basename(gsapHome).replace(/^\./, "");
-  if (!suffix) return "G-SAP";
-  if (suffix.toLowerCase() === "gsap") return "G-SAP";
-  if (suffix.toLowerCase().startsWith("gsap-")) return `G-SAP${suffix.slice(4)}`;
+  const suffix = path.basename(codiaHome).replace(/^\./, "");
+  if (!suffix) return "Codia";
+  if (suffix.toLowerCase() === "codia") return "Codia";
+  if (suffix.toLowerCase().startsWith("codia-")) return `Codia${suffix.slice("codia".length)}`;
   return suffix.charAt(0).toUpperCase() + suffix.slice(1);
 }
 
@@ -34,13 +34,13 @@ function focusExistingWindow(win) {
 
 function configureClientSingleInstance(app, opts) {
   const { defaultHome, onSecondInstance } = opts;
-  const gsapHome = opts.gsapHome || opts.hanakoHome;
-  const appName = getUserDataAppName(gsapHome, defaultHome || gsapHome);
+  const codiaHome = opts.codiaHome;
+  const appName = getUserDataAppName(codiaHome, defaultHome || codiaHome);
   if (appName) {
     app.setPath("userData", path.join(app.getPath("appData"), appName));
   }
 
-  const gotLock = app.requestSingleInstanceLock({ gsapHome });
+  const gotLock = app.requestSingleInstanceLock({ codiaHome });
   if (!gotLock) {
     exitDuplicateClient(app);
     return false;

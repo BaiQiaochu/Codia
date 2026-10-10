@@ -18,7 +18,7 @@ function getRow(container: HTMLElement, toolName: string): HTMLElement | null {
 }
 
 function clickToggle(row: HTMLElement | null) {
-  const btn = row?.querySelector('.gsap-toggle') as HTMLElement | null;
+  const btn = row?.querySelector('.codia-toggle') as HTMLElement | null;
   if (btn) fireEvent.click(btn);
 }
 
@@ -67,7 +67,7 @@ describe('AgentToolsSection', () => {
     );
 
     const row = getRow(container, 'browser');
-    const toggle = row?.querySelector('.gsap-toggle') as HTMLButtonElement | null;
+    const toggle = row?.querySelector('.codia-toggle') as HTMLButtonElement | null;
     expect(toggle).toBeTruthy();
     expect(toggle?.disabled).toBe(true);
     expect(toggle?.getAttribute('aria-busy')).toBe('true');

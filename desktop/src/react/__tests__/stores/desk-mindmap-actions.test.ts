@@ -39,7 +39,7 @@ function jsonResponse(data: unknown) {
 }
 
 let testStore = createTestStore();
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
 vi.mock('../../stores/index', () => ({
   get useStore() {
@@ -53,8 +53,8 @@ vi.mock('../../stores/index', () => ({
   },
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 vi.mock('../../stores/agent-actions', () => ({
@@ -69,17 +69,17 @@ describe('desk mind map actions', () => {
         { name: 'Mind Map 2.xmind' },
       ],
     });
-    gsapFetchMock.mockReset();
+    codiaFetchMock.mockReset();
     window.t = ((key: string) => (key === 'desk.newMindmapFile' ? 'Mind Map.xmind' : key)) as typeof window.t;
   });
 
   it('creates a unique XMind mind map through the desk file route', async () => {
-    gsapFetchMock.mockResolvedValue(jsonResponse({ ok: true, files: [{ name: 'Mind Map 3.xmind' }] }));
+    codiaFetchMock.mockResolvedValue(jsonResponse({ ok: true, files: [{ name: 'Mind Map 3.xmind' }] }));
     const mod = await import('../../stores/desk-actions');
 
     await expect(mod.deskCreateMindmap()).resolves.toBe(true);
 
-    const body = JSON.parse(gsapFetchMock.mock.calls[0][1].body as string);
+    const body = JSON.parse(codiaFetchMock.mock.calls[0][1].body as string);
     expect(body).toMatchObject({
       action: 'createMindmap',
       dir: '/desk-a',
@@ -91,12 +91,12 @@ describe('desk mind map actions', () => {
   });
 
   it('creates an XMind mind map from a selected document', async () => {
-    gsapFetchMock.mockResolvedValue(jsonResponse({ ok: true, files: [{ name: 'brief.xmind' }] }));
+    codiaFetchMock.mockResolvedValue(jsonResponse({ ok: true, files: [{ name: 'brief.xmind' }] }));
     const mod = await import('../../stores/desk-actions');
 
     await expect(mod.deskCreateMindmapFromDocument('brief.md')).resolves.toBe(true);
 
-    const body = JSON.parse(gsapFetchMock.mock.calls[0][1].body as string);
+    const body = JSON.parse(codiaFetchMock.mock.calls[0][1].body as string);
     expect(body).toMatchObject({
       action: 'createMindmapFromDocument',
       dir: '/desk-a',

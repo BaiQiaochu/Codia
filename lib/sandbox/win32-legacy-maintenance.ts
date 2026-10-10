@@ -15,14 +15,14 @@ export function buildWin32LegacyAclDiagnosticArgs({ paths = [], cleanup = false 
   return out;
 }
 
-export function buildWin32GsapWriteAclCleanupArgs({ paths = [] } = {}) {
+export function buildWin32CodiaWriteAclCleanupArgs({ paths = [] } = {}) {
   const targets = [...new Set((paths || []).filter(Boolean))];
   if (targets.length === 0) {
-    throw new Error("win32 G-SAP write ACL cleanup requires at least one path");
+    throw new Error("win32 Codia write ACL cleanup requires at least one path");
   }
   const out = [];
   for (const p of targets) {
-    out.push("--cleanup-gsap-write-acl", p);
+    out.push("--cleanup-codia-write-acl", p);
   }
   return out;
 }

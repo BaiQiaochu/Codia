@@ -8,7 +8,7 @@ import { ProviderRegistry } from "../core/provider-registry.js";
 let tmpHome;
 
 beforeEach(() => {
-  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-provider-media-"));
+  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "codia-provider-media-"));
 });
 
 afterEach(() => {

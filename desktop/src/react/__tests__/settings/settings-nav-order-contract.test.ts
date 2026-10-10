@@ -8,9 +8,9 @@ describe('settings navigation order contract', () => {
     const categories = buildSettingsCategories();
     expect(categories.map(category => [category.id, category.fallback, category.defaultTab, category.modules.map(module => module.id)])).toEqual([
       ['account-agent', '账号与助手', 'agent', ['agent', 'me']],
-      ['models-capabilities', '模型与能力', 'providers', ['providers', 'media', 'skills']],
+      ['models-capabilities', '模型与能力', 'providers', ['providers', 'context', 'media', 'skills']],
       ['work-extensions', '工作与扩展', 'work', ['work', 'browser', 'mcp', 'bridge', 'plugins']],
-      ['system-security', '系统与安全', 'security', ['security', 'experiments', 'diagnostics']],
+      ['system-security', '系统与安全', 'security', ['security', 'computer', 'diagnostics']],
       ['general-devices', '通用与设备', 'about', ['about', 'sharing', 'access']],
     ]);
     const moduleIds = categories.flatMap(category => category.modules.map(module => module.id));
@@ -26,5 +26,8 @@ describe('settings navigation order contract', () => {
     expect(normalizeSettingsModuleId('plugin-marketplace')).toBe('plugins');
     expect(findSettingsCategory(categories, 'plugin-marketplace').id).toBe('work-extensions');
     expect(findSettingsCategory(categories, 'diagnostics').id).toBe('system-security');
+    expect(normalizeSettingsModuleId('experiments')).toBe('context');
+    expect(findSettingsCategory(categories, 'experiments').id).toBe('models-capabilities');
+    expect(findSettingsCategory(categories, 'computer').id).toBe('system-security');
   });
 });

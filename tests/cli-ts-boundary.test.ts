@@ -18,7 +18,7 @@ describe("CLI TypeScript boundary", () => {
 
   it("launches CLI through the TypeScript entry", () => {
     const rootEntry = fs.readFileSync(path.join(ROOT, "index.js"), "utf8");
-    const packageEntry = fs.readFileSync(path.join(ROOT, "scripts", "gsapctl.mjs"), "utf8");
+    const packageEntry = fs.readFileSync(path.join(ROOT, "scripts", "codiactl.mjs"), "utf8");
 
     expect(rootEntry).toContain("./lib/cli/main.ts");
     expect(rootEntry).not.toContain("./lib/cli/main.js");

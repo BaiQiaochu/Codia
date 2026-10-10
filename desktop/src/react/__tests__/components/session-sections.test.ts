@@ -9,8 +9,8 @@ function makeSession(overrides: Partial<Session>): Session {
     firstMessage: '',
     modified: '2026-04-29T01:00:00.000Z',
     messageCount: 1,
-    agentId: 'gsap',
-    agentName: 'G-SAP',
+    agentId: 'codia',
+    agentName: 'Codia',
     cwd: null,
     ...overrides,
   };

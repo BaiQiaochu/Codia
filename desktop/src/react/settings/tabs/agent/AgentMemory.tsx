@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSettingsStore } from '../../store';
 import { t, autoSaveConfig, savePins } from '../../helpers';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { PinItem } from './AgentPins';
 import { SettingsSection } from '../../components/SettingsSection';
 import { Toggle } from '../../widgets/Toggle';
@@ -161,7 +161,7 @@ export function MemorySection({ agentId, hasUtilityModel, memoryEnabled, current
     let active = true;
     setHealthError(null);
 
-    gsapFetch(`/api/memories/health?agentId=${encodeURIComponent(agentId)}`, {
+    codiaFetch(`/api/memories/health?agentId=${encodeURIComponent(agentId)}`, {
       signal: controller.signal,
       timeout: 10_000,
     })
@@ -258,7 +258,7 @@ export function MemorySection({ agentId, hasUtilityModel, memoryEnabled, current
         </div>
         <button type="button"
           className={`${styles['memory-action-btn']} ${styles['compiled-view-btn']}`}
-          onClick={() => window.dispatchEvent(new Event('gsap-view-compiled-memory'))}
+          onClick={() => window.dispatchEvent(new Event('codia-view-compiled-memory'))}
         >
           {t('settings.memory.compiledView')}
         </button>
@@ -269,13 +269,13 @@ export function MemorySection({ agentId, hasUtilityModel, memoryEnabled, current
         <div className={`${styles['memory-actions-row']} ${styles['memory-actions-spaced']}`}>
           <button type="button"
             className={styles['memory-action-btn']}
-            onClick={() => window.dispatchEvent(new Event('gsap-view-memories'))}
+            onClick={() => window.dispatchEvent(new Event('codia-view-memories'))}
           >
             {t('settings.memory.actions.view')}
           </button>
           <button type="button"
             className={`${styles['memory-action-btn']} ${styles['danger']}`}
-            onClick={() => window.dispatchEvent(new Event('gsap-show-clear-confirm'))}
+            onClick={() => window.dispatchEvent(new Event('codia-show-clear-confirm'))}
           >
             {t('settings.memory.actions.clear')}
           </button>

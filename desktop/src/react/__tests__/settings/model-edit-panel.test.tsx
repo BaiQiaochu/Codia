@@ -14,7 +14,7 @@ type StoreState = {
 };
 
 let storeState: StoreState;
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 const settingsChangedMock = vi.fn();
 
 const useSettingsStoreMock = Object.assign(
@@ -30,7 +30,7 @@ vi.mock('../../settings/store', () => ({
 }));
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 vi.mock('../../settings/widgets/ComboInput', () => ({
@@ -58,7 +58,7 @@ describe('ModelEditPanel', () => {
       settingsConfig: null,
       showToast: vi.fn(),
     };
-    gsapFetchMock.mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
+    codiaFetchMock.mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
     settingsChangedMock.mockReset();
     (window as unknown as { platform?: { settingsChanged: typeof settingsChangedMock }; t?: (key: string) => string }).platform = {
       settingsChanged: settingsChangedMock,
@@ -87,17 +87,17 @@ describe('ModelEditPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'settings.api.save' }));
 
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith('/api/providers/openai/models/gpt-test', expect.objectContaining({
+      expect(codiaFetchMock).toHaveBeenCalledWith('/api/providers/openai/models/gpt-test', expect.objectContaining({
         method: 'PUT',
       }));
     });
-    const request = gsapFetchMock.mock.calls[0]?.[1] as RequestInit;
+    const request = codiaFetchMock.mock.calls[0]?.[1] as RequestInit;
     expect(JSON.parse(String(request.body))).not.toMatchObject({
       image: expect.any(Boolean),
       video: expect.any(Boolean),
       reasoning: expect.any(Boolean),
     });
-    expect(gsapFetchMock).not.toHaveBeenCalledWith('/api/models/switch', expect.anything());
+    expect(codiaFetchMock).not.toHaveBeenCalledWith('/api/models/switch', expect.anything());
     expect(settingsChangedMock).toHaveBeenCalledWith('model-metadata-changed', {
       providerId: 'openai',
       modelId: 'gpt-test',

@@ -2,12 +2,12 @@ import React from 'react';
 import { yuanFallbackAvatar } from '../../api';
 import { t } from '../../helpers';
 
-import originalBackgroundUrl from '../../../../assets/gsap-original-background.jpg';
+import originalBackgroundUrl from '../../../../assets/codia-original-background.jpg';
 
 export function YuanSelector({ currentYuan, onChange }: { currentYuan: string; onChange: (key: string) => void }) {
   const types = t('yuan.types') || {};
   const entries = Object.entries(types) as [string, { name?: string; label?: string; avatar?: string }][];
-  const hIdx = entries.findIndex(([k]) => k === 'gsap');
+  const hIdx = entries.findIndex(([k]) => k === 'codia');
   if (hIdx >= 0 && entries.length >= 3) {
     const [h] = entries.splice(hIdx, 1);
     entries.splice(1, 0, h);
@@ -15,7 +15,7 @@ export function YuanSelector({ currentYuan, onChange }: { currentYuan: string; o
 
   const chips = entries.filter(([k]) => k !== 'kong' && k !== 'hermes');
   const kongMeta = (types as Record<string, { name?: string; label?: string }>).kong;
-  const defaultAvatar = yuanFallbackAvatar('gsap');
+  const defaultAvatar = yuanFallbackAvatar('codia');
 
   return (
     <div className="yuan-selector">

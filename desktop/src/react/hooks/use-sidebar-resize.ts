@@ -96,10 +96,10 @@ export function useSidebarResize(): void {
     }
 
     // Restore saved sidebar width.
-    const savedLeft = localStorage.getItem('gsap-sidebar-width');
-    const savedRight = localStorage.getItem('gsap-jian-width');
-    const savedChannelInspector = localStorage.getItem('gsap-channel-inspector-width');
-    const savedPreview = localStorage.getItem('gsap-preview-width');
+    const savedLeft = localStorage.getItem('codia-sidebar-width');
+    const savedRight = localStorage.getItem('codia-jian-width');
+    const savedChannelInspector = localStorage.getItem('codia-channel-inspector-width');
+    const savedPreview = localStorage.getItem('codia-preview-width');
     if (savedLeft) applySidebarWidth(Number(savedLeft));
     if (savedRight) applyJianWidth(Number(savedRight));
     if (savedChannelInspector) applyChannelInspectorWidth(Number(savedChannelInspector));
@@ -198,7 +198,7 @@ export function useSidebarResize(): void {
       () => sidebarEl,
       () => sidebarEl?.offsetWidth || 240,
       (w) => applySidebarWidth(w),
-      LEFT_MIN, LEFT_MAX, 'gsap-sidebar-width', false,
+      LEFT_MIN, LEFT_MAX, 'codia-sidebar-width', false,
     );
 
     setupHandle(
@@ -206,7 +206,7 @@ export function useSidebarResize(): void {
       () => jianSidebarEl,
       () => jianSidebarEl?.offsetWidth || 260,
       (w) => applyJianWidth(w),
-      RIGHT_MIN, RIGHT_MAX, 'gsap-jian-width', true,
+      RIGHT_MIN, RIGHT_MAX, 'codia-jian-width', true,
     );
 
     setupHandle(
@@ -214,7 +214,7 @@ export function useSidebarResize(): void {
       () => channelInspectorEl,
       () => cssWidth('--channel-inspector-width', CHANNEL_INSPECTOR_DEFAULT),
       (w) => applyChannelInspectorWidth(w),
-      CHANNEL_INSPECTOR_MIN, CHANNEL_INSPECTOR_MAX, 'gsap-channel-inspector-width', true,
+      CHANNEL_INSPECTOR_MIN, CHANNEL_INSPECTOR_MAX, 'codia-channel-inspector-width', true,
     );
 
     const previewHandle = document.getElementById('previewResizeHandle');
@@ -223,7 +223,7 @@ export function useSidebarResize(): void {
       () => previewPanel,
       () => previewPanel?.offsetWidth || 580,
       (w) => applyPreviewWidth(w),
-      PREVIEW_MIN, getPreviewMaxWidth, 'gsap-preview-width', true,
+      PREVIEW_MIN, getPreviewMaxWidth, 'codia-preview-width', true,
     );
 
     return () => {

@@ -41,7 +41,7 @@ describe('channel agent create wiring', () => {
     expect(channelsPanel).toContain('removeChannelMember');
 
     expect(workspace).toContain('createChannelAgent');
-    expect(workspace).toContain('gsap-channel-open-agent-create');
+    expect(workspace).toContain('codia-channel-open-agent-create');
   });
 
   it('keeps the group-agent create controls inside narrow inspector cards', () => {

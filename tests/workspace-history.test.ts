@@ -16,11 +16,11 @@ describe("workspace history", () => {
   it("builds picker items from current workspace, home folder, and persisted history", () => {
     expect(buildWorkspacePickerItems({
       selectedFolder: "/workspace/Desktop",
-      homeFolder: "/workspace/G-SAP",
+      homeFolder: "/workspace/Codia",
       cwdHistory: ["/workspace/Desktop", "/workspace/Novel"],
     })).toEqual([
       "/workspace/Desktop",
-      "/workspace/G-SAP",
+      "/workspace/Codia",
       "/workspace/Novel",
     ]);
   });
@@ -34,10 +34,10 @@ describe("workspace history", () => {
     expect(removeWorkspaceHistoryEntries([
       "/workspace/Desktop",
       "/workspace/Novel",
-      "C:/Users/G-SAP/Project",
+      "C:/Users/Codia/Project",
     ], [
       "/workspace/Desktop/",
-      "C:\\Users\\G-SAP\\Project",
+      "C:\\Users\\Codia\\Project",
     ])).toEqual(["/workspace/Novel"]);
   });
 

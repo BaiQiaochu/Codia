@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { upsertStudioMount } from "../core/studio-mounts.js";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-studio-workspaces-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-studio-workspaces-"));
 }
 
 async function makeApp(engine: Record<string, any>, principal: Record<string, any> | null = null) {
@@ -60,10 +60,10 @@ describe("studio workspaces route", () => {
     tmpDir = makeTmpDir();
     const workspace = path.join(tmpDir, "workspace");
     const mountRoot = path.join(tmpDir, "design-assets");
-    const gsapHome = path.join(tmpDir, "gsap");
+    const codiaHome = path.join(tmpDir, "codia");
     fs.mkdirSync(workspace, { recursive: true });
     fs.mkdirSync(mountRoot, { recursive: true });
-    upsertStudioMount(gsapHome, {
+    upsertStudioMount(codiaHome, {
       mountId: "mount_design",
       hostStudioId: "studio_1",
       sourceKind: "storage",
@@ -74,7 +74,7 @@ describe("studio workspaces route", () => {
       capabilities: ["list", "read", "write"],
     });
     const app = await makeApp({
-      gsapHome,
+      codiaHome,
       homeCwd: workspace,
       deskCwd: workspace,
       getRuntimeContext: () => localRuntime(),
@@ -116,12 +116,12 @@ describe("studio workspaces route", () => {
     tmpDir = makeTmpDir();
     const workspace = path.join(tmpDir, "workspace");
     const mountRoot = path.join(tmpDir, "client-project");
-    const gsapHome = path.join(tmpDir, "gsap");
+    const codiaHome = path.join(tmpDir, "codia");
     fs.mkdirSync(workspace, { recursive: true });
     fs.mkdirSync(mountRoot, { recursive: true });
     fs.writeFileSync(path.join(mountRoot, "brief.md"), "brief", "utf-8");
     const app = await makeApp({
-      gsapHome,
+      codiaHome,
       homeCwd: workspace,
       deskCwd: workspace,
       getRuntimeContext: () => localRuntime(),
@@ -156,11 +156,11 @@ describe("studio workspaces route", () => {
     tmpDir = makeTmpDir();
     const workspace = path.join(tmpDir, "workspace");
     const mountRoot = path.join(tmpDir, "server-secret");
-    const gsapHome = path.join(tmpDir, "gsap");
+    const codiaHome = path.join(tmpDir, "codia");
     fs.mkdirSync(workspace, { recursive: true });
     fs.mkdirSync(mountRoot, { recursive: true });
     const app = await makeApp({
-      gsapHome,
+      codiaHome,
       homeCwd: workspace,
       deskCwd: workspace,
       getRuntimeContext: () => localRuntime(),
@@ -183,11 +183,11 @@ describe("studio workspaces route", () => {
     tmpDir = makeTmpDir();
     const workspace = path.join(tmpDir, "workspace");
     const mountRoot = path.join(tmpDir, "client-project");
-    const gsapHome = path.join(tmpDir, "gsap");
+    const codiaHome = path.join(tmpDir, "codia");
     fs.mkdirSync(workspace, { recursive: true });
     fs.mkdirSync(mountRoot, { recursive: true });
     fs.writeFileSync(path.join(mountRoot, "brief.md"), "brief", "utf-8");
-    upsertStudioMount(gsapHome, {
+    upsertStudioMount(codiaHome, {
       mountId: "mount_client",
       hostStudioId: "studio_1",
       sourceKind: "storage",
@@ -198,7 +198,7 @@ describe("studio workspaces route", () => {
       capabilities: ["list", "read", "write"],
     });
     const app = await makeApp({
-      gsapHome,
+      codiaHome,
       homeCwd: workspace,
       deskCwd: workspace,
       getRuntimeContext: () => localRuntime(),
@@ -222,10 +222,10 @@ describe("studio workspaces route", () => {
     tmpDir = makeTmpDir();
     const workspace = path.join(tmpDir, "workspace");
     const mountRoot = path.join(tmpDir, "client-project");
-    const gsapHome = path.join(tmpDir, "gsap");
+    const codiaHome = path.join(tmpDir, "codia");
     fs.mkdirSync(workspace, { recursive: true });
     fs.mkdirSync(mountRoot, { recursive: true });
-    upsertStudioMount(gsapHome, {
+    upsertStudioMount(codiaHome, {
       mountId: "mount_client",
       hostStudioId: "studio_1",
       sourceKind: "storage",
@@ -236,7 +236,7 @@ describe("studio workspaces route", () => {
       capabilities: ["list", "read", "write"],
     });
     const app = await makeApp({
-      gsapHome,
+      codiaHome,
       homeCwd: workspace,
       deskCwd: workspace,
       getRuntimeContext: () => localRuntime(),

@@ -21,14 +21,14 @@ describe('sharing preview wiring', () => {
 
     expect(source).toContain('SCREENSHOT_SEGMENT_VISIBLE_CHAR_LIMIT_STORAGE_KEY');
     expect(source).toContain("settings.screenshot.segmentTitle");
-    expect(source).toContain("gsap-screenshot-width");
-    expect(source).toContain("settings.screenshot.gsap");
-    expect(source).toContain("gsap-mobile");
-    expect(source).toContain("gsap-desktop");
-    expect(source).not.toContain("hana-screenshot");
+    expect(source).toContain("codia-screenshot-width");
+    expect(source).toContain("settings.screenshot.codia");
+    expect(source).toContain("codia-mobile");
+    expect(source).toContain("codia-desktop");
+    expect(source).toContain("codia-screenshot");
   });
 
-  it('wires screenshot sharing to the G-SAP brand theme assets', () => {
+  it('wires screenshot sharing to the Codia brand theme assets', () => {
     const extractSource = read('utils/screenshot-extract.ts');
     const screenshotSource = read('utils/screenshot.ts');
     const sharingSource = read('settings/tabs/SharingTab.tsx');
@@ -37,20 +37,20 @@ describe('sharing preview wiring', () => {
       'utf8',
     );
 
-    expect(extractSource).toContain("'gsap-brand'");
-    expect(extractSource).toContain("'gsap-brand-desktop'");
-    expect(screenshotSource).toContain("localStorage.getItem('gsap-screenshot-color') || 'gsap'");
-    expect(sharingSource).toContain("stored === 'gsap' ? stored : 'gsap'");
-    expect(mainSource).toContain('"gsap-brand"');
-    expect(mainSource).toContain('"gsap-brand-desktop"');
-    expect(fs.existsSync(path.resolve(ROOT, '..', 'screenshot-themes', 'gsap-brand.css'))).toBe(true);
-    expect(fs.existsSync(path.resolve(ROOT, '..', 'screenshot-themes', 'gsap-brand-desktop.css'))).toBe(true);
+    expect(extractSource).toContain("'codia-brand'");
+    expect(extractSource).toContain("'codia-brand-desktop'");
+    expect(screenshotSource).toContain("localStorage.getItem('codia-screenshot-color') || 'codia'");
+    expect(sharingSource).toContain("stored === 'codia' ? stored : 'codia'");
+    expect(mainSource).toContain('"codia-brand"');
+    expect(mainSource).toContain('"codia-brand-desktop"');
+    expect(fs.existsSync(path.resolve(ROOT, '..', 'screenshot-themes', 'codia-brand.css'))).toBe(true);
+    expect(fs.existsSync(path.resolve(ROOT, '..', 'screenshot-themes', 'codia-brand-desktop.css'))).toBe(true);
   });
 
   it('SharingTab keeps API call examples out of the settings UI', () => {
     const source = read('settings/tabs/SharingTab.tsx');
 
-    expect(source).not.toContain("import { gsapFetch }");
+    expect(source).not.toContain("import { codiaFetch }");
     expect(source).not.toContain("/api/preferences/web-access");
     expect(source).not.toContain("generateWebApiKey");
     expect(source).not.toContain("revokeWebApiKey");
@@ -60,7 +60,7 @@ describe('sharing preview wiring', () => {
     expect(source).not.toContain("/ws?");
   });
 
-  it('preload exposes save-screenshot-preview to window.gsap', () => {
+  it('preload exposes save-screenshot-preview to window.codia', () => {
     const preload = fs.readFileSync(
       path.resolve(ROOT, '..', '..', 'preload.cjs'),
       'utf8',

@@ -35,6 +35,8 @@ const translations: Record<string, string> = {
   'settings.tabs.access': 'Access',
   'settings.tabs.plugins': 'Plugins',
   'settings.tabs.experiments': 'Experiments',
+  'settings.tabs.context': 'Context',
+  'settings.tabs.computerUse': 'Computer Use',
   'settings.tabs.security': 'Security',
   'settings.tabs.diagnostics': 'Diagnostics',
   'settings.tabs.about': 'About',
@@ -48,7 +50,7 @@ describe('SettingsNav search', () => {
     window.t = ((key: string) => translations[key] || key) as typeof window.t;
     window.i18n = {
       locale: 'en',
-      defaultName: 'G-SAP Professional',
+      defaultName: 'Codia Professional',
       _data: {},
       _agentOverrides: {},
       load: vi.fn(async () => {}),

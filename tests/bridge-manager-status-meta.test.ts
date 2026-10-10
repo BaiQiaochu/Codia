@@ -5,9 +5,9 @@ import { BridgeManager } from "../lib/bridge/bridge-manager.js";
 
 function createBridgeManager() {
   const engine = {
-    hanakoHome: os.tmpdir(),
+    codiaHome: os.tmpdir(),
     agent: null,
-    agentName: "G-SAP",
+    agentName: "Codia",
     getAgent: vi.fn(() => null),
   };
   const hub = {
@@ -77,8 +77,8 @@ describe("BridgeManager status metadata", () => {
     };
     const recordAssistantMessage = vi.fn(() => true);
     const engine = {
-      hanakoHome: os.tmpdir(),
-      agentName: "G-SAP",
+      codiaHome: os.tmpdir(),
+      agentName: "Codia",
       bridgeSessionManager: { recordAssistantMessage },
       getAgent: vi.fn((id) => id === "agent-1" ? {
         id: "agent-1",
@@ -132,8 +132,8 @@ describe("BridgeManager status metadata", () => {
     };
     const recordAssistantMessage = vi.fn(() => true);
     const engine = {
-      hanakoHome: os.tmpdir(),
-      agentName: "G-SAP",
+      codiaHome: os.tmpdir(),
+      agentName: "Codia",
       bridgeSessionManager: { recordAssistantMessage },
       getAgent: vi.fn((id) => id === "agent-1" ? {
         id: "agent-1",

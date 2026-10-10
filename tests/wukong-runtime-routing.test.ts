@@ -9,7 +9,7 @@ import { SessionCoordinator } from "../core/session-coordinator.ts";
 const tempDirs: string[] = [];
 
 function tempAgentDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-wukong-runtime-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-wukong-runtime-"));
   tempDirs.push(dir);
   fs.mkdirSync(path.join(dir, "sessions"), { recursive: true });
   return dir;

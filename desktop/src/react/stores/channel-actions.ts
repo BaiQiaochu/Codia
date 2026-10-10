@@ -8,7 +8,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- API JSON payloads and catch(err: any) */
 
 import { useStore } from './index';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import { loadAgents } from './agent-actions';
 import { hasServerConnection } from '../services/server-connection';
 import type { AgentPhoneActivity, AgentPhoneSettings, AgentPhoneToolMode, Channel, ChannelAgentActivities, ChannelMemberRole, ChannelMessage } from '../types';
@@ -42,8 +42,8 @@ export async function loadChannels(): Promise<void> {
   if (!hasServerConnection(s)) return;
   try {
     const [chRes, dmRes] = await Promise.all([
-      gsapFetch('/api/channels'),
-      gsapFetch('/api/dm'),
+      codiaFetch('/api/channels'),
+      codiaFetch('/api/dm'),
     ]);
 
     const chData = chRes.ok ? await chRes.json() : { channels: [] };
@@ -93,7 +93,7 @@ export async function loadConversationAgentActivities(conversationId: string): P
   const s = useStore.getState();
   if (!conversationId || !hasServerConnection(s)) return;
   try {
-    const res = await gsapFetch(`/api/conversations/${encodeURIComponent(conversationId)}/agent-activities`);
+    const res = await codiaFetch(`/api/conversations/${encodeURIComponent(conversationId)}/agent-activities`);
     if (!res?.ok) return;
     const data = await res.json();
     const activities = keyActivities(data.activities);
@@ -207,7 +207,7 @@ export async function loadConversationAgentPhoneSettings(conversationId: string)
   const s = useStore.getState();
   if (!conversationId || !hasServerConnection(s)) return;
   try {
-    const res = await gsapFetch(conversationPhoneSettingsUrl(conversationId));
+    const res = await codiaFetch(conversationPhoneSettingsUrl(conversationId));
     if (!res?.ok) {
       applyAgentPhoneSettings(defaultAgentPhoneSettings());
       return;
@@ -228,7 +228,7 @@ export async function saveConversationAgentPhoneSettings(patch: Partial<AgentPho
   const s = useStore.getState();
   const conversationId = s.currentChannel;
   if (!conversationId || !hasServerConnection(s)) return;
-  const res = await gsapFetch(conversationPhoneSettingsUrl(conversationId), {
+  const res = await codiaFetch(conversationPhoneSettingsUrl(conversationId), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -274,7 +274,7 @@ export async function openChannel(channelId: string, isDM?: boolean): Promise<vo
   try {
     if (isThisDM) {
       const ownerQuery = dmOwnerId ? `?agentId=${encodeURIComponent(dmOwnerId)}` : '';
-      const res = await gsapFetch(`/api/dm/${encodeURIComponent(peerId)}${ownerQuery}`);
+      const res = await codiaFetch(`/api/dm/${encodeURIComponent(peerId)}${ownerQuery}`);
       if (res.ok) {
         const data = await res.json();
         if (useStore.getState().currentChannel !== channelId) return;
@@ -301,7 +301,7 @@ export async function openChannel(channelId: string, isDM?: boolean): Promise<vo
       }
       // 404 means there is no DM history; base info was already set above.
     } else {
-      const res = await gsapFetch(`/api/channels/${encodeURIComponent(channelId)}`);
+      const res = await codiaFetch(`/api/channels/${encodeURIComponent(channelId)}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (useStore.getState().currentChannel !== channelId) return;
@@ -332,7 +332,7 @@ export async function openChannel(channelId: string, isDM?: boolean): Promise<vo
       const msgs = messages;
       const lastMsg = msgs[msgs.length - 1];
       if (lastMsg) {
-        Promise.resolve(gsapFetch(`/api/channels/${encodeURIComponent(channelId)}/read`, {
+        Promise.resolve(codiaFetch(`/api/channels/${encodeURIComponent(channelId)}/read`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ timestamp: lastMsg.timestamp }),
@@ -418,7 +418,7 @@ export async function sendChannelMessage(
   if ((!body && blocks.length === 0 && resources.length === 0) || !s.currentChannel) return;
 
   try {
-    const res = await gsapFetch(`/api/channels/${encodeURIComponent(s.currentChannel)}/messages`, {
+    const res = await codiaFetch(`/api/channels/${encodeURIComponent(s.currentChannel)}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -447,7 +447,7 @@ export async function sendChannelMessage(
 export async function deleteChannel(channelId: string): Promise<void> {
   const s = useStore.getState();
   try {
-    const res = await gsapFetch(`/api/channels/${encodeURIComponent(channelId)}`, {
+    const res = await codiaFetch(`/api/channels/${encodeURIComponent(channelId)}`, {
       method: 'DELETE',
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -488,7 +488,7 @@ export async function toggleChannelsEnabled(): Promise<boolean> {
   useStore.setState({ channelsEnabled: newEnabled });
 
   try {
-    await gsapFetch('/api/channels/toggle', {
+    await codiaFetch('/api/channels/toggle', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ enabled: newEnabled }),
@@ -515,7 +515,7 @@ export async function createChannel(
   try {
     const memberRoles = typeof memberRolesOrIntro === 'string' ? undefined : memberRolesOrIntro;
     const normalizedIntro = typeof memberRolesOrIntro === 'string' ? memberRolesOrIntro : intro;
-    const res = await gsapFetch('/api/channels', {
+    const res = await codiaFetch('/api/channels', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -546,7 +546,7 @@ export async function updateChannelMemberRole(
   role: ChannelMemberRole,
 ): Promise<void> {
   try {
-    const res = await gsapFetch(`/api/channels/${encodeURIComponent(channelId)}/roles`, {
+    const res = await codiaFetch(`/api/channels/${encodeURIComponent(channelId)}/roles`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ memberId, role }),
@@ -569,7 +569,7 @@ export async function createChannelAgent(
   try {
     const s = useStore.getState();
     const homeFolder = s.deskBasePath || s.selectedFolder || s.homeFolder || undefined;
-    const res = await gsapFetch(`/api/channels/${encodeURIComponent(channelId)}/agents`, {
+    const res = await codiaFetch(`/api/channels/${encodeURIComponent(channelId)}/agents`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -700,7 +700,7 @@ export function appendChannelMessage(
   useStore.setState(patch);
 
   if (shouldMarkRead) {
-    Promise.resolve(gsapFetch(`/api/channels/${encodeURIComponent(channelId)}/read`, {
+    Promise.resolve(codiaFetch(`/api/channels/${encodeURIComponent(channelId)}/read`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ timestamp: message.timestamp }),
@@ -730,7 +730,7 @@ function applyChannelMembers(
 }
 
 export async function addChannelMember(channelId: string, memberId: string): Promise<void> {
-  const res = await gsapFetch(`/api/channels/${encodeURIComponent(channelId)}/members`, {
+  const res = await codiaFetch(`/api/channels/${encodeURIComponent(channelId)}/members`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ memberId }),
@@ -743,7 +743,7 @@ export async function addChannelMember(channelId: string, memberId: string): Pro
 }
 
 export async function removeChannelMember(channelId: string, memberId: string): Promise<void> {
-  const res = await gsapFetch(`/api/channels/${encodeURIComponent(channelId)}/members/${encodeURIComponent(memberId)}`, {
+  const res = await codiaFetch(`/api/channels/${encodeURIComponent(channelId)}/members/${encodeURIComponent(memberId)}`, {
     method: 'DELETE',
   });
   const data = await res.json().catch(() => ({}));

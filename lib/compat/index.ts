@@ -17,8 +17,7 @@ const checks = [
 
 type CompatContext = {
   agentDir: string;
-  gsapHome?: string;
-  hanakoHome?: string;
+  codiaHome?: string;
   log?: (msg: string) => void;
 };
 

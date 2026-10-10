@@ -9,7 +9,7 @@ import { addBookmarkEntry, getChannelMemberRoles, getChannelMembers } from "../l
 import { ChannelManager } from "../core/channel-manager.js";
 
 function makeTempRoot() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channels-route-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-channels-route-"));
 }
 
 describe("channels route role and group-agent features", () => {
@@ -49,7 +49,7 @@ describe("channels route role and group-agent features", () => {
         const id = `agent-${name.toLowerCase().replace(/\s+/g, "-")}`;
         const agentDir = path.join(agentsDir, id);
         fs.mkdirSync(agentDir, { recursive: true });
-        fs.writeFileSync(path.join(agentDir, "config.yaml"), `agent:\n  name: "${name}"\n  yuan: ${yuan || "gsap"}\n`, "utf-8");
+        fs.writeFileSync(path.join(agentDir, "config.yaml"), `agent:\n  name: "${name}"\n  yuan: ${yuan || "codia"}\n`, "utf-8");
         return { id, name };
       }),
       getAgent: (agentId) => {
@@ -406,7 +406,7 @@ describe("channels route role and group-agent features", () => {
       blocks,
     });
     expect(fs.readFileSync(path.join(channelsDir, `${created.id}.md`), "utf-8"))
-      .toContain("gsap-channel-message-meta");
+      .toContain("codia-channel-message-meta");
   });
 
   it("resolves completed media generation placeholders when reading channel messages", async () => {

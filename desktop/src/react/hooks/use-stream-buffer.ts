@@ -33,6 +33,14 @@ import { bumpMessageLiveVersion } from '../stores/message-live-version';
 const STREAM_FLUSH_FPS = 30;
 const FLUSH_INTERVAL = Math.round(1000 / STREAM_FLUSH_FPS);
 
+export function streamFlushIntervalForLength(length: number): number {
+  if (length <= 8_000) return FLUSH_INTERVAL;
+  if (length <= 32_000) return 75;
+  if (length <= 128_000) return 150;
+  if (length <= 512_000) return 300;
+  return 500;
+}
+
 function buildTextInvokeBlocks(text: string): ContentBlock[] {
   return parseBashInvokesFromContent(text).segments.map((segment) => (
     segment.type === 'text'
@@ -62,6 +70,8 @@ interface Buffer {
   generationStarted: boolean;
   activeToolEventIds: Record<string, string[]>;
   activeMediaEventIds: Record<string, string[]>;
+  messageSegment: number;
+  splitBeforeNextContent: boolean;
 }
 
 let generatedTraceCounter = 0;
@@ -76,7 +86,7 @@ function createBuffer(sessionPath: string, sessionId: string | null = null): Buf
     textAcc: '',
     thinkingAcc: '',
     moodAcc: '',
-    moodYuan: 'gsap',
+    moodYuan: 'codia',
     inThinking: false,
     inMood: false,
     inCard: false,
@@ -89,6 +99,8 @@ function createBuffer(sessionPath: string, sessionId: string | null = null): Buf
     generationStarted: false,
     activeToolEventIds: {},
     activeMediaEventIds: {},
+    messageSegment: 0,
+    splitBeforeNextContent: false,
   };
 }
 
@@ -106,9 +118,9 @@ function bufferKeyForSession(sessionPath: string, sessionId: string | null = nul
 function resolveSessionYuan(sessionPath: string): string {
   const state = useStore.getState();
   const sessionAgentId = state.sessions.find((session: any) => session.path === sessionPath)?.agentId ?? null;
-  if (!sessionAgentId) return normalizeYuanKey(state.agentYuan || 'gsap');
+  if (!sessionAgentId) return normalizeYuanKey(state.agentYuan || 'codia');
   const agentYuan = state.agents.find((agent: any) => agent.id === sessionAgentId)?.yuan;
-  return normalizeYuanKey(agentYuan || state.agentYuan || 'gsap');
+  return normalizeYuanKey(agentYuan || state.agentYuan || 'codia');
 }
 
 function asString(value: unknown): string | undefined {
@@ -377,6 +389,22 @@ class StreamBufferManager {
     buf.generationStarted = false;
     buf.activeToolEventIds = {};
     buf.activeMediaEventIds = {};
+    buf.messageSegment = 0;
+    buf.splitBeforeNextContent = false;
+  }
+
+  private beginNextMessageSegment(buf: Buffer): void {
+    this.flush(buf);
+    buf.textAcc = '';
+    buf.thinkingAcc = '';
+    buf.moodAcc = '';
+    buf.inThinking = false;
+    buf.inMood = false;
+    buf.inCard = false;
+    buf.cardAttrs = null;
+    buf.cardDescAcc = '';
+    buf.messageId = null;
+    buf.splitBeforeNextContent = false;
   }
 
   private hasUserMessageAfterTarget(buf: Buffer): boolean {
@@ -517,8 +545,14 @@ class StreamBufferManager {
       return;
     }
 
-    if (!targetId) generatedMessageCounter += 1;
-    const id = targetId || (buf.streamId ? `stream-${buf.streamId}` : `stream-${Date.now()}-${generatedMessageCounter}`);
+    if (!targetId) {
+      generatedMessageCounter += 1;
+      buf.messageSegment += 1;
+    }
+    const streamSegmentSuffix = buf.messageSegment > 1 ? `-${buf.messageSegment}` : '';
+    const id = targetId || (buf.streamId
+      ? `stream-${buf.streamId}${streamSegmentSuffix}`
+      : `stream-${Date.now()}-${generatedMessageCounter}`);
     const msg: ChatMessage = { id, role: 'assistant', blocks: [], turnTraceId: buf.turnTraceId || undefined };
     store.appendItem(buf.sessionPath, { type: 'message', data: msg });
     bumpMessageLiveVersion(buf.sessionPath);
@@ -540,13 +574,15 @@ class StreamBufferManager {
   /** 调度节流 flush */
   private scheduleFlush(buf: Buffer): void {
     const now = Date.now();
-    if (now - buf.lastFlushTime >= FLUSH_INTERVAL) {
+    const bufferedLength = buf.textAcc.length + buf.thinkingAcc.length + buf.moodAcc.length;
+    const flushInterval = streamFlushIntervalForLength(bufferedLength);
+    if (now - buf.lastFlushTime >= flushInterval) {
       this.flush(buf);
     } else if (!buf.flushTimer) {
       buf.flushTimer = setTimeout(() => {
         buf.flushTimer = null;
         this.flush(buf);
-      }, FLUSH_INTERVAL - (now - buf.lastFlushTime));
+      }, flushInterval - (now - buf.lastFlushTime));
     }
   }
 
@@ -648,6 +684,7 @@ class StreamBufferManager {
 
       case 'text_delta':
         this.detachFromOlderAssistantAfterUser(buf);
+        if (buf.splitBeforeNextContent) this.beginNextMessageSegment(buf);
         this.resolveTurnTraceId(buf, msg);
         if (!buf.generationStarted) {
           buf.generationStarted = true;
@@ -660,6 +697,7 @@ class StreamBufferManager {
 
       case 'thinking_start':
         this.detachFromOlderAssistantAfterUser(buf);
+        if (buf.splitBeforeNextContent) this.beginNextMessageSegment(buf);
         this.recordTimelineEvent(buf, msg, 'thinking', 'running');
         this.ensureMessage(buf);
         buf.inThinking = true;
@@ -677,10 +715,12 @@ class StreamBufferManager {
         this.recordTimelineEvent(buf, msg, 'thinking', 'success');
         buf.inThinking = false;
         this.flush(buf);
+        buf.splitBeforeNextContent = true;
         break;
 
       case 'mood_start':
         this.detachFromOlderAssistantAfterUser(buf);
+        if (buf.splitBeforeNextContent) this.beginNextMessageSegment(buf);
         this.ensureMessage(buf);
         buf.inMood = true;
         buf.moodAcc = '';
@@ -699,6 +739,7 @@ class StreamBufferManager {
         break;
 
       case 'card_start':
+        if (buf.splitBeforeNextContent) this.beginNextMessageSegment(buf);
         this.ensureMessage(buf);
         buf.inCard = true;
         buf.cardAttrs = msg.attrs || null;
@@ -733,15 +774,18 @@ class StreamBufferManager {
       case 'tool_start':
         this.detachFromOlderAssistantAfterUser(buf);
         generatedEventCounter += 1;
-        (buf.activeToolEventIds[msg.name] ||= []).push(
-          this.recordTimelineEvent(
-            buf,
-            msg,
-            'tool_call',
-            'running',
-            `${this.resolveTurnTraceId(buf, msg)}:tool:${generatedEventCounter}`,
-          ),
-        );
+        {
+          const toolEventKey = toolCallIdFromEvent(msg) || msg.name;
+          (buf.activeToolEventIds[toolEventKey] ||= []).push(
+            this.recordTimelineEvent(
+              buf,
+              msg,
+              'tool_call',
+              'running',
+              toolCallIdFromEvent(msg) || `${this.resolveTurnTraceId(buf, msg)}:tool:${generatedEventCounter}`,
+            ),
+          );
+        }
         this.ensureMessage(buf);
         // 工具事件频率低，直接写 store
         this.flush(buf); // 先 flush 文本
@@ -754,7 +798,7 @@ class StreamBufferManager {
             const tg = blocks[lastTg] as Extract<ContentBlock, { type: 'tool_group' }>;
             blocks[lastTg] = {
               ...tg,
-              tools: [...tg.tools, { name: msg.name, args: msg.args, done: false, success: false }],
+              tools: [...tg.tools, toolCallFromStartEvent(msg)],
               collapsed: false,
             };
             return { ...m, blocks };
@@ -762,7 +806,7 @@ class StreamBufferManager {
           // 新建 tool_group
           blocks.push({
             type: 'tool_group',
-            tools: [{ name: msg.name, args: msg.args, done: false, success: false }],
+            tools: [toolCallFromStartEvent(msg)],
             collapsed: false,
           });
           return { ...m, blocks };
@@ -771,7 +815,8 @@ class StreamBufferManager {
 
       case 'tool_end':
         {
-          const queue = buf.activeToolEventIds[msg.name] || [];
+          const toolEventKey = toolCallIdFromEvent(msg) || msg.name;
+          const queue = buf.activeToolEventIds[toolEventKey] || [];
           const eventId = queue.shift() || `${this.resolveTurnTraceId(buf, msg)}:tool:${msg.name || 'unknown'}`;
           this.recordTimelineEvent(buf, msg, 'tool_call', msg.success === false ? 'error' : 'success', eventId);
         }
@@ -781,10 +826,16 @@ class StreamBufferManager {
           for (let i = blocks.length - 1; i >= 0; i--) {
             if (blocks[i].type !== 'tool_group') continue;
             const tg = blocks[i] as Extract<ContentBlock, { type: 'tool_group' }>;
-            const toolIdx = tg.tools.findIndex(t => t.name === msg.name && !t.done);
+            const toolIdx = findOpenToolIndex(tg.tools, msg);
             if (toolIdx >= 0) {
               const tools = [...tg.tools];
-              tools[toolIdx] = { ...tools[toolIdx], done: true, success: !!msg.success, details: msg.details };
+              tools[toolIdx] = {
+                ...tools[toolIdx],
+                done: true,
+                success: !!msg.success,
+                durationMs: typeof msg.durationMs === 'number' ? msg.durationMs : undefined,
+                details: msg.details,
+              };
               const allDone = tools.every(t => t.done);
               blocks[i] = { ...tg, tools, collapsed: allDone && tools.length > 1 };
               return { ...m, blocks };
@@ -792,6 +843,9 @@ class StreamBufferManager {
           }
           return m;
         });
+        if (!Object.values(buf.activeToolEventIds).some(queue => queue.length > 0)) {
+          buf.splitBeforeNextContent = true;
+        }
         break;
 
       case 'media_generation_start':
@@ -884,6 +938,7 @@ class StreamBufferManager {
           }
         }
 
+        if (buf.splitBeforeNextContent) this.beginNextMessageSegment(buf);
         this.ensureMessage(buf);
         this.flush(buf);
         this.updateTargetMessage(buf, (m) => ({

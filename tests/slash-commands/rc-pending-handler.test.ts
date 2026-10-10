@@ -34,7 +34,7 @@ function prime(engine, sessionKey, options) {
 }
 
 function createLiveSessionPath() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-rc-pending-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-rc-pending-"));
   const sessionPath = path.join(dir, "session.jsonl");
   fs.writeFileSync(sessionPath, "{}\n");
   return sessionPath;
@@ -259,7 +259,7 @@ describe("handleRcPendingInput — streaming wait", () => {
 
   it("missing target session → replies explicit failure and does not attach", async () => {
     const engine = makeEngine();
-    const missingPath = path.join(os.tmpdir(), `hana-missing-${Date.now()}.jsonl`);
+    const missingPath = path.join(os.tmpdir(), `codia-missing-${Date.now()}.jsonl`);
     prime(engine, "k", [{ path: missingPath, title: "gone" }]);
     engine.listSessions.mockResolvedValue([]);
     const reply = vi.fn();

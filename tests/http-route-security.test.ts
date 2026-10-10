@@ -42,10 +42,10 @@ describe("HTTP route security policy", () => {
       ["GET", "/api/preferences/models"],
       ["GET", "/api/bridge/status"],
       ["GET", "/api/bridge/agently-mail/status"],
-      ["GET", "/api/agents/gsap/config"],
+      ["GET", "/api/agents/codia/config"],
       ["GET", "/api/speech-recognition/providers"],
       ["GET", "/api/experiments"],
-      ["GET", "/api/experiments/memory/cache-snapshot-reflection/observation?agentId=gsap"],
+      ["GET", "/api/experiments/memory/cache-snapshot-reflection/observation?agentId=codia"],
     ]) {
       expect(authorizeHttpRoute({ method, path, principal })).toMatchObject({ allowed: true });
     }
@@ -71,7 +71,7 @@ describe("HTTP route security policy", () => {
 
     expect(authorizeHttpRoute({ method: "PUT", path: "/api/config", principal: settingsWriter }))
       .toMatchObject({ allowed: true });
-    expect(authorizeHttpRoute({ method: "PUT", path: "/api/agents/gsap/config", principal: settingsWriter }))
+    expect(authorizeHttpRoute({ method: "PUT", path: "/api/agents/codia/config", principal: settingsWriter }))
       .toMatchObject({ allowed: true });
     expect(authorizeHttpRoute({ method: "PUT", path: "/api/preferences/models", principal: settingsWriter }))
       .toMatchObject({ allowed: true });
@@ -154,12 +154,12 @@ describe("HTTP route security policy", () => {
       ["GET", "/api/sessions"],
       ["POST", "/api/sessions/continue-deleted-agent"],
       ["POST", "/api/prompts/optimize"],
-      ["GET", "/api/skills?agentId=gsap&runtime=1"],
+      ["GET", "/api/skills?agentId=codia&runtime=1"],
       ["POST", "/api/skills/translate"],
       ["GET", "/api/models/auxiliary-vision"],
       ["POST", "/api/confirm/confirm_1"],
       ["GET", "/api/avatar/agent"],
-      ["GET", "/api/agents/gsap/avatar?t=1"],
+      ["GET", "/api/agents/codia/avatar?t=1"],
       ["GET", "/api/desk/skills"],
       ["GET", "/api/resources/res_1"],
       ["POST", "/api/resources/res_1/ticket"],
@@ -296,7 +296,7 @@ describe("HTTP route security policy", () => {
       ["GET", "/api/plugins/marketplace/demo/readme"],
       ["GET", "/api/plugins/demo/config-schema"],
       ["GET", "/api/plugins/demo/config"],
-      ["GET", "/api/plugins/image-gen/providers?agentId=gsap"],
+      ["GET", "/api/plugins/image-gen/providers?agentId=codia"],
       ["GET", "/api/plugins/image-gen/tasks"],
       ["GET", "/api/plugins/image-gen/media/media_1"],
       ["GET", "/api/plugins/image-gen/tasks/task_1"],
@@ -320,9 +320,9 @@ describe("HTTP route security policy", () => {
       ["PUT", "/api/plugins/demo/enabled"],
       ["POST", "/api/plugins/marketplace/demo/install"],
       ["DELETE", "/api/plugins/demo"],
-      ["PUT", "/api/plugins/image-gen/config?agentId=gsap"],
-      ["PUT", "/api/media/image/config?agentId=gsap"],
-      ["PUT", "/api/media/video/config?agentId=gsap"],
+      ["PUT", "/api/plugins/image-gen/config?agentId=codia"],
+      ["PUT", "/api/media/image/config?agentId=codia"],
+      ["PUT", "/api/media/video/config?agentId=codia"],
     ]) {
       expect(authorizeHttpRoute({ method, path, principal: settingsWriter }))
         .toMatchObject({ allowed: true });
@@ -360,7 +360,7 @@ describe("HTTP route security policy", () => {
 
     expect(authorizeHttpRoute({
       method: "GET",
-      path: "/api/skills/bundles?agentId=gsap",
+      path: "/api/skills/bundles?agentId=codia",
       principal: settingsReader,
     })).toMatchObject({ allowed: true });
 
@@ -369,8 +369,8 @@ describe("HTTP route security policy", () => {
       ["POST", "/api/skills/bundles"],
       ["PUT", "/api/skills/bundles/order"],
       ["PUT", "/api/skills/bundles/writing-bundle"],
-      ["PATCH", "/api/agents/gsap/skills/code-review"],
-      ["PATCH", "/api/agents/gsap/skill-bundles/writing-bundle"],
+      ["PATCH", "/api/agents/codia/skills/code-review"],
+      ["PATCH", "/api/agents/codia/skill-bundles/writing-bundle"],
       ["POST", "/api/skills/bundles/writing-bundle/export"],
       ["DELETE", "/api/skills/bundles/writing-bundle"],
       ["DELETE", "/api/skills/code-review"],

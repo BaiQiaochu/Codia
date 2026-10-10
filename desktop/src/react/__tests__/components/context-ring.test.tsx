@@ -24,7 +24,7 @@ describe('ContextRing', () => {
     vi.clearAllMocks();
     window.t = ((key: string) => key) as typeof window.t;
     useStore.setState({
-      agentYuan: 'gsap',
+      agentYuan: 'codia',
       currentSessionPath: '/session/a.jsonl',
       contextTokens: null,
       contextWindow: null,

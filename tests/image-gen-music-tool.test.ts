@@ -45,7 +45,7 @@ function makeCtx(adapter = makeAdapter()) {
 }
 
 function makeTempDataDir(config = null) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-music-tool-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-music-tool-"));
   tempDirs.push(dir);
   if (config) fs.writeFileSync(path.join(dir, "config.json"), JSON.stringify(config), "utf-8");
   return dir;

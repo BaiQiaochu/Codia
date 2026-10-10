@@ -103,7 +103,7 @@ describe("SpeechRecognitionService", () => {
   });
 
   it("transcribes a voice-input SessionFile and persists pending then ready state", async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-speech-service-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-speech-service-"));
     try {
       const sessionPath = path.join(tmpDir, "session.jsonl");
       const voicePath = path.join(tmpDir, "voice.wav");
@@ -174,7 +174,7 @@ describe("SpeechRecognitionService", () => {
   });
 
   it("resolves MiMo Token Plan STT with Token Plan credentials and base URL", async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-speech-token-plan-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-speech-token-plan-"));
     try {
       fs.writeFileSync(path.join(tmpDir, "added-models.yaml"), [
         "providers:",

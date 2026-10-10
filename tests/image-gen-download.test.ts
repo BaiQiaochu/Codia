@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 import watermark from "../shared/dark-watermark.cjs";
 
-const tmpDir = path.join(os.tmpdir(), "gsap-test-imgdl-" + Date.now());
+const tmpDir = path.join(os.tmpdir(), "codia-test-imgdl-" + Date.now());
 const { hasPngWatermark } = watermark;
 const PNG_WITH_IEND = Buffer.from([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
@@ -46,7 +46,7 @@ describe("saveImage", () => {
   it("writes sidecar provenance for generated video media", async () => {
     const { saveMedia } = await import("../plugins/image-gen/lib/download.js");
     const result = await saveMedia(Buffer.from("video-bytes"), "video/mp4", tmpDir, "traceable-video");
-    const sidecarPath = `${result.filePath}.gsap-watermark.json`;
+    const sidecarPath = `${result.filePath}.codia-watermark.json`;
 
     expect(result.filename).toMatch(/^traceable-video-[a-f0-9]{8}\.mp4$/);
     expect(fs.existsSync(sidecarPath)).toBe(true);

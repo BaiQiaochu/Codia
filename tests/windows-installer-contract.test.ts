@@ -13,7 +13,7 @@ describe("Windows NSIS installer contract", () => {
   it("uses the Codia product identity while preserving the managed Windows install root", () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf-8"));
 
-    expect(pkg.build.appId).toBe("cn.edu.njust.byoung");
+    expect(pkg.build.appId).toBe("io.github.baiqiaochu.codia");
     expect(pkg.build.productName).toBe("Codia");
     expect(pkg.build.win.executableName).toBe("Codia");
     expect(pkg.build.nsis.shortcutName).toBe("Codia");
@@ -25,35 +25,30 @@ describe("Windows NSIS installer contract", () => {
 
   it("removes legacy branded shortcuts before creating the Codia shortcut", () => {
     const source = fs.readFileSync(path.join(root, "build", "installer.nsh"), "utf-8");
-    const cleanup = extractMacro(source, "gsapRemoveLegacyShortcuts");
+    const cleanup = extractMacro(source, "codiaRemoveLegacyShortcuts");
     const customInstall = extractMacro(source, "customInstall");
 
-    expect(cleanup).toContain('Delete "$DESKTOP\\G-SAP.lnk"');
-    expect(cleanup).toContain('Delete "$SMPROGRAMS\\G-SAP.lnk"');
-    expect(cleanup).toContain(
-      'Delete "$DESKTOP\\G-SAP星河智域专业版0.001.0.lnk"',
-    );
-    expect(cleanup).toContain(
-      'Delete "$SMPROGRAMS\\G-SAP星河智域专业版0.001.0.lnk"',
-    );
-    expect(customInstall).toContain("gsapRemoveLegacyShortcuts");
+    expect(cleanup).toContain('Delete "$DESKTOP\\Codia.lnk"');
+    expect(cleanup).toContain('Delete "$SMPROGRAMS\\Codia.lnk"');
+    expect(cleanup).not.toMatch(/星河智域|BYOUNG|G-SAP|Hanako/i);
+    expect(customInstall).toContain("codiaRemoveLegacyShortcuts");
   });
 
   it("prepares an app-owned overlay when the previous uninstaller cannot be trusted", () => {
     const source = fs.readFileSync(path.join(root, "build", "installer.nsh"), "utf-8");
     const uninstallCheck = extractMacro(source, "customUnInstallCheck");
-    const updaterBypass = extractMacro(source, "gsapBypassOldUninstallerForUpdate");
+    const updaterBypass = extractMacro(source, "codiaBypassOldUninstallerForUpdate");
 
-    expect(uninstallCheck).toContain("gsapPrepareOwnedOverlay");
+    expect(uninstallCheck).toContain("codiaPrepareOwnedOverlay");
     expect(uninstallCheck).not.toContain("Quit");
     expect(updaterBypass).toContain("${isUpdated}");
-    expect(updaterBypass).toContain("gsapPrepareOwnedOverlay");
+    expect(updaterBypass).toContain("codiaPrepareOwnedOverlay");
   });
 
   it("cleans generated install surfaces and install-directory owned processes before overlaying files", () => {
     const source = fs.readFileSync(path.join(root, "build", "installer.nsh"), "utf-8");
-    const removeTrees = extractMacro(source, "gsapRemoveOwnedInstallTrees");
-    const cleaner = extractMacro(source, "gsapWriteInstallDirProcessCleaner");
+    const removeTrees = extractMacro(source, "codiaRemoveOwnedInstallTrees");
+    const cleaner = extractMacro(source, "codiaWriteInstallDirProcessCleaner");
 
     expect(removeTrees).toContain('RMDir /r "$INSTDIR\\resources\\server"');
     expect(removeTrees).toContain('RMDir /r "$INSTDIR\\resources\\app"');

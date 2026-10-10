@@ -16,7 +16,7 @@ vi.mock('../../settings/tabs/providers/ProviderModelList', () => ({
 }));
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
 }));
 
 vi.mock('../../hooks/use-config', () => ({

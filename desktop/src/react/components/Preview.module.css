@@ -26,7 +26,7 @@
     background: color-mix(in srgb, var(--bg) 90%, var(--overlay-subtle));
 }
 
-:global(.gsap-reader-preview) .previewPanel {
+:global(.codia-reader-preview) .previewPanel {
     width: 100%;
     min-width: 0;
     max-width: none;
@@ -55,7 +55,7 @@
     min-width: 0;
 }
 
-:global(.gsap-reader-preview) .previewPanelInner {
+:global(.codia-reader-preview) .previewPanelInner {
     width: 100%;
     min-width: 0;
     height: 100%;
@@ -83,7 +83,7 @@
     margin: 8px 12px 12px;
 }
 
-:global(.gsap-reader-preview) .previewBodyShell {
+:global(.codia-reader-preview) .previewBodyShell {
     margin: 0;
     flex: 1 1 auto;
     min-height: 0;
@@ -139,7 +139,7 @@
     box-shadow: none;
 }
 
-:global(.gsap-reader-preview) .previewPanelBody {
+:global(.codia-reader-preview) .previewPanelBody {
     width: 100%;
     height: 100%;
     border: 0;
@@ -307,11 +307,11 @@
     font-family: var(--editor-markdown-font-family, var(--font-serif));
 }
 
-:global(.gsap-reader-preview) .previewPanelBody :global(.preview-markdown > *) {
+:global(.codia-reader-preview) .previewPanelBody :global(.preview-markdown > *) {
     max-width: none;
 }
 
-:global(.gsap-reader-preview) .previewPanelBody :global(.preview-markdown img) {
+:global(.codia-reader-preview) .previewPanelBody :global(.preview-markdown img) {
     width: 100%;
     height: auto;
 }
@@ -1066,16 +1066,16 @@
     padding: 0 var(--space-md);
 }
 
-:global(.gsap-reader-preview .artifact-editor),
-:global(.gsap-reader-preview .artifact-editor .cm-editor),
-:global(.gsap-reader-preview .artifact-editor .cm-scroller),
-:global(.gsap-reader-preview .artifact-editor .cm-content) {
+:global(.codia-reader-preview .artifact-editor),
+:global(.codia-reader-preview .artifact-editor .cm-editor),
+:global(.codia-reader-preview .artifact-editor .cm-scroller),
+:global(.codia-reader-preview .artifact-editor .cm-content) {
     box-sizing: border-box;
     width: 100%;
     max-width: none;
 }
 
-:global(.gsap-reader-preview .artifact-editor .cm-line) {
+:global(.codia-reader-preview .artifact-editor .cm-line) {
     max-width: none;
 }
 

@@ -10,7 +10,7 @@ import {
 const roots = [];
 
 function makeFixture() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-agent-template-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-agent-template-"));
   roots.push(root);
   const productDir = path.join(root, "product");
   const agentsDir = path.join(root, "agents");
@@ -18,9 +18,9 @@ function makeFixture() {
   fs.mkdirSync(path.join(productDir, "identity-templates"), { recursive: true });
   fs.mkdirSync(path.join(productDir, "ishiki-templates"), { recursive: true });
   fs.mkdirSync(agentDir, { recursive: true });
-  fs.writeFileSync(path.join(productDir, "identity-templates", "gsap.md"), "# {{agentName}}\n默认身份 {{userName}}\n", "utf-8");
-  fs.writeFileSync(path.join(productDir, "ishiki-templates", "gsap.md"), "- 默认意识 {{agentName}}\n", "utf-8");
-  fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: 工人A\n  yuan: gsap\nuser:\n  name: 用户\n", "utf-8");
+  fs.writeFileSync(path.join(productDir, "identity-templates", "codia.md"), "# {{agentName}}\n默认身份 {{userName}}\n", "utf-8");
+  fs.writeFileSync(path.join(productDir, "ishiki-templates", "codia.md"), "- 默认意识 {{agentName}}\n", "utf-8");
+  fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: 工人A\n  yuan: codia\nuser:\n  name: 用户\n", "utf-8");
   fs.writeFileSync(path.join(agentDir, "identity.md"), "# 工人A\n自定义身份\n", "utf-8");
   return {
     root,
@@ -32,7 +32,7 @@ function makeFixture() {
         id,
         agentDir,
         productDir,
-        config: { agent: { name: "工人A", yuan: "gsap" }, user: { name: "用户" } },
+        config: { agent: { name: "工人A", yuan: "codia" }, user: { name: "用户" } },
       } : null,
     },
     agentDir,
@@ -49,7 +49,7 @@ describe("agent prompt template state", () => {
     const state = await readAgentPromptTemplateState(engine, "agent-a");
 
     expect(state.agentId).toBe("agent-a");
-    expect(state.yuan).toBe("gsap");
+    expect(state.yuan).toBe("codia");
     expect(state.prompts.identity.template).toContain("默认身份 用户");
     expect(state.prompts.identity.current).toContain("自定义身份");
     expect(state.prompts.identity.hasCustomChanges).toBe(true);

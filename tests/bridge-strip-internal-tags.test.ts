@@ -1,5 +1,5 @@
 // @ts-nocheck
-// Upstream reference test migrated and debranded; skipped until the matching G-SAP source contract is migrated.
+// Upstream reference test migrated and debranded; skipped until the matching Codia source contract is migrated.
 /**
  * Bridge 出站清洗：stripInternalTags + StreamCleaner + 快照清洗 测试
  *
@@ -436,9 +436,9 @@ describe.skip("_cleanStreamSnapshot — 快照清洗", () => {
 
 function makeBridge() {
   const engine = {
-    getAgent: vi.fn(() => ({ agentName: "G-SAP", config: {} })),
-    agentName: "G-SAP",
-    hanakoHome: os.tmpdir(),
+    getAgent: vi.fn(() => ({ agentName: "Codia", config: {} })),
+    agentName: "Codia",
+    codiaHome: os.tmpdir(),
     getBridgeMediaPublicBaseUrl: () => "",
   };
   const hub = { eventBus: { emit: vi.fn() }, subscribe: vi.fn(() => null) };

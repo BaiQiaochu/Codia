@@ -267,12 +267,12 @@ function readerSurface() {
     <h2>视觉设计 image</h2>
     <p>阅读器内容区域独立滚动，右侧聊天区和底部输入框不会覆盖正文。</p>
   </article>
-  <aside class="gsap-reader-chat ui-reader-chat" data-layout-box="reader-chat">
-    <div class="gsap-reader-chat-timeline ui-reader-timeline" data-layout-box="reader-timeline">
+  <aside class="codia-reader-chat ui-reader-chat" data-layout-box="reader-chat">
+    <div class="codia-reader-chat-timeline ui-reader-timeline" data-layout-box="reader-timeline">
       <div class="ui-chat-bubble">已打开当前文档，可继续提问。</div>
       <div class="ui-chat-bubble muted">图片节点已经载入。</div>
     </div>
-    <div class="gsap-reader-chat-input" data-layout-box="reader-input">
+    <div class="codia-reader-chat-input" data-layout-box="reader-input">
       ${inputFixture("reader")}
     </div>
   </aside>
@@ -299,7 +299,7 @@ function workflowSurface() {
   <div class="workflowWindowPanel" data-layout-box="workflow-panel">
     <header class="workflowWindowHeader" data-layout-box="workflow-header">
       <div>
-        <div class="workflowWindowKicker">G-SAP 工作流画布</div>
+        <div class="workflowWindowKicker">Codia 工作流画布</div>
         <div class="workflowWindowTitle" data-no-overflow># 工作群</div>
       </div>
       <div class="workflowWindowActions">
@@ -381,7 +381,7 @@ function inputFixture(surface) {
         <div class="input-actions">
           <button class="attach-btn" type="button" aria-label="添加">+</button>
           <button class="attach-btn" type="button" aria-label="命令">◇</button>
-          <button class="plan-mode-btn" type="button" data-no-overflow>自动操作</button>
+          <button class="plan-mode-btn" type="button" data-no-overflow>完全访问权限</button>
         </div>
         <div class="input-controls">
           <button class="context-ring-btn" type="button" aria-label="上下文">?</button>

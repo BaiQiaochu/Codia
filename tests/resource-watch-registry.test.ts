@@ -45,7 +45,7 @@ describe("ResourceWatchRegistry", () => {
 
   it("uses the resolved win32 path for local-file watch paths and resource keys", async () => {
     vi.resetModules();
-    const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("D:\\a\\gsap\\main");
+    const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("D:\\a\\codia\\main");
     vi.doMock("path", async () => {
       const actual = await vi.importActual<typeof import("path")>("path");
       return {

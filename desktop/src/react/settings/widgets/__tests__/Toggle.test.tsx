@@ -11,7 +11,7 @@ afterEach(cleanup);
 describe('Toggle', () => {
   it('renders on state when on=true', () => {
     const { container } = render(<Toggle on={true} onChange={() => {}} />);
-    const btn = container.querySelector('button.gsap-toggle') as HTMLButtonElement;
+    const btn = container.querySelector('button.codia-toggle') as HTMLButtonElement;
     expect(btn.classList.contains('on')).toBe(true);
     expect(btn.classList.contains('loading')).toBe(false);
     expect(btn.getAttribute('aria-checked')).toBe('true');
@@ -21,7 +21,7 @@ describe('Toggle', () => {
 
   it('renders off state when on=false', () => {
     const { container } = render(<Toggle on={false} onChange={() => {}} />);
-    const btn = container.querySelector('button.gsap-toggle') as HTMLButtonElement;
+    const btn = container.querySelector('button.codia-toggle') as HTMLButtonElement;
     expect(btn.classList.contains('on')).toBe(false);
     expect(btn.classList.contains('loading')).toBe(false);
     expect(btn.getAttribute('aria-checked')).toBe('false');
@@ -30,7 +30,7 @@ describe('Toggle', () => {
   it('renders loading state when on=undefined and does not fire onChange', () => {
     const onChange = vi.fn();
     const { container } = render(<Toggle on={undefined} onChange={onChange} />);
-    const btn = container.querySelector('button.gsap-toggle') as HTMLButtonElement;
+    const btn = container.querySelector('button.codia-toggle') as HTMLButtonElement;
 
     expect(btn.classList.contains('loading')).toBe(true);
     expect(btn.getAttribute('aria-busy')).toBe('true');
@@ -44,11 +44,11 @@ describe('Toggle', () => {
   it('fires onChange with toggled values', () => {
     const onChange = vi.fn();
     const { container, rerender } = render(<Toggle on={true} onChange={onChange} />);
-    fireEvent.click(container.querySelector('button.gsap-toggle')!);
+    fireEvent.click(container.querySelector('button.codia-toggle')!);
     expect(onChange).toHaveBeenCalledWith(false);
 
     rerender(<Toggle on={false} onChange={onChange} />);
-    fireEvent.click(container.querySelector('button.gsap-toggle')!);
+    fireEvent.click(container.querySelector('button.codia-toggle')!);
     expect(onChange).toHaveBeenCalledWith(true);
   });
 });

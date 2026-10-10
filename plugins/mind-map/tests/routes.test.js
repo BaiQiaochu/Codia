@@ -10,7 +10,7 @@ import registerMindMapRoutes from "../routes/mind-map.js";
 const tempDirs = [];
 
 function makeApp() {
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-mm-routes-"));
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-mm-routes-"));
   tempDirs.push(dataDir);
   const workspace = path.join(dataDir, "workspace");
   fs.mkdirSync(workspace, { recursive: true });

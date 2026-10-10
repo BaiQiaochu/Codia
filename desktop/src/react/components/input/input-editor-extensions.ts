@@ -7,6 +7,7 @@ import { FileBadge } from './extensions/file-badge';
 import { AgentBadge } from './extensions/agent-badge';
 import { SessionBadge } from './extensions/session-badge';
 import { QuickActionBadge } from './extensions/quick-action-badge';
+import { PluginBadge } from './extensions/plugin-badge';
 
 export type InputEditorPlaceholder = PlaceholderOptions['placeholder'];
 
@@ -34,5 +35,6 @@ export function createInputEditorExtensions(placeholder: InputEditorPlaceholder)
     AgentBadge,
     SessionBadge,
     QuickActionBadge,
+    PluginBadge,
   ];
 }

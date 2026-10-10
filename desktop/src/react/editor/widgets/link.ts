@@ -1,5 +1,5 @@
 import { EditorView, Decoration } from '@codemirror/view';
-import type { DecoRange } from '../md-decorations';
+import type { DecoRange } from './types';
 
 const linkTextMark = Decoration.mark({ class: 'cm-link-text' });
 

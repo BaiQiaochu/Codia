@@ -123,7 +123,7 @@ describe('home shell UI contract', () => {
     expect(welcome).toContain('const targetName = workspaceName || folderName;');
     expect(welcome).toContain("`${t('input.workspace')}${targetName}`");
     expect(welcome).not.toContain('今天想对');
-    expect(welcome).toContain('workspaceSettingsButton');
+    expect(welcome).not.toContain('workspaceSettingsButton');
     expect(welcome).toContain('const name = getFolderDisplayName(path);');
     expect(welcome).not.toContain("const name = path.split('/').pop() || path;");
   });
@@ -191,10 +191,10 @@ describe('home shell UI contract', () => {
     expect(css).toContain('.titlebar-chat-mode .window-controls');
   });
 
-  it('does not reintroduce openhanako or Hanako branding on the home shell', () => {
+  it('uses Codia branding on the home shell', () => {
     const app = read('App.tsx');
     const welcome = read('components/WelcomeScreen.tsx');
 
-    expect(`${app}\n${welcome}`).not.toMatch(/openhanako|Hanako/i);
+    expect(`${app}\n${welcome}`).toMatch(/codia/i);
   });
 });

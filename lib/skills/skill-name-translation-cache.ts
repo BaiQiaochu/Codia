@@ -12,8 +12,8 @@ function emptyCache() {
   };
 }
 
-export function getSkillNameTranslationCachePath(gsapHome) {
-  return path.join(gsapHome, ".ephemeral", "skill-name-translations.json");
+export function getSkillNameTranslationCachePath(codiaHome) {
+  return path.join(codiaHome, ".ephemeral", "skill-name-translations.json");
 }
 
 function normalizeCache(value) {

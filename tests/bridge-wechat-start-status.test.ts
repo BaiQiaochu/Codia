@@ -40,9 +40,9 @@ describe("BridgeManager wechat startup status", async () => {
     });
 
     const engine = {
-      hanakoHome: os.tmpdir(),
+      codiaHome: os.tmpdir(),
       agent: null,
-      agentName: "G-SAP",
+      agentName: "Codia",
       getAgent: vi.fn(() => null),
     };
     const hub = {
@@ -50,7 +50,7 @@ describe("BridgeManager wechat startup status", async () => {
     };
     const bm = new BridgeManager({ engine, hub });
 
-    await bm.startPlatform("wechat", { botToken: "token", hanaHome: os.tmpdir() }, "agent-1");
+    await bm.startPlatform("wechat", { botToken: "token", codiaHome: os.tmpdir() }, "agent-1");
 
     expect(bm.getStatus("agent-1").wechat.status).toBe("connected");
   });
@@ -79,9 +79,9 @@ describe("BridgeManager wechat startup status", async () => {
     });
 
     const engine = {
-      hanakoHome: os.tmpdir(),
+      codiaHome: os.tmpdir(),
       agent: null,
-      agentName: "G-SAP",
+      agentName: "Codia",
       getAgent: vi.fn(() => null),
     };
     const hub = {
@@ -89,8 +89,8 @@ describe("BridgeManager wechat startup status", async () => {
     };
     const bm = new BridgeManager({ engine, hub });
 
-    await bm.startPlatform("wechat", { botToken: "token", hanaHome: os.tmpdir() }, "agent-1");
-    await bm.startPlatform("wechat", { botToken: "token-2", hanaHome: os.tmpdir() }, "agent-1");
+    await bm.startPlatform("wechat", { botToken: "token", codiaHome: os.tmpdir() }, "agent-1");
+    await bm.startPlatform("wechat", { botToken: "token-2", codiaHome: os.tmpdir() }, "agent-1");
 
     expect(createCount).toBe(2);
     expect(oldAdapterStopped).toBe(true);

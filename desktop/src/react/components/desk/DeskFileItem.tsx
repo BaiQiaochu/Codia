@@ -10,7 +10,7 @@ import {
   deskMoveFiles,
   deskRemoveFile,
 } from '../../stores/desk-actions';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { toSlash } from '../../utils/format';
 import { resolveBrowserFilePaths } from '../../utils/browser-file-paths';
 import { openFilePreview } from '../../utils/file-preview';
@@ -90,7 +90,7 @@ async function handleExternalDropToFolder(
 
   if (externalPaths.length > 0) {
     const subdir = curPath ? curPath + '/' + folderName : folderName;
-    await gsapFetch('/api/desk/files', {
+    await codiaFetch('/api/desk/files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'upload', dir: basePath || undefined, subdir, paths: externalPaths }),
@@ -140,7 +140,7 @@ export function DeskFileItem({
     const paths = filesToDrag
       .map(n => deskFullPath(n))
       .filter(Boolean) as string[];
-    if (paths.length > 0 && !window.__GSAP_E2E__) {
+    if (paths.length > 0 && !window.__CODIA_E2E__) {
       window.platform?.startDrag?.(paths.length === 1 ? paths[0] : paths);
     }
   }, [file.name, selected, allSelectedFiles]);

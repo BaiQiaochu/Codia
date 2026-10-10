@@ -26,7 +26,7 @@ import { t } from "../server/i18n.js";
 // ── Helpers ──
 
 function mktemp() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-test-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-test-"));
 }
 
 function writeChannelMd(channelsDir, name, members, intro = "") {

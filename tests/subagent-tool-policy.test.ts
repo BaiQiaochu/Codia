@@ -7,8 +7,7 @@ import {
 
 describe("subagent 工具访问策略收口（Codex 式：显式 access + 继承父会话档）", () => {
   afterEach(() => {
-    delete process.env.GSAP_SUBAGENT_TOOL_STRATEGY;
-    delete process.env.HANA_SUBAGENT_TOOL_STRATEGY;
+    delete process.env.CODIA_SUBAGENT_TOOL_STRATEGY;
   });
 
   it("默认 intercept（甲）：不剥离工具（filter=null）", () => {
@@ -105,14 +104,14 @@ describe("subagent 工具访问策略收口（Codex 式：显式 access + 继承
     expect(a.permissionMode).toBe("read_only");
   });
 
-  it("env GSAP_SUBAGENT_TOOL_STRATEGY=strip 切到乙（性能 A/B 开关）", () => {
-    process.env.GSAP_SUBAGENT_TOOL_STRATEGY = "strip";
+  it("env CODIA_SUBAGENT_TOOL_STRATEGY=strip 切到乙（性能 A/B 开关）", () => {
+    process.env.CODIA_SUBAGENT_TOOL_STRATEGY = "strip";
     expect(resolveSubagentToolStrategy()).toBe("strip");
     expect(resolveSubagentToolAccess({ access: "write" }).strategy).toBe("strip");
   });
 
-  it("keeps HANA_SUBAGENT_TOOL_STRATEGY as a legacy fallback", () => {
-    process.env.HANA_SUBAGENT_TOOL_STRATEGY = "strip";
+  it("keeps CODIA_SUBAGENT_TOOL_STRATEGY as a legacy fallback", () => {
+    process.env.CODIA_SUBAGENT_TOOL_STRATEGY = "strip";
     expect(resolveSubagentToolStrategy()).toBe("strip");
   });
 

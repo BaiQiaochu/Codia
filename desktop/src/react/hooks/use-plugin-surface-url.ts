@@ -136,10 +136,10 @@ export function buildPluginSurfaceUrl({
   const url = new URL(fullUrl);
   if (ticket) url.searchParams.set('pluginIframeTicket', ticket);
   url.searchParams.set('agentId', agentId || '');
-  url.searchParams.set('gsap-theme', theme);
-  url.searchParams.set('gsap-css', cssUrl);
-  url.searchParams.set('gsap-theme', theme);
-  url.searchParams.set('gsap-css', cssUrl);
+  url.searchParams.set('codia-theme', theme);
+  url.searchParams.set('codia-css', cssUrl);
+  url.searchParams.set('codia-theme', theme);
+  url.searchParams.set('codia-css', cssUrl);
   return url.toString();
 }
 

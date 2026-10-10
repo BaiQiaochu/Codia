@@ -8,7 +8,7 @@ import {
   loadDefaultWorkspace,
   saveWorkspace,
 } from '../onboarding-actions';
-import type { gsapFetch } from '../onboarding-actions';
+import type { codiaFetch } from '../onboarding-actions';
 import { StepContainer, Multiline } from '../onboarding-ui';
 
 const WorkspaceIcon = () => (
@@ -21,12 +21,12 @@ const WorkspaceIcon = () => (
 
 interface WorkspaceStepProps {
   preview: boolean;
-  gsapFetch: gsapFetch;
+  codiaFetch: codiaFetch;
   goToStep: (index: number) => void;
   showError: (msg: string) => void;
 }
 
-export function WorkspaceStep({ preview, gsapFetch, goToStep, showError }: WorkspaceStepProps) {
+export function WorkspaceStep({ preview, codiaFetch, goToStep, showError }: WorkspaceStepProps) {
   const previewPath = useMemo(() => `~/Desktop/${DEFAULT_WORKSPACE_DIRNAME}`, []);
   const [defaultPath, setDefaultPath] = useState(preview ? previewPath : '');
   const [selectedPath, setSelectedPath] = useState('');
@@ -38,7 +38,7 @@ export function WorkspaceStep({ preview, gsapFetch, goToStep, showError }: Works
   useEffect(() => {
     if (preview) return;
     let cancelled = false;
-    loadDefaultWorkspace(gsapFetch)
+    loadDefaultWorkspace(codiaFetch)
       .then(path => {
         if (cancelled) return;
         setDefaultPath(path);
@@ -48,7 +48,7 @@ export function WorkspaceStep({ preview, gsapFetch, goToStep, showError }: Works
         showError(t('onboarding.error'));
       });
     return () => { cancelled = true; };
-  }, [preview, gsapFetch, showError]);
+  }, [preview, codiaFetch, showError]);
 
   const onBrowse = useCallback(async () => {
     const folder = await window.platform?.selectFolder?.();
@@ -64,14 +64,14 @@ export function WorkspaceStep({ preview, gsapFetch, goToStep, showError }: Works
     if (!defaultPath || !visiblePath) return;
     setSaving(true);
     try {
-      await saveWorkspace({ gsapFetch, workspacePath: visiblePath, defaultPath });
+      await saveWorkspace({ codiaFetch, workspacePath: visiblePath, defaultPath });
       goToStep(6);
     } catch (err) {
       console.error('[onboarding] save workspace failed:', err);
       showError(t('onboarding.error'));
       setSaving(false);
     }
-  }, [preview, goToStep, defaultPath, visiblePath, gsapFetch, showError]);
+  }, [preview, goToStep, defaultPath, visiblePath, codiaFetch, showError]);
 
   return (
     <StepContainer>

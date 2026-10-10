@@ -3,8 +3,8 @@ import { strictJson, routeError } from "../../../server/hono-helpers.ts";
 import { execute } from "../tools/generate-video.ts";
 
 function resolveSessionPath(c, body) {
-  return c.req.header("X-gsap-Session-Path")
-    || c.req.header("X-GSAP-Session-Path")
+  return c.req.header("X-codia-Session-Path")
+    || c.req.header("X-CODIA-Session-Path")
     || c.req.query("sessionPath")
     || body?.sessionPath
     || null;

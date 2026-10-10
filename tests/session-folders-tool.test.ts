@@ -5,7 +5,7 @@ function textPayload(result) {
   return JSON.parse(result.content[0].text);
 }
 
-function makeCtx(sessionPath = "/tmp/agents/gsap/sessions/s1.jsonl") {
+function makeCtx(sessionPath = "/tmp/agents/codia/sessions/s1.jsonl") {
   return {
     sessionManager: {
       getSessionFile: () => sessionPath,
@@ -15,7 +15,7 @@ function makeCtx(sessionPath = "/tmp/agents/gsap/sessions/s1.jsonl") {
 
 describe("session_folders tool", () => {
   it("lists the current session folder scope", async () => {
-    const sessionPath = "/tmp/agents/gsap/sessions/s1.jsonl";
+    const sessionPath = "/tmp/agents/codia/sessions/s1.jsonl";
     const engine = {
       getSessionFolderScope: vi.fn(() => ({
         sessionPath,
@@ -41,7 +41,7 @@ describe("session_folders tool", () => {
   });
 
   it("requires confirmation before adding an authorized folder", async () => {
-    const sessionPath = "/tmp/agents/gsap/sessions/s1.jsonl";
+    const sessionPath = "/tmp/agents/codia/sessions/s1.jsonl";
     const folder = "/external/assets";
     const engine = {
       addSessionAuthorizedFolder: vi.fn(async () => ({

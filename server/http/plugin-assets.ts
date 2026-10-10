@@ -62,8 +62,7 @@ export function verifyPluginAssetSessionForHostRequest(c, engine, { requireSessi
     });
   }
   return verifyPluginAssetSession({
-    gsapHome: engine.gsapHome,
-    hanakoHome: engine.hanakoHome,
+    codiaHome: engine.codiaHome,
     pluginId: parsed.pluginId,
     token,
   });
@@ -124,7 +123,7 @@ function isRawPluginAssetRequest(rawUrl) {
 
 function normalizePathname(value) {
   try {
-    return new URL(String(value || ""), "http://gsap.local").pathname;
+    return new URL(String(value || ""), "http://codia.local").pathname;
   } catch {
     return String(value || "").split("?")[0] || "/";
   }

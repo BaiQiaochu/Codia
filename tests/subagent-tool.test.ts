@@ -52,11 +52,11 @@ function makeDeps(overrides = {}) {
     }),
     getSessionPath: () => "/test/session.jsonl",
     listAgents: vi.fn(() => [
-      { id: "gsap", name: "G-SAP", model: "claude-3-5-sonnet", summary: "主 agent" },
+      { id: "codia", name: "Codia", model: "claude-3-5-sonnet", summary: "主 agent" },
       { id: "other-agent", name: "Other", model: "gpt-4", summary: "专家 agent" },
     ]),
-    currentAgentId: "gsap",
-    agentDir: "/test/agents/gsap",
+    currentAgentId: "codia",
+    agentDir: "/test/agents/codia",
     emitEvent: vi.fn(),
     persistSubagentSessionMeta: vi.fn(async () => {}),
     getSubagentThreadStore: () => threadStore,
@@ -89,12 +89,12 @@ describe("subagent-tool (executeIsolated 原子模式)", () => {
     expect(result.details.sessionPath).toBeNull();
     expect(result.details.task).toBe(task);
     expect(result.details.taskTitle).toBe("任务：查一下项目状态");
-    expect(result.details.agentId).toBe("gsap");
-    expect(result.details.agentName).toBe("G-SAP");
-    expect(result.details.requestedAgentId).toBe("gsap");
-    expect(result.details.requestedAgentNameSnapshot).toBe("G-SAP");
-    expect(result.details.executorAgentId).toBe("gsap");
-    expect(result.details.executorAgentNameSnapshot).toBe("G-SAP");
+    expect(result.details.agentId).toBe("codia");
+    expect(result.details.agentName).toBe("Codia");
+    expect(result.details.requestedAgentId).toBe("codia");
+    expect(result.details.requestedAgentNameSnapshot).toBe("Codia");
+    expect(result.details.executorAgentId).toBe("codia");
+    expect(result.details.executorAgentNameSnapshot).toBe("Codia");
     expect(result.details.executorMetaVersion).toBe(1);
 
     // store.defer is called before returning
@@ -124,12 +124,12 @@ describe("subagent-tool (executeIsolated 原子模式)", () => {
           taskId,
           patch: expect.objectContaining({
             streamKey: "/test/child.jsonl",
-            agentId: "gsap",
-            agentName: "G-SAP",
-            requestedAgentId: "gsap",
-            requestedAgentNameSnapshot: "G-SAP",
-            executorAgentId: "gsap",
-            executorAgentNameSnapshot: "G-SAP",
+            agentId: "codia",
+            agentName: "Codia",
+            requestedAgentId: "codia",
+            requestedAgentNameSnapshot: "Codia",
+            executorAgentId: "codia",
+            executorAgentNameSnapshot: "Codia",
           }),
         }),
         "/test/session.jsonl",
@@ -140,8 +140,8 @@ describe("subagent-tool (executeIsolated 原子模式)", () => {
       expect(persistSubagentSessionMeta).toHaveBeenCalledWith(
         "/test/child.jsonl",
         expect.objectContaining({
-          executorAgentId: "gsap",
-          executorAgentNameSnapshot: "G-SAP",
+          executorAgentId: "codia",
+          executorAgentNameSnapshot: "Codia",
           executorMetaVersion: 1,
         }),
       );
@@ -167,13 +167,13 @@ describe("subagent-tool (executeIsolated 原子模式)", () => {
     expect(runStore.register).toHaveBeenCalledWith(taskId, expect.objectContaining({
       parentSessionPath: "/test/session.jsonl",
       summary: "durable subagent",
-      requestedAgentId: "gsap",
-      executorAgentId: "gsap",
+      requestedAgentId: "codia",
+      executorAgentId: "codia",
     }));
     await vi.waitFor(() => {
       expect(runStore.attachSession).toHaveBeenCalledWith(taskId, "/test/child.jsonl", expect.objectContaining({
-        executorAgentId: "gsap",
-        executorAgentNameSnapshot: "G-SAP",
+        executorAgentId: "codia",
+        executorAgentNameSnapshot: "Codia",
         executorMetaVersion: 1,
       }));
       expect(runStore.resolve).toHaveBeenCalledWith(taskId, "done");
@@ -243,7 +243,7 @@ describe("subagent-tool (executeIsolated 原子模式)", () => {
       getDeferredStore: () => mockStore,
       emitEvent,
       listAgents: vi.fn(() => [
-        { id: "gsap", name: "G-SAP" },
+        { id: "codia", name: "Codia" },
         { id: "butter", name: "butter" },
       ]),
     }));
@@ -432,10 +432,10 @@ describe("subagent-tool (executeIsolated 原子模式)", () => {
     const tool = createSubagentTool(makeDeps({
       executeIsolated: noopExecute,
       listAgents: () => [
-        { id: "gsap", name: "G-SAP", model: "claude-3-5-sonnet", summary: "主 agent" },
+        { id: "codia", name: "Codia", model: "claude-3-5-sonnet", summary: "主 agent" },
         { id: "other-agent", name: "Other", model: "gpt-4", summary: "专家 agent" },
       ],
-      currentAgentId: "gsap",
+      currentAgentId: "codia",
     }));
 
     const result = await tool.execute("call_1", { task: "", agent: "?" });
@@ -443,7 +443,7 @@ describe("subagent-tool (executeIsolated 原子模式)", () => {
     expect(result.content[0].text).toContain("other-agent");
     expect(result.content[0].text).toContain("Other");
     // self should be excluded
-    expect(result.content[0].text).not.toContain("hana (");
+    expect(result.content[0].text).not.toContain("codia (");
     // executeIsolated must not be called in discovery mode
     expect(noopExecute).not.toHaveBeenCalled();
   });
@@ -797,7 +797,7 @@ describe("subagent-tool (executeIsolated 原子模式)", () => {
       parentSessionPath: "/test/archive/session.jsonl",
       childSessionId: "sess_child_direct",
       childSessionPath: "/test/child.jsonl",
-      agentId: "gsap",
+      agentId: "codia",
       access: "read",
     });
     const runStore = { register: vi.fn(), attachSession: vi.fn(), resolve: vi.fn(), fail: vi.fn(), abort: vi.fn() };

@@ -1,10 +1,6 @@
 // @ts-nocheck
 /**
   *
-  *
-  *
-  *
-  *
  */
 import {
   SESSION_PERMISSION_MODES,
@@ -26,8 +22,8 @@ export class SubagentAccessDeniedError extends Error {
 
 /** */
 export function resolveSubagentToolStrategy() {
-  const envValue = process.env.GSAP_SUBAGENT_TOOL_STRATEGY
-    || process.env.HANA_SUBAGENT_TOOL_STRATEGY;
+  const envValue = process.env.CODIA_SUBAGENT_TOOL_STRATEGY
+    || process.env.CODIA_SUBAGENT_TOOL_STRATEGY;
   return envValue === "strip" ? "strip" : "intercept";
 }
 
@@ -61,7 +57,6 @@ function resolvePermissionMode(access, parentPermissionMode) {
  * @returns {{
  *   strategy: "intercept"|"strip",
  * customToolFilter: string[]|null, // null = 不剥离自定义工具（给全集- * builtinToolFilter: string[]|null, // null = 不剥离内置工具（给全集）
-  *
   *
  */
 export function resolveSubagentToolAccess({ access, parentPermissionMode, strategy } = {}) {

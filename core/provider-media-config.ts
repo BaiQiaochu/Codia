@@ -100,8 +100,8 @@ export function normalizeProviderMediaConfigMap(rawProviders: unknown) {
   return { providers, changed };
 }
 
-export function migrateProviderMediaConfig(gsapHome: string, log: (message: string) => void = () => {}) {
-  const ymlPath = path.join(gsapHome, "added-models.yaml");
+export function migrateProviderMediaConfig(codiaHome: string, log: (message: string) => void = () => {}) {
+  const ymlPath = path.join(codiaHome, "added-models.yaml");
   const existing = safeReadYAMLSync(ymlPath, null, YAML);
   if (!existing || !isPlainObject(existing.providers)) return false;
 
@@ -109,7 +109,7 @@ export function migrateProviderMediaConfig(gsapHome: string, log: (message: stri
   if (!changed) return false;
 
   const header =
-    "# G-SAP provider config (global, shared across agents)\n" +
+    "# Codia provider config (global, shared across agents)\n" +
     "# Managed by the settings page\n\n";
   const data = { ...existing, providers };
   const yamlStr = header + YAML.dump(data, {

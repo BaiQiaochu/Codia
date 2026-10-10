@@ -1,15 +1,11 @@
 // @ts-nocheck
 /**
- * G-SAP cache-preserving compaction Pi SDK Extension
+ * Codia cache-preserving compaction Pi SDK Extension
  *
  * 三层防护，防 session 因上下文超限而死锁，同时避免 Pi SDK 原生
  * summarizer 走冷启动请求破坏 prompt cache- *
   *
-  *
-  *
-  *
  * L2（非 hook，由 session-defaults.js 调大 reserveTokens 实现）：
-  *
   *
  * - 不调用任何私有方法（不碰 _overflowRecoveryAttempted / _runAutoCompaction- * - 失败路径：hook 内部任何异常-cancel，本项目不回落到 Pi 原生 summarizer
  */
@@ -61,7 +57,7 @@ function hardTruncateFromPreparation(event, ctx, preparation) {
     keepRecentTokens,
     pathEntries,
     truncation: computeHardTruncation(pathEntries, keepRecentTokens, {
-      summary: "[由于对话过长且摘要请求本身会超限，早期对话历史已被硬截断（g-sap-cache-preserving-compaction）]",
+      summary: "[由于对话过长且摘要请求本身会超限，早期对话历史已被硬截断（codia-cache-preserving-compaction）]",
       reason: "compaction-guard-hard-truncate",
     }),
   };

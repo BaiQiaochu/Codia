@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useSettingsStore } from '../store';
 import { t, VALID_THEMES, autoSaveConfig } from '../helpers';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { SelectWidget } from '../widgets/SelectWidget';
 import { Toggle } from '../widgets/Toggle';
 import { SettingsSection } from '../components/SettingsSection';
@@ -55,7 +55,8 @@ const THEME_MODE_KEYS: Record<string, string> = Object.fromEntries([
   [registry.AUTO_OPTION.id, registry.AUTO_OPTION.i18nMode],
 ]);
 
-const THEME_OVERRIDES_KEY = 'gsap-theme-overrides';
+const THEME_OVERRIDES_KEY = 'codia-theme-overrides';
+const SHOW_LEGACY_THEME_OPTIONS = false;
 const VOICE_RECORD_SHORTCUT_MAC = ['⌘', '⇧', 'M'];
 const VOICE_RECORD_SHORTCUT_DEFAULT = ['Ctrl', 'Shift', 'M'];
 
@@ -416,7 +417,7 @@ export function InterfaceSettingsSections() {
 
   React.useEffect(() => {
     let cancelled = false;
-    gsapFetch('/api/preferences/sidebar-ui')
+    codiaFetch('/api/preferences/sidebar-ui')
       .then(res => res.json())
       .then(data => {
         if (cancelled) return;
@@ -436,7 +437,7 @@ export function InterfaceSettingsSections() {
     });
     setSidebarUiPrefs(optimistic);
     try {
-      const res = await gsapFetch('/api/preferences/sidebar-ui', {
+      const res = await codiaFetch('/api/preferences/sidebar-ui', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionList: { rowMode } }),
@@ -444,7 +445,7 @@ export function InterfaceSettingsSections() {
       const data = await res.json();
       const saved = normalizeSidebarUiPrefs((data as { sidebarUi?: unknown })?.sidebarUi || optimistic);
       setSidebarUiPrefs(saved);
-      window.dispatchEvent(new CustomEvent('hana-settings', {
+      window.dispatchEvent(new CustomEvent('codia-settings', {
         detail: { type: 'sidebar-ui-changed', sidebarUi: saved },
       }));
       window.platform?.settingsChanged?.('sidebar-ui-changed', { sidebarUi: saved });
@@ -499,7 +500,7 @@ export function InterfaceSettingsSections() {
     // eslint-disable-next-line no-restricted-syntax -- settings export uses a one-shot download anchor
     const link = document.createElement('a');
     link.href = url;
-    link.download = `gsap-theme-preset-${currentTheme || 'custom'}.json`;
+    link.download = `codia-theme-preset-${currentTheme || 'custom'}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -552,7 +553,7 @@ export function InterfaceSettingsSections() {
 
   return (
     <>
-      {false && <SettingsSection title={t('settings.appearance.theme')} variant="flush">
+      {SHOW_LEGACY_THEME_OPTIONS && <SettingsSection title={t('settings.appearance.theme')} variant="flush">
         <div className={styles['theme-options']}>
           {VALID_THEMES.map(theme => {
             return (
@@ -613,7 +614,7 @@ export function InterfaceSettingsSections() {
         </SettingsSection.Card>
       </SettingsSection>
 
-      {false && <SettingsSection title={t('settings.appearance.title')}>
+      {SHOW_LEGACY_THEME_OPTIONS && <SettingsSection title={t('settings.appearance.title')}>
         <div className={styles['theme-advanced-settings']} data-testid="theme-advanced-settings">
         <div className={styles['theme-preview-comparator']} data-testid="theme-preview-comparator">
           <div className={styles['theme-preview-header']}>

@@ -69,7 +69,7 @@ describe("registerTaskRegistryBusHandlers", () => {
     expect(abort).toHaveBeenCalledWith("t1");
   });
 
-  it("preserves G-SAP retry handlers on task registrations", () => {
+  it("preserves Codia retry handlers on task registrations", () => {
     const registry = new TaskRegistry();
     const { bus, request } = createBusHarness();
     const retry = vi.fn(() => ({ restarted: true }));

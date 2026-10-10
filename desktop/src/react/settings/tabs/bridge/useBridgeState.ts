@@ -3,7 +3,7 @@
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSettingsStore } from '../../store';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { loadSettingsConfig } from '../../actions';
 import { t } from '../../helpers';
 import type { BridgePermissionMode, KnownUser } from './BridgeWidgets';
@@ -180,7 +180,7 @@ export function useBridgeState() {
       return;
     }
     const ac = new AbortController();
-    gsapFetch(`/api/agents/${selectedAgentId}/public-ishiki`, { signal: ac.signal })
+    codiaFetch(`/api/agents/${selectedAgentId}/public-ishiki`, { signal: ac.signal })
       .then(r => r.json())
       .then(data => { setPublicIshiki(data.content || ''); setPublicIshikiOriginal(data.content || ''); })
       .catch(err => { if (err?.name !== 'AbortError') console.warn('[bridge] fetch public-ishiki failed:', err); });
@@ -191,7 +191,7 @@ export function useBridgeState() {
     const agentId = selectedAgentId;
     if (!agentId || publicIshiki === publicIshikiOriginal) return;
     try {
-      await gsapFetch(`/api/agents/${agentId}/public-ishiki`, {
+      await codiaFetch(`/api/agents/${agentId}/public-ishiki`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: publicIshiki }),
@@ -206,7 +206,7 @@ export function useBridgeState() {
   const loadStatus = useCallback(async (signal?: AbortSignal) => {
     try {
       const query = selectedAgentId ? `?agentId=${encodeURIComponent(selectedAgentId)}` : '';
-      const res = await gsapFetch(`/api/bridge/status${query}`, signal ? { signal } : undefined);
+      const res = await codiaFetch(`/api/bridge/status${query}`, signal ? { signal } : undefined);
       const data = await res.json();
       if (signal?.aborted) return;
       applyStatus(normalizeBridgeStatus(data));
@@ -226,8 +226,8 @@ export function useBridgeState() {
 
   useEffect(() => {
     const handler = () => loadStatus();
-    window.addEventListener('gsap-bridge-reload', handler);
-    return () => window.removeEventListener('gsap-bridge-reload', handler);
+    window.addEventListener('codia-bridge-reload', handler);
+    return () => window.removeEventListener('codia-bridge-reload', handler);
   }, [loadStatus]);
 
   const saveBridgeConfig = async (plat: string, credentials: Record<string, string> | null, enabled?: boolean) => {
@@ -235,7 +235,7 @@ export function useBridgeState() {
     const agentId = selectedAgentId;
     try {
       const agentQuery = agentId ? `?agentId=${encodeURIComponent(agentId)}` : '';
-      await gsapFetch(`/api/bridge/config${agentQuery}`, {
+      await codiaFetch(`/api/bridge/config${agentQuery}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform: plat, credentials, enabled }),
@@ -251,7 +251,7 @@ export function useBridgeState() {
   const testPlatform = async (plat: BridgePlatform, credentials: Record<string, string>) => {
     setTestingPlatform(plat);
     try {
-      const res = await gsapFetch('/api/bridge/test', {
+      const res = await codiaFetch('/api/bridge/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform: plat, credentials }),
@@ -274,7 +274,7 @@ export function useBridgeState() {
     const agentId = selectedAgentId;
     try {
       const agentQuery = agentId ? `?agentId=${encodeURIComponent(agentId)}` : '';
-      await gsapFetch(`/api/bridge/owner${agentQuery}`, {
+      await codiaFetch(`/api/bridge/owner${agentQuery}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform: plat, userId: userId || null }),
@@ -290,7 +290,7 @@ export function useBridgeState() {
     setReconnectingPlatform(plat);
     try {
       const agentQuery = agentId ? `?agentId=${encodeURIComponent(agentId)}` : '';
-      const res = await gsapFetch(`/api/bridge/reconnect${agentQuery}`, {
+      const res = await codiaFetch(`/api/bridge/reconnect${agentQuery}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform: plat }),
@@ -311,7 +311,7 @@ export function useBridgeState() {
   const saveGlobalSettings = async (partial: { permissionMode?: BridgePermissionMode; readOnly?: boolean; receiptEnabled?: boolean; richStreamingEnabled?: boolean }) => {
     setGlobalSettingsSaving(true);
     try {
-      const res = await gsapFetch('/api/bridge/settings', {
+      const res = await codiaFetch('/api/bridge/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(partial),

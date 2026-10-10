@@ -3,7 +3,7 @@
  */
 
 import { useStore } from './stores';
-import { gsapFetch } from './hooks/use-gsap-fetch';
+import { codiaFetch } from './hooks/use-codia-fetch';
 import { applyAgentIdentity, loadAgents, loadAvatars } from './stores/agent-actions';
 import { ensureSession, loadSessions, switchSession as switchSessionAction } from './stores/session-actions';
 import { initSessionProjectCatalog } from './stores/session-project-actions';
@@ -14,7 +14,7 @@ import { setStatus, loadModels } from './utils/ui-helpers';
 import { initJian } from './stores/desk-actions';
 import { initEditorEvents, initViewerEvents } from './stores/preview-actions';
 import { initQuotedSelectionLifecycle } from './stores/selection-actions';
-import { updateLayout } from './components/SidebarLayout';
+import { updateLayout } from './services/layout-state';
 import { initErrorBusBridge } from './errors/error-bus-bridge';
 import { refreshPluginUI } from './stores/plugin-ui-actions';
 import { switchTab } from './components/channels/tab-router';
@@ -63,12 +63,12 @@ let _stopI18nKeyLeakAudit: (() => void) | null = null;
 function markAppReady(platform: typeof window.platform): void {
   if (_appReadySent) return;
   _appReadySent = true;
-  if (window.__GSAP_E2E__) window.__GSAP_E2E__.appReady = true;
+  if (window.__CODIA_E2E__) window.__CODIA_E2E__.appReady = true;
   platform.appReady();
 }
 
 function mobileRuntimeAlreadyInitialized(): boolean {
-  return Boolean((window as Window & { __GSAP_MOBILE_RUNTIME_READY__?: boolean }).__GSAP_MOBILE_RUNTIME_READY__);
+  return Boolean((window as Window & { __CODIA_MOBILE_RUNTIME_READY__?: boolean }).__CODIA_MOBILE_RUNTIME_READY__);
 }
 
 function publishActiveSessionPath(): void {
@@ -95,13 +95,13 @@ function ensureI18nKeyLeakAudit(): void {
 }
 
 // Forward frontend logs to the server.
-window.__gsapLog = function (level: string, module: string, message: string) {
+window.__codiaLog = function (level: string, module: string, message: string) {
   if (!hasServerConnection(useStore.getState())) return;
-  gsapFetch('/api/log', {
+  codiaFetch('/api/log', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ level, module, message }),
-  }).catch(err => console.warn('[gsapLog] log upload failed:', err));
+  }).catch(err => console.warn('[codiaLog] log upload failed:', err));
 };
 
 //
@@ -116,7 +116,7 @@ window.addEventListener('unhandledrejection', (e) => {
 
 //
 
-window.__GSAP_RUNTIME_DIAGNOSTICS__ = {
+window.__CODIA_RUNTIME_DIAGNOSTICS__ = {
   getStateSnapshot() {
     const state = useStore.getState();
     const currentSessionPath = state.currentSessionPath;
@@ -135,7 +135,7 @@ async function installE2EHelpers(): Promise<void> {
   const enabled = await desktopApi.isE2EMode().catch(() => false);
   if (!enabled) return;
 
-  window.__GSAP_E2E__ = {
+  window.__CODIA_E2E__ = {
     appReady: false,
     seedCopySession(payload) {
       const sessionPath = payload.sessionPath || '/__e2e__/copy-session';
@@ -299,7 +299,7 @@ async function installE2EHelpers(): Promise<void> {
     },
     async switchModel(modelId: string, provider?: string, sessionPath?: string | null) {
       const targetPath = sessionPath || useStore.getState().currentSessionPath;
-      const response = await gsapFetch('/api/models/switch', {
+      const response = await codiaFetch('/api/models/switch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionPath: targetPath, modelId, provider }),
@@ -317,7 +317,7 @@ async function installE2EHelpers(): Promise<void> {
       return this.getStateSnapshot();
     },
     async callApi(path: string, opts?: RequestInit) {
-      const response = await gsapFetch(path, opts || {});
+      const response = await codiaFetch(path, opts || {});
       const text = await response.text();
       try {
         return text ? JSON.parse(text) : null;
@@ -337,14 +337,14 @@ async function installE2EHelpers(): Promise<void> {
     },
     async installProjectSkill(filePath: string, dir?: string | null) {
       const targetDir = dir || useStore.getState().deskBasePath || '';
-      const response = await gsapFetch('/api/desk/install-skill', {
+      const response = await codiaFetch('/api/desk/install-skill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filePath, dir: targetDir }),
       });
       const data = await response.json();
       if (response.ok && targetDir) {
-        const refreshRes = await gsapFetch(`/api/desk/skills?dir=${encodeURIComponent(targetDir)}`);
+        const refreshRes = await codiaFetch(`/api/desk/skills?dir=${encodeURIComponent(targetDir)}`);
         const refreshData = await refreshRes.json();
         useStore.getState().setCwdSkills(refreshData.skills || []);
         window.__loadDeskSkills?.();
@@ -366,7 +366,7 @@ async function installE2EHelpers(): Promise<void> {
       return input.value;
     },
     getInlineNoticeText() {
-      const node = document.querySelector('[class*="slash-busy-bar"], [class*="slash-error-bar"], .gsap-toast');
+      const node = document.querySelector('[class*="slash-busy-bar"], [class*="slash-error-bar"], .codia-toast');
       const text = node?.textContent || '';
       if (text) return text;
       return useStore.getState().toasts.map((toast) => toast.text).join('\n');
@@ -459,8 +459,8 @@ export async function initApp(): Promise<void> {
     // 2. 楠炴儼顢戦懢宄板絿 health + config
     try {
       const [healthRes, configRes] = await Promise.all([
-        gsapFetch('/api/health'),
-        gsapFetch('/api/config'),
+        codiaFetch('/api/health'),
+        codiaFetch('/api/config'),
       ]);
       const healthData = await healthRes.json();
       const configData = await configRes.json();
@@ -550,7 +550,7 @@ export async function initApp(): Promise<void> {
 
   // Initialize automation badge count.
   try {
-    const res = await gsapFetch('/api/desk/cron');
+    const res = await codiaFetch('/api/desk/cron');
     const data = await res.json();
     const count = (data.jobs || []).length;
     useStore.setState({ automationCount: count });
@@ -558,7 +558,7 @@ export async function initApp(): Promise<void> {
 
   // Load bridge status once at startup for the sidebar indicator.
   try {
-    const res = await gsapFetch('/api/bridge/status');
+    const res = await codiaFetch('/api/bridge/status');
     const data = await res.json();
     const anyConnected = data.telegram?.status === 'connected'
       || data.feishu?.status === 'connected'
@@ -571,19 +571,19 @@ export async function initApp(): Promise<void> {
   // Restore the saved primary page independently from the removed titlebar menu.
   // Plugin pages wait for discovery and yield to any navigation the user performs
   // while discovery is in flight. Knowledge graph and mind map now live in chat.
-  const rawSavedTab = localStorage.getItem('gsap-tab');
+  const rawSavedTab = localStorage.getItem('codia-tab');
   const savedTab = normalizeSavedTab(rawSavedTab);
-  if (rawSavedTab !== savedTab) localStorage.setItem('gsap-tab', savedTab);
+  if (rawSavedTab !== savedTab) localStorage.setItem('codia-tab', savedTab);
   if (!savedTab.startsWith('plugin:')) switchTab(savedTab);
 
   void refreshPluginUI().then(() => {
     if (!savedTab.startsWith('plugin:')) return;
-    if (localStorage.getItem('gsap-tab') !== savedTab) return;
+    if (localStorage.getItem('codia-tab') !== savedTab) return;
     if (canRestorePluginTab(savedTab, useStore.getState().pluginPages)) {
       switchTab(savedTab);
       return;
     }
-    localStorage.setItem('gsap-tab', 'chat');
+    localStorage.setItem('codia-tab', 'chat');
     switchTab('chat');
   });
 
@@ -620,14 +620,14 @@ export async function initApp(): Promise<void> {
 }
 
 async function loadIdentityForActiveConnection(connection: ServerConnection): Promise<ServerConnection> {
-  const identityRes = await gsapFetch('/api/server/identity');
+  const identityRes = await codiaFetch('/api/server/identity');
   const identityData = await identityRes.json();
   return mergeServerIdentity(connection, identityData);
 }
 
 async function refreshDeviceWebSession(connection: ServerConnection): Promise<void> {
   if (connection.credentialKind !== 'device_credential' || !connection.token) return;
-  await gsapFetch('/api/web-auth/login', {
+  await codiaFetch('/api/web-auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',

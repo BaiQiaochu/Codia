@@ -1,6 +1,6 @@
 # Plugin runtime
 
-Node-side helper package for G-SAP plugins.
+Node-side helper package for Codia plugins.
 
 This package provides stable helper shapes for:
 
@@ -13,6 +13,6 @@ This package provides stable helper shapes for:
 - usage ledger helpers
 - SessionFile media details
 
-The runtime keeps source compatibility while G-SAP finishes its TypeScript conversion. See the root [PLUGIN_SDK.md](../../PLUGIN_SDK.md) for current authoring rules.
+The runtime keeps source compatibility while Codia finishes its TypeScript conversion. See the root [PLUGIN_SDK.md](../../PLUGIN_SDK.md) for current authoring rules.
 
 Plugins that need outbound HTTP should declare `network.fetch` in the manifest and call `ctx.network.fetch()` from tools, lifecycle code, or bus handlers. The host enforces allowed hosts, methods, timeouts, localhost policy, and response byte limits.

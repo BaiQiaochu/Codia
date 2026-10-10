@@ -3,7 +3,7 @@ import { resolveAgentParam } from "../lib/tools/agent-id-resolver.js";
 
 describe("resolveAgentParam", () => {
   const agents = [
-    { id: "gsap", name: "G-SAP" },
+    { id: "codia", name: "Codia" },
     { id: "reviewer", name: "Reviewer" },
     { id: "planner", name: "Planner" },
   ];

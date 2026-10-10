@@ -4,7 +4,7 @@ import os from "os";
 import path from "path";
 import { spawn as defaultSpawn } from "child_process";
 import {
-  buildWin32GsapWriteAclCleanupArgs,
+  buildWin32CodiaWriteAclCleanupArgs,
   buildWin32LegacyAclDiagnosticArgs,
   buildWin32LegacyProfileCleanupArgs,
 } from "./win32-legacy-maintenance.ts";
@@ -12,7 +12,7 @@ import {
   resolveWin32SandboxHelper,
 } from "./win32-sandbox-helper.ts";
 
-const LEGACY_PROFILE_PREFIXES = ["com.gsap.sandbox.", "com.hanako.sandbox."];
+const LEGACY_PROFILE_PREFIXES = ["com.codia.sandbox.", "com.codia.sandbox."];
 const DEFAULT_TIMEOUT_MS = 15_000;
 const DEFAULT_MAX_OUTPUT_BYTES = 256 * 1024;
 const MIGRATION_MARKER_VERSION = 2;
@@ -93,8 +93,7 @@ function discoverLegacyProfileNames({ env, readdirSync, existsSync, homedir }) {
 
 export function collectWin32LegacySandboxMigrationTargets({
   platform = process.platform,
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   workspaceRoots = [],
   env = process.env,
   resourcesPath = process.resourcesPath,
@@ -104,7 +103,7 @@ export function collectWin32LegacySandboxMigrationTargets({
 } = {}) {
   if (platform !== "win32") return { aclPaths: [], profileNames: [] };
 
-  const home = gsapHome || hanakoHome;
+  const home = codiaHome || codiaHome;
   const aclPaths = [];
   const seen = new Set();
   const push = (target) => pushExistingUnique(aclPaths, seen, target, existsSync);
@@ -178,9 +177,9 @@ function runHelper(helperPath, args, {
   });
 }
 
-function defaultMigrationMarkerPath(gsapHome) {
-  return gsapHome
-    ? path.join(gsapHome, "user", "win32-sandbox-migration-v2.json")
+function defaultMigrationMarkerPath(codiaHome) {
+  return codiaHome
+    ? path.join(codiaHome, "user", "win32-sandbox-migration-v2.json")
     : null;
 }
 
@@ -213,7 +212,7 @@ function buildMigrationPhases({ targets, cleanup }) {
   if (targets.aclPaths?.length) {
     const args = [];
     if (cleanup) {
-      args.push(...buildWin32GsapWriteAclCleanupArgs({ paths: targets.aclPaths }));
+      args.push(...buildWin32CodiaWriteAclCleanupArgs({ paths: targets.aclPaths }));
       for (const name of profileNames) args.push("--legacy-appcontainer-profile", name);
     }
     args.push(...buildWin32LegacyAclDiagnosticArgs({
@@ -243,8 +242,7 @@ function helperExitStatus(code) {
 
 export async function runWin32LegacySandboxMigration({
   platform = process.platform,
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   workspaceRoots = [],
   cleanup = false,
   markerPath,
@@ -261,7 +259,7 @@ export async function runWin32LegacySandboxMigration({
 } = {}) {
   if (platform !== "win32") return { status: "skipped", reason: "platform" };
 
-  const home = gsapHome || hanakoHome;
+  const home = codiaHome || codiaHome;
   const completionMarkerPath = cleanup ? (markerPath || defaultMigrationMarkerPath(home)) : null;
   if (hasCompletedMarker(completionMarkerPath)) {
     return {
@@ -277,7 +275,7 @@ export async function runWin32LegacySandboxMigration({
 
   const resolvedTargets = targets || collectWin32LegacySandboxMigrationTargets({
     platform,
-    gsapHome: home,
+    codiaHome: home,
     workspaceRoots,
     env,
     resourcesPath,

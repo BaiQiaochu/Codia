@@ -49,11 +49,11 @@ describe('screenshot utils', () => {
     apiMock.desktopApi.getServerPort.mockReset().mockResolvedValue(null);
     apiMock.desktopApi.getServerToken.mockReset().mockResolvedValue(null);
     storeMock.state = {
-      homeFolder: '/tmp/gsap-home',
+      homeFolder: '/tmp/codia-home',
       chatSessions: {},
       selectedIdsBySession: {},
       currentAgentId: null,
-      agentName: 'G-SAP',
+      agentName: 'Codia',
       userName: 'User',
       beginScreenshotTask: vi.fn(),
       updateScreenshotProgress: vi.fn(),
@@ -65,7 +65,7 @@ describe('screenshot utils', () => {
       removeItem: vi.fn(),
       clear: vi.fn(),
     });
-    window.addEventListener('gsap-inline-notice', noticeHandler);
+    window.addEventListener('codia-inline-notice', noticeHandler);
     window.t = (key: string, params?: Record<string, unknown>) => {
       if (key === 'common.screenshotFailed') return 'screenshot failed';
       if (key === 'common.screenshotSaved') return 'screenshot saved';
@@ -76,7 +76,7 @@ describe('screenshot utils', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    window.removeEventListener('gsap-inline-notice', noticeHandler);
+    window.removeEventListener('codia-inline-notice', noticeHandler);
     delete window.t;
   });
 
@@ -114,7 +114,7 @@ describe('screenshot utils', () => {
         },
       },
     };
-    apiMock.desktopApi.screenshotRender.mockResolvedValue({ success: true, dir: '/tmp/gsap-home/screenshots' });
+    apiMock.desktopApi.screenshotRender.mockResolvedValue({ success: true, dir: '/tmp/codia-home/screenshots' });
 
     await expect(takeScreenshot('u1', sessionPath)).resolves.toBeUndefined();
 
@@ -133,23 +133,23 @@ describe('screenshot utils', () => {
     expect(apiMock.desktopApi.screenshotRender).toHaveBeenNthCalledWith(1, expect.objectContaining({
       segmentIndex: 1,
       segmentTotal: 2,
-      saveDir: '/tmp/gsap-home',
+      saveDir: '/tmp/codia-home',
     }));
     expect(apiMock.desktopApi.screenshotRender).toHaveBeenNthCalledWith(2, expect.objectContaining({
       segmentIndex: 2,
       segmentTotal: 2,
-      saveDir: '/tmp/gsap-home',
+      saveDir: '/tmp/codia-home',
     }));
     expect(notices).toEqual([
       expect.objectContaining({
         type: 'success',
         text: 'saved 2 screenshot segments',
-        deskDir: '/tmp/gsap-home/screenshots',
+        deskDir: '/tmp/codia-home/screenshots',
       }),
     ]);
   });
 
-  it('uses the G-SAP brand theme even when an old color preference is stored', async () => {
+  it('uses the Codia brand theme even when an old color preference is stored', async () => {
     const sessionPath = '/session/a.jsonl';
     storeMock.state = {
       ...storeMock.state,
@@ -164,16 +164,16 @@ describe('screenshot utils', () => {
       },
     };
     vi.mocked(localStorage.getItem).mockImplementation((key: string) => {
-      if (key === 'gsap-screenshot-color') return 'dark';
-      if (key === 'gsap-screenshot-width') return 'desktop';
+      if (key === 'codia-screenshot-color') return 'dark';
+      if (key === 'codia-screenshot-width') return 'desktop';
       return null;
     });
-    apiMock.desktopApi.screenshotRender.mockResolvedValue({ success: true, dir: '/tmp/gsap-home/screenshots' });
+    apiMock.desktopApi.screenshotRender.mockResolvedValue({ success: true, dir: '/tmp/codia-home/screenshots' });
 
     await takeScreenshot('u1', sessionPath);
 
     expect(apiMock.desktopApi.screenshotRender).toHaveBeenCalledWith(expect.objectContaining({
-      theme: 'gsap-brand-desktop',
+      theme: 'codia-brand-desktop',
     }));
   });
 
@@ -183,8 +183,8 @@ describe('screenshot utils', () => {
     } as any;
     apiMock.desktopApi.screenshotRender.mockResolvedValue({
       success: true,
-      dir: '/workspace/BYOUNG-Works/截图',
-      filePath: '/workspace/BYOUNG-Works/截图/report.png',
+      dir: '/workspace/CODIA-Works/截图',
+      filePath: '/workspace/CODIA-Works/截图/report.png',
     });
 
     await expect(takeMarkdownFileScreenshot('/workspace/report.md', { saveDir: '/workspace' })).resolves.toBeUndefined();
@@ -201,8 +201,8 @@ describe('screenshot utils', () => {
     expect(notices).toEqual([
       expect.objectContaining({
         type: 'success',
-        deskDir: '/workspace/BYOUNG-Works/截图',
-        filePath: '/workspace/BYOUNG-Works/截图/report.png',
+        deskDir: '/workspace/CODIA-Works/截图',
+        filePath: '/workspace/CODIA-Works/截图/report.png',
       }),
     ]);
   });
@@ -213,8 +213,8 @@ describe('screenshot utils', () => {
     } as any;
     apiMock.desktopApi.screenshotRender.mockResolvedValue({
       success: true,
-      dir: '/tmp/gsap-home/BYOUNG-Works/截图',
-      filePath: '/tmp/gsap-home/BYOUNG-Works/截图/staged.png',
+      dir: '/tmp/codia-home/CODIA-Works/截图',
+      filePath: '/tmp/codia-home/CODIA-Works/截图/staged.png',
     });
 
     await expect(takeMarkdownFileScreenshot('/tmp/session-files/a1b2c3', { fileName: 'report.md' })).resolves.toBeUndefined();
@@ -224,7 +224,7 @@ describe('screenshot utils', () => {
       filePath: '/tmp/session-files/a1b2c3',
       fileName: 'report.md',
       articleType: 'markdown',
-      saveDir: '/tmp/gsap-home',
+      saveDir: '/tmp/codia-home',
     }));
   });
 
@@ -262,7 +262,7 @@ describe('screenshot utils', () => {
     window.platform = {
       getFileUrl: vi.fn(() => 'https://assets.test/picture.png'),
     } as any;
-    apiMock.desktopApi.screenshotRender.mockResolvedValue({ success: true, dir: '/tmp/gsap-home/screenshots' });
+    apiMock.desktopApi.screenshotRender.mockResolvedValue({ success: true, dir: '/tmp/codia-home/screenshots' });
 
     await takeScreenshot('u1', sessionPath);
 

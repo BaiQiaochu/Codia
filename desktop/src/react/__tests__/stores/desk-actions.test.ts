@@ -155,7 +155,7 @@ function jsonResponse(data: unknown) {
 }
 
 let testStore = createTestStore();
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 const clearChatMock = vi.fn();
 
 vi.mock('../../stores/index', () => ({
@@ -170,8 +170,8 @@ vi.mock('../../stores/index', () => ({
   },
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 vi.mock('../../stores/agent-actions', () => ({
@@ -181,7 +181,7 @@ vi.mock('../../stores/agent-actions', () => ({
 describe('desk-actions', () => {
   beforeEach(() => {
     testStore = createTestStore();
-    gsapFetchMock.mockReset();
+    codiaFetchMock.mockReset();
     clearChatMock.mockReset();
   });
 
@@ -189,7 +189,7 @@ describe('desk-actions', () => {
     const first = deferred<{ json: () => Promise<unknown> }>();
     const second = deferred<{ json: () => Promise<unknown> }>();
 
-    gsapFetchMock.mockImplementation((url: string) => {
+    codiaFetchMock.mockImplementation((url: string) => {
       if (url.includes('/api/desk/files') && url.includes('dir=%2Fdesk-a')) return first.promise;
       if (url.includes('/api/desk/files') && url.includes('dir=%2Fdesk-b')) return second.promise;
       if (url.startsWith('/api/desk/jian')) return Promise.resolve(jsonResponse({ content: null }));
@@ -216,7 +216,7 @@ describe('desk-actions', () => {
   it('does not apply a stale jian save after switching sessions', async () => {
     const savePost = deferred<{ json: () => Promise<unknown> }>();
 
-    gsapFetchMock.mockImplementation((url: string) => {
+    codiaFetchMock.mockImplementation((url: string) => {
       if (url === '/api/desk/jian') return savePost.promise;
       if (url.startsWith('/api/desk/files')) return Promise.resolve(jsonResponse({ files: [{ name: 'should-not-apply.txt' }] }));
       throw new Error(`unexpected request: ${url}`);
@@ -243,7 +243,7 @@ describe('desk-actions', () => {
     expect(state.deskCurrentPath).toBe('subdir');
     expect(state.deskJianContent).toBe('jian-b');
     expect(state.deskFiles).toEqual([{ name: 'keep.txt' }]);
-    expect(gsapFetchMock).toHaveBeenCalledTimes(1);
+    expect(codiaFetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('opens the right sidebar even with a legacy reading-mode value and persists the choice', async () => {
@@ -255,14 +255,14 @@ describe('desk-actions', () => {
     try {
       mod.toggleJianSidebar(true);
       expect(testStore.getState().jianOpen).toBe(true);
-      expect(storage.setItem).toHaveBeenCalledWith('gsap-jian-chat', 'open');
+      expect(storage.setItem).toHaveBeenCalledWith('codia-jian-chat', 'open');
     } finally {
       vi.unstubAllGlobals();
     }
   });
 
   it('returns false and shows a toast when creating a desk file fails', async () => {
-    gsapFetchMock.mockResolvedValue(jsonResponse({ error: 'error.noWorkspace' }));
+    codiaFetchMock.mockResolvedValue(jsonResponse({ error: 'error.noWorkspace' }));
     const mod = await import('../../stores/desk-actions');
 
     await expect(mod.deskCreateFile('')).resolves.toBe(false);
@@ -282,12 +282,12 @@ describe('desk-actions', () => {
         { name: `${ts}-备注 2.md` },
       ],
     });
-    gsapFetchMock.mockResolvedValue(jsonResponse({ ok: true, files: [] }));
+    codiaFetchMock.mockResolvedValue(jsonResponse({ ok: true, files: [] }));
     const mod = await import('../../stores/desk-actions');
 
     await expect(mod.deskCreateFile('')).resolves.toBe(true);
 
-    const body = JSON.parse(gsapFetchMock.mock.calls[0][1].body as string);
+    const body = JSON.parse(codiaFetchMock.mock.calls[0][1].body as string);
     expect(body.name).toBe(`${ts}-备注 3.md`);
   });
 
@@ -301,9 +301,9 @@ describe('desk-actions', () => {
         serverId: 'server_lan',
         userId: 'user_lan',
         studioId: 'studio_lan',
-        label: 'LAN G-SAP',
-        baseUrl: 'http://gsap.local:14500',
-        wsUrl: 'ws://gsap.local:14500',
+        label: 'LAN Codia',
+        baseUrl: 'http://codia.local:14500',
+        wsUrl: 'ws://codia.local:14500',
         token: null,
         authState: 'paired',
         trustState: 'lan',
@@ -317,14 +317,14 @@ describe('desk-actions', () => {
         notes: [{ name: 'chapter.md' }],
       },
     });
-    gsapFetchMock.mockResolvedValueOnce(jsonResponse({ ok: true, files: [] }));
+    codiaFetchMock.mockResolvedValueOnce(jsonResponse({ ok: true, files: [] }));
 
     const mod = await import('../../stores/desk-actions');
     const ok = await mod.deskTrashTreeItems([{ sourceSubdir: 'notes', name: 'chapter.md', isDirectory: false }]);
 
     expect(ok).toBe(true);
     expect(trashItem).not.toHaveBeenCalled();
-    expect(gsapFetchMock).toHaveBeenCalledWith('/api/workbench/actions', expect.objectContaining({
+    expect(codiaFetchMock).toHaveBeenCalledWith('/api/workbench/actions', expect.objectContaining({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

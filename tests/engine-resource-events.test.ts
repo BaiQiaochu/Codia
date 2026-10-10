@@ -1,10 +1,10 @@
 import path from "path";
 import { describe, expect, it, vi } from "vitest";
-import { GsapEngine } from "../core/engine.ts";
+import { CodiaEngine } from "../core/engine.ts";
 
-describe("GsapEngine ResourceEvent emission", () => {
+describe("CodiaEngine ResourceEvent emission", () => {
   it("emits agent SessionFile writes as resource.changed without a legacy app-event projection", () => {
-    const engine = Object.create(GsapEngine.prototype);
+    const engine = Object.create(CodiaEngine.prototype);
     const listener = vi.fn();
     engine._eventBus = null;
     engine._listeners = new Set([listener]);
@@ -49,7 +49,7 @@ describe("GsapEngine ResourceEvent emission", () => {
   });
 
   it("emits bare ResourceIO resource.changed without a legacy app-event projection", () => {
-    const engine = Object.create(GsapEngine.prototype);
+    const engine = Object.create(CodiaEngine.prototype);
     const listener = vi.fn();
     engine._eventBus = null;
     engine._listeners = new Set([listener]);

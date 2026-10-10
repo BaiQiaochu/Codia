@@ -133,7 +133,7 @@ describe('chat-slice branch truncation', () => {
           status: 'success',
           sourceKind: 'tool',
           sourceLabel: 'image generation',
-          text: 'G-SAP received a result from image generation',
+          text: 'Codia received a result from image generation',
         },
       },
       {
@@ -202,7 +202,7 @@ describe('chat-slice branch truncation', () => {
         status: 'success',
         sourceKind: 'tool',
         sourceLabel: 'image generation',
-        text: 'G-SAP received a result from image generation',
+        text: 'Codia received a result from image generation',
       },
     });
     slice.appendItem('/a', {
@@ -267,7 +267,7 @@ describe('chat-slice branch truncation', () => {
           status: 'success',
           sourceKind: 'tool',
           sourceLabel: 'image generation',
-          text: 'G-SAP received a result from image generation',
+          text: 'Codia received a result from image generation',
         },
       },
       {
@@ -333,7 +333,7 @@ describe('chat-slice branch truncation', () => {
         status: 'success',
         sourceKind: 'tool',
         sourceLabel: 'image generation',
-        text: 'G-SAP received a result from image generation',
+        text: 'Codia received a result from image generation',
       },
     });
     slice.appendItem('/a', {
@@ -453,7 +453,7 @@ describe('chat-slice branch truncation', () => {
           status: 'success',
           sourceKind: 'tool',
           sourceLabel: 'image generation',
-          text: 'G-SAP received a result from image generation',
+          text: 'Codia received a result from image generation',
         },
       },
       {

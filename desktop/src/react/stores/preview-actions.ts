@@ -8,7 +8,7 @@
 import { useStore } from './index';
 import { DESK_OWNER, getPreviewOwner, getOwnerState } from './preview-slice';
 import { schedulePersistCurrentWorkspaceUiState } from './workspace-ui-state-actions';
-import { updateLayout } from '../components/SidebarLayout';
+import { updateLayout } from '../services/layout-state';
 import type { Artifact } from '../types';
 import {
   normalizePreviewReadingPosition,

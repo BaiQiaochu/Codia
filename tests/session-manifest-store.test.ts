@@ -15,7 +15,7 @@ describe("SessionManifestStore", () => {
   let nowIndex;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-session-manifest-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-manifest-"));
     nextId = 1;
     nowIndex = 0;
     store = new SessionManifestStore({

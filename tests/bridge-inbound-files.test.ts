@@ -13,8 +13,8 @@ describe("materializeBridgeInboundFiles", () => {
   });
 
   it("stores bridge inbound bytes in session cache and registers session files", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-bridge-inbound-"));
-    const sessionPath = path.join(tmpDir, "agents", "hana", "sessions", "main.jsonl");
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bridge-inbound-"));
+    const sessionPath = path.join(tmpDir, "agents", "codia", "sessions", "main.jsonl");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(sessionPath, "{}\n");
     const registerSessionFile = vi.fn(({ sessionPath, filePath, label, origin, storageKind }) => ({
@@ -35,7 +35,7 @@ describe("materializeBridgeInboundFiles", () => {
     }));
 
     const result = await materializeBridgeInboundFiles({
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       sessionPath,
       registerSessionFile,
       files: [{
@@ -71,8 +71,8 @@ describe("materializeBridgeInboundFiles", () => {
   });
 
   it("keeps inbound videos as display attachments without treating them as images", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-bridge-inbound-video-"));
-    const sessionPath = path.join(tmpDir, "agents", "hana", "sessions", "main.jsonl");
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bridge-inbound-video-"));
+    const sessionPath = path.join(tmpDir, "agents", "codia", "sessions", "main.jsonl");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(sessionPath, "{}\n");
     const registerSessionFile = vi.fn(({ sessionPath, filePath, label, origin, storageKind }) => ({
@@ -93,7 +93,7 @@ describe("materializeBridgeInboundFiles", () => {
     }));
 
     const result = await materializeBridgeInboundFiles({
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       sessionPath,
       registerSessionFile,
       files: [{

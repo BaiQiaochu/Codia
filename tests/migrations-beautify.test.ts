@@ -7,7 +7,7 @@ import { LATEST_DATA_VERSION, runMigrations } from "../core/migrations.js";
 
 describe("migration #33 beautify defaults", () => {
   it("adds beautify to existing explicit disabled tool lists during upgrade", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-migrate-beautify-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-migrate-beautify-"));
     try {
       const agentsDir = path.join(root, "agents");
       const agentDir = path.join(agentsDir, "agent-a");
@@ -29,7 +29,7 @@ describe("migration #33 beautify defaults", () => {
       };
 
       runMigrations({
-        gsapHome: root,
+        codiaHome: root,
         agentsDir,
         prefs,
         providerRegistry: {},
@@ -45,7 +45,7 @@ describe("migration #33 beautify defaults", () => {
   });
 
   it("adds workflow to existing explicit disabled tool lists during upgrade", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-migrate-workflow-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-migrate-workflow-"));
     try {
       const agentsDir = path.join(root, "agents");
       const agentDir = path.join(agentsDir, "agent-a");
@@ -68,7 +68,7 @@ describe("migration #33 beautify defaults", () => {
       };
 
       runMigrations({
-        gsapHome: root,
+        codiaHome: root,
         agentsDir,
         prefs,
         providerRegistry: {},

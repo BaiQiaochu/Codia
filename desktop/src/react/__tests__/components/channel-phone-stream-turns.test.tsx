@@ -45,9 +45,9 @@ describe('AgentPhoneSessionPreview stream turns', () => {
           loadingMore: false,
         },
       },
-      agents: [{ id: 'worker-1', name: '工人A', yuan: 'gsap', isPrimary: false }],
-      agentName: 'G-SAP',
-      agentYuan: 'gsap',
+      agents: [{ id: 'worker-1', name: '工人A', yuan: 'codia', isPrimary: false }],
+      agentName: 'Codia',
+      agentYuan: 'codia',
       streamingSessions: [],
       selectedMessageIdsBySession: {},
     } as never);
@@ -64,7 +64,7 @@ describe('AgentPhoneSessionPreview stream turns', () => {
       <AgentPhoneSessionPreview
         sessionPath={SESSION_PATH}
         agentId="worker-1"
-        agentYuan="gsap"
+        agentYuan="codia"
       />,
     );
 

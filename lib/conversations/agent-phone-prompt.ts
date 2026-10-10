@@ -16,8 +16,7 @@ export const DEFAULT_AGENT_PHONE_SETTINGS = Object.freeze({
 });
 
 export const AGENT_PHONE_REFLECTION_GUIDES = Object.freeze({
-  gsap: { zhName: "MOOD", enName: "MOOD", tag: "mood" },
-  hanako: { zhName: "MOOD", enName: "MOOD", tag: "mood" },
+  codia: { zhName: "MOOD", enName: "MOOD", tag: "mood" },
   butter: { zhName: "PULSE", enName: "PULSE", tag: "pulse" },
   ming: { zhName: "Reflect", enName: "Reflect", tag: "reflect" },
   hermes: { zhName: "Reflect", enName: "Reflect", tag: "reflect" },

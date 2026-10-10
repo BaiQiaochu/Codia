@@ -26,7 +26,7 @@ export default function (app, ctx) {
     const token = c.req.query("token") || "";
     const mediaBase = `/api/plugins/${ctx.pluginId}`;
     const tokenParam = token ? `?token=${encodeURIComponent(token)}` : "";
-    const gsapCss = c.req.query("gsap-css") || "";
+    const codiaCss = c.req.query("codia-css") || "";
     const hasPending = tasks.some((t) => t.status === "pending");
     const generatedDir = path.join(ctx.dataDir, "generated");
     const pollApi = `${mediaBase}/tasks/batch/${encodeURIComponent(batchId)}${tokenParam}`;
@@ -37,7 +37,7 @@ export default function (app, ctx) {
 
     return c.html(`<!DOCTYPE html>
 <html><head><meta charset="utf-8">
-${gsapCss ? `<link rel="stylesheet" href="${escAttr(gsapCss)}">` : ""}
+${codiaCss ? `<link rel="stylesheet" href="${escAttr(codiaCss)}">` : ""}
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg-card,#FCFAF5);padding:8px;font-family:var(--font-sans,system-ui,sans-serif);color:var(--text,#292522)}

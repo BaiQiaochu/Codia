@@ -26,7 +26,7 @@ describe("subagent tool schema copy", () => {
       expect(def.description).not.toContain("check_pending_tasks");
       expect(def.description).not.toContain("最多查");
       expect(def.description).not.toContain("Check at most");
-      expect(def.description).not.toContain("<hana-background-result>");
+      expect(def.description).not.toContain("<codia-background-result>");
     }
   });
 

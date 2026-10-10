@@ -80,7 +80,6 @@ import { createFeishuAdapter } from "../lib/bridge/feishu-adapter.js";
 
 async function flushPromises() {
   await Promise.resolve();
-  await Promise.resolve();
 }
 
 function latestWsClient() {
@@ -122,7 +121,7 @@ describe("createFeishuAdapter", () => {
     const adapter = createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage: vi.fn(),
       onStatus,
     });
@@ -147,7 +146,7 @@ describe("createFeishuAdapter", () => {
     const adapter = createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage: vi.fn(),
       onStatus,
     });
@@ -175,7 +174,7 @@ describe("createFeishuAdapter", () => {
     createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "hana",
+      agentId: "codia",
       onMessage,
     });
 
@@ -198,7 +197,7 @@ describe("createFeishuAdapter", () => {
 
     expect(onMessage).toHaveBeenCalledWith(expect.objectContaining({
       platform: "feishu",
-      sessionKey: "fs_dm_ou_123@hana",
+      sessionKey: "fs_dm_ou_123@codia",
       attachments: [
         expect.objectContaining({
           type: "image",
@@ -215,7 +214,7 @@ describe("createFeishuAdapter", () => {
     createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage,
     });
 
@@ -252,7 +251,7 @@ describe("createFeishuAdapter", () => {
 
     expect(onMessage).toHaveBeenCalledWith(expect.objectContaining({
       platform: "feishu",
-      sessionKey: "fs_dm_ou_post@gsap",
+      sessionKey: "fs_dm_ou_post@codia",
       text: "hello @Ghost docs",
       attachments: [
         expect.objectContaining({
@@ -277,7 +276,7 @@ describe("createFeishuAdapter", () => {
     createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage,
     });
 
@@ -303,7 +302,7 @@ describe("createFeishuAdapter", () => {
     });
 
     expect(onMessage).toHaveBeenCalledWith(expect.objectContaining({
-      sessionKey: "fs_group_oc_post_chat@gsap",
+      sessionKey: "fs_group_oc_post_chat@codia",
       text: "",
       attachments: [
         expect.objectContaining({
@@ -322,7 +321,7 @@ describe("createFeishuAdapter", () => {
     createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage,
     });
 
@@ -362,7 +361,7 @@ describe("createFeishuAdapter", () => {
     const adapter = createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "hana",
+      agentId: "codia",
       onMessage: vi.fn(),
     });
 
@@ -390,7 +389,7 @@ describe("createFeishuAdapter", () => {
     const adapter = createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "hana",
+      agentId: "codia",
       onMessage: vi.fn(),
     });
 
@@ -408,7 +407,7 @@ describe("createFeishuAdapter", () => {
     const adapter = createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "hana",
+      agentId: "codia",
       onMessage: vi.fn(),
     });
     const buffer = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
@@ -436,7 +435,7 @@ describe("createFeishuAdapter", () => {
     const adapter = createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "hana",
+      agentId: "codia",
       onMessage: vi.fn(),
     });
     const buffer = Buffer.from("mp4");
@@ -468,7 +467,7 @@ describe("createFeishuAdapter", () => {
     const adapter = createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage: vi.fn(),
     });
 
@@ -500,7 +499,7 @@ describe("createFeishuAdapter", () => {
     const adapter = createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage: vi.fn(),
     });
 
@@ -519,7 +518,7 @@ describe("createFeishuAdapter", () => {
     const adapter = createFeishuAdapter({
       appId: "app-id",
       appSecret: "app-secret",
-      agentId: "hana",
+      agentId: "codia",
       onMessage: vi.fn(),
     });
 

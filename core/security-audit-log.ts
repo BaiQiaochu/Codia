@@ -7,18 +7,18 @@ import { MASKED_SECRET } from "../shared/secret-custody.ts";
 
 export const SECURITY_AUDIT_LOG_FILE = "security-audit.jsonl";
 
-export function securityAuditLogPath(gsapHome) {
-  if (!gsapHome) throw new Error("gsapHome required");
-  return path.join(gsapHome, "logs", SECURITY_AUDIT_LOG_FILE);
+export function securityAuditLogPath(codiaHome) {
+  if (!codiaHome) throw new Error("codiaHome required");
+  return path.join(codiaHome, "logs", SECURITY_AUDIT_LOG_FILE);
 }
 
-export function appendSecurityAuditEvent(gsapHome, event, {
+export function appendSecurityAuditEvent(codiaHome, event, {
   now = new Date().toISOString(),
   eventId = `sec_${crypto.randomUUID()}`,
 } = {}) {
-  if (!gsapHome) return null;
+  if (!codiaHome) return null;
   const record = normalizeAuditEvent(event, { now, eventId });
-  const filePath = securityAuditLogPath(gsapHome);
+  const filePath = securityAuditLogPath(codiaHome);
   try {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.appendFileSync(filePath, `${JSON.stringify(record)}\n`, "utf-8");

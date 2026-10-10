@@ -5,7 +5,7 @@ import path from 'path';
 import { PreferencesManager } from '../core/preferences-manager.ts';
 
 function makePrefs() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gsap-prefs-editor-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'codia-prefs-editor-'));
   return new PreferencesManager({
     userDir: path.join(root, 'user'),
     agentsDir: path.join(root, 'agents'),

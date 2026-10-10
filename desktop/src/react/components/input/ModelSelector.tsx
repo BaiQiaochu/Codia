@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useStore } from '../../stores';
 import { sessionScopedValue } from '../../stores/session-slice';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { useI18n } from '../../hooks/use-i18n';
 import { loadModels } from '../../utils/ui-helpers';
 import { inferModelKind } from '../../settings/model-kind';
@@ -145,7 +145,7 @@ export function ModelSelector({
 
         setLoading(true);
         useStore.getState().setModelSwitching(true);
-        const res = await gsapFetch('/api/models/switch', {
+        const res = await codiaFetch('/api/models/switch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionPath: currentSessionPath, modelId, provider }),
@@ -175,7 +175,7 @@ export function ModelSelector({
       } else {
         setLoading(true);
         onChatVideoModeChange?.(null);
-        const setRes = await gsapFetch('/api/models/set', {
+        const setRes = await codiaFetch('/api/models/set', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ modelId, provider }),
@@ -189,7 +189,7 @@ export function ModelSelector({
           const { createNewSession } = await import('../../stores/session-actions');
           await createNewSession();
         }
-        const res = await gsapFetch('/api/models');
+        const res = await codiaFetch('/api/models');
         const data = await res.json();
         useStore.setState({ models: data.models || [] });
       }

@@ -12,7 +12,7 @@ describe("SubagentThreadStore", () => {
   let storePath;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-subagent-threads-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-subagent-threads-"));
     storePath = path.join(tempDir, "subagent-threads.json");
   });
 
@@ -25,7 +25,7 @@ describe("SubagentThreadStore", () => {
     store.beginRun("subagent-1", {
       kind: "direct",
       parentSessionPath: "/parent.jsonl",
-      agentId: "gsap",
+      agentId: "codia",
       label: "探索一",
       access: "read",
       summary: "read files",
@@ -39,7 +39,7 @@ describe("SubagentThreadStore", () => {
       status: "open",
       lastRunStatus: "resolved",
       parentSessionPath: "/parent.jsonl",
-      agentId: "gsap",
+      agentId: "codia",
       childSessionPath: "/child.jsonl",
       label: "探索一",
       access: "read",
@@ -95,7 +95,7 @@ describe("SubagentThreadStore", () => {
       parentTaskId: "workflow-1",
       nodeId: "node-1",
       parentSessionPath: "/parent.jsonl",
-      agentId: "gsap",
+      agentId: "codia",
       label: "探索",
     });
     store.attachSession("workflow-1::node-1", "/child.jsonl");
@@ -130,7 +130,7 @@ describe("SubagentThreadStore", () => {
     store.beginRun("subagent-child-id", {
       kind: "direct",
       parentSessionPath: "/parent.jsonl",
-      agentId: "gsap",
+      agentId: "codia",
     });
     store.attachSession("subagent-child-id", "/child.jsonl", {
       childSessionId: "sess_child_thread",
@@ -250,8 +250,8 @@ describe("SubagentThreadStore", () => {
     store.beginRun("subagent-a", {
       kind: "direct",
       parentSessionPath: "/s/a.jsonl",
-      agentId: "gsap",
-      agentName: "G-SAP",
+      agentId: "codia",
+      agentName: "Codia",
       label: "探索一",
       access: "read",
       summary: "读完生命周期代码",
@@ -260,7 +260,7 @@ describe("SubagentThreadStore", () => {
     store.beginRun("subagent-b", {
       kind: "direct",
       parentSessionPath: "/s/b.jsonl",
-      agentId: "gsap",
+      agentId: "codia",
       label: "探索一",
       access: "read",
     });
@@ -275,7 +275,7 @@ describe("SubagentThreadStore", () => {
         threadId: "subagent-a",
         kind: "direct",
         status: "open",
-        agentName: "G-SAP",
+        agentName: "Codia",
         label: "探索一",
         access: "read",
         summary: "可继续",

@@ -83,11 +83,11 @@ function isSafeRunFileId(value) {
 }
 
 export class StudioCronService {
-  constructor({ gsapHome, agentsDir, getStudioId }) {
-    if (!gsapHome) throw new Error("StudioCronService requires gsapHome");
+  constructor({ codiaHome, agentsDir, getStudioId }) {
+    if (!codiaHome) throw new Error("StudioCronService requires codiaHome");
     if (!agentsDir) throw new Error("StudioCronService requires agentsDir");
     if (typeof getStudioId !== "function") throw new Error("StudioCronService requires getStudioId");
-    this._gsapHome = gsapHome;
+    this._codiaHome = codiaHome;
     this._agentsDir = agentsDir;
     this._getStudioId = getStudioId;
     this._store = null;
@@ -141,7 +141,7 @@ export class StudioCronService {
   _getStore() {
     const studioId = assertValidPathSegment(this._getStudioId(), "studioId");
     if (!this._store || this._storeStudioId !== studioId) {
-      const deskDir = path.join(this._gsapHome, "studios", studioId, "desk");
+      const deskDir = path.join(this._codiaHome, "studios", studioId, "desk");
       this._store = new CronStore(
         path.join(deskDir, "cron-jobs.json"),
         path.join(deskDir, "cron-runs"),
@@ -154,7 +154,7 @@ export class StudioCronService {
   }
 
   _importLegacyJobs(store, studioId) {
-    const studioRunsDir = path.join(this._gsapHome, "studios", studioId, "desk", "cron-runs");
+    const studioRunsDir = path.join(this._codiaHome, "studios", studioId, "desk", "cron-runs");
     const existingLegacyJobs = new Map();
     for (const job of store.listJobs()) {
       const refKey = legacyRefKey(job.legacyRef);

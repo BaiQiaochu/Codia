@@ -25,9 +25,9 @@ describe("session summary time anchoring", () => {
   let root;
 
   beforeEach(() => {
-    root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-memory-summary-"));
+    root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-memory-summary-"));
     vi.clearAllMocks();
-    vi.mocked(callText).mockResolvedValue("### Key Facts\n- None\n\n### Timeline\n- 2026-05-16 14:30 User worked on G-SAP.");
+    vi.mocked(callText).mockResolvedValue("### Key Facts\n- None\n\n### Timeline\n- 2026-05-16 14:30 User worked on Codia.");
   });
 
   afterEach(() => {
@@ -50,7 +50,7 @@ describe("session summary time anchoring", () => {
     expect(request.systemPrompt).toContain("YYYY-MM-DD HH:MM");
     expect(request.systemPrompt).toContain("Do NOT extract:");
     expect(request.systemPrompt).toContain("Work-style preferences");
-    expect(request.systemPrompt).toContain("the user worked on G-SAP");
+    expect(request.systemPrompt).toContain("the user worked on Codia");
 
     const saved = manager.getSummary("session-a");
     expect(saved.source_time_range).toMatchObject({

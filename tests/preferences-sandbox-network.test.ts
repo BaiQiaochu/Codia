@@ -7,7 +7,7 @@ import { PreferencesManager } from "../core/preferences-manager.js";
 let tempRoot;
 
 function makeUserDirs() {
-  tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-prefs-sandbox-network-"));
+  tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-prefs-sandbox-network-"));
   return {
     userDir: path.join(tempRoot, "user"),
     agentsDir: path.join(tempRoot, "agents"),

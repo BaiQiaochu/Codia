@@ -32,7 +32,7 @@ describe("Scheduler studio cron", () => {
     const executeIsolated = vi.fn(async () => ({ sessionPath: null, error: null }));
     const engine = {
       agents: new Map(),
-      agentsDir: "E:/gsap/agents",
+      agentsDir: "E:/codia/agents",
       getStudioCronStore: () => store,
       canRunBackgroundTask: () => true,
       ensureAgentRuntime: vi.fn(async () => {}),

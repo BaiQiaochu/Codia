@@ -17,7 +17,7 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, "desktop/src/shared/theme.ts"),
       formats: ["iife"],
-      name: "GsapTheme",
+      name: "CodiaTheme",
       fileName: () => "theme.js",
     },
     rollupOptions: {

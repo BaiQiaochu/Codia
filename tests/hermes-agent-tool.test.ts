@@ -19,14 +19,14 @@ import {
 } from "../lib/tools/hermes-agent-tool.js";
 
 describe("hermes agent tool normalization", () => {
-  it("maps G-SAP provider aliases to Hermes provider ids", () => {
+  it("maps Codia provider aliases to Hermes provider ids", () => {
     expect(normalizeHermesProvider("kimi-coding")).toBe("kimi-for-coding");
     expect(normalizeHermesProvider("moonshot")).toBe("kimi-for-coding");
     expect(normalizeHermesProvider("minimax")).toBe("minimax");
     expect(normalizeHermesProvider("deepseek")).toBe("deepseek");
   });
 
-  it("maps G-SAP api names to Hermes api modes", () => {
+  it("maps Codia api names to Hermes api modes", () => {
     expect(normalizeHermesApiMode("openai-completions")).toBe("chat_completions");
     expect(normalizeHermesApiMode("openai-responses")).toBe("codex_responses");
     expect(normalizeHermesApiMode("anthropic-messages")).toBe("anthropic_messages");
@@ -42,7 +42,7 @@ describe("hermes agent tool normalization", () => {
   });
 
   it("prefers an actual Git Bash path over Windows bash shims", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-hermes-bash-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-hermes-bash-"));
     const bashPath = path.join(tempDir, "vendor", "git-portable", "bin", "bash.exe");
     fs.mkdirSync(path.dirname(bashPath), { recursive: true });
     fs.writeFileSync(bashPath, "");
@@ -61,7 +61,7 @@ describe("hermes agent tool normalization", () => {
   });
 
   it("uses the bundled MinGit busybox shell when bash.exe is not present", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-hermes-ash-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-hermes-ash-"));
     const ashPath = path.join(tempDir, "vendor", "git-portable", "mingw64", "bin", "ash.exe");
     fs.mkdirSync(path.dirname(ashPath), { recursive: true });
     fs.writeFileSync(ashPath, "");
@@ -79,14 +79,14 @@ describe("hermes agent tool normalization", () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it("resolves the bundled Hermes runtime from GSAP_ROOT", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-hermes-runtime-"));
+  it("resolves the bundled Hermes runtime from CODIA_ROOT", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-hermes-runtime-"));
     const runtimeRoot = path.join(tempDir, "hermes-agent-runtime");
     fs.mkdirSync(runtimeRoot, { recursive: true });
     fs.writeFileSync(path.join(runtimeRoot, "run_agent.py"), "");
 
     expect(resolveHermesAgentRoot({
-      env: { GSAP_ROOT: tempDir },
+      env: { CODIA_ROOT: tempDir },
       resourcesPath: "",
       cwd: path.join(tempDir, "missing"),
     })).toBe(path.resolve(runtimeRoot));
@@ -95,7 +95,7 @@ describe("hermes agent tool normalization", () => {
   });
 
   it("does not use system Python by default", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-hermes-python-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-hermes-python-"));
     const portablePython = path.join(tempDir, "python", "python.exe");
     const venvPython = path.join(tempDir, ".venv", "Scripts", "python.exe");
     fs.mkdirSync(path.dirname(portablePython), { recursive: true });
@@ -117,7 +117,7 @@ describe("hermes agent tool normalization", () => {
   });
 
   it("only allows system Python when explicitly enabled", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-hermes-python-system-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-hermes-python-system-"));
     const candidates = resolveHermesPythonCandidates(tempDir, {
       env: { HERMES_ALLOW_SYSTEM_PYTHON: "1" },
     });
@@ -132,7 +132,7 @@ describe("hermes agent tool normalization", () => {
   });
 
   it("enables Hermes file and terminal toolsets by default", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-hermes-cwd-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-hermes-cwd-"));
 
     try {
       const payload = buildHermesLaunchPayload({ prompt: "inspect files", cwd: tempDir });
@@ -166,7 +166,7 @@ describe("hermes agent tool normalization", () => {
       TERMINAL_LOCAL_PERSISTENT: process.env.TERMINAL_LOCAL_PERSISTENT,
       TERMINAL_TIMEOUT: process.env.TERMINAL_TIMEOUT,
     };
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-hermes-env-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-hermes-env-"));
 
     try {
       process.env.TERMINAL_ENV = "docker";
@@ -198,14 +198,14 @@ describe("hermes agent tool normalization", () => {
 
     const previousEnv = {
       HERMES_AGENT_ROOT: process.env.HERMES_AGENT_ROOT,
-      GSAP_ROOT: process.env.GSAP_ROOT,
+      CODIA_ROOT: process.env.CODIA_ROOT,
       HERMES_ALLOW_DEV_RUNTIME: process.env.HERMES_ALLOW_DEV_RUNTIME,
       NODE_ENV: process.env.NODE_ENV,
     };
 
     try {
       process.env.HERMES_AGENT_ROOT = path.join(os.tmpdir(), `missing-hermes-runtime-${Date.now()}`);
-      delete process.env.GSAP_ROOT;
+      delete process.env.CODIA_ROOT;
       delete process.env.HERMES_ALLOW_DEV_RUNTIME;
       process.env.NODE_ENV = "test";
 

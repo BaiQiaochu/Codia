@@ -1,9 +1,8 @@
 import type { QuickActionId } from '../../../../shared/quick-actions';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Flower, Lightbulb, Code, Heart, ArrowRight, GearSix } from '@phosphor-icons/react';
-import codiaMascotGazeStrip from '../../assets/codia/codia-mascot-gaze-strip.png';
+import { Flower, Lightbulb, Code, Heart, ArrowRight } from '@phosphor-icons/react';
 import { useStore } from '../stores';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import { useI18n } from '../hooks/use-i18n';
 import { loadModels } from '../utils/ui-helpers';
 import {
@@ -17,7 +16,6 @@ import {
   removeStudioWorkspace,
   removeWorkspaceFolder,
 } from '../stores/desk-actions';
-import { openSettingsModal } from '../stores/settings-modal-actions';
 import type { Agent, StudioWorkspace } from '../types';
 import { AgentAvatar, refreshAgentAvatarVersion, resolveAgentDisplayInfo, type AgentDisplayInfo } from '../utils/agent-display';
 import styles from './Welcome.module.css';
@@ -40,11 +38,11 @@ type WelcomeAgent = Agent & {
 
 export function refreshAvatarTs() { refreshAgentAvatarVersion(); }
 
-export function WelcomeScreen({ enableSettings = true }: { enableSettings?: boolean } = {}) {
-  return <WelcomeInner enableSettings={enableSettings} />;
+export function WelcomeScreen(_props: { enableSettings?: boolean } = {}) {
+  return <WelcomeInner />;
 }
 
-function WelcomeInner({ enableSettings }: { enableSettings: boolean }) {
+function WelcomeInner() {
   const { t } = useI18n();
   const welcomeVisible = useStore(s => s.welcomeVisible);
   const agents = useStore(s => s.agents);
@@ -133,18 +131,6 @@ function WelcomeInner({ enableSettings }: { enableSettings: boolean }) {
               enabled={gpuRuntime !== null}
               gpuSafeMode={gpuRuntime?.gpuSafeMode}
               hardwareAccelerationEnabled={gpuRuntime?.hardwareAccelerationEnabled}
-              fallback={(
-                <div className={styles.codiaMascotFallback}>
-                  <span className={styles.codiaHeroHalo} aria-hidden="true" />
-                  <div className={styles.codiaMascotFrame} role="img" aria-label="Codia 吉祥物探出圆框" data-codia-mascot-frame>
-                    <div className={styles.codiaMascotMotion}>
-                      <div className={styles.codiaMascotViewport}>
-                        <img className={styles.codiaMascotSprite} src={codiaMascotGazeStrip} alt="" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             />
           </div>
         </section>
@@ -167,7 +153,6 @@ function WelcomeInner({ enableSettings }: { enableSettings: boolean }) {
         )}
         <div className={styles.codiaContextControls}>
           <FolderPicker
-            enableSettings={enableSettings}
             agents={agents}
             currentAgentId={currentAgentId}
             selectedFolder={selectedFolder}
@@ -210,7 +195,7 @@ function AgentChips({ agents, selectedId }: {
       void activateWorkspaceDesk(homeFolder, { mountId: null });
     }
     if (agent?.chatModel?.id && agent.chatModel.provider) {
-      void gsapFetch('/api/models/set', {
+      void codiaFetch('/api/models/set', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ modelId: agent.chatModel.id, provider: agent.chatModel.provider }),
@@ -270,7 +255,6 @@ function AgentChip({ agent, isSelected, onClick }: {
 }
 
 function FolderPicker({
-  enableSettings,
   agents,
   currentAgentId,
   selectedFolder,
@@ -281,7 +265,6 @@ function FolderPicker({
   workspaceFolders,
   cwdHistory,
 }: {
-  enableSettings: boolean;
   agents: Agent[];
   currentAgentId: string | null;
   selectedFolder: string | null;
@@ -364,7 +347,7 @@ function FolderPicker({
       });
       void activateWorkspaceDesk(agentHomeFolder, { mountId: null });
       if (agent.chatModel?.id && agent.chatModel.provider) {
-        void gsapFetch('/api/models/set', {
+        void codiaFetch('/api/models/set', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ modelId: agent.chatModel.id, provider: agent.chatModel.provider }),
@@ -430,17 +413,6 @@ function FolderPicker({
         />
       )}
       </div>
-      {enableSettings && (
-        <button
-          type="button"
-          className={styles.workspaceSettingsButton}
-          title={t('settings.title')}
-          aria-label={t('settings.title')}
-          onClick={() => openSettingsModal('agent')}
-        >
-          <GearSix size={17} weight="regular" aria-hidden="true" />
-        </button>
-      )}
     </div>
   );
 }

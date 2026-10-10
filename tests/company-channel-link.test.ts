@@ -15,7 +15,7 @@ function makeEngine({ root, channelsDir, agentsDir, userDir }) {
     userDir,
     callbacks,
     agents: new Map(),
-    agentName: "G-SAP",
+    agentName: "Codia",
     userName: "Boss",
     availableModels: [],
     setHubCallbacks: vi.fn((value) => Object.assign(callbacks, value)),
@@ -35,7 +35,7 @@ function makeEngine({ root, channelsDir, agentsDir, userDir }) {
       id: agentId,
       agentName: agentId,
       agentDir: path.join(agentsDir, agentId),
-      config: { agent: { name: agentId, yuan: "gsap" } },
+      config: { agent: { name: agentId, yuan: "codia" } },
     })),
     providerRegistry: {
       getCredentials: vi.fn(() => ({})),
@@ -48,7 +48,7 @@ function makeEngine({ root, channelsDir, agentsDir, userDir }) {
     },
     resolveUtilityConfig: vi.fn(() => ({})),
     dispose: vi.fn(async () => {}),
-    gsapHome: root,
+    codiaHome: root,
   };
 }
 
@@ -61,7 +61,7 @@ describe("company plugin and channel linkage", () => {
   });
 
   it("posts assigned company tasks into the bound main channel and triggers mentioned workers", async () => {
-    root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-company-channel-link-"));
+    root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-company-channel-link-"));
     const channelsDir = path.join(root, "channels");
     const agentsDir = path.join(root, "agents");
     const userDir = path.join(root, "user");
@@ -141,7 +141,7 @@ describe("company plugin and channel linkage", () => {
   });
 
   it("renders assigned task titles and channel task cards without template placeholders", async () => {
-    root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-company-channel-template-"));
+    root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-company-channel-template-"));
     const channelsDir = path.join(root, "channels");
     const agentsDir = path.join(root, "agents");
     const userDir = path.join(root, "user");
@@ -194,7 +194,7 @@ describe("company plugin and channel linkage", () => {
   });
 
   it("fans generic channel project commands out to the available channel agent roles", async () => {
-    root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-company-channel-fanout-"));
+    root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-company-channel-fanout-"));
     const channelsDir = path.join(root, "channels");
     const agentsDir = path.join(root, "agents");
     const userDir = path.join(root, "user");
@@ -246,7 +246,7 @@ describe("company plugin and channel linkage", () => {
   });
 
   it("routes externally bound company channels through their linked internal channel", async () => {
-    root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-company-external-channel-link-"));
+    root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-company-external-channel-link-"));
     const channelsDir = path.join(root, "channels");
     const agentsDir = path.join(root, "agents");
     const userDir = path.join(root, "user");
@@ -311,7 +311,7 @@ describe("company plugin and channel linkage", () => {
   });
 
   it("exposes channel-scoped company assignment and report tools for agent phone turns", async () => {
-    root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-company-channel-tool-"));
+    root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-company-channel-tool-"));
     const channelsDir = path.join(root, "channels");
     const agentsDir = path.join(root, "agents");
     const userDir = path.join(root, "user");
@@ -402,7 +402,7 @@ describe("company plugin and channel linkage", () => {
   });
 
   it("lets channel workers report company tasks but not dispatch new task trees", async () => {
-    root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-company-channel-worker-tool-"));
+    root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-company-channel-worker-tool-"));
     const channelsDir = path.join(root, "channels");
     const agentsDir = path.join(root, "agents");
     const userDir = path.join(root, "user");

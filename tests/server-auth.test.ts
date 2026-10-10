@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-server-auth-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-server-auth-"));
 }
 
 function runtimeContext() {
@@ -34,7 +34,7 @@ describe("server auth service", () => {
     tmpDir = makeTmpDir();
     const { createServerAuthService } = await import("../core/server-auth.js");
     const auth = createServerAuthService({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       loopbackToken: "local-secret",
       runtimeContext: runtimeContext(),
     });
@@ -62,7 +62,7 @@ describe("server auth service", () => {
     tmpDir = makeTmpDir();
     const { createServerAuthService } = await import("../core/server-auth.js");
     const auth = createServerAuthService({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       loopbackToken: "local-secret",
       runtimeContext: runtimeContext(),
     });
@@ -126,7 +126,7 @@ describe("server auth service", () => {
       now: "2026-05-16T00:00:00.000Z",
     });
     const auth = createServerAuthService({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       loopbackToken: "local-secret",
       runtimeContext: runtimeContext(),
     });
@@ -180,7 +180,7 @@ describe("server auth service", () => {
       now: "2026-05-16T00:00:00.000Z",
     });
     const auth = createServerAuthService({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       loopbackToken: "local-secret",
       runtimeContext: runtimeContext(),
     });
@@ -196,10 +196,10 @@ describe("server auth service", () => {
       ttlMs: 60_000,
     });
 
-    expect(webSession.cookieName).toBe("gsap_session");
-    expect(webSession.secret).toMatch(/^gsap_web_/);
+    expect(webSession.cookieName).toBe("codia_session");
+    expect(webSession.secret).toMatch(/^codia_web_/);
     expect(auth.authenticateRequest({
-      cookieHeader: `gsap_session=${webSession.secret}`,
+      cookieHeader: `codia_session=${webSession.secret}`,
       connectionKind: "lan",
       now: "2026-05-16T00:00:03.000Z",
     })).toMatchObject({

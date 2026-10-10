@@ -38,9 +38,9 @@ function makeCoordinatorDeps(overrides = {}) {
       buildSystemPrompt: () => "mock-prompt",
       config: {},
       tools: [],
-      agentDir: "/tmp/agents/gsap",
+      agentDir: "/tmp/agents/codia",
     }),
-    getActiveAgentId: () => "gsap",
+    getActiveAgentId: () => "codia",
     getModels: () => ({
       currentModel: { id: "m", name: "m" },
       authStorage: {},
@@ -94,7 +94,7 @@ describe("SessionCoordinator pinned session metadata", () => {
   let tmpDir;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-pinned-meta-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-pinned-meta-"));
     vi.mocked(SessionManager.list).mockReset();
   });
 
@@ -124,7 +124,7 @@ describe("SessionCoordinator pinned session metadata", () => {
 
   it("listSessions reads pinnedAt from the same sidecar path used by writes", async () => {
     const agentsDir = path.join(tmpDir, "agents");
-    const sessionDir = path.join(agentsDir, "gsap", "sessions");
+    const sessionDir = path.join(agentsDir, "codia", "sessions");
     const sessionPath = path.join(sessionDir, "pinned.jsonl");
     const pinnedAt = "2026-04-29T08:00:00.000Z";
     fs.mkdirSync(sessionDir, { recursive: true });
@@ -148,7 +148,7 @@ describe("SessionCoordinator pinned session metadata", () => {
 
     const coord = new SessionCoordinator(makeCoordinatorDeps({
       agentsDir,
-      listAgents: () => [{ id: "gsap", name: "G-SAP" }],
+      listAgents: () => [{ id: "codia", name: "Codia" }],
       agentIdFromSessionPath: (p) => {
         const rel = path.relative(agentsDir, p);
         return rel.split(path.sep)[0] || null;
@@ -159,6 +159,6 @@ describe("SessionCoordinator pinned session metadata", () => {
 
     expect(sessions).toHaveLength(1);
     expect(sessions[0].pinnedAt).toBe(pinnedAt);
-    expect(sessions[0].agentId).toBe("gsap");
+    expect(sessions[0].agentId).toBe("codia");
   });
 });

@@ -7,7 +7,6 @@
  * B. skill_content -agent 直接提供 SKILL.md 内容（自行编写）
  *
   *
-  *
   * */
 
 import fs from "fs";
@@ -222,7 +221,7 @@ export function createInstallSkillTool({ getUserSkillsDir, getConfig, resolveUti
         let stars = 0;
         try {
           const apiRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-            headers: { "User-Agent": "GSAPBot/1.0", Accept: "application/vnd.github.v3+json" },
+            headers: { "User-Agent": "CODIABot/1.0", Accept: "application/vnd.github.v3+json" },
             signal: AbortSignal.timeout(GITHUB_API_TIMEOUT),
           });
           if (!apiRes.ok) {

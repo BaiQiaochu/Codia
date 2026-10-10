@@ -1,5 +1,5 @@
-const FALLBACK_YUAN = "gsap";
-const DEFAULT_ASSISTANT_AVATAR = "character-cards/gsap-default-avatar.png";
+const FALLBACK_YUAN = "codia";
+const DEFAULT_ASSISTANT_AVATAR = "character-cards/codia-default-avatar.png";
 
 export interface YuanVisual {
   yuan: string;
@@ -10,8 +10,8 @@ export interface YuanVisual {
 }
 
 export const YUAN_VISUALS: Readonly<Record<string, Readonly<YuanVisual>>> = Object.freeze({
-  gsap: Object.freeze({
-    yuan: "gsap",
+  codia: Object.freeze({
+    yuan: "codia",
     symbol: "\u2699",
     moodLabel: "MOOD",
     accent: "#537D96",

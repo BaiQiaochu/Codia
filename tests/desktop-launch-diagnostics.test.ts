@@ -13,12 +13,12 @@ describe("desktop launch diagnostics", () => {
   });
 
   it("writes redacted startup events to a stable desktop-launch log path", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-launch-diagnostics-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-launch-diagnostics-"));
     const mod = await import("../desktop/src/shared/desktop-launch-diagnostics.cjs");
     const { createDesktopLaunchDiagnostics } = mod.default || mod;
     let tick = 0;
     const diagnostics = createDesktopLaunchDiagnostics({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       startupId: "startup-1",
       appVersion: "1.2.3",
       platform: "win32",
@@ -27,7 +27,7 @@ describe("desktop launch diagnostics", () => {
       redactText: (value) => String(value).replaceAll("secret-value", "<redacted>"),
     });
 
-    diagnostics.reset({ argv: ["gsap", "secret-value"] });
+    diagnostics.reset({ argv: ["codia", "secret-value"] });
     diagnostics.append("console-message", {
       message: "token=secret-value",
       nested: { path: "secret-value" },
@@ -43,7 +43,7 @@ describe("desktop launch diagnostics", () => {
       appVersion: "1.2.3",
       platform: "win32",
       arch: "x64",
-      details: { argv: ["gsap", "<redacted>"] },
+      details: { argv: ["codia", "<redacted>"] },
     });
     expect(lines[1]).toMatchObject({
       event: "console-message",
@@ -69,6 +69,7 @@ describe("desktop launch diagnostics", () => {
       '"console-message"',
       '"app-ready-timeout"',
       '"app-ready"',
+      "backgroundThrottling: false",
     ]) {
       expect(source).toContain(required);
     }

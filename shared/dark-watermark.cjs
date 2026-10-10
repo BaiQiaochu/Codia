@@ -9,7 +9,7 @@ const INVISIBLE_SUFFIX = "\u2064\u2064";
 const BIT_ZERO = "\u200c";
 const BIT_ONE = "\u200d";
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-const PNG_TEXT_KEYWORD = "G-SAP-Provenance";
+const PNG_TEXT_KEYWORD = "Codia-Provenance";
 const TEXT_WATERMARK_EXTS = new Set(["txt", "md", "markdown", "html", "htm", "csv", "log"]);
 
 function buildWatermarkPayload(input = {}, opts = {}) {
@@ -154,7 +154,7 @@ function watermarkGeneratedFileSync({ filePath, source = "platform_output", orig
 
 function writeWatermarkSidecarSync(filePath, payload) {
   const stat = fs.statSync(filePath);
-  const sidecarPath = `${filePath}.gsap-watermark.json`;
+  const sidecarPath = `${filePath}.codia-watermark.json`;
   const body = {
     version: WATERMARK_VERSION,
     product: PRODUCT,

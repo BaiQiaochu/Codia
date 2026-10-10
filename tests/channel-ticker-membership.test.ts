@@ -12,7 +12,7 @@ vi.mock("../lib/debug-log.js", () => ({
 }));
 
 function mktemp() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-ticker-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-ticker-"));
 }
 
 describe("channel-ticker membership delivery", () => {
@@ -31,7 +31,7 @@ describe("channel-ticker membership delivery", () => {
     const { id: channelId } = await createChannel(channelsDir, {
       id: "ch_crew",
       name: "Crew",
-      members: ["gsap", "yui"],
+      members: ["codia", "yui"],
     });
     const channelFile = path.join(channelsDir, `${channelId}.md`);
     for (let i = 1; i <= 25; i += 1) {
@@ -41,7 +41,7 @@ describe("channel-ticker membership delivery", () => {
     const window = buildChannelUnreadDeliveryWindow({
       channelFile,
       bookmark: undefined,
-      agentId: "gsap",
+      agentId: "codia",
     });
 
     expect(window.totalUnreadCount).toBe(25);
@@ -56,14 +56,14 @@ describe("channel-ticker membership delivery", () => {
     tmpDir = mktemp();
     const channelsDir = path.join(tmpDir, "channels");
     const agentsDir = path.join(tmpDir, "agents");
-    const agentDir = path.join(agentsDir, "gsap");
+    const agentDir = path.join(agentsDir, "codia");
     fs.mkdirSync(agentDir, { recursive: true });
     fs.writeFileSync(path.join(agentDir, "channels.md"), "# Channels\n\n- ch_crew (last: never)\n", "utf-8");
 
     const { id: channelId } = await createChannel(channelsDir, {
       id: "ch_crew",
       name: "Crew",
-      members: ["gsap", "yui"],
+      members: ["codia", "yui"],
     });
     const channelFile = path.join(channelsDir, `${channelId}.md`);
     for (let i = 1; i <= 23; i += 1) {
@@ -74,7 +74,7 @@ describe("channel-ticker membership delivery", () => {
     const ticker = createChannelTicker({
       channelsDir,
       agentsDir,
-      getAgentOrder: () => ["gsap"],
+      getAgentOrder: () => ["codia"],
       executeCheck,
       onMemorySummarize: vi.fn(),
     });
@@ -103,23 +103,23 @@ describe("channel-ticker membership delivery", () => {
     tmpDir = mktemp();
     const channelsDir = path.join(tmpDir, "channels");
     const agentsDir = path.join(tmpDir, "agents");
-    const agentDir = path.join(agentsDir, "gsap");
+    const agentDir = path.join(agentsDir, "codia");
     fs.mkdirSync(agentDir, { recursive: true });
     fs.writeFileSync(path.join(agentDir, "channels.md"), "# Channels\n\n", "utf-8");
 
     const { id: channelId } = await createChannel(channelsDir, {
       id: "ch_crew",
       name: "Crew",
-      members: ["gsap", "yui"],
+      members: ["codia", "yui"],
     });
-    await appendMessage(path.join(channelsDir, `${channelId}.md`), "user", "@G-SAP hello");
+    await appendMessage(path.join(channelsDir, `${channelId}.md`), "user", "@Codia hello");
 
     const executeCheck = vi.fn(async () => ({ replied: false }));
     const onMemorySummarize = vi.fn();
     const ticker = createChannelTicker({
       channelsDir,
       agentsDir,
-      getAgentOrder: () => ["gsap"],
+      getAgentOrder: () => ["codia"],
       executeCheck,
       onMemorySummarize,
     });
@@ -132,7 +132,7 @@ describe("channel-ticker membership delivery", () => {
     }
 
     expect(executeCheck).toHaveBeenCalledOnce();
-    expect(executeCheck.mock.calls[0][0]).toBe("gsap");
+    expect(executeCheck.mock.calls[0][0]).toBe("codia");
     expect(executeCheck.mock.calls[0][1]).toBe(channelId);
   });
 
@@ -140,7 +140,7 @@ describe("channel-ticker membership delivery", () => {
     tmpDir = mktemp();
     const channelsDir = path.join(tmpDir, "channels");
     const agentsDir = path.join(tmpDir, "agents");
-    for (const agentId of ["gsap", "yui", "ming"]) {
+    for (const agentId of ["codia", "yui", "ming"]) {
       const agentDir = path.join(agentsDir, agentId);
       fs.mkdirSync(agentDir, { recursive: true });
       fs.writeFileSync(path.join(agentDir, "channels.md"), "# Channels\n\n", "utf-8");
@@ -149,7 +149,7 @@ describe("channel-ticker membership delivery", () => {
     const { id: channelId } = await createChannel(channelsDir, {
       id: "ch_crew",
       name: "Crew",
-      members: ["gsap", "yui", "ming"],
+      members: ["codia", "yui", "ming"],
     });
     await appendMessage(path.join(channelsDir, `${channelId}.md`), "user", "@Yui please check");
 
@@ -165,7 +165,7 @@ describe("channel-ticker membership delivery", () => {
     const ticker = createChannelTicker({
       channelsDir,
       agentsDir,
-      getAgentOrder: () => ["gsap", "yui", "ming"],
+      getAgentOrder: () => ["codia", "yui", "ming"],
       executeCheck,
       onMemorySummarize: vi.fn(),
     });
@@ -179,7 +179,7 @@ describe("channel-ticker membership delivery", () => {
 
     expect(seen).toEqual([
       { agentId: "yui", mentionedAgents: ["yui"], mentionTargeted: true },
-      { agentId: "gsap", mentionedAgents: ["yui"], mentionTargeted: false },
+      { agentId: "codia", mentionedAgents: ["yui"], mentionTargeted: false },
       { agentId: "ming", mentionedAgents: ["yui"], mentionTargeted: false },
     ]);
   });
@@ -298,14 +298,14 @@ describe("channel-ticker membership delivery", () => {
     tmpDir = mktemp();
     const channelsDir = path.join(tmpDir, "channels");
     const agentsDir = path.join(tmpDir, "agents");
-    const agentDir = path.join(agentsDir, "gsap");
+    const agentDir = path.join(agentsDir, "codia");
     fs.mkdirSync(agentDir, { recursive: true });
     fs.writeFileSync(path.join(agentDir, "channels.md"), "# Channels\n\n- ch_crew (last: never)\n", "utf-8");
 
     const { id: channelId } = await createChannel(channelsDir, {
       id: "ch_crew",
       name: "Crew",
-      members: ["gsap"],
+      members: ["codia"],
     });
     await appendMessage(path.join(channelsDir, `${channelId}.md`), "user", "hello");
 
@@ -313,7 +313,7 @@ describe("channel-ticker membership delivery", () => {
     const ticker = createChannelTicker({
       channelsDir,
       agentsDir,
-      getAgentOrder: () => ["gsap"],
+      getAgentOrder: () => ["codia"],
       executeCheck,
       onMemorySummarize: vi.fn(),
       isEnabled: () => false,

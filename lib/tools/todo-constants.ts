@@ -16,8 +16,8 @@ export const TODO_WRITE_TOOL_NAME = "todo_write";
 /** 所有被识别为 todo 相关的 tool 名字（包括旧版以兼容历史 session） */
 export const TODO_TOOL_NAMES = Object.freeze(["todo", TODO_WRITE_TOOL_NAME]);
 
-/** G-SAP 内部 session 事件：用户手动完成并移除当前 todo group */
-export const TODO_STATE_CUSTOM_TYPE = "gsap.todo_state";
+/** Codia 内部 session 事件：用户手动完成并移除当前 todo group */
+export const TODO_STATE_CUSTOM_TYPE = "codia.todo_state";
 
 /** Legacy custom event types kept readable for imported sessions. */
-export const TODO_STATE_CUSTOM_TYPES = Object.freeze([TODO_STATE_CUSTOM_TYPE, "hana.todo_state"]);
+export const TODO_STATE_CUSTOM_TYPES = Object.freeze([TODO_STATE_CUSTOM_TYPE, "codia.todo_state"]);

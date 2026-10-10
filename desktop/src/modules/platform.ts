@@ -9,18 +9,18 @@ type ApiFetchOptions = Omit<RequestInit, "headers"> & {
 
 /**
  * platform.ts - platform adapter for the web fallback.
- * In Electron, preload injects window.gsap/window.platform already.
+ * In Electron, preload injects window.codia/window.platform already.
  * In the browser, we expose the same surface over HTTP.
  */
 (function () {
-  if (window.gsap || window.platform) {
-    if (!window.platform) window.platform = window.gsap;
+  if (window.codia || window.platform) {
+    if (!window.platform) window.platform = window.codia;
     return;
   }
 
   const params = new URLSearchParams(location.search);
-  const devWeb = normalizeDevWebConfig(window.__GSAP_DEV_WEB__);
-  const token = params.get("token") || localStorage.getItem("gsap-token") || "";
+  const devWeb = normalizeDevWebConfig(window.__CODIA_DEV_WEB__);
+  const token = params.get("token") || localStorage.getItem("codia-token") || "";
   const baseUrl = devWeb.apiBaseUrl || `${location.protocol}//${location.host}`;
   const serverPort = devWeb.serverPort || safePortFromBaseUrl(baseUrl) || location.port || "3000";
 
@@ -50,7 +50,6 @@ type ApiFetchOptions = Omit<RequestInit, "headers"> & {
   window.platform = {
     getServerPort: async () => serverPort,
     getServerToken: async () => token,
-    getOcrAssetRoot: async () => `${baseUrl}/ocr-runtime/`,
     runConsoleCommand: async () => ({ ok: false, code: 1, output: "System console is only available in the desktop app." }),
     appReady: async () => {},
     syncWindowTheme: () => {},

@@ -45,7 +45,7 @@ describe("wrapReadImageWithVisionBridge", () => {
       "call-1",
       { path: "shot.png" },
       null,
-      null,
+      undefined,
       makeCtx("/sessions/read.jsonl", { id: "gpt-4o", provider: "openai", input: ["text", "image"] }),
     );
 
@@ -87,7 +87,7 @@ describe("wrapReadImageWithVisionBridge", () => {
       "call-1",
       { path: "shot.png" },
       null,
-      null,
+      undefined,
       makeCtx(sessionPath, { id: "deepseek-chat", provider: "deepseek", input: ["text"] }),
     );
 
@@ -134,7 +134,7 @@ describe("wrapReadImageWithVisionBridge", () => {
       "call-1",
       { path: "shot.png" },
       null,
-      null,
+      undefined,
       makeCtx("/sessions/read.jsonl", { id: "deepseek-chat", provider: "deepseek", input: ["text"] }),
     );
 

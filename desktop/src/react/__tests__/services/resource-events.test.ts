@@ -3,16 +3,16 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const gsapFetch = vi.hoisted(() => vi.fn(async (path: string) => ({
+const codiaFetch = vi.hoisted(() => vi.fn(async (path: string) => ({
   json: async () => (path.endsWith('/subscribe') ? { ok: true, subscriptionId: 'sub-1' } : { ok: true }),
 })));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({ gsapFetch }));
+vi.mock('../../hooks/use-codia-fetch', () => ({ codiaFetch }));
 
 describe('resource-events', () => {
   afterEach(() => {
     vi.resetModules();
-    gsapFetch.mockClear();
+    codiaFetch.mockClear();
   });
 
   it('shares one backend resource subscription per local file and releases it after the last subscriber leaves', async () => {
@@ -22,8 +22,8 @@ describe('resource-events', () => {
     const releaseSecond = retainLocalFileResourceWatch('/tmp/note.md');
     await Promise.resolve();
 
-    expect(gsapFetch).toHaveBeenCalledTimes(1);
-    expect(gsapFetch).toHaveBeenCalledWith('/api/resource-io/subscribe', expect.objectContaining({
+    expect(codiaFetch).toHaveBeenCalledTimes(1);
+    expect(codiaFetch).toHaveBeenCalledWith('/api/resource-io/subscribe', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({
         purpose: 'resource-watch',
@@ -33,15 +33,14 @@ describe('resource-events', () => {
 
     releaseFirst();
     await Promise.resolve();
-    expect(gsapFetch).toHaveBeenCalledTimes(1);
+    expect(codiaFetch).toHaveBeenCalledTimes(1);
 
     releaseSecond();
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(gsapFetch).toHaveBeenCalledWith('/api/resource-io/subscriptions/sub-1', expect.objectContaining({
-      method: 'DELETE',
-    }));
+    await vi.waitFor(() => {
+      expect(codiaFetch).toHaveBeenCalledWith('/api/resource-io/subscriptions/sub-1', expect.objectContaining({
+        method: 'DELETE',
+      }));
+    });
   });
 
   it('dedupes mount ResourceRefs without materializing native paths in the renderer', async () => {
@@ -51,8 +50,8 @@ describe('resource-events', () => {
     const releaseSecond = retainResourceWatch({ kind: 'mount', mountId: 'mount_docs', path: 'notes/' });
     await Promise.resolve();
 
-    expect(gsapFetch).toHaveBeenCalledTimes(1);
-    expect(gsapFetch).toHaveBeenCalledWith('/api/resource-io/subscribe', expect.objectContaining({
+    expect(codiaFetch).toHaveBeenCalledTimes(1);
+    expect(codiaFetch).toHaveBeenCalledWith('/api/resource-io/subscribe', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({
         purpose: 'resource-watch',

@@ -25,8 +25,8 @@ describe("Windows sandbox helper build script", () => {
 
   it("links the Win32 libraries required by restricted tokens, ACL APIs, and private desktops", () => {
     const command = buildWindowsSandboxCompileCommand({
-      source: "C:\\repo\\desktop\\native\\GsapWindowsSandboxHelper\\main.cpp",
-      output: "C:\\repo\\dist-sandbox\\win-x64\\gsap-win-sandbox.exe",
+      source: "C:\\repo\\desktop\\native\\CodiaWindowsSandboxHelper\\main.cpp",
+      output: "C:\\repo\\dist-sandbox\\win-x64\\codia-win-sandbox.exe",
     });
 
     expect(command).toContain("cl.exe");
@@ -37,17 +37,17 @@ describe("Windows sandbox helper build script", () => {
 
   it("uses restricted-token APIs instead of AppContainer launch APIs", () => {
     const source = fs.readFileSync(
-      path.resolve(__dirname, "../desktop/native/GsapWindowsSandboxHelper/main.cpp"),
+      path.resolve(__dirname, "../desktop/native/CodiaWindowsSandboxHelper/main.cpp"),
       "utf-8",
     );
 
     expect(source).toContain("CreateRestrictedToken");
     expect(source).toContain("CreateProcessAsUserW");
     expect(source).toContain("CreateDesktopW");
-    expect(source).toContain("--cleanup-gsap-write-acl");
-    expect(source).toContain("com.gsap.sandbox.");
-    expect(source).toContain("gsap-win32-write-root-v3:");
-    expect(source).toContain("gsap-win32-write-root-v2:");
+    expect(source).toContain("--cleanup-codia-write-acl");
+    expect(source).toContain("com.codia.sandbox.");
+    expect(source).toContain("codia-win32-write-root-v3:");
+    expect(source).toContain("codia-win32-write-root-v2:");
     expect(source).not.toContain("CreateAppContainerProfile(");
   });
 

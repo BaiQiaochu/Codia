@@ -90,7 +90,7 @@ describe("SessionCoordinator ensureSessionLoaded owner restore", () => {
       strippedVideos: 0,
       strippedAudios: 0,
     });
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-owner-restore-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-owner-restore-"));
   });
 
   afterEach(() => {

@@ -28,7 +28,7 @@ afterEach(() => {
 });
 
 function makeTempImage() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-volcvideo-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-volcvideo-"));
   tempDirs.push(dir);
   const file = path.join(dir, "ref.png");
   fs.writeFileSync(file, Buffer.from("png"));

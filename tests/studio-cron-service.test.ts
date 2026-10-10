@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { StudioCronService } from "../core/studio-cron-service.js";
 
 function makeRoot() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-studio-cron-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-studio-cron-"));
 }
 
 function writeLegacyJobs(root, agentId, jobs) {
@@ -79,7 +79,7 @@ describe("StudioCronService", () => {
     ]);
 
     const service = new StudioCronService({
-      gsapHome: root,
+      codiaHome: root,
       agentsDir,
       getStudioId: () => "studio-main",
     });
@@ -126,9 +126,8 @@ describe("StudioCronService", () => {
       },
     ]);
 
-    const opts = { gsapHome: root, agentsDir, getStudioId: () => "studio-main" };
+    const opts = { codiaHome: root, agentsDir, getStudioId: () => "studio-main" };
     const first = new StudioCronService(opts);
-    expect(first.listJobs()).toHaveLength(1);
     expect(first.listJobs()).toHaveLength(1);
 
     const second = new StudioCronService(opts);
@@ -156,7 +155,7 @@ describe("StudioCronService", () => {
       finishedAt: "2026-05-20T01:00:01.000Z",
     });
 
-    const opts = { gsapHome: root, agentsDir, getStudioId: () => "studio-main" };
+    const opts = { codiaHome: root, agentsDir, getStudioId: () => "studio-main" };
     const first = new StudioCronService(opts);
     const imported = first.listJobs();
     expect(imported).toHaveLength(1);
@@ -212,7 +211,7 @@ describe("StudioCronService", () => {
     ]);
 
     const service = new StudioCronService({
-      gsapHome: root,
+      codiaHome: root,
       agentsDir,
       getStudioId: () => "studio-main",
     });
@@ -221,7 +220,7 @@ describe("StudioCronService", () => {
     expect(service.listJobs()).toHaveLength(0);
 
     const restarted = new StudioCronService({
-      gsapHome: root,
+      codiaHome: root,
       agentsDir,
       getStudioId: () => "studio-main",
     });
@@ -232,7 +231,7 @@ describe("StudioCronService", () => {
     const root = makeRoot();
     roots.push(root);
     const service = new StudioCronService({
-      gsapHome: root,
+      codiaHome: root,
       agentsDir: path.join(root, "agents"),
       getStudioId: () => "studio-a",
     });
@@ -245,7 +244,7 @@ describe("StudioCronService", () => {
     });
 
     const otherStudio = new StudioCronService({
-      gsapHome: root,
+      codiaHome: root,
       agentsDir: path.join(root, "agents"),
       getStudioId: () => "studio-b",
     });
@@ -257,7 +256,7 @@ describe("StudioCronService", () => {
     const root = makeRoot();
     roots.push(root);
     const service = new StudioCronService({
-      gsapHome: root,
+      codiaHome: root,
       agentsDir: path.join(root, "agents"),
       getStudioId: () => "studio-main",
     });

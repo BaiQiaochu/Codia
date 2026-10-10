@@ -34,8 +34,8 @@ interface ResolvedTheme {
 }
 
 declare const registry: {
-  STORAGE_KEY: "gsap-theme";
-  LEGACY_STORAGE_KEY: "gsap-theme";
+  STORAGE_KEY: "codia-theme";
+  LEGACY_STORAGE_KEY: "codia-theme";
   DEFAULT_THEME: "studio-light";
   AUTO_LIGHT_DEFAULT: "studio-light";
   AUTO_DARK_DEFAULT: "nocturne";

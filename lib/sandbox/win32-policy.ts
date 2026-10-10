@@ -12,7 +12,7 @@ type SessionFileForSandbox = {
 
 type ExternalReadOptions = {
   workspaceRoots?: Array<string | null | undefined>;
-  gsapHome?: string | null;
+  codiaHome?: string | null;
 };
 
 type SandboxPolicyLike = {
@@ -87,10 +87,10 @@ function basenameForPlatformPath(target?: string | null) {
 
 export function externalReadPathsFromSessionFiles(
   files: SessionFileForSandbox[] = [],
-  { workspaceRoots = [], gsapHome }: ExternalReadOptions = {},
+  { workspaceRoots = [], codiaHome }: ExternalReadOptions = {},
 ) {
   const normalizedWorkspaceRoots = uniqueNormalized(workspaceRoots);
-  const normalizedHome = gsapHome ? normalizeExistingOrResolved(gsapHome) : null;
+  const normalizedHome = codiaHome ? normalizeExistingOrResolved(codiaHome) : null;
   const out: string[] = [];
 
   for (const file of files || []) {

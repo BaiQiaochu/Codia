@@ -32,40 +32,40 @@ const isMacOS = process.platform === "darwin";
 describe("macos Cua provider", () => {
   it("resolves a configured Cua Driver command before common locations", () => {
     const command = resolveCuaDriverCommand({
-      env: { GSAP_CUA_DRIVER_PATH: "/opt/cua-driver" },
+      env: { CODIA_CUA_DRIVER_PATH: "/opt/cua-driver" },
       existsSync: (p) => p === "/opt/cua-driver",
-      homeDir: "/Users/gsap",
+      homeDir: "/Users/codia",
     });
 
     expect(command).toBe("/opt/cua-driver");
   });
 
-  it.skipIf(!isMacOS)("prefers a G-SAP-bundled Computer Use helper over an external Cua Driver install", () => {
+  it.skipIf(!isMacOS)("prefers a Codia-bundled Computer Use helper over an external Cua Driver install", () => {
     const command = resolveCuaDriverCommand({
       env: {
-        GSAP_ROOT: "/Applications/G-SAP.app/Contents/Resources/server",
-        GSAP_CUA_DRIVER_PATH: "/opt/cua-driver",
+        CODIA_ROOT: "/Applications/Codia.app/Contents/Resources/server",
+        CODIA_CUA_DRIVER_PATH: "/opt/cua-driver",
       },
-      existsSync: (p) => p === "/Applications/G-SAP.app/Contents/Resources/computer-use/macos/gsap-computer-use-helper"
+      existsSync: (p) => p === "/Applications/Codia.app/Contents/Resources/computer-use/macos/codia-computer-use-helper"
         || p === "/opt/cua-driver",
-      homeDir: "/Users/gsap",
+      homeDir: "/Users/codia",
       arch: "arm64",
-      cwd: "/Users/gsap/project-gsap",
+      cwd: "/Users/codia/project-codia",
     });
 
-    expect(command).toBe("/Applications/G-SAP.app/Contents/Resources/computer-use/macos/gsap-computer-use-helper");
+    expect(command).toBe("/Applications/Codia.app/Contents/Resources/computer-use/macos/codia-computer-use-helper");
   });
 
   it.skipIf(!isMacOS)("resolves the development helper build output before falling back to PATH", () => {
     const command = resolveCuaDriverCommand({
-      env: { GSAP_ROOT: "/Users/gsap/project-gsap" },
-      existsSync: (p) => p === "/Users/gsap/project-gsap/dist-computer-use/mac-arm64/gsap-computer-use-helper",
-      homeDir: "/Users/gsap",
+      env: { CODIA_ROOT: "/Users/codia/project-codia" },
+      existsSync: (p) => p === "/Users/codia/project-codia/dist-computer-use/mac-arm64/codia-computer-use-helper",
+      homeDir: "/Users/codia",
       arch: "arm64",
-      cwd: "/Users/gsap/project-gsap",
+      cwd: "/Users/codia/project-codia",
     });
 
-    expect(command).toBe("/Users/gsap/project-gsap/dist-computer-use/mac-arm64/gsap-computer-use-helper");
+    expect(command).toBe("/Users/codia/project-codia/dist-computer-use/mac-arm64/codia-computer-use-helper");
   });
 
   it("reports unavailable on non-macOS platforms", async () => {
@@ -83,17 +83,17 @@ describe("macos Cua provider", () => {
   it("normalizes text-only permission output from the embedded helper", async () => {
     const { runner } = makeRunner((_command, args) => {
       if (args[0] === "status") {
-        expect(args).toEqual(["status", "--socket", "/tmp/gsap.sock"]);
-        return { stdout: "gsap-computer-use-helper running", stderr: "", exitCode: 0 };
+        expect(args).toEqual(["status", "--socket", "/tmp/codia.sock"]);
+        return { stdout: "codia-computer-use-helper running", stderr: "", exitCode: 0 };
       }
       expect(args[0]).toBe("check_permissions");
       return rawResult(null, [{ type: "text", text: "✅ Accessibility: granted.\n❌ Screen Recording: NOT granted." }]);
     });
     const provider = createMacosCuaProvider({
       platform: "darwin",
-      command: "/tmp/gsap-computer-use-helper",
+      command: "/tmp/codia-computer-use-helper",
       runner,
-      socketPath: "/tmp/gsap.sock",
+      socketPath: "/tmp/codia.sock",
     });
 
     await expect(provider.getStatus()).resolves.toMatchObject({
@@ -122,7 +122,7 @@ describe("macos Cua provider", () => {
       platform: "darwin",
       command: "/tmp/cua-driver",
       runner,
-      socketPath: "/tmp/gsap.sock",
+      socketPath: "/tmp/codia.sock",
     });
 
     const lease = await provider.createLease({}, { appId: "com.apple.calculator" });
@@ -134,7 +134,7 @@ describe("macos Cua provider", () => {
       "--raw",
       "--compact",
       "--socket",
-      "/tmp/gsap.sock",
+      "/tmp/codia.sock",
     ]);
     expect(lease).toMatchObject({
       appId: "com.apple.calculator",
@@ -193,7 +193,7 @@ describe("macos Cua provider", () => {
     });
   });
 
-  it("configures G-SAP's native cursor before controlling an app", async () => {
+  it("configures Codia's native cursor before controlling an app", async () => {
     const { runner, calls } = makeRunner((_command, args) => {
       if (args[0] === "set_agent_cursor_style") {
         expect(JSON.parse(args[1])).toEqual({
@@ -240,7 +240,7 @@ describe("macos Cua provider", () => {
     });
     const provider = createMacosCuaProvider({
       platform: "darwin",
-      command: "/tmp/gsap-computer-use-helper",
+      command: "/tmp/codia-computer-use-helper",
       runner,
       autoStartDaemon: false,
     });
@@ -289,9 +289,9 @@ describe("macos Cua provider", () => {
     });
     const provider = createMacosCuaProvider({
       platform: "darwin",
-      command: "/tmp/gsap-computer-use-helper",
+      command: "/tmp/codia-computer-use-helper",
       runner,
-      socketPath: "/tmp/gsap.sock",
+      socketPath: "/tmp/codia.sock",
       daemonStartupTimeoutMs: 1000,
     });
 
@@ -299,8 +299,8 @@ describe("macos Cua provider", () => {
 
     const serveCall = calls.find((call) => call.spawned === true);
     expect(serveCall).toMatchObject({
-      command: "/tmp/gsap-computer-use-helper",
-      args: ["serve", "--socket", "/tmp/gsap.sock"],
+      command: "/tmp/codia-computer-use-helper",
+      args: ["serve", "--socket", "/tmp/codia.sock"],
       options: { detached: true, stdio: "ignore" },
     });
     expect(calls.map((call) => call.args[0])).toEqual([
@@ -325,7 +325,7 @@ describe("macos Cua provider", () => {
           : { stdout: "running", stderr: "", exitCode: 0 };
       }
       if (args[0] === "stop") {
-        return { stdout: "gsap-computer-use-helper daemon stopped.", stderr: "", exitCode: 0 };
+        return { stdout: "codia-computer-use-helper daemon stopped.", stderr: "", exitCode: 0 };
       }
       if (args[0] === "launch_app") {
         return rawResult({
@@ -342,9 +342,9 @@ describe("macos Cua provider", () => {
     });
     const provider = createMacosCuaProvider({
       platform: "darwin",
-      command: "/tmp/gsap-computer-use-helper",
+      command: "/tmp/codia-computer-use-helper",
       runner,
-      socketPath: "/tmp/gsap.sock",
+      socketPath: "/tmp/codia.sock",
       daemonStartupTimeoutMs: 1000,
     });
     const lease = await provider.createLease({}, { appId: "com.apple.calculator" });
@@ -354,8 +354,8 @@ describe("macos Cua provider", () => {
     expect(calls.map((call) => call.args[0])).toContain("stop");
     const stopCall = calls.find((call) => call.args[0] === "stop");
     expect(stopCall).toMatchObject({
-      command: "/tmp/gsap-computer-use-helper",
-      args: ["stop", "--socket", "/tmp/gsap.sock"],
+      command: "/tmp/codia-computer-use-helper",
+      args: ["stop", "--socket", "/tmp/codia.sock"],
     });
   });
 
@@ -446,7 +446,7 @@ describe("macos Cua provider", () => {
     });
   });
 
-  it("normalizes a Cua window state response into a G-SAP snapshot", async () => {
+  it("normalizes a Cua window state response into a Codia snapshot", async () => {
     const { runner } = makeRunner((_command, args) => {
       expect(args[0]).toBe("get_window_state");
       return rawResult(
@@ -564,13 +564,13 @@ describe("macos Cua provider", () => {
     expect(provider.capabilities.requiresForegroundForInput).toBe(false);
   });
 
-  it("passes G-SAP cursor runtime config to each bundled helper process", async () => {
+  it("passes Codia cursor runtime config to each bundled helper process", async () => {
     const { runner, calls } = makeRunner((_command, args) => {
       return rawResult({ ok: true });
     });
     const provider = createMacosCuaProvider({
       platform: "darwin",
-      command: "/tmp/gsap-computer-use-helper",
+      command: "/tmp/codia-computer-use-helper",
       runner,
     });
     const lease = {
@@ -582,9 +582,9 @@ describe("macos Cua provider", () => {
 
     await provider.performAction({}, lease, { type: "click_element", elementId: "14" });
 
-    const clickCall = calls.find((call) => call.command === "/tmp/gsap-computer-use-helper" && call.args[0] === "click");
-    expect(clickCall?.options?.env?.GSAP_AGENT_CURSOR_CONFIG_JSON).toBeTruthy();
-    const cursorConfig = JSON.parse(clickCall.options.env.GSAP_AGENT_CURSOR_CONFIG_JSON);
+    const clickCall = calls.find((call) => call.command === "/tmp/codia-computer-use-helper" && call.args[0] === "click");
+    expect(clickCall?.options?.env?.CODIA_AGENT_CURSOR_CONFIG_JSON).toBeTruthy();
+    const cursorConfig = JSON.parse(clickCall.options.env.CODIA_AGENT_CURSOR_CONFIG_JSON);
     expect(cursorConfig).toMatchObject({
       enabled: true,
       style: {
@@ -645,7 +645,7 @@ describe("macos Cua provider", () => {
       }
       return rawResult({ ok: true });
     });
-    const provider = createMacosCuaProvider({ platform: "darwin", command: "/tmp/gsap-computer-use-helper", runner });
+    const provider = createMacosCuaProvider({ platform: "darwin", command: "/tmp/codia-computer-use-helper", runner });
     const lease = {
       leaseId: "lease-1",
       appId: "com.apple.Music",

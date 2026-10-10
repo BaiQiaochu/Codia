@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { useI18n } from '../../hooks/use-i18n';
 import { useStore } from '../../stores';
 import { DEFAULT_THINKING_LEVELS, normalizeThinkingLevel, normalizeThinkingLevels, type ThinkingLevel } from '../../stores/model-slice';
@@ -35,7 +35,7 @@ export function ThinkingLevelButton({ level, onChange, availableLevels }: {
     try {
       const useSessionThinking = !!currentSessionPath && !pendingNewSession;
       if (!useSessionThinking) {
-        const res = await gsapFetch('/api/session-thinking-level', {
+        const res = await codiaFetch('/api/session-thinking-level', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ level: next }),
@@ -49,7 +49,7 @@ export function ThinkingLevelButton({ level, onChange, availableLevels }: {
         onChange(normalized);
         return;
       }
-      const res = await gsapFetch('/api/session-thinking-level', {
+      const res = await codiaFetch('/api/session-thinking-level', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionPath: currentSessionPath, level: next }),

@@ -15,7 +15,7 @@ describe("workspace skill path discovery", () => {
   });
 
   it("does not auto-discover project .pi/skills", () => {
-    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "hana-workspace-skills-"));
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "codia-workspace-skills-"));
     roots.push(workspace);
     fs.mkdirSync(path.join(workspace, ".pi", "skills"), { recursive: true });
     fs.mkdirSync(path.join(workspace, ".agents", "skills"), { recursive: true });

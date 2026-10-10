@@ -17,7 +17,7 @@ function themeButtons(container: HTMLElement): HTMLButtonElement[] {
 }
 
 type ThemeButtonTestWindow = Window & {
-  __GSAP_PWA__?: { serverUrl: (path: string) => string };
+  __CODIA_PWA__?: { serverUrl: (path: string) => string };
 };
 
 function jsonResponse(body: unknown): Response {
@@ -79,7 +79,7 @@ describe('fixed Codia theme settings', () => {
   });
 
   it('normalizes legacy saved themes to Codia without exposing a switch', () => {
-    (window as ThemeButtonTestWindow).__GSAP_PWA__ = { serverUrl: (path: string) => path };
+    (window as ThemeButtonTestWindow).__CODIA_PWA__ = { serverUrl: (path: string) => path };
     localStorage.setItem(registry.STORAGE_KEY, 'sage-workbench');
     const { container } = render(<InterfaceTab />);
 
@@ -87,13 +87,13 @@ describe('fixed Codia theme settings', () => {
     expect(workbenchButton).toBeNull();
     expect(registry.migrateSavedTheme(localStorage.getItem(registry.STORAGE_KEY))).toBe(registry.DEFAULT_THEME);
     expect(window.setTheme).not.toHaveBeenCalled();
-    delete (window as ThemeButtonTestWindow).__GSAP_PWA__;
+    delete (window as ThemeButtonTestWindow).__CODIA_PWA__;
   });
 
   it('saves editor typography through the global config route', async () => {
-    (window as ThemeButtonTestWindow).__GSAP_PWA__ = { serverUrl: (path: string) => path };
+    (window as ThemeButtonTestWindow).__CODIA_PWA__ = { serverUrl: (path: string) => path };
     useSettingsStore.setState({
-      currentAgentId: 'gsap',
+      currentAgentId: 'codia',
       settingsConfig: { editor: { markdown: { bodyFontSize: 15 } } },
     });
 
@@ -111,8 +111,8 @@ describe('fixed Codia theme settings', () => {
       ))).toBe(true);
     });
     const calls = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls;
-    expect(calls.some(([url]) => String(url).includes('/api/agents/gsap/config'))).toBe(false);
-    delete (window as ThemeButtonTestWindow).__GSAP_PWA__;
+    expect(calls.some(([url]) => String(url).includes('/api/agents/codia/config'))).toBe(false);
+    delete (window as ThemeButtonTestWindow).__CODIA_PWA__;
   });
 
   it('exposes only the Codia theme during onboarding', () => {
@@ -173,11 +173,11 @@ describe('fixed Codia theme settings', () => {
 
   it('hides legacy decorative controls while preserving stored compatibility preferences', () => {
     localStorage.setItem(registry.STORAGE_KEY, 'terminal-soft');
-    localStorage.setItem('gsap-paper-texture', '1');
+    localStorage.setItem('codia-paper-texture', '1');
 
     const { container } = render(<InterfaceTab />);
 
-    expect(localStorage.getItem('gsap-paper-texture')).toBe('1');
+    expect(localStorage.getItem('codia-paper-texture')).toBe('1');
     expect(container.textContent).not.toContain('Paper texture is unavailable');
     expect(container.textContent).not.toContain('settings.appearance.paperTexture');
     expect(container.textContent).not.toContain('settings.appearance.leavesOverlay');

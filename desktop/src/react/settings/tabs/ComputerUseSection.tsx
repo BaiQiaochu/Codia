@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { t } from '../helpers';
 import { SettingsSection } from '../components/SettingsSection';
 import { SettingsRow } from '../components/SettingsRow';
@@ -68,7 +68,7 @@ export function ComputerUseSection() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await gsapFetch('/api/preferences/computer-use');
+      const res = await codiaFetch('/api/preferences/computer-use');
       const nextData = await res.json() as ComputerUseStatusResponse;
       setData(nextData);
       updateSettingsSnapshot((snapshot) => ({
@@ -114,7 +114,7 @@ export function ComputerUseSection() {
     if (!data) return;
     setSaving(true);
     try {
-      const res = await gsapFetch('/api/preferences/computer-use', {
+      const res = await codiaFetch('/api/preferences/computer-use', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ settings: { enabled: next } }),
@@ -147,7 +147,7 @@ export function ComputerUseSection() {
   const requestPermissions = async () => {
     setRequesting(true);
     try {
-      await gsapFetch('/api/preferences/computer-use/request-permissions', {
+      await codiaFetch('/api/preferences/computer-use/request-permissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId: data?.selectedProviderId || undefined }),
@@ -189,9 +189,6 @@ export function ComputerUseSection() {
       description={t('settings.computerUse.description')}
       context={refreshButton}
     >
-      <SettingsSection.Warning data-testid="computer-use-experimental-warning">
-        {t('settings.computerUse.experimentalWarning')}
-      </SettingsSection.Warning>
       <SettingsRow
         label={t('settings.computerUse.enabled')}
         hint={t('settings.computerUse.enabledHint')}

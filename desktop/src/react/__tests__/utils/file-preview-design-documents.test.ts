@@ -88,13 +88,13 @@ describe('file preview design document support', () => {
     } as unknown as typeof window.platform;
     const { openFilePreview } = await import('../../utils/file-preview');
 
-    await openFilePreview('C:/work/gsap-structure.svg', 'gsap-structure.svg', 'svg', { origin: 'desk' });
+    await openFilePreview('C:/work/codia-structure.svg', 'codia-structure.svg', 'svg', { origin: 'desk' });
 
     expect(openMediaViewerFromContextMock).not.toHaveBeenCalled();
     expect(openPreviewMock).not.toHaveBeenCalled();
     const viewer = document.body.querySelector<HTMLElement>('.markdown-visual-diagram.is-expanded[data-fullscreen-hosted="true"]');
     expect(viewer).toBeTruthy();
-    expect(viewer?.querySelector('img')?.getAttribute('src')).toContain('file:///C:/work/gsap-structure.svg');
+    expect(viewer?.querySelector('img')?.getAttribute('src')).toContain('file:///C:/work/codia-structure.svg');
     expect(Number(viewer?.dataset.markdownVisualScale)).toBeGreaterThan(1);
   });
 });

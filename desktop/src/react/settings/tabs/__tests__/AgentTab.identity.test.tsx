@@ -6,8 +6,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 
 const mocks = vi.hoisted(() => ({ fetch: vi.fn(), loadConfig: vi.fn(), loadAgents: vi.fn() }));
 vi.mock('../../api', () => ({
-  gsapFetch: (...args: unknown[]) => mocks.fetch(...args),
-  gsapUrl: (url: string) => url,
+  codiaFetch: (...args: unknown[]) => mocks.fetch(...args),
+  codiaUrl: (url: string) => url,
   yuanFallbackAvatar: (yuan: string) => `/avatars/${yuan}.png`,
 }));
 vi.mock('../../helpers', () => ({ t: (key: string) => key, autoSaveConfig: vi.fn() }));
@@ -30,8 +30,8 @@ beforeEach(() => {
   mocks.loadAgents.mockResolvedValue(undefined);
   useSettingsStore.setState({
     agents: [
-      { id: 'active-agent', name: 'Active', yuan: 'gsap', isPrimary: true },
-      { id: 'selected-agent', name: 'Selected', yuan: 'gsap', isPrimary: false, hasAvatar: true },
+      { id: 'active-agent', name: 'Active', yuan: 'codia', isPrimary: true },
+      { id: 'selected-agent', name: 'Selected', yuan: 'codia', isPrimary: false, hasAvatar: true },
     ],
     currentAgentId: 'active-agent', settingsAgentId: 'selected-agent',
     settingsConfig: { agent: { name: 'Selected' }, _identity: 'Existing identity', _ishiki: 'Existing instructions' },
@@ -71,7 +71,7 @@ describe('assistant identity card', () => {
 
   it('clears previews on assistant switch and ignores a late response even if fetch does not abort', async () => {
     const template = (content: string) => ({ identity: {
-      kind: 'identity', yuan: 'gsap', current: '', template: content,
+      kind: 'identity', yuan: 'codia', current: '', template: content,
       diff: { changed: 0, added: 0, removed: 0, lines: [] },
     } });
     let resolveLate!: (response: unknown) => void;

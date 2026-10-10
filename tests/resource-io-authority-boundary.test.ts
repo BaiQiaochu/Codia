@@ -6,13 +6,13 @@ import { ResourceAccessPolicy } from "../lib/resource-io/resource-access-policy.
 
 describe("ResourceAccessPolicy boundary", () => {
   it("returns typed denial details for protected metadata writes", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-authority-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-authority-"));
     const policy = new ResourceAccessPolicy({
       cwd: root,
       agentDir: path.join(root, "agent"),
       workspace: root,
       workspaceFolders: [root],
-      gsapHome: path.join(root, ".gsap"),
+      codiaHome: path.join(root, ".codia"),
       getSandboxEnabled: () => true,
     });
 

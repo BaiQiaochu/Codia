@@ -9,18 +9,18 @@ import { markdownImageContextFacet } from '../../editor/md-decorations';
 import { useStore } from '../../stores';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: mocks.gsapFetch,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: mocks.codiaFetch,
 }));
 
 const originalPrompt = window.prompt;
 
 afterEach(() => {
   document.body.innerHTML = '';
-  mocks.gsapFetch.mockReset();
+  mocks.codiaFetch.mockReset();
   window.prompt = originalPrompt;
   useStore.setState({ currentAgentId: null } as never);
 });
@@ -236,7 +236,7 @@ describe('markdown cover editor field', () => {
     window.prompt = vi.fn(() => {
       throw new Error('prompt() is not supported');
     });
-    mocks.gsapFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+    mocks.codiaFetch.mockResolvedValueOnce(new Response(JSON.stringify({
       systemCover: { available: true },
       agentGenerate: { available: true, enabled: true, executorAgentId: 'agent-1' },
       available: true,
@@ -296,9 +296,9 @@ describe('markdown cover editor field', () => {
       (dialog!.querySelector('.markdown-cover-prompt-primary') as HTMLButtonElement).click();
 
       await vi.waitFor(() => {
-        expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/desk/beautify/status');
-        expect(mocks.gsapFetch).not.toHaveBeenCalledWith('/api/desk/beautify/status?executorAgentId=agent-1');
-        expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/desk/beautify/cover', expect.objectContaining({
+        expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/desk/beautify/status');
+        expect(mocks.codiaFetch).not.toHaveBeenCalledWith('/api/desk/beautify/status?executorAgentId=agent-1');
+        expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/desk/beautify/cover', expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({
             filePath: '/vault/notes/day.md',

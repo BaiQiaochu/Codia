@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@earendil-works/pi-coding-agent", async () => ({
   createAgentSession: vi.fn(async opts => ({ session: { opts }, modelFallbackMessage: null })),
+  createCodemodeExtension: vi.fn(),
+  createToolSearchExtension: vi.fn(),
   resizeImage: vi.fn(),
   formatDimensionNote: vi.fn(),
   convertToLlm: vi.fn(),
@@ -69,7 +71,7 @@ describe("Pi SDK createAgentSession adapter", () => {
   it("passes resourceLoader through without inventing a top-level agentDir", async () => {
     const sdk = await import("@earendil-works/pi-coding-agent");
     const adapter = await import("../lib/pi-sdk/index.ts");
-    const resourceLoader = { agentDir: "/gsap-home/.pi/agent" };
+    const resourceLoader = { agentDir: "/codia-home/.pi/agent" };
 
     await adapter.createAgentSession({
       cwd: "/tmp/project",

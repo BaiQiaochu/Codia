@@ -1,4 +1,4 @@
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 
 export type ResearchMode = 'quick' | 'deep' | 'academic' | 'library';
 
@@ -21,7 +21,7 @@ export async function requestResearchReport(request: ResearchReportRequest): Pro
   const topic = String(request.topic || '').trim();
   if (!topic) throw new Error('empty_research_topic');
 
-  const res = await gsapFetch('/api/prompts/research', {
+  const res = await codiaFetch('/api/prompts/research', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     timeout: 180_000,

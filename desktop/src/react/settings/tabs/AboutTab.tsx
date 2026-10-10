@@ -7,10 +7,10 @@ import styles from '../Settings.module.css';
 import { GeneralSettingsSections } from './GeneralTab';
 import { InterfaceSettingsSections } from './InterfaceTab';
 
-declare const __BYOUNG_APP_VERSION__: string | undefined;
+declare const __CODIA_APP_VERSION__: string | undefined;
 
-const BUILD_VERSION = typeof __BYOUNG_APP_VERSION__ === 'string'
-  ? __BYOUNG_APP_VERSION__.trim()
+const BUILD_VERSION = typeof __CODIA_APP_VERSION__ === 'string'
+  ? __CODIA_APP_VERSION__.trim()
   : '';
 
 export function AboutTab() {

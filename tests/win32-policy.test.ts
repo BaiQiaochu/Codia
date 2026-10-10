@@ -12,7 +12,7 @@ import {
 const tmpDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-win32-policy-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-win32-policy-"));
   tmpDirs.push(dir);
   return dir;
 }
@@ -37,7 +37,7 @@ describe("win32 sandbox policy grants", () => {
       { realPath: path.join(workspace, "inside.md"), storageKind: "external", status: "available" },
       { realPath: path.join(home, "user", "profile.md"), storageKind: "external", status: "available" },
       { realPath: path.join(root, "expired.md"), storageKind: "external", status: "expired" },
-    ], { workspaceRoots: [workspace], gsapHome: home })).toEqual([fs.realpathSync(external)]);
+    ], { workspaceRoots: [workspace], codiaHome: home })).toEqual([fs.realpathSync(external)]);
   });
 
   it("projects restricted-token write roots without external read grants", () => {
@@ -51,7 +51,7 @@ describe("win32 sandbox policy grants", () => {
     }
     fs.writeFileSync(external, "external");
 
-    const policy = deriveSandboxPolicy({ agentDir: agent, workspace: cwd, gsapHome: home, mode: "standard" });
+    const policy = deriveSandboxPolicy({ agentDir: agent, workspace: cwd, codiaHome: home, mode: "standard" });
     const grants = buildWin32SandboxGrants({ policy, cwd, externalReadPaths: [external], runtimeReadPaths: ["C:\\runtime\\git"] });
 
     expect(grants.writePaths).toContain(fs.realpathSync(cwd));

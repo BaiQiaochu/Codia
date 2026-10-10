@@ -96,7 +96,7 @@ describe("cover gallery presets", () => {
 
   it("resolves a preset image under the cover gallery asset directory", () => {
     const preset = COVER_GALLERY_PRESETS[0];
-    const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-cover-gallery-root-"));
+    const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-cover-gallery-root-"));
     const assetDir = path.join(rootDir, "desktop", "src", "assets", "cover-gallery");
     fs.mkdirSync(assetDir, { recursive: true });
     fs.writeFileSync(path.join(assetDir, preset.fileName), "image");
@@ -112,7 +112,7 @@ describe("cover gallery presets", () => {
 
   it("rejects unknown preset ids instead of treating them as paths", () => {
     expect(getCoverGalleryPreset("../private")).toBeNull();
-    expect(() => resolveCoverGalleryPresetImagePath("../private", { rootDir: "/tmp/gsap" }))
+    expect(() => resolveCoverGalleryPresetImagePath("../private", { rootDir: "/tmp/codia" }))
       .toThrow("unknown cover gallery preset");
   });
 });

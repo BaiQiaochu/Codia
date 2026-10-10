@@ -1,5 +1,5 @@
 // @ts-nocheck
-// Upstream reference test migrated and debranded; skipped until the matching G-SAP source contract is migrated.
+// Upstream reference test migrated and debranded; skipped until the matching Codia source contract is migrated.
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -10,7 +10,7 @@ import { Agent } from "../core/agent.ts";
 const tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-agent-platform-prompt-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-agent-platform-prompt-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -20,20 +20,20 @@ function makeAgent(locale) {
   const agentsDir = path.join(root, "agents");
   const productDir = path.join(root, "product");
   const userDir = path.join(root, "user");
-  fs.mkdirSync(path.join(agentsDir, "hana"), { recursive: true });
+  fs.mkdirSync(path.join(agentsDir, "codia"), { recursive: true });
   fs.mkdirSync(path.join(productDir, "yuan"), { recursive: true });
   fs.mkdirSync(userDir, { recursive: true });
-  fs.writeFileSync(path.join(productDir, "yuan", "gsap.md"), "Yuan prompt", "utf-8");
+  fs.writeFileSync(path.join(productDir, "yuan", "codia.md"), "Yuan prompt", "utf-8");
 
-  const agent = new Agent({ id: "hana", agentsDir, productDir, userDir } as any);
+  const agent = new Agent({ id: "codia", agentsDir, productDir, userDir } as any);
   agent._config = {
     locale,
-    agent: { yuan: "gsap" },
+    agent: { yuan: "codia" },
     memory: { enabled: false },
     experience: { enabled: false },
   };
   agent.userName = locale.startsWith("zh") ? "用户" : "User";
-  agent.agentName = "G-SAP";
+  agent.agentName = "Codia";
   return agent;
 }
 

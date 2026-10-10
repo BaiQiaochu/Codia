@@ -1,8 +1,8 @@
 {
   "status": "independent 2-mask replacement candidate; not Editor-imported or visually accepted",
-  "originalPsd": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-repair-source.psd",
-  "output": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-repair-masks-v3.psd",
-  "preview": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-repair-masks-v3.neutral.png",
+  "originalPsd": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-repair-source.psd",
+  "output": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-repair-masks-v3.psd",
+  "preview": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-repair-masks-v3.neutral.png",
   "width": 1254,
   "height": 1254,
   "variant": "2px",
@@ -107,7 +107,7 @@
   "maskReplacements": [
     {
       "path": "BodyGroup/HeadGroup/Face/EyeLeft_OpeningMask",
-      "source": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v3\\EyeLeft_opening-mask-2px.png",
+      "source": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v3\\EyeLeft_opening-mask-2px.png",
       "changedPixels": 1001,
       "sourceRgbaSha256": "d5c59f9d152c131d15496d5c6fe73a16ffa31137c172f4dd91043ee2c2665c34",
       "outputRgbaSha256": "d5c59f9d152c131d15496d5c6fe73a16ffa31137c172f4dd91043ee2c2665c34",
@@ -119,7 +119,7 @@
     },
     {
       "path": "BodyGroup/HeadGroup/Face/EyeRight_OpeningMask",
-      "source": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v3\\EyeRight_opening-mask-2px.png",
+      "source": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v3\\EyeRight_opening-mask-2px.png",
       "changedPixels": 1012,
       "sourceRgbaSha256": "e52bc64bf871f91755f41d95f659bed719196568c55430dad575356a55468c62",
       "outputRgbaSha256": "e52bc64bf871f91755f41d95f659bed719196568c55430dad575356a55468c62",
@@ -140,15 +140,15 @@
   },
   "inputFiles": [
     {
-      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-repair-source.psd",
+      "file": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-repair-source.psd",
       "sha256": "f7fc1015728c50cd7605bd91fd858f0e3bd87f730e6e8fdae500f851f5387a28"
     },
     {
-      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v3\\EyeLeft_opening-mask-2px.png",
+      "file": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v3\\EyeLeft_opening-mask-2px.png",
       "sha256": "00cbd83b2015cfa7c8dee113ff76015c6630876f620df99b5528bec60d7cafe4"
     },
     {
-      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v3\\EyeRight_opening-mask-2px.png",
+      "file": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v3\\EyeRight_opening-mask-2px.png",
       "sha256": "7bf11322f040af49a15ffd7eeae1516ad93a7a2de0e59430d4d68ef6886767c2"
     }
   ],

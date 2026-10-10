@@ -19,7 +19,7 @@ function makeHost(provider = createMockComputerProvider({ providerId: "mock" }))
 
 const ctx = {
   sessionPath: "/tmp/session.jsonl",
-  agentId: "hana",
+  agentId: "codia",
   model: { id: "gpt-5.5", provider: "openai", input: ["text", "image"] },
 };
 

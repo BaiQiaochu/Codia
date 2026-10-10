@@ -13,11 +13,11 @@ export { yuanFallbackAvatar } from '../utils/yuan-avatar';
 const DEFAULT_TIMEOUT = 30_000;
 const ERROR_BODY_LIMIT = 500;
 type PwaBridge = { serverUrl?: (path: string) => string };
-type GsapUrlOptions = { includeTokenQuery?: boolean };
+type CodiaUrlOptions = { includeTokenQuery?: boolean };
 
 function pwaBridge(): PwaBridge | undefined {
   if (typeof window === 'undefined') return undefined;
-  return (window as typeof window & { __GSAP_PWA__?: PwaBridge }).__GSAP_PWA__;
+  return (window as typeof window & { __CODIA_PWA__?: PwaBridge }).__CODIA_PWA__;
 }
 
 async function buildFetchError(path: string, res: Response): Promise<Error> {
@@ -39,10 +39,10 @@ async function buildFetchError(path: string, res: Response): Promise<Error> {
   } catch {
     // Keep the status text if the response body cannot be read.
   }
-  return new Error(`gsapFetch ${path}: ${res.status} ${detail}`);
+  return new Error(`codiaFetch ${path}: ${res.status} ${detail}`);
 }
 
-export function gsapUrl(path: string, opts: GsapUrlOptions = {}): string {
+export function codiaUrl(path: string, opts: CodiaUrlOptions = {}): string {
   const pwa = pwaBridge();
   if (pwa?.serverUrl) {
     const url = pwa.serverUrl(path);
@@ -51,12 +51,12 @@ export function gsapUrl(path: string, opts: GsapUrlOptions = {}): string {
 
   const connection = requireServerConnection(
     useSettingsStore.getState(),
-    `gsapUrl ${path}: server connection not ready`,
+    `codiaUrl ${path}: server connection not ready`,
   );
   return buildConnectionUrl(connection, path, { includeTokenQuery: opts.includeTokenQuery === true });
 }
 
-export async function gsapFetch(
+export async function codiaFetch(
   path: string,
   opts: RequestInit & { timeout?: number } = {},
 ): Promise<Response> {
@@ -72,7 +72,7 @@ export async function gsapFetch(
   } else {
     const connection = requireServerConnection(
       storeState,
-      `gsapFetch ${path}: server connection not ready`,
+      `codiaFetch ${path}: server connection not ready`,
     );
     url = buildConnectionUrl(connection, path);
     Object.assign(headers, appendConnectionAuth(connection, headers));

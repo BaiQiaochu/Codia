@@ -10,13 +10,13 @@ import { useSettingsStore } from '../../settings/store';
 
 type MockResponse = { json: () => Promise<unknown> };
 
-const gsapFetchMock = vi.fn(async (_url: string, _opts?: RequestInit): Promise<MockResponse> => ({
+const codiaFetchMock = vi.fn(async (_url: string, _opts?: RequestInit): Promise<MockResponse> => ({
   json: async () => ({ models: [] }),
 }));
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: (url: string, opts?: RequestInit) => gsapFetchMock(url, opts),
-  gsapUrl: (path: string) => path,
+  codiaFetch: (url: string, opts?: RequestInit) => codiaFetchMock(url, opts),
+  codiaUrl: (path: string) => path,
   yuanFallbackAvatar: (yuan: string) => `/fallback-${yuan}.png`,
 }));
 
@@ -77,17 +77,17 @@ vi.mock('../../settings/tabs/agent/AgentExperience', () => ({
 
 describe('AgentTab professional export surface', () => {
   beforeEach(() => {
-    gsapFetchMock.mockImplementation(async (url: string): Promise<MockResponse> => {
+    codiaFetchMock.mockImplementation(async (url: string): Promise<MockResponse> => {
       if (url === '/api/models') return { json: async () => ({ models: [] }) };
       return { json: async () => ({ ok: true }) };
     });
     (window as unknown as { platform?: unknown }).platform = {};
     useSettingsStore.setState({
-      agents: [{ id: 'agent-a', name: 'G-SAP Operator', yuan: 'gsap', isPrimary: true }],
+      agents: [{ id: 'agent-a', name: 'Codia Operator', yuan: 'codia', isPrimary: true }],
       currentAgentId: 'agent-a',
       settingsAgentId: null,
       settingsConfig: {
-        agent: { name: 'G-SAP Operator', yuan: 'gsap' },
+        agent: { name: 'Codia Operator', yuan: 'codia' },
         memory: { enabled: true },
       },
       currentPins: [],
@@ -110,7 +110,7 @@ describe('AgentTab professional export surface', () => {
     expect(screen.getByTestId('selected-agent')).toHaveTextContent('agent-a');
     expect(screen.getByTestId('has-export')).toHaveTextContent('false');
 
-    await waitFor(() => expect(gsapFetchMock.mock.calls.some(([url]) => url === '/api/models')).toBe(true));
-    expect(gsapFetchMock.mock.calls.some(([url]) => String(url).startsWith('/api/character-cards'))).toBe(false);
+    await waitFor(() => expect(codiaFetchMock.mock.calls.some(([url]) => url === '/api/models')).toBe(true));
+    expect(codiaFetchMock.mock.calls.some(([url]) => String(url).startsWith('/api/character-cards'))).toBe(false);
   });
 });

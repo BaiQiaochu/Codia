@@ -19,7 +19,7 @@ describe("config workspace GC route", () => {
   });
 
   function makeRoot() {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-config-gc-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-config-gc-"));
     tempRoots.push(root);
     return root;
   }

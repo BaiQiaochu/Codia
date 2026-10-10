@@ -3,7 +3,6 @@
  * diary-writer.js -日记生成模块
  *
   *
-  *
  * 2. 拼装 context：agent 人格 + 记忆 + 写作指导 + 当天摘要
  * 3. -LLM 生成日记
  * 4. 存为 desk/diary/YYYY-MM-DD.md

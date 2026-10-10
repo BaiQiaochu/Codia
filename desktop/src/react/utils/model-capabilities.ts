@@ -4,7 +4,7 @@ export interface ModelCapabilityInfo {
   vision?: boolean;
   video?: boolean;
   compat?: ({
-    gsapVideoInput?: boolean;
+    codiaVideoInput?: boolean;
   } & Record<string, unknown>) | null;
 }
 
@@ -23,7 +23,7 @@ export function modelSupportsVideoInput(model?: ModelCapabilityInfo | null): boo
   if (model.video === false) return false;
   if (
     model.video === true
-    || model.compat?.gsapVideoInput === true
+    || model.compat?.codiaVideoInput === true
     || model.compat?.[legacyVideoInputCompatKey] === true
   ) return true;
   return Array.isArray(model.input) && model.input.includes('video');

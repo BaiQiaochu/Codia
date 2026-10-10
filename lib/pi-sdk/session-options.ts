@@ -12,6 +12,11 @@ export const PI_BUILTIN_TOOL_NAMES = Object.freeze([
   "ls",
 ]);
 
+export const CODIA_PI_EXTENSION_TOOL_NAMES = Object.freeze([
+  "codemode",
+  "tool_search",
+]);
+
 function readPiCodingAgentVersion() {
   let dir = path.dirname(fileURLToPath(import.meta.resolve("@earendil-works/pi-coding-agent")));
   while (dir && dir !== path.dirname(dir)) {
@@ -102,9 +107,11 @@ export function normalizeCreateAgentSessionOptions(options, version = getPiCodin
 
   for (const tool of rawTools) assertAgentTool(tool);
   const convertedBaseTools = rawTools.map(agentToolToToolDefinition);
+  const hasToolAccess = rawTools.length > 0 || rawCustomTools.length > 0;
   const allowedNames = uniqueToolNames([
     ...rawTools.map(tool => tool.name),
     ...rawCustomTools.map(tool => getToolDefinitionName(tool)),
+    ...(hasToolAccess ? CODIA_PI_EXTENSION_TOOL_NAMES : []),
   ]);
 
   return {

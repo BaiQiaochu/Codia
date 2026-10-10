@@ -3,7 +3,7 @@ const path = require("path");
 const { pathToFileURL } = require("url");
 
 const FONTS_CSS_FILENAME = "new-warm-paper-fonts.css";
-const GSAP_PDF_FONT_FAMILIES = ["EB Garamond", "Noto Serif SC", "JetBrains Mono"];
+const CODIA_PDF_FONT_FAMILIES = ["EB Garamond", "Noto Serif SC", "JetBrains Mono"];
 
 const SYNTHETIC_FONT_PATTERNS = Object.freeze({
   "EB Garamond": /^ebgaramond-.*\.woff2$/i,
@@ -89,7 +89,7 @@ function syntheticBlocksFromBundledFonts(themesDir, families) {
   return blocks;
 }
 
-function buildFontInjectionCss({ themesDir = locateThemesDir(), families = GSAP_PDF_FONT_FAMILIES } = {}) {
+function buildFontInjectionCss({ themesDir = locateThemesDir(), families = CODIA_PDF_FONT_FAMILIES } = {}) {
   const blocks = cssFromFontFaceFile(themesDir, families) || syntheticBlocksFromBundledFonts(themesDir, families);
   const covered = new Set(blocks.map(familyOf));
   const missing = families.filter((family) => !covered.has(family));
@@ -101,7 +101,7 @@ function buildFontInjectionCss({ themesDir = locateThemesDir(), families = GSAP_
 
 module.exports = {
   FONTS_CSS_FILENAME,
-  GSAP_PDF_FONT_FAMILIES,
+  CODIA_PDF_FONT_FAMILIES,
   buildFontInjectionCss,
   locateThemesDir,
 };

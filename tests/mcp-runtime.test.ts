@@ -106,7 +106,7 @@ describe("MCP runtime policy", () => {
     expect(config.servers).toEqual(config.connectors);
   });
 
-  it("normalizes Cherry-style MCP server fields into G-SAP connectors", () => {
+  it("normalizes Cherry-style MCP server fields into Codia connectors", () => {
     const config = normalizeMcpConfig({
       enabled: true,
       connectors: [
@@ -328,7 +328,7 @@ describe("MCP runtime policy", () => {
 
     const result = await runtime.handleSettingsAction({
       action: "mcp.connector.add",
-      agentId: "G-SAP",
+      agentId: "Codia",
       payload: {
         name: "GitHub",
         transport: "remote",
@@ -378,7 +378,7 @@ describe("MCP runtime policy", () => {
       callTool,
     });
 
-    const result = await tool.execute({}, { agentId: "G-SAP" });
+    const result = await tool.execute({}, { agentId: "Codia" });
 
     expect(callTool).not.toHaveBeenCalled();
     expect(result).toMatchObject({ isError: true });
@@ -399,7 +399,7 @@ describe("MCP runtime policy", () => {
       callTool,
     });
 
-    const result = await tool.execute({}, { agentId: "G-SAP" });
+    const result = await tool.execute({}, { agentId: "Codia" });
 
     expect(callTool).not.toHaveBeenCalled();
     expect(result).toMatchObject({ isError: true });
@@ -467,7 +467,7 @@ describe("MCP connectors status tool", () => {
     runtime.registerCachedTools();
     const statusTool = findStatusTool(registered);
 
-    const result = await statusTool.execute("call-1", {}, { agentId: "G-SAP" });
+    const result = await statusTool.execute("call-1", {}, { agentId: "Codia" });
     const payload = JSON.parse(result.content[0].text);
 
     expect(payload.enabled).toBe(true);
@@ -513,7 +513,7 @@ describe("MCP connectors status tool", () => {
     runtime.registerCachedTools();
     const statusTool = findStatusTool(registered);
 
-    const result = await statusTool.execute("call-1", {}, { agentId: "G-SAP" });
+    const result = await statusTool.execute("call-1", {}, { agentId: "Codia" });
     const text = result.content[0].text;
     const payload = JSON.parse(text);
 

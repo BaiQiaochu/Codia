@@ -9,7 +9,7 @@ function read(rel: string) {
 }
 
 describe('settings access tab wiring', () => {
-  it('registers AccessTab in content and navigation using G-SAP API helpers', () => {
+  it('registers AccessTab in content and navigation using Codia API helpers', () => {
     const content = read('SettingsContent.tsx');
     const nav = read('settings-navigation.ts');
     const access = read('tabs/AccessTab.tsx');
@@ -19,13 +19,13 @@ describe('settings access tab wiring', () => {
     expect(nav).toContain("id: 'access'");
     expect(nav).toContain("key: 'settings.tabs.access'");
     expect(nav).toContain("fallback: '访问与设备'");
-    expect(access).toContain("import { gsapFetch, gsapUrl } from '../api'");
+    expect(access).toContain("import { codiaFetch, codiaUrl } from '../api'");
     expect(access).toContain("connectDeviceServerConnection");
     expect(access).toContain("persistServerConnectionSelection");
     expect(access).toContain("'/api/access/summary'");
     expect(access).toContain("'/api/access/mobile-credentials'");
     expect(access).toContain("'/api/access/desktop-credentials'");
     expect(access).toContain('settings.access.connectLanServer');
-    expect(access).toContain('gsap_dev_...');
+    expect(access).toContain('codia_dev_...');
   });
 });

@@ -19,10 +19,10 @@ export function ChannelWarningModal({ open, onConfirm, onCancel }: ChannelWarnin
   const paragraphs = bodyText.split('\n\n');
 
   return (
-    <div className="gsap-warning-overlay">
-      <div className="gsap-warning-box">
-        <h3 className="gsap-warning-title">{t('channel.warningTitle')}</h3>
-        <div className="gsap-warning-body">
+    <div className="codia-warning-overlay">
+      <div className="codia-warning-box">
+        <h3 className="codia-warning-title">{t('channel.warningTitle')}</h3>
+        <div className="codia-warning-body">
           {paragraphs.map((para, i) => {
             const lines = para.split('\n');
             return (
@@ -36,11 +36,11 @@ export function ChannelWarningModal({ open, onConfirm, onCancel }: ChannelWarnin
             );
           })}
         </div>
-        <div className="gsap-warning-actions">
-          <button type="button" className="gsap-warning-cancel" onClick={onCancel}>
+        <div className="codia-warning-actions">
+          <button type="button" className="codia-warning-cancel" onClick={onCancel}>
             {t('channel.createCancel')}
           </button>
-          <button type="button" className="gsap-warning-confirm" onClick={onConfirm}>
+          <button type="button" className="codia-warning-confirm" onClick={onConfirm}>
             {t('channel.warningConfirm')}
           </button>
         </div>

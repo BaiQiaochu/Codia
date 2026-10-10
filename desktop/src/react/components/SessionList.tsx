@@ -6,7 +6,7 @@
 import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../stores';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import { useI18n } from '../hooks/use-i18n';
 import { formatSessionDate } from '../utils/format';
 import { switchSession, archiveSession, deleteSession, renameSession, pinSession, createNewSession } from '../stores/session-actions';
@@ -46,10 +46,10 @@ import {
 } from '../../../../shared/sidebar-ui-state.ts';
 import styles from './SessionList.module.css';
 
-const SESSION_VIEW_MODE_KEY = 'gsap-session-sidebar-view-mode';
-const SESSION_DRAG_MIME = 'application/x-gsap-session-path';
-const PROJECT_DRAG_MIME = 'application/x-gsap-project-id';
-const FOLDER_DRAG_MIME = 'application/x-gsap-project-folder-id';
+const SESSION_VIEW_MODE_KEY = 'codia-session-sidebar-view-mode';
+const SESSION_DRAG_MIME = 'application/x-codia-session-path';
+const PROJECT_DRAG_MIME = 'application/x-codia-project-id';
+const FOLDER_DRAG_MIME = 'application/x-codia-project-folder-id';
 const PROJECT_SESSION_PREVIEW_LIMIT = 5;
 
 const EMPTY_PROJECT_CATALOG: SessionProjectCatalog = { folders: [], projects: [] };
@@ -269,7 +269,7 @@ function SessionListInner() {
       setBrowserSessions({});
       return;
     }
-    gsapFetch('/api/browser/session-states')
+    codiaFetch('/api/browser/session-states')
       .then(r => r.json())
       .then(data => {
         if (!cancelled) setVisibleBrowserSessions(data);
@@ -297,7 +297,7 @@ function SessionListInner() {
     const timer = window.setTimeout(async () => {
       const encodedQuery = encodeURIComponent(searchQueryTrimmed);
       try {
-        const titleRes = await gsapFetch(`/api/sessions/search?q=${encodedQuery}&phase=title&limit=20`, {
+        const titleRes = await codiaFetch(`/api/sessions/search?q=${encodedQuery}&phase=title&limit=20`, {
           signal: controller.signal,
           timeout: 12_000,
         });
@@ -306,7 +306,7 @@ function SessionListInner() {
         setTitleResults(normalizeSessionSearchResults(titleData));
         setSearchStatus('content');
 
-        const contentRes = await gsapFetch(`/api/sessions/search?q=${encodedQuery}&phase=content&limit=20`, {
+        const contentRes = await codiaFetch(`/api/sessions/search?q=${encodedQuery}&phase=content&limit=20`, {
           signal: controller.signal,
           timeout: 12_000,
         });
@@ -342,7 +342,7 @@ function SessionListInner() {
     nextCollapsedFolderIds: Set<string>,
     nextShowAllProjectIds: Set<string>,
   ) => {
-    gsapFetch('/api/preferences/sidebar-ui', {
+    codiaFetch('/api/preferences/sidebar-ui', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(sidebarProjectViewPayload(
@@ -372,7 +372,7 @@ function SessionListInner() {
 
   useEffect(() => {
     let cancelled = false;
-    gsapFetch('/api/preferences/sidebar-ui')
+    codiaFetch('/api/preferences/sidebar-ui')
       .then(res => res.json())
       .then(data => {
         if (cancelled) return;
@@ -389,7 +389,7 @@ function SessionListInner() {
       const detail = (event as CustomEvent)?.detail;
       if (detail?.sidebarUi) applySidebarUiPrefs({ sidebarUi: detail.sidebarUi });
     };
-    window.addEventListener('hana-settings', handleSettingsEvent);
+    window.addEventListener('codia-settings', handleSettingsEvent);
     window.platform?.onSettingsChanged?.((kind: string, payload: unknown) => {
       if (kind !== 'sidebar-ui-changed') return;
       const sidebarUi = payload && typeof payload === 'object' && !Array.isArray(payload)
@@ -398,7 +398,7 @@ function SessionListInner() {
       applySidebarUiPrefs({ sidebarUi: sidebarUi || payload });
     });
     return () => {
-      window.removeEventListener('hana-settings', handleSettingsEvent);
+      window.removeEventListener('codia-settings', handleSettingsEvent);
     };
   }, [applySidebarUiPrefs]);
 
@@ -418,7 +418,7 @@ function SessionListInner() {
       return next;
     });
     try {
-      const res = await gsapFetch('/api/browser/close-session', {
+      const res = await codiaFetch('/api/browser/close-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionPath }),
@@ -1853,7 +1853,7 @@ const SessionSummaryPreviewCard = memo(function SessionSummaryPreviewCard({
 
     let cancelled = false;
     setSummaryState({ status: 'loading', text: null });
-    gsapFetch(`/api/sessions/summary?path=${encodeURIComponent(session.path)}`)
+    codiaFetch(`/api/sessions/summary?path=${encodeURIComponent(session.path)}`)
       .then(res => res.json())
       .then((data: SessionSummaryResponse) => {
         if (cancelled) return;

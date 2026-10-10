@@ -5,7 +5,7 @@ import {
   PLUGIN_UI_ERROR_CODE,
   PLUGIN_UI_PROTOCOL,
   PLUGIN_UI_PROTOCOL_VERSION,
-} from '@g-sap/plugin-protocol';
+} from '@codia/plugin-protocol';
 import {
   handlePluginUiRequest,
   type PluginUiCapability,

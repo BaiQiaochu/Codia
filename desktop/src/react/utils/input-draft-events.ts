@@ -1,5 +1,5 @@
 import { isQuickActionId, type QuickActionId } from '../../../../shared/quick-actions';
-export const INPUT_DRAFT_REQUEST_EVENT = 'gsap-input-draft-request';
+export const INPUT_DRAFT_REQUEST_EVENT = 'codia-input-draft-request';
 
 export type InputDraftRequestMode = 'replace' | 'append';
 

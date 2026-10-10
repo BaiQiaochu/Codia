@@ -1,7 +1,7 @@
 import type { PlatformApi } from '../types';
 
 const noopUnsubscribe = () => {};
-const OPEN_SETTINGS_EVENT = 'gsap-mobile-open-settings';
+const OPEN_SETTINGS_EVENT = 'codia-mobile-open-settings';
 
 export function installMobilePlatform(): void {
   if (typeof window === 'undefined') return;
@@ -43,13 +43,17 @@ export function installMobilePlatform(): void {
     readXlsxHtml: async () => null,
     spawnViewer: async () => null,
     onViewerClosed: () => noopUnsubscribe,
-    openFolder: () => {},
-    openFile: (value: string) => {
+    openFolder: async () => ({ success: false, code: 'unsupported', message: '移动端不支持打开本机文件夹' }),
+    openFile: async (value: string) => {
       const url = browserSafeUrl(value);
-      if (url) window.open(url, '_blank', 'noopener,noreferrer');
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+        return { success: true, path: value };
+      }
+      return { success: false, code: 'unsupported', message: '移动端不支持打开本机文件' };
     },
     openExternal: (url: string) => window.open(url, '_blank', 'noopener,noreferrer'),
-    showInFinder: () => {},
+    showInFinder: async () => ({ success: false, code: 'unsupported', message: '移动端不支持在文件管理器中定位' }),
     trashItem: async () => false,
     settingsChanged: () => {},
     syncWindowTheme: () => {},

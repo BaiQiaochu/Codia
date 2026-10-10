@@ -21,7 +21,7 @@ const WORKFLOW_DESCRIPTION = [
   "The script must start with: export const meta = { name: string, description: string }.",
   "Available globals: agent(prompt, opts), parallel(thunks), pipeline(items, ...stages), workflow(script, args), phase(title), log(message), budget, args.",
   'agent() signature is agent(prompt, { label?, model?, agentType?, access?: "read"|"write", schema?, toolFilter? }).',
-  "Always await agent(): const result = await agent('task prompt', { access: 'read', agentType: 'gsap' }); agent() does not return { result }.",
+  "Always await agent(): const result = await agent('task prompt', { access: 'read', agentType: 'codia' }); agent() does not return { result }.",
   "To choose a target agent, use opts.agentType. Do not pass task in opts; put complete task instructions in the first prompt argument.",
   "The script cannot import modules or access require/process/fs/net. To read/write files or run tools, ask an agent() node to do it.",
 ].join("\n");
@@ -125,16 +125,6 @@ function makeBudget(ledger, taskId, budgetTotal) {
 /**
  * @param {{
  *   executeIsolated: (prompt: string, isoOpts: object) => Promise<object>,
-  *
-  *
-  *
-  *
-  *
-  *
-  *
-  *
-  *
-  *
   *
  * }} deps
  */

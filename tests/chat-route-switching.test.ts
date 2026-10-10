@@ -33,7 +33,7 @@ describe("chat route model switch guard", () => {
       }),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => ({
         model: { provider: "provider-a", id: "shared-model" },
@@ -105,7 +105,7 @@ describe("chat route model switch guard", () => {
       send: vi.fn(async () => {}),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => null),
       isSessionStreaming: vi.fn(() => false),
@@ -154,7 +154,7 @@ describe("chat route model switch guard", () => {
       send: vi.fn(async () => {}),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => ({ entries: [] })),
       isSessionStreaming: vi.fn(() => true),
@@ -210,7 +210,7 @@ describe("chat route model switch guard", () => {
       send: vi.fn(async () => {}),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       compactDesktopSession: vi.fn(async () => ({
         tokensBefore: 120_000,
@@ -269,7 +269,7 @@ describe("chat route model switch guard", () => {
       }),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => ({ entries: [] })),
       isSessionStreaming: vi.fn(() => true),
@@ -323,7 +323,7 @@ describe("chat route model switch guard", () => {
       send: vi.fn(async () => {}),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => ({ entries: [] })),
       isSessionStreaming: vi.fn((sessionPath) => sessionPath === "/tmp/running-session.jsonl"),
@@ -378,7 +378,7 @@ describe("chat route model switch guard", () => {
       send: vi.fn(async () => {}),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => ({ entries: [] })),
       isSessionStreaming: vi.fn(() => false),
@@ -442,7 +442,7 @@ describe("chat route model switch guard", () => {
       send: vi.fn(async () => {}),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => ({ entries: [] })),
       isSessionStreaming: vi.fn(() => false),
@@ -518,7 +518,7 @@ describe("chat route model switch guard", () => {
       send: vi.fn(async () => {}),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => ({ entries: [] })),
       isSessionStreaming: vi.fn(() => false),
@@ -544,7 +544,7 @@ describe("chat route model switch guard", () => {
       result: "回来了。",
       meta: {
         type: "subagent",
-        executorAgentNameSnapshot: "G-SAP",
+        executorAgentNameSnapshot: "Codia",
         label: "凌晨诗行",
         summary: "写一首关于凌晨五点三十九分的三行短诗。要求：不要使用常见意象。",
       },
@@ -564,7 +564,7 @@ describe("chat route model switch guard", () => {
     expect(payloads[interludeIndex].block).toMatchObject({
       type: "interlude",
       taskId: "subagent-fast",
-      sourceLabel: "G-SAP / 凌晨诗行",
+      sourceLabel: "Codia / 凌晨诗行",
     });
 
     handlers.onClose({}, ws);
@@ -586,7 +586,7 @@ describe("chat route model switch guard", () => {
     };
     const deliverNotification = vi.fn(async () => ({ ok: true }));
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getNotificationPreferences: vi.fn(() => ({ turnCompletion: "when_unfocused" })),
       deliverNotification,
@@ -644,7 +644,7 @@ describe("chat route model switch guard", () => {
     };
     const deliverNotification = vi.fn(async () => ({ ok: true }));
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getNotificationPreferences: vi.fn(() => ({ turnCompletion: "when_session_unfocused" })),
       deliverNotification,
@@ -701,14 +701,14 @@ describe("chat route model switch guard", () => {
     };
     const deliverNotification = vi.fn(async () => ({ ok: true }));
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getNotificationPreferences: vi.fn(() => ({ turnCompletion: "when_session_unfocused" })),
       deliverNotification,
       getSessionByPath: vi.fn(() => ({
         entries: [],
         agentId: "agent-2",
-        agentName: "G-SAP",
+        agentName: "Codia",
       })),
       isSessionStreaming: vi.fn(() => runtimeStreaming),
       isSessionSwitching: vi.fn(() => false),
@@ -762,7 +762,7 @@ describe("chat route model switch guard", () => {
     };
     const deliverNotification = vi.fn(async () => ({ ok: true }));
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getNotificationPreferences: vi.fn(() => ({ turnCompletion: "when_unfocused" })),
       deliverNotification,
@@ -809,7 +809,7 @@ describe("chat route model switch guard", () => {
       send: vi.fn(async () => {}),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => ({ entries: [] })),
       isSessionStreaming: vi.fn(() => false),
@@ -857,7 +857,7 @@ describe("chat route model switch guard", () => {
       send: vi.fn(async () => {}),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => ({ entries: [] })),
       isSessionStreaming: vi.fn(() => false),
@@ -922,7 +922,7 @@ describe("chat route model switch guard", () => {
       send: vi.fn(async () => {}),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => ({ entries: [] })),
       isSessionStreaming: vi.fn(() => false),
@@ -969,7 +969,7 @@ describe("chat route model switch guard", () => {
       send: vi.fn(async () => {}),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => ({ entries: [] })),
       isSessionStreaming: vi.fn(() => false),
@@ -1017,7 +1017,7 @@ describe("chat route model switch guard", () => {
       send: vi.fn(async () => {}),
     };
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       abortAllStreaming: vi.fn(async () => {}),
       getSessionByPath: vi.fn(() => ({ entries: [] })),
       isSessionStreaming: vi.fn(() => false),

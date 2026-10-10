@@ -11,7 +11,7 @@ const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-const APP = "/Applications/G-SAP.app";
+const APP = "/Applications/Codia.app";
 const ENT = path.join(__dirname, "..", "desktop", "entitlements.mac.plist");
 
 function sign(target, opts = "") {

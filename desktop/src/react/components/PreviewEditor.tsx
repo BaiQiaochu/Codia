@@ -112,7 +112,7 @@ function tr(key: string, fallback: string): string {
 
 function showSaveError(prefixKey: string, err: unknown): void {
   const tFn = window.t ?? ((p: string) => p);
-  window.dispatchEvent(new CustomEvent('gsap-inline-notice', {
+  window.dispatchEvent(new CustomEvent('codia-inline-notice', {
     detail: { text: `${tFn(prefixKey)}: ${getErrorMessage(err)}`, type: 'error' },
   }));
 }

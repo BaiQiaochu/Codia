@@ -17,7 +17,7 @@ export type StudioAccessActorKind =
   | 'account_user'
   | 'platform_account';
 
-export type StudioAccessDataOwner = 'user_server' | 'gsap_cloud_studio';
+export type StudioAccessDataOwner = 'user_server' | 'codia_cloud_studio';
 
 export type StudioAccessCapability =
   | 'chat'

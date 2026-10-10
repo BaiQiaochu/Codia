@@ -1,6 +1,6 @@
-# G-SAP Test Policy
+# Codia Test Policy
 
-G-SAP uses risk-driven tests. Test value comes from protecting contracts, old-user safety, packaging, and security boundaries, not from keeping a large file count.
+Codia uses risk-driven tests. Test value comes from protecting contracts, old-user safety, packaging, and security boundaries, not from keeping a large file count.
 
 ## Test Layers
 

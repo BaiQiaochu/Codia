@@ -22,7 +22,7 @@ describe("renderFeishuOutbound", () => {
     const table = [
       "| Name | Status | Owner |",
       "| --- | --- | --- |",
-      "| #1516 | open | G-SAP |",
+      "| #1516 | open | Codia |",
     ].join("\n");
     const rendered = renderFeishuOutbound(table);
     const card = parseContent(rendered);

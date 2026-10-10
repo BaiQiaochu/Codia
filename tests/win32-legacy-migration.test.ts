@@ -54,31 +54,31 @@ describe("Windows legacy sandbox migration", () => {
   });
 
   function makeTempDir() {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-win32-migration-test-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-win32-migration-test-"));
     tempDirs.push(dir);
     return dir;
   }
 
-  it("collects stale G-SAP and legacy Hanako AppContainer profile names", () => {
+  it("collects stale Codia and legacy Codia AppContainer profile names", () => {
     const existing = new Set([
-      "C:\\Users\\Gsap",
-      "C:\\Users\\Gsap\\.gsap",
-      "C:\\Users\\Gsap\\.gsap\\.ephemeral",
-      "C:\\Users\\Gsap\\.gsap\\agents",
-      "C:\\Users\\Gsap\\.gsap\\session-files",
-      "C:\\Users\\Gsap\\.gsap\\uploads",
-      "C:\\Program Files\\G-SAP\\resources",
-      "C:\\Program Files\\G-SAP\\resources\\git",
+      "C:\\Users\\Codia",
+      "C:\\Users\\Codia\\.codia",
+      "C:\\Users\\Codia\\.codia\\.ephemeral",
+      "C:\\Users\\Codia\\.codia\\agents",
+      "C:\\Users\\Codia\\.codia\\session-files",
+      "C:\\Users\\Codia\\.codia\\uploads",
+      "C:\\Program Files\\Codia\\resources",
+      "C:\\Program Files\\Codia\\resources\\git",
       "D:\\workspace",
-      "C:\\Users\\Gsap\\AppData\\Local\\Packages",
+      "C:\\Users\\Codia\\AppData\\Local\\Packages",
     ]);
     const readdirSync = vi.fn((target) => {
-      if (target === "C:\\Users\\Gsap\\AppData\\Local\\Packages") {
+      if (target === "C:\\Users\\Codia\\AppData\\Local\\Packages") {
         return [
-          dirent("com.gsap.sandbox.1288.475900"),
-          dirent("com.hanako.sandbox.5104.475988"),
+          dirent("com.codia.sandbox.1288.475900"),
+          dirent("com.codia.sandbox.5104.475988"),
           dirent("Microsoft.WindowsCalculator_8wekyb3d8bbwe"),
-          dirent("com.gsap.sandbox.file", false),
+          dirent("com.codia.sandbox.file", false),
         ];
       }
       return [];
@@ -86,41 +86,41 @@ describe("Windows legacy sandbox migration", () => {
 
     const targets = collectWin32LegacySandboxMigrationTargets({
       platform: "win32",
-      gsapHome: "C:\\Users\\Gsap\\.gsap",
+      codiaHome: "C:\\Users\\Codia\\.codia",
       workspaceRoots: ["D:\\workspace"],
       env: {
-        USERPROFILE: "C:\\Users\\Gsap",
-        LOCALAPPDATA: "C:\\Users\\Gsap\\AppData\\Local",
+        USERPROFILE: "C:\\Users\\Codia",
+        LOCALAPPDATA: "C:\\Users\\Codia\\AppData\\Local",
       },
-      resourcesPath: "C:\\Program Files\\G-SAP\\resources",
+      resourcesPath: "C:\\Program Files\\Codia\\resources",
       existsSync: (target) => existing.has(target),
       readdirSync,
-      homedir: () => "C:\\Users\\Gsap",
+      homedir: () => "C:\\Users\\Codia",
     });
 
     expect(targets.aclPaths).toEqual([
-      "C:\\Users\\Gsap\\.gsap",
-      "C:\\Users\\Gsap\\.gsap\\.ephemeral",
-      "C:\\Users\\Gsap\\.gsap\\agents",
-      "C:\\Users\\Gsap\\.gsap\\session-files",
-      "C:\\Users\\Gsap\\.gsap\\uploads",
+      "C:\\Users\\Codia\\.codia",
+      "C:\\Users\\Codia\\.codia\\.ephemeral",
+      "C:\\Users\\Codia\\.codia\\agents",
+      "C:\\Users\\Codia\\.codia\\session-files",
+      "C:\\Users\\Codia\\.codia\\uploads",
       "D:\\workspace",
-      "C:\\Program Files\\G-SAP\\resources",
-      "C:\\Program Files\\G-SAP\\resources\\git",
-      "C:\\Users\\Gsap",
+      "C:\\Program Files\\Codia\\resources",
+      "C:\\Program Files\\Codia\\resources\\git",
+      "C:\\Users\\Codia",
     ]);
     expect(targets.profileNames).toEqual([
-      "com.gsap.sandbox.1288.475900",
-      "com.hanako.sandbox.5104.475988",
+      "com.codia.sandbox.1288.475900",
+      "com.codia.sandbox.5104.475988",
     ]);
   });
 
-  it("runs cleanup through the G-SAP helper and writes a completion marker", async () => {
+  it("runs cleanup through the Codia helper and writes a completion marker", async () => {
     const markerPath = path.join(makeTempDir(), "marker.json");
     const spawn = fakeSpawnSequence([
       {
         code: 3,
-        stderr: "gsap-win-sandbox: legacy-appcontainer-acl path=\"C:\\\\\" sid=\"S-1-15-2-1\"",
+        stderr: "codia-win-sandbox: legacy-appcontainer-acl path=\"C:\\\\\" sid=\"S-1-15-2-1\"",
       },
       { code: 0 },
     ]);
@@ -128,11 +128,11 @@ describe("Windows legacy sandbox migration", () => {
     const result = await runWin32LegacySandboxMigration({
       platform: "win32",
       cleanup: true,
-      helperPath: "C:\\G-SAP\\gsap-win-sandbox.exe",
+      helperPath: "C:\\Codia\\codia-win-sandbox.exe",
       markerPath,
       targets: {
         aclPaths: ["C:\\"],
-        profileNames: ["com.gsap.sandbox.1288.475900"],
+        profileNames: ["com.codia.sandbox.1288.475900"],
       },
       spawn,
     });
@@ -140,12 +140,12 @@ describe("Windows legacy sandbox migration", () => {
     expect(result.status).toBe("findings");
     expect(spawn).toHaveBeenNthCalledWith(
       1,
-      "C:\\G-SAP\\gsap-win-sandbox.exe",
+      "C:\\Codia\\codia-win-sandbox.exe",
       [
-        "--cleanup-gsap-write-acl",
+        "--cleanup-codia-write-acl",
         "C:\\",
         "--legacy-appcontainer-profile",
-        "com.gsap.sandbox.1288.475900",
+        "com.codia.sandbox.1288.475900",
         "--cleanup-legacy-acl",
         "--diagnose-legacy-acl",
         "C:\\",
@@ -154,10 +154,10 @@ describe("Windows legacy sandbox migration", () => {
     );
     expect(spawn).toHaveBeenNthCalledWith(
       2,
-      "C:\\G-SAP\\gsap-win-sandbox.exe",
+      "C:\\Codia\\codia-win-sandbox.exe",
       [
         "--cleanup-legacy-profile",
-        "com.gsap.sandbox.1288.475900",
+        "com.codia.sandbox.1288.475900",
       ],
       expect.objectContaining({ windowsHide: true }),
     );
@@ -167,17 +167,17 @@ describe("Windows legacy sandbox migration", () => {
   it("does not delete legacy profiles when ACL cleanup fails", async () => {
     const spawn = fakeSpawnFactory({
       code: 1,
-      stderr: "gsap-win-sandbox: cannot clean legacy ACL",
+      stderr: "codia-win-sandbox: cannot clean legacy ACL",
     });
 
     const result = await runWin32LegacySandboxMigration({
       platform: "win32",
       cleanup: true,
-      helperPath: "C:\\G-SAP\\gsap-win-sandbox.exe",
+      helperPath: "C:\\Codia\\codia-win-sandbox.exe",
       markerPath: path.join(makeTempDir(), "marker.json"),
       targets: {
         aclPaths: ["C:\\work"],
-        profileNames: ["com.gsap.sandbox.1288.475900"],
+        profileNames: ["com.codia.sandbox.1288.475900"],
       },
       spawn,
     });
@@ -200,11 +200,11 @@ describe("Windows legacy sandbox migration", () => {
     const result = await runWin32LegacySandboxMigration({
       platform: "win32",
       cleanup: true,
-      helperPath: "C:\\G-SAP\\gsap-win-sandbox.exe",
+      helperPath: "C:\\Codia\\codia-win-sandbox.exe",
       markerPath,
       targets: {
         aclPaths: ["C:\\work"],
-        profileNames: ["com.gsap.sandbox.1288.475900"],
+        profileNames: ["com.codia.sandbox.1288.475900"],
       },
       spawn,
     });
@@ -217,7 +217,7 @@ describe("Windows legacy sandbox migration", () => {
     const base = {
       platform: "win32",
       cleanup: true,
-      helperPath: "C:\\G-SAP\\gsap-win-sandbox.exe",
+      helperPath: "C:\\Codia\\codia-win-sandbox.exe",
       targets: { aclPaths: ["C:\\work"], profileNames: [] },
     };
 
@@ -253,7 +253,7 @@ describe("Windows legacy sandbox migration", () => {
     await expect(runWin32LegacySandboxMigration({
       platform: "win32",
       cleanup: true,
-      helperPath: "C:\\G-SAP\\gsap-win-sandbox.exe",
+      helperPath: "C:\\Codia\\codia-win-sandbox.exe",
       markerPath: path.join(makeTempDir(), "timeout.json"),
       timeoutMs: 1,
       targets: { aclPaths: ["C:\\work"], profileNames: [] },
@@ -263,7 +263,7 @@ describe("Windows legacy sandbox migration", () => {
     await expect(runWin32LegacySandboxMigration({
       platform: "win32",
       cleanup: true,
-      helperPath: "C:\\G-SAP\\gsap-win-sandbox.exe",
+      helperPath: "C:\\Codia\\codia-win-sandbox.exe",
       markerPath: path.join(makeTempDir(), "spawn-error.json"),
       targets: { aclPaths: ["C:\\work"], profileNames: [] },
       spawn: vi.fn(() => { throw new Error("spawn boom"); }),

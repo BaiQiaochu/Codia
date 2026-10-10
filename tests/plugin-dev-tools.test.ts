@@ -50,14 +50,13 @@ describe("createPluginDevTools", () => {
     };
     const tools = createPluginDevTools({
       pluginDevService: service,
-      getAgentId: () => "gsap",
+      getAgentId: () => "codia",
     });
     const invoke = tools.find((tool) => tool.name === "plugin_dev_invoke_tool");
 
     await invoke.execute(
       "call-1",
       { pluginId: "demo", toolName: "echo", input: { text: "hi" } },
-      null,
       null,
       { sessionManager: { getSessionFile: () => "/tmp/session.jsonl" } },
     );
@@ -67,7 +66,7 @@ describe("createPluginDevTools", () => {
       toolName: "echo",
       input: { text: "hi" },
       sessionPath: "/tmp/session.jsonl",
-      agentId: "gsap",
+      agentId: "codia",
     });
   });
 });

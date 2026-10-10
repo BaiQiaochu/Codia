@@ -41,7 +41,7 @@ describe("session turn context injection", () => {
 
     expect(original[0].content).toBe("base system");
     expect((injected[0] as any).content).toContain("base system");
-    expect((injected[0] as any).content).toContain("G-SAP turn context");
+    expect((injected[0] as any).content).toContain("Codia turn context");
     expect((injected[0] as any).content).toContain("world rules");
     expect((injected[1] as any).content).toEqual([
       { type: "text", text: expect.stringContaining("rag before") },

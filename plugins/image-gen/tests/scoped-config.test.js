@@ -18,15 +18,15 @@ describe("image-gen scoped config", () => {
       JSON.stringify({ defaultImageModel: { id: "global-model", provider: "openai" } }),
       "utf-8",
     );
-    fs.mkdirSync(path.join(tmpRoot, "agents", "hana"), { recursive: true });
+    fs.mkdirSync(path.join(tmpRoot, "agents", "codia"), { recursive: true });
     fs.writeFileSync(
-      path.join(tmpRoot, "agents", "hana", "config.json"),
-      JSON.stringify({ defaultImageModel: { id: "gsap-model", provider: "openai" } }),
+      path.join(tmpRoot, "agents", "codia", "config.json"),
+      JSON.stringify({ defaultImageModel: { id: "codia-model", provider: "openai" } }),
       "utf-8",
     );
 
-    const scoped = createScopedConfigAccessor({ dataDir: tmpRoot }, "hana");
-    expect(scoped.get("defaultImageModel")).toEqual({ id: "gsap-model", provider: "openai" });
+    const scoped = createScopedConfigAccessor({ dataDir: tmpRoot }, "codia");
+    expect(scoped.get("defaultImageModel")).toEqual({ id: "codia-model", provider: "openai" });
   });
 
   it("writes agent-scoped config into agents/<id>/config.json", () => {
@@ -48,7 +48,7 @@ describe("image-gen scoped config", () => {
           defaultImageModel: { id: "global-model", provider: "openai" },
         },
         agents: {
-          hana: {
+          codia: {
             defaultVideoModel: { id: "agent-video", provider: "volcengine" },
           },
         },
@@ -57,7 +57,7 @@ describe("image-gen scoped config", () => {
       "utf-8",
     );
 
-    const scoped = createScopedConfigAccessor({ dataDir: tmpRoot }, "hana");
+    const scoped = createScopedConfigAccessor({ dataDir: tmpRoot }, "codia");
 
     expect(scoped.get("defaultImageModel")).toEqual({ id: "global-model", provider: "openai" });
     expect(scoped.get("defaultVideoModel")).toEqual({ id: "agent-video", provider: "volcengine" });
@@ -69,7 +69,7 @@ describe("image-gen scoped config", () => {
     scoped.set("defaultVideoModel", null);
 
     const saved = JSON.parse(fs.readFileSync(path.join(tmpRoot, "config.json"), "utf-8"));
-    expect(saved.agents.hana.defaultVideoModel).toBeNull();
+    expect(saved.agents.codia.defaultVideoModel).toBeNull();
   });
 
   it("does not let legacy agent media defaults override plugin-state defaults", () => {
@@ -82,7 +82,7 @@ describe("image-gen scoped config", () => {
           defaultAudioModel: { id: "tts-plus", provider: "custom-audio" },
         },
         agents: {
-          gsap: {
+          codia: {
             defaultMusicModel: { id: "song-plus", provider: "custom-music" },
             defaultVideoModel: { id: "motion-plus", provider: "custom-video" },
           },
@@ -91,9 +91,9 @@ describe("image-gen scoped config", () => {
       }),
       "utf-8",
     );
-    fs.mkdirSync(path.join(tmpRoot, "agents", "gsap"), { recursive: true });
+    fs.mkdirSync(path.join(tmpRoot, "agents", "codia"), { recursive: true });
     fs.writeFileSync(
-      path.join(tmpRoot, "agents", "gsap", "config.json"),
+      path.join(tmpRoot, "agents", "codia", "config.json"),
       JSON.stringify({
         defaultImageModel: { id: "image-01", provider: "minimax" },
         defaultAudioModel: { id: "old-audio", provider: "legacy" },
@@ -104,7 +104,7 @@ describe("image-gen scoped config", () => {
       "utf-8",
     );
 
-    const scoped = createScopedConfigAccessor({ dataDir: tmpRoot }, "gsap");
+    const scoped = createScopedConfigAccessor({ dataDir: tmpRoot }, "codia");
 
     expect(scoped.get("defaultImageModel")).toEqual({ id: "gpt-image-2", provider: "kskooo" });
     expect(scoped.get("defaultAudioModel")).toEqual({ id: "tts-plus", provider: "custom-audio" });
@@ -119,9 +119,9 @@ describe("image-gen scoped config", () => {
       JSON.stringify({ schemaVersion: 1, global: {}, agents: {}, sessions: {} }),
       "utf-8",
     );
-    fs.mkdirSync(path.join(tmpRoot, "agents", "gsap"), { recursive: true });
+    fs.mkdirSync(path.join(tmpRoot, "agents", "codia"), { recursive: true });
     fs.writeFileSync(
-      path.join(tmpRoot, "agents", "gsap", "config.json"),
+      path.join(tmpRoot, "agents", "codia", "config.json"),
       JSON.stringify({
         defaultVideoModel: { id: "old-video", provider: "legacy" },
         providerDefaults: { custom: { quality: "high" } },
@@ -129,12 +129,12 @@ describe("image-gen scoped config", () => {
       "utf-8",
     );
 
-    const scoped = createScopedConfigAccessor({ dataDir: tmpRoot }, "gsap");
+    const scoped = createScopedConfigAccessor({ dataDir: tmpRoot }, "codia");
     scoped.set("defaultVideoModel", { id: "motion-plus", provider: "custom-video" });
 
     const savedPluginState = JSON.parse(fs.readFileSync(path.join(tmpRoot, "config.json"), "utf-8"));
-    const savedLegacy = JSON.parse(fs.readFileSync(path.join(tmpRoot, "agents", "gsap", "config.json"), "utf-8"));
-    expect(savedPluginState.agents.gsap.defaultVideoModel).toEqual({ id: "motion-plus", provider: "custom-video" });
+    const savedLegacy = JSON.parse(fs.readFileSync(path.join(tmpRoot, "agents", "codia", "config.json"), "utf-8"));
+    expect(savedPluginState.agents.codia.defaultVideoModel).toEqual({ id: "motion-plus", provider: "custom-video" });
     expect(savedLegacy.defaultVideoModel).toBeUndefined();
     expect(savedLegacy.providerDefaults).toEqual({ custom: { quality: "high" } });
   });

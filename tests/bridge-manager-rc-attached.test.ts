@@ -1,5 +1,5 @@
 // @ts-nocheck
-// Upstream reference test migrated and debranded; skipped until the matching G-SAP source contract is migrated.
+// Upstream reference test migrated and debranded; skipped until the matching Codia source contract is migrated.
 /**
  * BridgeManager RC attached-session 路由集成测试
  *
@@ -34,8 +34,8 @@ function createMocks({ session }: any = {}) {
     stop: vi.fn(),
   };
   const engine: any = {
-    getAgent: vi.fn((id) => id === "hana"
-      ? { id: "hana", agentName: "T", config: { bridge: { telegram: { owner: "owner123" } } }, sessionDir: os.tmpdir() }
+    getAgent: vi.fn((id) => id === "codia"
+      ? { id: "codia", agentName: "T", config: { bridge: { telegram: { owner: "owner123" } } }, sessionDir: os.tmpdir() }
       : null),
     isBridgeSessionStreaming: vi.fn(() => false),
     isSessionStreaming: vi.fn(() => false),
@@ -44,8 +44,8 @@ function createMocks({ session }: any = {}) {
     bridgeSessionManager: { injectMessage: vi.fn(() => true), readIndex: () => ({}), writeIndex: () => {} },
     ensureSessionLoaded: vi.fn(async () => s),
     agentName: "T",
-    hanakoHome: os.tmpdir(),
-    currentAgentId: "hana",
+    codiaHome: os.tmpdir(),
+    currentAgentId: "codia",
   };
   const hub = {
     send: vi.fn().mockResolvedValue({ text: "desktop reply", toolMedia: [] }),
@@ -57,7 +57,7 @@ function createMocks({ session }: any = {}) {
   engine.rcState = slashSystem.rcState;
 
   const bm = new BridgeManager({ engine, hub });
-  bm._platforms.set("telegram:hana", { adapter, status: "connected", agentId: "hana", platform: "telegram" });
+  bm._platforms.set("telegram:codia", { adapter, status: "connected", agentId: "codia", platform: "telegram" });
   bm.blockStreaming = false;
 
   return { bm, adapter, engine, hub, rcState: slashSystem.rcState, session: s };
@@ -69,14 +69,14 @@ describe.skip("BridgeManager RC attached-session routing", () => {
 
   it.skip("with active attachment → routes DM to desktop session, NOT hub.send", async () => {
     const { bm, adapter, engine, hub, rcState } = createMocks();
-    rcState.attach("tg_dm_owner123@hana", "/path/to/desk.jsonl");
+    rcState.attach("tg_dm_owner123@codia", "/path/to/desk.jsonl");
 
     bm._handleMessage("telegram", {
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       text: "帮我看看 foo 这个函数",
       userId: "owner123",
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     await vi.advanceTimersByTimeAsync(2500);
@@ -98,11 +98,11 @@ describe.skip("BridgeManager RC attached-session routing", () => {
     // 不设 attachment
 
     bm._handleMessage("telegram", {
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       text: "hi",
       userId: "owner123",
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     await vi.advanceTimersByTimeAsync(2500);
@@ -115,14 +115,14 @@ describe.skip("BridgeManager RC attached-session routing", () => {
   it.skip("non-owner message with attachment set → does NOT route (防御性 isOwner 检查)", async () => {
     const { bm, hub, engine, rcState } = createMocks();
     // 某种异常情况：attachment 存在但消息来自非 owner
-    rcState.attach("tg_dm_owner123@hana", "/path/to/desk.jsonl");
+    rcState.attach("tg_dm_owner123@codia", "/path/to/desk.jsonl");
 
     bm._handleMessage("telegram", {
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       text: "intruder",
       userId: "random-guest",  // 非 owner
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     await vi.advanceTimersByTimeAsync(2500);
@@ -134,14 +134,14 @@ describe.skip("BridgeManager RC attached-session routing", () => {
   it.skip("desktop session prompt failure → sends [Error] to bridge", async () => {
     const { bm, adapter, hub, rcState } = createMocks();
     hub.send.mockRejectedValueOnce(new Error("model timeout"));
-    rcState.attach("tg_dm_owner123@hana", "/err.jsonl");
+    rcState.attach("tg_dm_owner123@codia", "/err.jsonl");
 
     bm._handleMessage("telegram", {
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       text: "x",
       userId: "owner123",
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     await vi.advanceTimersByTimeAsync(2500);
@@ -155,14 +155,14 @@ describe.skip("BridgeManager RC attached-session routing", () => {
     const { bm, adapter, hub, rcState } = createMocks();
     adapter.sendMedia = adapterSendMedia;
     hub.send.mockResolvedValueOnce({ text: "see image", toolMedia: ["https://example.com/a.png"] });
-    rcState.attach("tg_dm_owner123@hana", "/s.jsonl");
+    rcState.attach("tg_dm_owner123@codia", "/s.jsonl");
 
     bm._handleMessage("telegram", {
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       text: "q",
       userId: "owner123",
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     await vi.advanceTimersByTimeAsync(2500);
@@ -189,14 +189,14 @@ describe.skip("BridgeManager RC attached-session routing", () => {
       opts.onDelta(" reply", "Desk reply");
       return { text: "Desk reply", toolMedia: [] };
     });
-    rcState.attach("tg_dm_owner123@hana", "/s.jsonl");
+    rcState.attach("tg_dm_owner123@codia", "/s.jsonl");
 
     bm._handleMessage("telegram", {
-      sessionKey: "tg_dm_owner123@hana",
+      sessionKey: "tg_dm_owner123@codia",
       text: "q",
       userId: "owner123",
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     await vi.advanceTimersByTimeAsync(2500);
@@ -207,10 +207,10 @@ describe.skip("BridgeManager RC attached-session routing", () => {
 
   it.skip("mirrors desktop-originated user text and assistant reply back to the attached bridge session", async () => {
     const { bm, adapter, rcState } = createMocks();
-    rcState.attach("tg_dm_owner123@hana", "/s.jsonl", {
+    rcState.attach("tg_dm_owner123@codia", "/s.jsonl", {
       platform: "telegram",
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     await bm._handleRcMirrorEvent({
@@ -233,10 +233,10 @@ describe.skip("BridgeManager RC attached-session routing", () => {
 
   it.skip("does not mirror bridge_rc display messages back to the same bridge session", async () => {
     const { bm, adapter, rcState } = createMocks();
-    rcState.attach("tg_dm_owner123@hana", "/s.jsonl", {
+    rcState.attach("tg_dm_owner123@codia", "/s.jsonl", {
       platform: "telegram",
       chatId: "owner123",
-      agentId: "hana",
+      agentId: "codia",
     });
 
     await bm._handleRcMirrorEvent({

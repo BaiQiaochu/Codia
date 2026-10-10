@@ -1,10 +1,10 @@
 import { useStore } from './index';
+import { normalizeSettingsRouteId } from '../settings/settings-route';
 
 const DEFAULT_SETTINGS_TAB = 'agent';
 
 export function normalizeSettingsModalTab(tab?: string): string {
-  const nextTab = tab || DEFAULT_SETTINGS_TAB;
-  return nextTab === 'computer' ? 'experiments' : nextTab;
+  return normalizeSettingsRouteId(tab || DEFAULT_SETTINGS_TAB);
 }
 
 export function openSettingsModal(tab?: string): void {

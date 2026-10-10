@@ -42,8 +42,8 @@ describe("SessionCoordinator session manifest integration", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-session-manifest-coord-"));
-    sessionPath = path.join(tempDir, "agents", "gsap", "sessions", "alpha.jsonl");
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-manifest-coord-"));
+    sessionPath = path.join(tempDir, "agents", "codia", "sessions", "alpha.jsonl");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(sessionPath, [
       JSON.stringify({ type: "session", version: 3, id: "alpha", timestamp: "2026-06-18T04:00:00.000Z", cwd: tempDir }),
@@ -77,10 +77,10 @@ describe("SessionCoordinator session manifest integration", () => {
 
   function createCoordinator() {
     const agent = {
-      id: "gsap",
-      agentName: "G-SAP",
-      name: "G-SAP",
-      agentDir: path.join(tempDir, "agents", "gsap"),
+      id: "codia",
+      agentName: "Codia",
+      name: "Codia",
+      agentDir: path.join(tempDir, "agents", "codia"),
       sessionDir: path.dirname(sessionPath),
       memoryMasterEnabled: true,
       sessionMemoryEnabled: true,
@@ -91,7 +91,7 @@ describe("SessionCoordinator session manifest integration", () => {
     return new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "m", provider: "test", name: "Test Model" },
         authStorage: {},
@@ -110,7 +110,7 @@ describe("SessionCoordinator session manifest integration", () => {
       emitEvent: vi.fn(),
       emitDevLog: vi.fn(),
       getHomeCwd: () => tempDir,
-      agentIdFromSessionPath: () => "gsap",
+      agentIdFromSessionPath: () => "codia",
       switchAgentOnly: async () => {},
       getConfig: () => ({}),
       getPrefs: () => ({
@@ -135,16 +135,16 @@ describe("SessionCoordinator session manifest integration", () => {
     expect(created).toMatchObject({
       sessionPath,
       sessionId: "sess_coord_0001",
-      agentId: "gsap",
+      agentId: "codia",
     });
     expect(sessions.find((session) => session.path === sessionPath)).toMatchObject({
       path: sessionPath,
       sessionId: "sess_coord_0001",
-      agentId: "gsap",
+      agentId: "codia",
     });
     expect(store.resolveByLocatorPath(sessionPath)).toMatchObject({
       sessionId: "sess_coord_0001",
-      ownerAgentId: "gsap",
+      ownerAgentId: "codia",
       lifecycle: "active",
       memoryPolicy: { mode: "enabled", inheritedFrom: "session_create" },
       permissionModeSnapshot: {
@@ -159,7 +159,7 @@ describe("SessionCoordinator session manifest integration", () => {
     const coordinator = createCoordinator();
 
     await coordinator.createSession(null, tempDir, true);
-    const movedPath = path.join(tempDir, "agents", "gsap", "sessions", "alpha-renamed.jsonl");
+    const movedPath = path.join(tempDir, "agents", "codia", "sessions", "alpha-renamed.jsonl");
     fs.renameSync(sessionPath, movedPath);
     store.updateLocator("sess_coord_0001", movedPath, "rename");
 
@@ -183,7 +183,7 @@ describe("SessionCoordinator session manifest integration", () => {
     expect(coordinator._sessions.has(sessionPath)).toBe(false);
     expect(coordinator.getSessionByPath(sessionPath)).toBe(created.session);
 
-    const movedPath = path.join(tempDir, "agents", "gsap", "sessions", "alpha-renamed.jsonl");
+    const movedPath = path.join(tempDir, "agents", "codia", "sessions", "alpha-renamed.jsonl");
     store.updateLocator("sess_coord_0001", movedPath, "rename");
 
     expect(coordinator.getSessionByPath(sessionPath)).toBe(created.session);
@@ -259,7 +259,7 @@ describe("SessionCoordinator session manifest integration", () => {
     await coordinator.createSession(null, tempDir, true);
     await coordinator.saveSessionTitle(sessionPath, "Stable title");
 
-    const movedPath = path.join(tempDir, "agents", "gsap", "sessions", "alpha-renamed.jsonl");
+    const movedPath = path.join(tempDir, "agents", "codia", "sessions", "alpha-renamed.jsonl");
     store.updateLocator("sess_coord_0001", movedPath, "rename");
 
     await expect(coordinator.getTitlesForPaths([movedPath])).resolves.toEqual({
@@ -271,7 +271,7 @@ describe("SessionCoordinator session manifest integration", () => {
     const coordinator = createCoordinator();
 
     await coordinator.createSession(null, tempDir, true);
-    const visibleArchivedPath = path.join(tempDir, "agents", "gsap", "sessions", "archived", "alpha.jsonl");
+    const visibleArchivedPath = path.join(tempDir, "agents", "codia", "sessions", "archived", "alpha.jsonl");
 
     expect(coordinator._sessionTitleFromMap(
       { sess_coord_0001: "Stable title" },
@@ -296,7 +296,7 @@ describe("SessionCoordinator session manifest integration", () => {
       visibility: "private",
     });
 
-    const movedPath = path.join(tempDir, "agents", "gsap", "sessions", "alpha-renamed.jsonl");
+    const movedPath = path.join(tempDir, "agents", "codia", "sessions", "alpha-renamed.jsonl");
     store.updateLocator("sess_coord_0001", movedPath, "rename");
     await coordinator.setSessionPluginMeta(movedPath, { visibility: "public" });
 
@@ -319,7 +319,7 @@ describe("SessionCoordinator session manifest integration", () => {
       visibility: "private",
     });
 
-    const movedPath = path.join(tempDir, "agents", "gsap", "sessions", "alpha-renamed.jsonl");
+    const movedPath = path.join(tempDir, "agents", "codia", "sessions", "alpha-renamed.jsonl");
     fs.renameSync(sessionPath, movedPath);
     store.updateLocator("sess_coord_0001", movedPath, "rename");
 
@@ -347,7 +347,7 @@ describe("SessionCoordinator session manifest integration", () => {
     await coordinator.setSessionThinkingLevel(sessionPath, "high");
     await coordinator.setSessionAuthorizedFolders(sessionPath, [allowedFolder]);
 
-    const movedPath = path.join(tempDir, "agents", "gsap", "sessions", "alpha-renamed.jsonl");
+    const movedPath = path.join(tempDir, "agents", "codia", "sessions", "alpha-renamed.jsonl");
     fs.renameSync(sessionPath, movedPath);
     store.updateLocator("sess_coord_0001", movedPath, "rename");
 

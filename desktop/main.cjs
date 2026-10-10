@@ -1,4 +1,4 @@
-﻿
+
 const { app, BrowserWindow, WebContentsView, globalShortcut, ipcMain, dialog, session, shell, nativeTheme, Tray, Menu, nativeImage, systemPreferences, Notification, clipboard, webContents, screen, protocol, powerSaveBlocker } = require("electron");
 const os = require("os");
 const path = require("path");
@@ -13,14 +13,14 @@ const { wrapIpcHandler, wrapIpcBestEffortHandler, wrapIpcOn } = require('./ipc-w
 const { initAutoUpdater, checkForUpdatesAuto, setMainWindow: setUpdaterMainWindow, setUpdateChannel, getState: getUpdateState } = require("./auto-updater.cjs");
 const { getAutoLaunchStatus, setAutoLaunchEnabled } = require("./login-item-settings.cjs");
 const {
-  DEFAULT_GSAP_HOME,
-  applyGsapHomeEnv,
+  DEFAULT_CODIA_HOME,
+  applyCodiaHomeEnv,
   configureProcessPiSdkEnv,
-  ensureGsapPiSdkDirs,
-  resolveGsapHome,
+  ensureCodiaPiSdkDirs,
+  resolveCodiaHome,
   resolveServerInfoPath,
-  withGsapPiSdkEnv,
-} = require('./gsap-home.cjs');
+  withCodiaPiSdkEnv,
+} = require('./codia-home.cjs');
 const { resolveServerBinary, resolveServerLaunchConfig } = require("./server-runtime.cjs");
 const { buildWin32ServerEnv } = require("./src/shared/server-process-env.cjs");
 const {
@@ -91,7 +91,7 @@ const {
   createDesktopLaunchDiagnostics,
 } = require("./src/shared/desktop-launch-diagnostics.cjs");
 
-const APP_USER_MODEL_ID = "cn.edu.njust.byoung";
+const APP_USER_MODEL_ID = "io.github.baiqiaochu.codia";
 const RUNTIME_DISPLAY_NAME = "Codia";
 let _cachedWindowIcon = undefined;
 
@@ -109,12 +109,12 @@ function runtimeAppUserModelId() {
 
 function resolveProductIconFilenames() {
   const name = runtimeProductName();
-  return [`${name}.png`, `${name}.ico`, "G-SAP.png", "G-SAP.ico"];
+  return [`${name}.png`, `${name}.ico`, "codia.png", "codia.ico"];
 }
 
 function resolveRuntimeBrandImagePath() {
   const candidates = [];
-  candidates.push(path.join(__dirname, "src", "assets", "G-SAP.png"));
+  candidates.push(path.join(__dirname, "src", "assets", "codia.png"));
   return candidates.find(p => {
     try { return fs.existsSync(p); } catch { return false; }
   }) || "";
@@ -122,8 +122,8 @@ function resolveRuntimeBrandImagePath() {
 
 function resolveRuntimeDefaultAssistantAvatarPath() {
   const candidates = [
-    path.join(__dirname, "src", "assets", "character-cards", "gsap-default-avatar.png"),
-    path.join(__dirname, "src", "assets", "G-SAP.png"),
+    path.join(__dirname, "src", "assets", "character-cards", "codia-default-avatar.png"),
+    path.join(__dirname, "src", "assets", "codia.png"),
   ];
   return candidates.find(p => {
     try { return fs.existsSync(p); } catch { return false; }
@@ -195,8 +195,8 @@ function windowIconOption() {
 
 // Source startup prepares its sandbox preload outside the checkout. Packaged
 // apps always use their bundled preload and ignore development overrides.
-const PRELOAD_PATH = !app.isPackaged && process.env.GSAP_DEV_PRELOAD_PATH
-  ? path.resolve(process.env.GSAP_DEV_PRELOAD_PATH)
+const PRELOAD_PATH = !app.isPackaged && process.env.CODIA_DEV_PRELOAD_PATH
+  ? path.resolve(process.env.CODIA_DEV_PRELOAD_PATH)
   : path.join(__dirname, "preload.bundle.cjs");
 if (!fs.existsSync(PRELOAD_PATH)) {
   const msg = `Missing preload:\n${PRELOAD_PATH}\n\nStart the source checkout with 'npm start'. For packaged builds, run 'npm run build:preload'.`;
@@ -238,21 +238,21 @@ function safeReadExistingJSON(filePath, fallback = null) {
   return safeReadJSON(filePath, fallback);
 }
 
-const gsapHome = resolveGsapHome();
-applyGsapHomeEnv(gsapHome);
-ensureGsapPiSdkDirs(gsapHome);
-configureProcessPiSdkEnv(gsapHome);
-const desktopServerInfoPath = resolveServerInfoPath(gsapHome, { GSAP_SERVER_SCOPE: "desktop" }, "desktop");
-const preferencesPath = path.join(gsapHome, "user", "preferences.json");
+const codiaHome = resolveCodiaHome();
+applyCodiaHomeEnv(codiaHome);
+ensureCodiaPiSdkDirs(codiaHome);
+configureProcessPiSdkEnv(codiaHome);
+const desktopServerInfoPath = resolveServerInfoPath(codiaHome, { CODIA_SERVER_SCOPE: "desktop" }, "desktop");
+const preferencesPath = path.join(codiaHome, "user", "preferences.json");
 const keepAwakeManager = createKeepAwakeManager({ powerSaveBlocker });
 const desktopStartupId = `${Date.now()}-${process.pid}`;
 function redactMainLogText(value) {
   return String(value)
     .replaceAll(os.homedir(), "<home>")
-    .replaceAll(gsapHome, "<gsap-home>");
+    .replaceAll(codiaHome, "<codia-home>");
 }
 const desktopLaunchDiagnostics = createDesktopLaunchDiagnostics({
-  gsapHome,
+  codiaHome,
   startupId: desktopStartupId,
   appVersion: app?.getVersion?.() || "unknown",
   platform: process.platform,
@@ -271,7 +271,7 @@ function writeDesktopLaunchDiagnostic(event, details = {}) {
   desktopLaunchDiagnostics.append(event, details);
 }
 const gpuStartupPolicy = resolveGpuStartupPolicy({
-  gsapHome,
+  codiaHome,
   platform: process.platform,
   argv: process.argv,
   env: process.env,
@@ -280,7 +280,7 @@ applyGpuStartupPolicy(app, gpuStartupPolicy);
 if (process.platform === "win32") {
   try {
     markGpuStartupPending({
-      gsapHome,
+      codiaHome,
       platform: process.platform,
       phase: "electron-starting",
       startupId: desktopStartupId,
@@ -298,7 +298,7 @@ function isImageAttachmentPath(filePath) {
 }
 
 function readNetworkProxyPreference() {
-  const prefsPath = path.join(gsapHome, "user", "preferences.json");
+  const prefsPath = path.join(codiaHome, "user", "preferences.json");
   const prefs = safeReadExistingJSON(prefsPath, {});
   return normalizeNetworkProxyConfig(prefs?.network_proxy);
 }
@@ -383,9 +383,9 @@ async function serverEnvironmentForNetworkProxy(baseEnv) {
 }
 
 
-const defaultHome = DEFAULT_GSAP_HOME;
+const defaultHome = DEFAULT_CODIA_HOME;
 configureClientSingleInstance(app, {
-  gsapHome,
+  codiaHome,
   defaultHome,
   onSecondInstance: () => showPrimaryWindow(),
 });
@@ -415,18 +415,18 @@ const _viewerWindows = new Map();
 
 
 const _isDev = process.argv.includes("--dev") || (!app.isPackaged && Boolean(process.env.VITE_DEV_URL));
-const _isE2E = process.env.GSAP_E2E === "1";
+const _isE2E = process.env.CODIA_E2E === "1";
 const _distRenderer = path.join(__dirname, "dist-renderer");
-const _remoteDebugPort = String(process.env.GSAP_E2E_REMOTE_DEBUG_PORT || "").trim();
+const _remoteDebugPort = String(process.env.CODIA_E2E_REMOTE_DEBUG_PORT || "").trim();
 const QUICK_CHAT_WIDTH = 480;
 const QUICK_CHAT_COMPACT_HEIGHT = 142;
 const QUICK_CHAT_CHAT_HEIGHT = 520;
 const QUICK_CHAT_MIN_WIDTH = 360;
 const QUICK_CHAT_MIN_HEIGHT = 118;
-const quickChatWindowStatePath = path.join(gsapHome, "user", "quick-chat-window-state.json");
+const quickChatWindowStatePath = path.join(codiaHome, "user", "quick-chat-window-state.json");
 
 if (_isE2E) {
-  const isolatedUserData = path.join(gsapHome, ".electron-user-data");
+  const isolatedUserData = path.join(codiaHome, ".electron-user-data");
   fs.mkdirSync(isolatedUserData, { recursive: true });
   app.setPath("userData", isolatedUserData);
 }
@@ -516,14 +516,14 @@ function attachRendererLaunchDiagnostics(win, label) {
       exitCode: details?.exitCode,
     });
   });
-  wc.on("console-message", (_event, level, message, line, sourceId) => {
+  wc.on("console-message", (details) => {
     writeDesktopLaunchDiagnostic("console-message", {
       label,
       windowId: win.id,
-      level,
-      message,
-      line,
-      sourceId,
+      level: details?.level,
+      message: details?.message,
+      line: details?.lineNumber ?? details?.line,
+      sourceId: details?.sourceId,
     });
   });
 }
@@ -646,6 +646,10 @@ function createQuickChatWindow() {
       preload: PRELOAD_PATH,
       contextIsolation: true,
       nodeIntegration: false,
+      // The window stays hidden behind the splash until React sends
+      // `app-ready`. Throttling a hidden renderer would prevent the effects
+      // responsible for that handshake from completing.
+      backgroundThrottling: false,
     },
   });
 
@@ -801,8 +805,8 @@ function _getMainI18n() {
   try {
     let locale = null;
     for (const prefPath of [
-      path.join(gsapHome, "user", "preferences.json"),
-      path.join(gsapHome, "preferences.json"),
+      path.join(codiaHome, "user", "preferences.json"),
+      path.join(codiaHome, "preferences.json"),
     ]) {
       try {
         const prefs = JSON.parse(fs.readFileSync(prefPath, "utf-8"));
@@ -869,8 +873,8 @@ function settingsTitleBarOpts(trafficLight = { x: 16, y: 16 }) {
 
 
 function getCurrentAgentId() {
-  const prefsPath = path.join(gsapHome, "user", "preferences.json");
-  const agentsDir = path.join(gsapHome, "agents");
+  const prefsPath = path.join(codiaHome, "user", "preferences.json");
+  const agentsDir = path.join(codiaHome, "agents");
 
 
   try {
@@ -900,7 +904,7 @@ function getCurrentAgentId() {
 
 
 function isSetupComplete() {
-  const prefsPath = path.join(gsapHome, "user", "preferences.json");
+  const prefsPath = path.join(codiaHome, "user", "preferences.json");
   try {
     return JSON.parse(fs.readFileSync(prefsPath, "utf-8")).setupComplete === true;
   } catch {}
@@ -912,7 +916,7 @@ function hasExistingConfig() {
   try {
     const agentId = getCurrentAgentId();
     if (!agentId) return false;
-    const configPath = path.join(gsapHome, "agents", agentId, "config.yaml");
+    const configPath = path.join(codiaHome, "agents", agentId, "config.yaml");
     const configText = fs.readFileSync(configPath, "utf-8");
     return /api_key:\s*["']?[^"'\s]+/.test(configText);
   } catch {}
@@ -924,7 +928,7 @@ function readCurrentAgentConfig() {
   if (!agentId) return {};
 
   try {
-    const configPath = path.join(gsapHome, "agents", agentId, "config.yaml");
+    const configPath = path.join(codiaHome, "agents", agentId, "config.yaml");
     const configText = fs.readFileSync(configPath, "utf-8");
     const yaml = require("js-yaml");
     const parsed = yaml.load(configText);
@@ -943,7 +947,7 @@ function resolveSplashLocale(value) {
 
 function resolveSplashInfo() {
   const prefs = safeReadExistingJSON(preferencesPath, {});
-  const legacyPrefs = safeReadExistingJSON(path.join(gsapHome, "preferences.json"), {});
+  const legacyPrefs = safeReadExistingJSON(path.join(codiaHome, "preferences.json"), {});
   const config = readCurrentAgentConfig();
   const agentConfig = config.agent && typeof config.agent === "object" ? config.agent : {};
   const userConfig = config.user && typeof config.user === "object" ? config.user : {};
@@ -957,7 +961,7 @@ function resolveSplashInfo() {
     (typeof agentConfig.yuan === "string" && agentConfig.yuan.trim())
     || (typeof config.yuan === "string" && config.yuan.trim())
     || (typeof prefs.yuan === "string" && prefs.yuan.trim())
-    || "gsap";
+    || "codia";
 
   return {
     agentName,
@@ -972,7 +976,7 @@ async function migrateSetupCompleteViaServerIfNeeded() {
   if (isSetupComplete()) return false;
 
   try {
-    const modelsPath = path.join(gsapHome, "added-models.yaml");
+    const modelsPath = path.join(codiaHome, "added-models.yaml");
     if (!fs.existsSync(modelsPath)) return false;
     const content = fs.readFileSync(modelsPath, "utf-8");
     if (!/api_key:\s*["']?[^"'\s]+/.test(content)) return false;
@@ -1169,25 +1173,23 @@ async function startServer() {
 
   _serverLogs = [];
 
-  let serverEnv = withGsapPiSdkEnv({
+  let serverEnv = withCodiaPiSdkEnv({
     ...process.env,
-    GSAP_HOME: gsapHome,
-    HANA_HOME: gsapHome,
-    GSAP_SERVER_SCOPE: "desktop",
-    GSAP_SERVER_INFO: serverInfoPath,
-    GSAP_DESKTOP_EXEC_PATH: process.execPath,
-    GSAP_DESKTOP_APP_PATH: app.getAppPath(),
-    GSAP_DESKTOP_IS_PACKAGED: app.isPackaged ? "1" : "0",
-    HANA_DESKTOP_EXEC_PATH: process.execPath,
-    HANA_DESKTOP_APP_PATH: app.getAppPath(),
-    HANA_DESKTOP_IS_PACKAGED: app.isPackaged ? "1" : "0",
-    GSAP_CREATE_STARTUP_SESSION: "0",
-    HANA_CREATE_STARTUP_SESSION: "0",
-    GSAP_SERVER_OWNER: "desktop",
-    GSAP_SERVER_OWNER_PID: String(process.pid),
-    HANA_SERVER_OWNER: "desktop",
-    HANA_SERVER_OWNER_PID: String(process.pid),
-  }, gsapHome);
+    CODIA_HOME: codiaHome,
+    CODIA_SERVER_SCOPE: "desktop",
+    CODIA_SERVER_INFO: serverInfoPath,
+    CODIA_DESKTOP_EXEC_PATH: process.execPath,
+    CODIA_DESKTOP_APP_PATH: app.getAppPath(),
+    CODIA_DESKTOP_IS_PACKAGED: app.isPackaged ? "1" : "0",
+    CODIA_DESKTOP_EXEC_PATH: process.execPath,
+    CODIA_DESKTOP_APP_PATH: app.getAppPath(),
+    CODIA_DESKTOP_IS_PACKAGED: app.isPackaged ? "1" : "0",
+    CODIA_CREATE_STARTUP_SESSION: "0",
+    CODIA_SERVER_OWNER: "desktop",
+    CODIA_SERVER_OWNER_PID: String(process.pid),
+    CODIA_SERVER_OWNER: "desktop",
+    CODIA_SERVER_OWNER_PID: String(process.pid),
+  }, codiaHome);
   serverEnv = await serverEnvironmentForNetworkProxy(serverEnv);
 
 
@@ -1213,10 +1215,8 @@ async function startServer() {
     serverArgs = process.platform === "win32"
       ? [path.join(path.dirname(bin), "bootstrap.js")]
       : [];
-    serverEnv.GSAP_ROOT = path.join(process.resourcesPath, "server");
-    serverEnv.HANA_ROOT = serverEnv.GSAP_ROOT;
-    serverEnv.GSAP_SERVER_ENTRY = path.join(serverEnv.GSAP_ROOT, "bundle", "index.js");
-    serverEnv.HANA_SERVER_ENTRY = serverEnv.GSAP_SERVER_ENTRY;
+    serverEnv.CODIA_ROOT = path.join(process.resourcesPath, "server");
+    serverEnv.CODIA_SERVER_ENTRY = path.join(serverEnv.CODIA_ROOT, "bundle", "index.js");
   } else {
 
 
@@ -1468,7 +1468,7 @@ function buildServerCrashDiagnostics() {
   const items = [
       ``,
       `--- Diagnostics ---`,
-      `GSAP_HOME: ${gsapHome}`,
+      `CODIA_HOME: ${codiaHome}`,
       `Server dir: ${serverDir}`,
       `Packaged: ${!!isPackaged}`,
       `Server PID: ${_lastServerLaunchInfo?.pid || "unknown"}`,
@@ -1491,20 +1491,20 @@ function buildServerCrashDiagnostics() {
   ];
 
   if (process.platform === "win32" && isPackaged) {
-    const exePath = path.join(serverDir, "gsap-server.exe");
-    const legacyExePath = path.join(serverDir, "hana-server.exe");
-    const cmdPath = path.join(serverDir, "gsap-server.cmd");
+    const exePath = path.join(serverDir, "codia-server.exe");
+    const legacyExePath = path.join(serverDir, "codia-server.exe");
+    const cmdPath = path.join(serverDir, "codia-server.cmd");
     const gitRoot = path.join(process.resourcesPath, "git");
-    items.push(`gsap-server.exe exists: ${fs.existsSync(exePath)}`);
-    items.push(`hana-server.exe exists (legacy fallback): ${fs.existsSync(legacyExePath)}`);
-    items.push(`gsap-server.cmd exists (manual debug): ${fs.existsSync(cmdPath)}`);
+    items.push(`codia-server.exe exists: ${fs.existsSync(exePath)}`);
+    items.push(`codia-server.exe exists (legacy fallback): ${fs.existsSync(legacyExePath)}`);
+    items.push(`codia-server.cmd exists (manual debug): ${fs.existsSync(cmdPath)}`);
     items.push(`MinGit dir exists: ${fs.existsSync(gitRoot)}`);
     items.push(``);
-    items.push(`Manual debug: open cmd.exe, cd to "${serverDir}", run gsap-server.cmd`);
+    items.push(`Manual debug: open cmd.exe, cd to "${serverDir}", run codia-server.cmd`);
   }
 
   try {
-    items.push(buildGpuStartupDiagnostics({ gsapHome, policy: gpuStartupPolicy, app }));
+    items.push(buildGpuStartupDiagnostics({ codiaHome, policy: gpuStartupPolicy, app }));
   } catch (err) {
     items.push(`GPU startup diagnostics failed: ${err.message}`);
   }
@@ -1534,8 +1534,8 @@ function writeCrashLog(errorMessage) {
 
   // Write crash log best-effort.
   try {
-    const crashLogPath = path.join(gsapHome, "crash.log");
-    fs.mkdirSync(gsapHome, { recursive: true });
+    const crashLogPath = path.join(codiaHome, "crash.log");
+    fs.mkdirSync(codiaHome, { recursive: true });
     fs.writeFileSync(crashLogPath, content, "utf-8");
   } catch (e) {
     console.error("[desktop] failed to write crash.log:", e.message);
@@ -1638,7 +1638,7 @@ function failInstallingWindow(msg) {
 }
 
 
-const windowStatePath = path.join(gsapHome, "user", "window-state.json");
+const windowStatePath = path.join(codiaHome, "user", "window-state.json");
 const mainWindowStateSaver = createWindowStateSaver({
   filePath: windowStatePath,
   getWindow: () => mainWindow,
@@ -1695,7 +1695,7 @@ function createMainWindow() {
     initAutoUpdater(mainWindow, {
       shutdownServer,
       setIsUpdating: (v) => { _isUpdating = v; },
-      gsapHome,
+      codiaHome,
       showInstalling: createInstallingWindow,
       failInstalling: failInstallingWindow,
     });
@@ -1716,6 +1716,9 @@ function createMainWindow() {
     writeDesktopLaunchDiagnostic("app-ready-timeout", { label: "main", timeoutMs: 30000 });
     if (mainWindow && !mainWindow.isDestroyed() && (!mainWindow.isVisible() || mainWindow.isMinimized())) {
       focusExistingWindow(mainWindow);
+    }
+    if (splashWindow && !splashWindow.isDestroyed()) {
+      splashWindow.close();
     }
   }, 30000);
   mainWindow.webContents.once("did-finish-load", () => {
@@ -1896,8 +1899,12 @@ function createSettingsWindow(tab, theme) {
     showSettingsWindow("did-fail-load");
   });
 
-  settingsWindow.webContents.on("console-message", (_event, level, message, line, sourceId) => {
-    if (level >= 2 || process.env.GSAP_DEBUG_SETTINGS === "1") {
+  settingsWindow.webContents.on("console-message", (details) => {
+    const level = details?.level;
+    const message = details?.message;
+    const line = details?.lineNumber ?? details?.line;
+    const sourceId = details?.sourceId;
+    if (Number(level) >= 2 || process.env.CODIA_DEBUG_SETTINGS === "1") {
       console.log(`[settings:${level}] ${message} (${sourceId}:${line})`);
     }
   });
@@ -2057,8 +2064,8 @@ function createBrowserViewerWindow(opts = {}) {
 const SNAPSHOT_SCRIPT = `(function() {
   var ref = 0;
   var MAX_TREE = 30000;
-  document.querySelectorAll('[data-gsap-ref]').forEach(function(el) {
-    el.removeAttribute('data-gsap-ref');
+  document.querySelectorAll('[data-codia-ref]').forEach(function(el) {
+    el.removeAttribute('data-codia-ref');
   });
 
   function isVisible(el) {
@@ -2111,7 +2118,7 @@ const SNAPSHOT_SCRIPT = `(function() {
       if (['SCRIPT','STYLE','NOSCRIPT','TEMPLATE','SVG'].indexOf(tag) !== -1) return;
       if (isInteractive(node)) {
         ref++;
-        node.setAttribute('data-gsap-ref', String(ref));
+        node.setAttribute('data-codia-ref', String(ref));
         var name = node.getAttribute('aria-label') || node.title || node.placeholder
           || (node.textContent || '').trim().replace(/\\s+/g, ' ').slice(0, 60) || node.value || '';
         if (tag === 'A' || node.getAttribute('role') === 'link') {
@@ -2171,7 +2178,7 @@ const SNAPSHOT_SCRIPT = `(function() {
     var interactive = isInteractive(el);
     if (interactive) {
       ref++;
-      el.setAttribute('data-gsap-ref', String(ref));
+      el.setAttribute('data-codia-ref', String(ref));
       var role = el.getAttribute('role') || tag.toLowerCase();
       var name = el.getAttribute('aria-label') || el.title || el.placeholder || directText(el) || el.value || '';
       var label = name.slice(0, 60);
@@ -2222,7 +2229,7 @@ const SNAPSHOT_SCRIPT = `(function() {
 })()`;
 
 function _browserSession() {
-  return session.fromPartition("persist:gsap-browser");
+  return session.fromPartition("persist:codia-browser");
 }
 
 function _installBrowserCookiePolicy() {
@@ -2265,7 +2272,7 @@ async function _clearBrowserCookiesAndSiteData() {
   });
 }
 
-const DEFAULT_BROWSER_WORKSPACE_KEY = "__gsap_default_browser__";
+const DEFAULT_BROWSER_WORKSPACE_KEY = "__codia_default_browser__";
 
 function _browserWorkspaceKey(sessionPath) {
   return sessionPath || DEFAULT_BROWSER_WORKSPACE_KEY;
@@ -2609,7 +2616,7 @@ async function handleBrowserCommand(cmd, params) {
 
       const started = Date.now();
       const searchUrl = buildBrowserSearchUrl(provider, query, maxResults);
-      const ses = session.fromPartition("gsap-search");
+      const ses = session.fromPartition("codia-search");
       const view = new WebContentsView({
         webPreferences: {
           session: ses,
@@ -2891,7 +2898,7 @@ async function handleBrowserCommand(cmd, params) {
       return await _withLiveWebContents(params.sessionPath, async (wc) => {
         const clickRef = Number(params.ref);
         await wc.executeJavaScript(
-          "(function(){ var el = document.querySelector('[data-gsap-ref=\"" + clickRef + "\"]');" +
+          "(function(){ var el = document.querySelector('[data-codia-ref=\"" + clickRef + "\"]');" +
           " if (!el) throw new Error('Element [" + clickRef + "] not found');" +
           " el.scrollIntoView({block:'center'}); el.click(); })()"
         );
@@ -2907,7 +2914,7 @@ async function handleBrowserCommand(cmd, params) {
         if (params.ref != null) {
           const typeRef = Number(params.ref);
           await wc.executeJavaScript(
-            "(function(){ var el = document.querySelector('[data-gsap-ref=\"" + typeRef + "\"]');" +
+            "(function(){ var el = document.querySelector('[data-codia-ref=\"" + typeRef + "\"]');" +
             " if (!el) throw new Error('Element [" + typeRef + "] not found');" +
             " el.scrollIntoView({block:'center'}); el.focus();" +
             " if (el.select) el.select(); })()"
@@ -2944,7 +2951,7 @@ async function handleBrowserCommand(cmd, params) {
         const selRef = Number(params.ref);
         const safeValue = JSON.stringify(params.value);
         await wc.executeJavaScript(
-          "(function(){ var el = document.querySelector('[data-gsap-ref=\"" + selRef + "\"]');" +
+          "(function(){ var el = document.querySelector('[data-codia-ref=\"" + selRef + "\"]');" +
           " if (!el) throw new Error('Element [" + selRef + "] not found');" +
           " el.value = " + safeValue + ";" +
           " el.dispatchEvent(new Event('change',{bubbles:true})); })()"
@@ -3112,7 +3119,7 @@ function setupBrowserCommands() {
       try { msg = JSON.parse(data); } catch { return; }
       if (msg?.type !== "browser-cmd") return;
       const { id, cmd, params } = msg;
-      const _bLog = (line) => { try { require("fs").appendFileSync(require("path").join(gsapHome, "browser-cmd.log"), `${new Date().toISOString()} ${line}\n`); } catch {} };
+      const _bLog = (line) => { try { require("fs").appendFileSync(require("path").join(codiaHome, "browser-cmd.log"), `${new Date().toISOString()} ${line}\n`); } catch {} };
       _bLog(`-> received cmd=${cmd} id=${id}`);
       try {
         const result = await handleBrowserCommand(cmd, params || {});
@@ -3187,8 +3194,8 @@ const SCREENSHOT_THEMES = {
   "solarized-dark":          { width: 460, backgroundColor: "#002b36" },
   "solarized-light-desktop": { width: 880, backgroundColor: "#F8F5ED" },
   "solarized-dark-desktop":  { width: 880, backgroundColor: "#002b36" },
-  "gsap-brand":              { width: 460, backgroundColor: "#F4F6FA" },
-  "gsap-brand-desktop":      { width: 880, backgroundColor: "#F4F6FA" },
+  "codia-brand":              { width: 460, backgroundColor: "#F4F6FA" },
+  "codia-brand-desktop":      { width: 880, backgroundColor: "#F4F6FA" },
   "sakura-light":            { width: 460, backgroundColor: "#8ABDCE" },
   "sakura-light-desktop":    { width: 880, backgroundColor: "#8ABDCE" },
 };
@@ -3407,7 +3414,7 @@ async function screenshotCapture(htmlContent, width) {
   offscreen.setSize(width, 100);
 
   const tmpDir = app.getPath("temp");
-  const tmpHtml = path.join(tmpDir, `gsap-ss-${Date.now()}.html`);
+  const tmpHtml = path.join(tmpDir, `codia-ss-${Date.now()}.html`);
   fs.writeFileSync(tmpHtml, htmlContent, "utf-8");
 
   try {
@@ -3504,17 +3511,16 @@ function resolveWindowsPowerShellPath() {
 function buildConsoleCommand(kind, command) {
   const text = String(command || "").trim();
   if (!text) throw new Error("command is required");
-  if (kind === "gsapctl") {
-    const scriptPath = path.resolve(__dirname, "..", "scripts", "gsapctl.mjs");
+  if (kind === "codiactl") {
+    const scriptPath = path.resolve(__dirname, "..", "scripts", "codiactl.mjs");
     return {
       executable: process.execPath,
       args: [scriptPath, ...splitConsoleArgs(text)],
       env: {
         ...process.env,
-        GSAP_HOME: gsapHome,
-        HANA_HOME: gsapHome,
-        GSAP_API_BASE: serverPort ? `http://127.0.0.1:${serverPort}` : process.env.GSAP_API_BASE,
-        GSAP_TOKEN: serverToken || process.env.GSAP_TOKEN,
+        CODIA_HOME: codiaHome,
+        CODIA_API_BASE: serverPort ? `http://127.0.0.1:${serverPort}` : process.env.CODIA_API_BASE,
+        CODIA_TOKEN: serverToken || process.env.CODIA_TOKEN,
         ELECTRON_RUN_AS_NODE: "1",
         NO_COLOR: "1",
       },
@@ -3575,10 +3581,10 @@ wrapIpcHandler("get-splash-info", () => resolveSplashInfo());
 wrapIpcHandler("get-avatar-path", (_event, role) => {
   if (role && role !== "agent") return null;
   const agentId = getCurrentAgentId();
-  return resolveAgentAvatarPath(gsapHome, agentId) || resolveRuntimeDefaultAssistantAvatarPath() || null;
+  return resolveAgentAvatarPath(codiaHome, agentId) || resolveRuntimeDefaultAssistantAvatarPath() || null;
 });
 wrapIpcHandler("console-run-command", (_event, payload = {}) => {
-  const kind = payload.kind === "gsapctl" ? "gsapctl" : "powershell";
+  const kind = payload.kind === "codiactl" ? "codiactl" : "powershell";
   return runConsoleCommand(kind, payload.command, payload.cwd);
 });
 wrapIpcHandler("run-edit-command", (event, command) => {
@@ -3600,7 +3606,7 @@ wrapIpcHandler("get-runtime-diagnostics-state", async () => {
   if (!mainWindow || mainWindow.isDestroyed()) return null;
   try {
     return await mainWindow.webContents.executeJavaScript(
-      "window.__GSAP_RUNTIME_DIAGNOSTICS__?.getStateSnapshot?.() ?? null",
+      "window.__CODIA_RUNTIME_DIAGNOSTICS__?.getStateSnapshot?.() ?? null",
       true,
     );
   } catch (err) {
@@ -3722,7 +3728,7 @@ wrapIpcHandler("open-skill-viewer", (event, data) => {
       const baseName = path.basename(data.skillPath, fileExt);
 
 
-      const installedDir = path.join(gsapHome, "skills", baseName);
+      const installedDir = path.join(codiaHome, "skills", baseName);
       if (fs.existsSync(path.join(installedDir, "SKILL.md"))) {
         _showSkillViewer({ name: baseName, baseDir: installedDir, installed: false }, sourceWindow);
         return;
@@ -3735,7 +3741,7 @@ wrapIpcHandler("open-skill-viewer", (event, data) => {
       }
       try {
         const { execFileSync } = require("child_process");
-        const tmpDir = path.join(app.getPath("temp"), "gsap-skill-preview-" + Date.now());
+        const tmpDir = path.join(app.getPath("temp"), "codia-skill-preview-" + Date.now());
         fs.mkdirSync(tmpDir, { recursive: true });
         if (process.platform === "win32") {
           execFileSync("powershell.exe", [
@@ -3800,12 +3806,34 @@ wrapIpcHandler("skill-viewer-read-file", (_event, filePath) => {
 wrapIpcHandler("close-skill-viewer", () => {});
 
 
-wrapIpcHandler("open-folder", (_event, folderPath) => {
-  if (!folderPath || !path.isAbsolute(folderPath)) return;
+function fileActionFailure(code, message, extra = {}) {
+  return { success: false, code, message, ...extra };
+}
+
+function validateNativePathInput(targetPath) {
+  if (typeof targetPath !== "string" || !targetPath.trim()) {
+    return fileActionFailure("invalid_path", "文件路径为空");
+  }
+  if (!path.isAbsolute(targetPath)) {
+    return fileActionFailure("invalid_path", "只能打开本机绝对路径");
+  }
+  return null;
+}
+
+wrapIpcHandler("open-folder", async (_event, folderPath) => {
+  const invalid = validateNativePathInput(folderPath);
+  if (invalid) return invalid;
   try {
-    if (!fs.statSync(folderPath).isDirectory()) return;
-  } catch { return; }
-  shell.openPath(folderPath);
+    if (!fs.statSync(folderPath).isDirectory()) {
+      return fileActionFailure("not_directory", "目标不是文件夹");
+    }
+  } catch {
+    return fileActionFailure("not_found", "文件夹不存在");
+  }
+  const error = await shell.openPath(folderPath);
+  return error
+    ? fileActionFailure("system_open_failed", error)
+    : { success: true, path: folderPath };
 });
 
 // Native drag: drag desk files to Finder or chat area.
@@ -3828,8 +3856,25 @@ wrapIpcOn("start-drag", async (event, filePaths) => {
 });
 
 wrapIpcHandler("show-in-finder", (_event, filePath) => {
-  if (!filePath || !path.isAbsolute(filePath)) return;
-  shell.showItemInFolder(filePath);
+  const invalid = validateNativePathInput(filePath);
+  if (invalid) return invalid;
+  try {
+    fs.statSync(filePath);
+  } catch {
+    const parentPath = path.dirname(filePath);
+    const parentExists = parentPath !== filePath && fs.existsSync(parentPath);
+    return fileActionFailure(
+      "not_found",
+      parentExists ? "文件已不存在，可以打开它原来的文件夹" : "文件及其所在文件夹均不存在",
+      parentExists ? { parentPath } : {},
+    );
+  }
+  try {
+    shell.showItemInFolder(filePath);
+    return { success: true, path: filePath };
+  } catch (err) {
+    return fileActionFailure("system_reveal_failed", err?.message || String(err));
+  }
 });
 
 wrapIpcHandler("trash-item", async (_event, filePath) => {
@@ -3845,12 +3890,22 @@ wrapIpcHandler("trash-item", async (_event, filePath) => {
   }
 });
 
-wrapIpcHandler("open-file", (_event, filePath) => {
-  if (!filePath || !path.isAbsolute(filePath)) return;
+wrapIpcHandler("open-file", async (_event, filePath) => {
+  const invalid = validateNativePathInput(filePath);
+  if (invalid) return invalid;
   try {
-    if (!fs.statSync(filePath).isFile()) return;
-  } catch { return; }
-  shell.openPath(filePath);
+    if (!fs.statSync(filePath).isFile()) {
+      return fileActionFailure("not_file", "目标不是文件");
+    }
+  } catch {
+    const parentPath = path.dirname(filePath);
+    const parentExists = parentPath !== filePath && fs.existsSync(parentPath);
+    return fileActionFailure("not_found", "文件不存在", parentExists ? { parentPath } : {});
+  }
+  const error = await shell.openPath(filePath);
+  return error
+    ? fileActionFailure("system_open_failed", error)
+    : { success: true, path: filePath };
 });
 
 wrapIpcHandler("open-external", (_event, url) => {
@@ -4172,7 +4227,7 @@ wrapIpcHandler("show-notification", (_event, title, body, agentId, rawOptions) =
     getFocusedWindow: () => BrowserWindow.getFocusedWindow(),
     getWindowSessionPath: focusedWindowSessionPath,
   })) {
-    return { shown: false, reason: "gsap_focused" };
+    return { shown: false, reason: "codia_focused" };
   }
   if (!Notification.isSupported()) return { shown: false, reason: "unsupported" };
   const options = {
@@ -4180,7 +4235,7 @@ wrapIpcHandler("show-notification", (_event, title, body, agentId, rawOptions) =
     body: body || "",
     silent: false,
   };
-  const avatarPath = resolveAgentAvatarPath(gsapHome, agentId);
+  const avatarPath = resolveAgentAvatarPath(codiaHome, agentId);
   if (avatarPath) {
     const icon = nativeImage.createFromPath(avatarPath);
     if (icon && !icon.isEmpty()) options.icon = icon;
@@ -4319,7 +4374,7 @@ wrapIpcHandler("browser-emergency-stop", () => {
 wrapIpcHandler("app-ready", () => {
   try {
     markGpuStartupReady({
-      gsapHome,
+      codiaHome,
       platform: process.platform,
       startupId: desktopStartupId,
       phase: "app-ready",
@@ -4358,7 +4413,7 @@ app.whenReady().then(async () => {
   createSplashWindow();
   try {
     markGpuStartupPhase({
-      gsapHome,
+      codiaHome,
       platform: process.platform,
       startupId: desktopStartupId,
       phase: "splash-ready",
@@ -4369,7 +4424,7 @@ app.whenReady().then(async () => {
     console.log("[desktop] starting Codia Server...");
     try {
       markGpuStartupPhase({
-        gsapHome,
+        codiaHome,
         platform: process.platform,
         startupId: desktopStartupId,
         phase: "server-starting",
@@ -4385,7 +4440,7 @@ app.whenReady().then(async () => {
       if (process.platform === "win32") {
         try {
           markGpuStartupPhase({
-            gsapHome,
+            codiaHome,
             platform: process.platform,
             startupId: desktopStartupId,
             phase: "main-window-starting",
@@ -4398,7 +4453,7 @@ app.whenReady().then(async () => {
       if (process.platform === "win32") {
         try {
           markGpuStartupPhase({
-            gsapHome,
+            codiaHome,
             platform: process.platform,
             startupId: desktopStartupId,
             phase: "onboarding-window-starting",
@@ -4411,7 +4466,7 @@ app.whenReady().then(async () => {
       if (process.platform === "win32") {
         try {
           markGpuStartupPhase({
-            gsapHome,
+            codiaHome,
             platform: process.platform,
             startupId: desktopStartupId,
             phase: "onboarding-window-starting",
@@ -4423,14 +4478,14 @@ app.whenReady().then(async () => {
 
     try {
       markGpuStartupPhase({
-        gsapHome,
+        codiaHome,
         platform: process.platform,
         startupId: desktopStartupId,
         phase: "server-ready",
       });
     } catch {}
     try {
-      const prefsPath = path.join(gsapHome, "user", "preferences.json");
+      const prefsPath = path.join(codiaHome, "user", "preferences.json");
       if (fs.existsSync(prefsPath)) {
         const prefs = JSON.parse(fs.readFileSync(prefsPath, "utf-8"));
         if (prefs.update_channel) setUpdateChannel(prefs.update_channel);
@@ -4440,7 +4495,7 @@ app.whenReady().then(async () => {
   } catch (err) {
     try {
       markGpuStartupFailed({
-        gsapHome,
+        codiaHome,
         platform: process.platform,
         startupId: desktopStartupId,
         reason: "launch-failed",
@@ -4454,7 +4509,7 @@ app.whenReady().then(async () => {
       mt("dialog.launchFailedBody", {
         version: app?.getVersion?.() || "unknown",
         detail,
-        logPath: path.join(gsapHome, "crash.log"),
+        logPath: path.join(codiaHome, "crash.log"),
       })
     );
     forceQuitApp = true;
@@ -4486,7 +4541,7 @@ app.on("activate", () => {
 app.on("child-process-gone", (_event, details) => {
   try {
     recordGpuChildProcessGone({
-      gsapHome,
+      codiaHome,
       platform: process.platform,
       details,
     });
@@ -4501,7 +4556,7 @@ app.on("gpu-info-update", () => {
       ? app.getGPUFeatureStatus()
       : null;
     recordGpuInfoUpdate({
-      gsapHome,
+      codiaHome,
       platform: process.platform,
       featureStatus,
     });
@@ -4649,4 +4704,3 @@ process.on('unhandledRejection', (reason) => {
   console.error(`[ErrorBus][${err.code || 'UNKNOWN'}][${traceId}] unhandledRejection: ${err.message}`);
   console.error(`[ErrorBus][${traceId}] ${err.stack || err.message}`);
 });
-

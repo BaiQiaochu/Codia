@@ -11,8 +11,8 @@ const AUDIO_BLOCK = { type: "audio", data: "UklGRg==", mimeType: "audio/wav" };
 
 describe("current-turn native media store", () => {
   it("rehydrates current-turn attached audio after a tool replay strips inline bytes", () => {
-    const sessionPath = path.join("/tmp", "gsap", "session.jsonl");
-    const audioPath = path.join("/tmp", "gsap", "session-files", "voice.wav");
+    const sessionPath = path.join("/tmp", "codia", "session.jsonl");
+    const audioPath = path.join("/tmp", "codia", "session-files", "voice.wav");
     const store = createCurrentTurnNativeMediaStore();
     const turn = store.begin(sessionPath, {
       audios: [AUDIO_BLOCK],
@@ -45,8 +45,8 @@ describe("current-turn native media store", () => {
   });
 
   it("does not duplicate audio blocks that are already present in the current replay", () => {
-    const sessionPath = path.join("/tmp", "gsap", "session.jsonl");
-    const audioPath = path.join("/tmp", "gsap", "session-files", "voice.wav");
+    const sessionPath = path.join("/tmp", "codia", "session.jsonl");
+    const audioPath = path.join("/tmp", "codia", "session-files", "voice.wav");
     const store = createCurrentTurnNativeMediaStore();
     store.begin(sessionPath, {
       audios: [AUDIO_BLOCK],
@@ -64,9 +64,9 @@ describe("current-turn native media store", () => {
   });
 
   it("uses sessionId as the current-turn key when the session file moves", () => {
-    const originalPath = path.join("/tmp", "gsap", "before.jsonl");
-    const movedPath = path.join("/tmp", "gsap", "after.jsonl");
-    const audioPath = path.join("/tmp", "gsap", "session-files", "voice.wav");
+    const originalPath = path.join("/tmp", "codia", "before.jsonl");
+    const movedPath = path.join("/tmp", "codia", "after.jsonl");
+    const audioPath = path.join("/tmp", "codia", "session-files", "voice.wav");
     const store = createCurrentTurnNativeMediaStore();
     const turn = store.begin({ sessionId: "sess_native_media", sessionPath: originalPath }, {
       audios: [AUDIO_BLOCK],
@@ -84,10 +84,10 @@ describe("current-turn native media store", () => {
   });
 
   it("clears active native media for one discarded session only", () => {
-    const sessionA = path.join("/tmp", "gsap", "a.jsonl");
-    const sessionB = path.join("/tmp", "gsap", "b.jsonl");
-    const audioA = path.join("/tmp", "gsap", "session-files", "a.wav");
-    const audioB = path.join("/tmp", "gsap", "session-files", "b.wav");
+    const sessionA = path.join("/tmp", "codia", "a.jsonl");
+    const sessionB = path.join("/tmp", "codia", "b.jsonl");
+    const audioA = path.join("/tmp", "codia", "session-files", "a.wav");
+    const audioB = path.join("/tmp", "codia", "session-files", "b.wav");
     const store = createCurrentTurnNativeMediaStore();
     store.begin(sessionA, { audios: [AUDIO_BLOCK], audioAttachmentPaths: [audioA] });
     store.begin(sessionB, { audios: [AUDIO_BLOCK], audioAttachmentPaths: [audioB] });

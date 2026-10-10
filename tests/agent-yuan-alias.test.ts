@@ -7,17 +7,17 @@ import { Agent } from "../core/agent.js";
 import { readAgentEditablePrompt } from "../server/utils/agent-template.js";
 
 describe("Agent yuan compatibility", () => {
-  it("keeps the G-SAP Original version yuan prompt free of Balance/MOOD persona injection", () => {
+  it("keeps the Codia Original version yuan prompt free of Balance/MOOD persona injection", () => {
     const kongYuan = fs.readFileSync(path.resolve("lib", "yuan", "kong.md"), "utf-8");
 
     expect(kongYuan).toContain("原始模型模式");
     expect(kongYuan).toContain("保留当前调用模型自身的表达风格");
     expect(kongYuan).not.toContain("## MOOD");
     expect(kongYuan).not.toContain("<mood>");
-    expect(kongYuan).not.toContain("G-SAP 均衡");
+    expect(kongYuan).not.toContain("Codia 均衡");
   });
 
-  it("ships the public ishiki template for the G-SAP Original version yuan", () => {
+  it("ships the public ishiki template for the Codia Original version yuan", () => {
     const templatePath = path.resolve("lib", "public-ishiki-templates", "kong.md");
 
     expect(fs.existsSync(templatePath)).toBe(true);
@@ -27,8 +27,8 @@ describe("Agent yuan compatibility", () => {
     expect(publicIshiki).toContain("{{userName}}");
   });
 
-  it('loads the built-in gsap yuan template and builds a prompt', () => {
-    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "agent-gsap-"));
+  it('loads the built-in codia yuan template and builds a prompt', () => {
+    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "agent-codia-"));
     const agentDir = path.join(tmpRoot, "agent");
     const userDir = path.join(tmpRoot, "user");
     fs.mkdirSync(path.join(agentDir, "memory"), { recursive: true });
@@ -41,14 +41,14 @@ describe("Agent yuan compatibility", () => {
     });
     agent._config = {
       locale: "en",
-      agent: { name: "G-SAP", yuan: "gsap" },
+      agent: { name: "Codia", yuan: "codia" },
       user: { name: "User" },
     };
-    agent.agentName = "G-SAP";
+    agent.agentName = "Codia";
     agent.userName = "User";
 
-    const gsapYuan = fs.readFileSync(path.resolve("lib", "yuan", "en", "gsap.md"), "utf-8");
-    expect(agent._readYuan()).toBe(gsapYuan);
+    const codiaYuan = fs.readFileSync(path.resolve("lib", "yuan", "en", "codia.md"), "utf-8");
+    expect(agent._readYuan()).toBe(codiaYuan);
     expect(() => agent.buildSystemPrompt()).not.toThrow();
 
     fs.rmSync(tmpRoot, { recursive: true, force: true });
@@ -56,7 +56,7 @@ describe("Agent yuan compatibility", () => {
 
   it('runtime personality ignores broken generated identity and uses the current Yuan template', () => {
     const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "agent-runtime-prompt-"));
-    const agentDir = path.join(tmpRoot, "gsap");
+    const agentDir = path.join(tmpRoot, "codia");
     const productDir = path.join(tmpRoot, "product");
     const userDir = path.join(tmpRoot, "user");
     fs.mkdirSync(agentDir, { recursive: true });
@@ -64,7 +64,7 @@ describe("Agent yuan compatibility", () => {
     fs.mkdirSync(path.join(productDir, "ishiki-templates"), { recursive: true });
     fs.mkdirSync(path.join(productDir, "yuan"), { recursive: true });
     fs.mkdirSync(userDir, { recursive: true });
-    fs.writeFileSync(path.join(agentDir, "identity.md"), "# G-SAP\n\n的个人助手。\n", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "identity.md"), "# Codia\n\n的个人助手。\n", "utf-8");
     fs.writeFileSync(path.join(productDir, "identity-templates", "kong.md"), "# {{agentName}}\n{{userName}} runtime identity", "utf-8");
     fs.writeFileSync(path.join(productDir, "ishiki-templates", "kong.md"), "{{agentName}} runtime ishiki", "utf-8");
     fs.writeFileSync(path.join(productDir, "yuan", "kong.md"), "runtime yuan for {{userName}}", "utf-8");
@@ -76,10 +76,10 @@ describe("Agent yuan compatibility", () => {
     });
     agent._config = {
       locale: "zh-CN",
-      agent: { name: "G-SAP", yuan: "kong" },
+      agent: { name: "Codia", yuan: "kong" },
       user: { name: "KSKOOO" },
     };
-    agent.agentName = "G-SAP";
+    agent.agentName = "Codia";
     agent.userName = "KSKOOO";
 
     expect(agent.personality).toContain("KSKOOO runtime identity");

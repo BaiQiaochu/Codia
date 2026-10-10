@@ -1,52 +1,52 @@
-.gsap-plugin-theme {
-  --gsap-plugin-bg: var(--bg, #F8F4FF);
-  --gsap-plugin-bg-card: var(--bg-card, #FFFFFF);
-  --gsap-plugin-accent: var(--accent, #A984E8);
-  --gsap-plugin-accent-hover: var(--accent-hover, #8E6BD0);
-  --gsap-plugin-accent-light: var(--accent-light, rgba(169, 132, 232, 0.12));
-  --gsap-plugin-text: var(--text, #342A45);
-  --gsap-plugin-text-light: var(--text-light, #655A76);
-  --gsap-plugin-text-muted: var(--text-muted, #81768C);
-  --gsap-plugin-border: var(--border, rgba(169, 132, 232, 0.25));
-  --gsap-plugin-danger: var(--danger, #A34F63);
-  --gsap-plugin-radius-input: var(--radius-input, 4px);
-  --gsap-plugin-radius-card: var(--radius-card, 8px);
-  --gsap-plugin-font-ui: var(--font-ui, Inter, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif);
-  --gsap-plugin-font-serif: var(--font-serif, "Songti SC", "STSong", serif);
-  --gsap-plugin-font-mono: var(--font-mono, "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace);
+.codia-plugin-theme {
+  --codia-plugin-bg: var(--bg, #F8F4FF);
+  --codia-plugin-bg-card: var(--bg-card, #FFFFFF);
+  --codia-plugin-accent: var(--accent, #A984E8);
+  --codia-plugin-accent-hover: var(--accent-hover, #8E6BD0);
+  --codia-plugin-accent-light: var(--accent-light, rgba(169, 132, 232, 0.12));
+  --codia-plugin-text: var(--text, #342A45);
+  --codia-plugin-text-light: var(--text-light, #655A76);
+  --codia-plugin-text-muted: var(--text-muted, #81768C);
+  --codia-plugin-border: var(--border, rgba(169, 132, 232, 0.25));
+  --codia-plugin-danger: var(--danger, #A34F63);
+  --codia-plugin-radius-input: var(--radius-input, 4px);
+  --codia-plugin-radius-card: var(--radius-card, 8px);
+  --codia-plugin-font-ui: var(--font-ui, Inter, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif);
+  --codia-plugin-font-serif: var(--font-serif, "Songti SC", "STSong", serif);
+  --codia-plugin-font-mono: var(--font-mono, "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace);
   display: block;
   min-width: 0;
   box-sizing: border-box;
-  background: var(--gsap-plugin-bg);
-  color: var(--gsap-plugin-text);
-  font-family: var(--gsap-plugin-font-ui);
+  background: var(--codia-plugin-bg);
+  color: var(--codia-plugin-text);
+  font-family: var(--codia-plugin-font-ui);
   font-size: 0.9rem;
   line-height: 1.5;
 }
 
-.gsap-plugin-theme *,
-.gsap-plugin-theme *::before,
-.gsap-plugin-theme *::after {
+.codia-plugin-theme *,
+.codia-plugin-theme *::before,
+.codia-plugin-theme *::after {
   box-sizing: border-box;
 }
 
-.gsap-plugin-button,
-.gsap-plugin-icon-button,
-.gsap-plugin-select-trigger,
-.gsap-plugin-select-option,
-.gsap-plugin-switch {
+.codia-plugin-button,
+.codia-plugin-icon-button,
+.codia-plugin-select-trigger,
+.codia-plugin-select-option,
+.codia-plugin-switch {
   font-family: inherit;
   -webkit-app-region: no-drag;
 }
 
-.gsap-plugin-button {
+.codia-plugin-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-xs, 0.25rem);
   min-width: 0;
   border: 1px solid transparent;
-  border-radius: var(--gsap-plugin-radius-input);
+  border-radius: var(--codia-plugin-radius-input);
   cursor: pointer;
   user-select: none;
   line-height: 1;
@@ -57,87 +57,87 @@
     opacity var(--duration-fast, 0.15s) var(--ease-out, ease);
 }
 
-.gsap-plugin-button:focus-visible,
-.gsap-plugin-icon-button:focus-visible,
-.gsap-plugin-select-trigger:focus-visible,
-.gsap-plugin-select-option:focus-visible,
-.gsap-plugin-switch:focus-visible,
-.gsap-plugin-input:focus-visible,
-.gsap-plugin-textarea:focus-visible {
-  outline: 2px solid var(--gsap-plugin-accent);
+.codia-plugin-button:focus-visible,
+.codia-plugin-icon-button:focus-visible,
+.codia-plugin-select-trigger:focus-visible,
+.codia-plugin-select-option:focus-visible,
+.codia-plugin-switch:focus-visible,
+.codia-plugin-input:focus-visible,
+.codia-plugin-textarea:focus-visible {
+  outline: 2px solid var(--codia-plugin-accent);
   outline-offset: 2px;
 }
 
-.gsap-plugin-button:disabled,
-.gsap-plugin-icon-button:disabled,
-.gsap-plugin-select-trigger:disabled,
-.gsap-plugin-select-option:disabled,
-.gsap-plugin-switch:disabled,
-.gsap-plugin-input:disabled,
-.gsap-plugin-textarea:disabled {
+.codia-plugin-button:disabled,
+.codia-plugin-icon-button:disabled,
+.codia-plugin-select-trigger:disabled,
+.codia-plugin-select-option:disabled,
+.codia-plugin-switch:disabled,
+.codia-plugin-input:disabled,
+.codia-plugin-textarea:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
 
-.gsap-plugin-button-sm {
+.codia-plugin-button-sm {
   padding: 0.3rem 0.75rem;
   font-size: 0.7rem;
 }
 
-.gsap-plugin-button-md {
+.codia-plugin-button-md {
   padding: 0.45rem 0.9rem;
   font-size: 0.9rem;
 }
 
-.gsap-plugin-button-lg {
+.codia-plugin-button-lg {
   padding: 0.6rem 1.2rem;
   font-size: 0.9rem;
 }
 
-.gsap-plugin-button-primary {
-  background: var(--gsap-plugin-accent);
+.codia-plugin-button-primary {
+  background: var(--codia-plugin-accent);
   color: #fff;
-  border-color: var(--gsap-plugin-accent);
+  border-color: var(--codia-plugin-accent);
 }
 
-.gsap-plugin-button-primary:hover:not(:disabled) {
-  background: var(--gsap-plugin-accent-hover);
-  border-color: var(--gsap-plugin-accent-hover);
+.codia-plugin-button-primary:hover:not(:disabled) {
+  background: var(--codia-plugin-accent-hover);
+  border-color: var(--codia-plugin-accent-hover);
 }
 
-.gsap-plugin-button-secondary {
+.codia-plugin-button-secondary {
   background: var(--overlay-subtle, rgba(0, 0, 0, 0.03));
-  color: var(--gsap-plugin-text);
+  color: var(--codia-plugin-text);
 }
 
-.gsap-plugin-button-secondary:hover:not(:disabled) {
+.codia-plugin-button-secondary:hover:not(:disabled) {
   background: var(--overlay-medium, rgba(0, 0, 0, 0.08));
 }
 
-.gsap-plugin-button-ghost {
+.codia-plugin-button-ghost {
   background: transparent;
-  color: var(--gsap-plugin-text-muted);
+  color: var(--codia-plugin-text-muted);
 }
 
-.gsap-plugin-button-ghost:hover:not(:disabled) {
+.codia-plugin-button-ghost:hover:not(:disabled) {
   background: var(--overlay-subtle, rgba(0, 0, 0, 0.03));
-  color: var(--gsap-plugin-text);
+  color: var(--codia-plugin-text);
 }
 
-.gsap-plugin-button-danger {
-  background: var(--gsap-plugin-danger);
+.codia-plugin-button-danger {
+  background: var(--codia-plugin-danger);
   color: #fff;
-  border-color: var(--gsap-plugin-danger);
+  border-color: var(--codia-plugin-danger);
 }
 
-.gsap-plugin-icon-button {
+.codia-plugin-icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
-  border-radius: var(--gsap-plugin-radius-input);
+  border-radius: var(--codia-plugin-radius-input);
   background: transparent;
-  color: var(--gsap-plugin-text-muted);
+  color: var(--codia-plugin-text-muted);
   cursor: pointer;
   transition:
     background var(--duration-fast, 0.15s) var(--ease-out, ease),
@@ -145,71 +145,71 @@
     border-color var(--duration-fast, 0.15s) var(--ease-out, ease);
 }
 
-.gsap-plugin-icon-button-sm {
+.codia-plugin-icon-button-sm {
   width: 28px;
   height: 28px;
 }
 
-.gsap-plugin-icon-button-md {
+.codia-plugin-icon-button-md {
   width: 34px;
   height: 34px;
 }
 
-.gsap-plugin-icon-button-lg {
+.codia-plugin-icon-button-lg {
   width: 40px;
   height: 40px;
 }
 
-.gsap-plugin-icon-button:hover:not(:disabled) {
+.codia-plugin-icon-button:hover:not(:disabled) {
   background: var(--overlay-subtle, rgba(0, 0, 0, 0.03));
-  color: var(--gsap-plugin-text);
+  color: var(--codia-plugin-text);
 }
 
-.gsap-plugin-spinner {
+.codia-plugin-spinner {
   width: 1em;
   height: 1em;
   border: 2px solid currentColor;
   border-top-color: transparent;
   border-radius: 50%;
-  animation: gsap-plugin-spin 0.8s linear infinite;
+  animation: codia-plugin-spin 0.8s linear infinite;
 }
 
-.gsap-plugin-field {
+.codia-plugin-field {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
 
-.gsap-plugin-field-label {
+.codia-plugin-field-label {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--gsap-plugin-text);
+  color: var(--codia-plugin-text);
 }
 
-.gsap-plugin-field-hint,
-.gsap-plugin-field-error {
+.codia-plugin-field-hint,
+.codia-plugin-field-error {
   font-size: 0.7rem;
   line-height: 1.4;
 }
 
-.gsap-plugin-field-hint {
-  color: var(--gsap-plugin-text-muted);
+.codia-plugin-field-hint {
+  color: var(--codia-plugin-text-muted);
 }
 
-.gsap-plugin-field-error {
-  color: var(--gsap-plugin-danger);
+.codia-plugin-field-error {
+  color: var(--codia-plugin-danger);
 }
 
-.gsap-plugin-input,
-.gsap-plugin-textarea,
-.gsap-plugin-select-trigger {
+.codia-plugin-input,
+.codia-plugin-textarea,
+.codia-plugin-select-trigger {
   width: 100%;
   min-width: 0;
-  color: var(--gsap-plugin-text);
-  background: var(--gsap-plugin-bg-card);
-  border: 1px solid var(--gsap-plugin-border);
-  border-radius: var(--gsap-plugin-radius-input);
+  color: var(--codia-plugin-text);
+  background: var(--codia-plugin-bg-card);
+  border: 1px solid var(--codia-plugin-border);
+  border-radius: var(--codia-plugin-radius-input);
   font-family: inherit;
   font-size: 0.9rem;
   transition:
@@ -217,30 +217,30 @@
     background var(--duration-fast, 0.15s) var(--ease-out, ease);
 }
 
-.gsap-plugin-input {
+.codia-plugin-input {
   height: 34px;
   padding: 0 var(--space-sm, 0.5rem);
 }
 
-.gsap-plugin-textarea {
+.codia-plugin-textarea {
   resize: vertical;
   min-height: 92px;
   padding: var(--space-sm, 0.5rem);
   line-height: 1.5;
 }
 
-.gsap-plugin-input:hover:not(:disabled),
-.gsap-plugin-textarea:hover:not(:disabled),
-.gsap-plugin-select-trigger:hover:not(:disabled) {
-  border-color: var(--gsap-plugin-accent);
+.codia-plugin-input:hover:not(:disabled),
+.codia-plugin-textarea:hover:not(:disabled),
+.codia-plugin-select-trigger:hover:not(:disabled) {
+  border-color: var(--codia-plugin-accent);
 }
 
-.gsap-plugin-select {
+.codia-plugin-select {
   position: relative;
   width: 100%;
 }
 
-.gsap-plugin-select-trigger {
+.codia-plugin-select-trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -250,22 +250,22 @@
   text-align: left;
 }
 
-.gsap-plugin-select-value {
+.codia-plugin-select-value {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.gsap-plugin-select-placeholder {
-  color: var(--gsap-plugin-text-muted);
+.codia-plugin-select-placeholder {
+  color: var(--codia-plugin-text-muted);
 }
 
-.gsap-plugin-select-arrow {
-  color: var(--gsap-plugin-text-muted);
+.codia-plugin-select-arrow {
+  color: var(--codia-plugin-text-muted);
   margin-left: var(--space-sm, 0.5rem);
 }
 
-.gsap-plugin-select-popover {
+.codia-plugin-select-popover {
   position: absolute;
   z-index: 20;
   top: calc(100% + 2px);
@@ -276,94 +276,94 @@
   max-height: 240px;
   overflow-y: auto;
   padding: var(--space-xs, 0.25rem) 0;
-  background: var(--gsap-plugin-bg-card);
-  border: 1px solid var(--gsap-plugin-border);
-  border-radius: var(--gsap-plugin-radius-input);
-  animation: gsap-plugin-fade-up var(--duration-fast, 0.15s) var(--ease-out, ease);
+  background: var(--codia-plugin-bg-card);
+  border: 1px solid var(--codia-plugin-border);
+  border-radius: var(--codia-plugin-radius-input);
+  animation: codia-plugin-fade-up var(--duration-fast, 0.15s) var(--ease-out, ease);
 }
 
-.gsap-plugin-select-option {
+.codia-plugin-select-option {
   display: flex;
   align-items: center;
   width: 100%;
   padding: 0.45rem var(--space-sm, 0.5rem);
   border: 0;
   background: transparent;
-  color: var(--gsap-plugin-text-light);
+  color: var(--codia-plugin-text-light);
   cursor: pointer;
   text-align: left;
 }
 
-.gsap-plugin-select-option:hover:not(:disabled) {
-  background: var(--gsap-plugin-accent-light);
+.codia-plugin-select-option:hover:not(:disabled) {
+  background: var(--codia-plugin-accent-light);
 }
 
-.gsap-plugin-select-option-selected {
-  color: var(--gsap-plugin-accent);
-  background: var(--gsap-plugin-accent-light);
+.codia-plugin-select-option-selected {
+  color: var(--codia-plugin-accent);
+  background: var(--codia-plugin-accent-light);
   font-weight: 600;
 }
 
-.gsap-plugin-switch-wrap {
+.codia-plugin-switch-wrap {
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm, 0.5rem);
 }
 
-.gsap-plugin-switch {
+.codia-plugin-switch {
   position: relative;
   width: 34px;
   height: 20px;
   padding: 0;
-  border: 1px solid var(--gsap-plugin-border);
-  border-radius: var(--gsap-plugin-radius-input);
-  background: var(--gsap-plugin-bg-card);
+  border: 1px solid var(--codia-plugin-border);
+  border-radius: var(--codia-plugin-radius-input);
+  background: var(--codia-plugin-bg-card);
   cursor: pointer;
   transition:
     background var(--duration-fast, 0.15s) var(--ease-out, ease),
     border-color var(--duration-fast, 0.15s) var(--ease-out, ease);
 }
 
-.gsap-plugin-switch-thumb {
+.codia-plugin-switch-thumb {
   position: absolute;
   top: 3px;
   left: 3px;
   width: 12px;
   height: 12px;
   border-radius: 2px;
-  background: var(--gsap-plugin-text-muted);
+  background: var(--codia-plugin-text-muted);
   transition:
     transform var(--duration-fast, 0.15s) var(--ease-out, ease),
     background var(--duration-fast, 0.15s) var(--ease-out, ease);
 }
 
-.gsap-plugin-switch-on {
-  background: var(--gsap-plugin-accent);
-  border-color: var(--gsap-plugin-accent);
+.codia-plugin-switch-on {
+  background: var(--codia-plugin-accent);
+  border-color: var(--codia-plugin-accent);
 }
 
-.gsap-plugin-switch-on .gsap-plugin-switch-thumb {
+.codia-plugin-switch-on .codia-plugin-switch-thumb {
   transform: translateX(14px);
   background: #fff;
 }
 
-.gsap-plugin-switch-label {
+.codia-plugin-switch-label {
   font-size: 0.9rem;
-  color: var(--gsap-plugin-text-muted);
+  color: var(--codia-plugin-text-muted);
 }
 
-.gsap-plugin-card {
+.codia-plugin-card {
   display: flex;
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-  background: var(--gsap-plugin-bg-card);
-  border: 1px solid var(--gsap-plugin-border);
-  border-radius: var(--gsap-plugin-radius-card);
+  background: var(--codia-plugin-bg-card);
+  border: 1px solid var(--codia-plugin-border);
+  border-radius: var(--codia-plugin-radius-card);
 }
 
-.gsap-plugin-card-header,
-.gsap-plugin-card-footer {
+.codia-plugin-card-header,
+.codia-plugin-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -371,58 +371,58 @@
   padding: var(--space-sm, 0.5rem) var(--space-md, 1rem);
 }
 
-.gsap-plugin-card-header {
-  border-bottom: 1px solid var(--gsap-plugin-border);
+.codia-plugin-card-header {
+  border-bottom: 1px solid var(--codia-plugin-border);
 }
 
-.gsap-plugin-card-heading {
+.codia-plugin-card-heading {
   min-width: 0;
 }
 
-.gsap-plugin-card-title {
+.codia-plugin-card-title {
   margin: 0;
-  color: var(--gsap-plugin-text);
-  font-family: var(--gsap-plugin-font-serif);
+  color: var(--codia-plugin-text);
+  font-family: var(--codia-plugin-font-serif);
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.3;
 }
 
-.gsap-plugin-card-description {
+.codia-plugin-card-description {
   margin: 2px 0 0;
-  color: var(--gsap-plugin-text-muted);
+  color: var(--codia-plugin-text-muted);
   font-size: 0.7rem;
 }
 
-.gsap-plugin-card-actions {
+.codia-plugin-card-actions {
   flex-shrink: 0;
 }
 
-.gsap-plugin-card-body {
+.codia-plugin-card-body {
   padding: var(--space-md, 1rem);
 }
 
-.gsap-plugin-card-footer {
+.codia-plugin-card-footer {
   justify-content: flex-end;
-  border-top: 1px solid var(--gsap-plugin-border);
+  border-top: 1px solid var(--codia-plugin-border);
 }
 
-.gsap-plugin-setting-row {
+.codia-plugin-setting-row {
   display: flex;
   gap: var(--space-md, 1rem);
   padding: var(--space-sm, 0.5rem) 0;
 }
 
-.gsap-plugin-setting-row-inline {
+.codia-plugin-setting-row-inline {
   align-items: center;
   justify-content: space-between;
 }
 
-.gsap-plugin-setting-row-stacked {
+.codia-plugin-setting-row-stacked {
   flex-direction: column;
 }
 
-.gsap-plugin-setting-text {
+.codia-plugin-setting-text {
   display: flex;
   flex: 1;
   min-width: 0;
@@ -430,23 +430,23 @@
   gap: 2px;
 }
 
-.gsap-plugin-setting-label {
-  color: var(--gsap-plugin-text);
+.codia-plugin-setting-label {
+  color: var(--codia-plugin-text);
   font-size: 0.9rem;
   font-weight: 500;
 }
 
-.gsap-plugin-setting-hint {
-  color: var(--gsap-plugin-text-muted);
+.codia-plugin-setting-hint {
+  color: var(--codia-plugin-text-muted);
   font-size: 0.7rem;
   line-height: 1.4;
 }
 
-.gsap-plugin-setting-control {
+.codia-plugin-setting-control {
   flex-shrink: 0;
 }
 
-.gsap-plugin-list {
+.codia-plugin-list {
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -455,7 +455,7 @@
   list-style: none;
 }
 
-.gsap-plugin-list-item {
+.codia-plugin-list-item {
   display: flex;
   align-items: center;
   gap: var(--space-sm, 0.5rem);
@@ -463,57 +463,57 @@
   padding: var(--space-sm, 0.5rem) 0;
 }
 
-.gsap-plugin-list-item + .gsap-plugin-list-item {
-  border-top: 1px solid var(--gsap-plugin-border);
+.codia-plugin-list-item + .codia-plugin-list-item {
+  border-top: 1px solid var(--codia-plugin-border);
 }
 
-.gsap-plugin-list-main {
+.codia-plugin-list-main {
   flex: 1;
   min-width: 0;
 }
 
-.gsap-plugin-list-line {
+.codia-plugin-list-line {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-sm, 0.5rem);
 }
 
-.gsap-plugin-list-title {
-  color: var(--gsap-plugin-text);
+.codia-plugin-list-title {
+  color: var(--codia-plugin-text);
   font-size: 0.9rem;
   font-weight: 500;
 }
 
-.gsap-plugin-list-meta,
-.gsap-plugin-list-description {
-  color: var(--gsap-plugin-text-muted);
+.codia-plugin-list-meta,
+.codia-plugin-list-description {
+  color: var(--codia-plugin-text-muted);
   font-size: 0.7rem;
 }
 
-.gsap-plugin-empty {
+.codia-plugin-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-xs, 0.25rem);
   padding: var(--space-lg, 1.5rem) var(--space-md, 1rem);
-  color: var(--gsap-plugin-text-muted);
+  color: var(--codia-plugin-text-muted);
   text-align: center;
 }
 
-.gsap-plugin-empty-title {
-  color: var(--gsap-plugin-text);
+.codia-plugin-empty-title {
+  color: var(--codia-plugin-text);
   font-size: 0.9rem;
   font-weight: 500;
 }
 
-.gsap-plugin-empty-description {
+.codia-plugin-empty-description {
   max-width: 32rem;
   font-size: 0.7rem;
   line-height: 1.4;
 }
 
-@keyframes gsap-plugin-fade-up {
+@keyframes codia-plugin-fade-up {
   from {
     opacity: 0;
     transform: translateY(4px);
@@ -524,7 +524,7 @@
   }
 }
 
-@keyframes gsap-plugin-spin {
+@keyframes codia-plugin-spin {
   to {
     transform: rotate(360deg);
   }

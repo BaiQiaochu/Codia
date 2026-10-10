@@ -17,7 +17,7 @@ describe("desk activities route", () => {
   });
 
   it("reconciles overdue running activities before returning the activity list", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-activities-route-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-activities-route-"));
     roots.push(root);
     const now = Date.UTC(2026, 5, 6, 12, 0, 0);
     const activityFile = path.join(root, "agents", "agent-1", "desk", "activities.json");
@@ -37,7 +37,7 @@ describe("desk activities route", () => {
     });
     const emit = vi.fn();
     const engine = {
-      listAgents: () => [{ id: "agent-1", name: "G-SAP" }],
+      listAgents: () => [{ id: "agent-1", name: "Codia" }],
       getActivityStore: () => store,
     };
     const { createDeskRoute } = await import("../server/routes/desk.js");
@@ -55,7 +55,7 @@ describe("desk activities route", () => {
         status: "error",
         error: "timeout",
         agentId: "agent-1",
-        agentName: "G-SAP",
+        agentName: "Codia",
       }),
     ]);
     expect(store.get("act-overdue")).toMatchObject({ status: "error", error: "timeout" });

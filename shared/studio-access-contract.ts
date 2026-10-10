@@ -64,7 +64,7 @@ const CONNECTION_PROFILES = Object.freeze({
     remoteReachable: true,
     requiresDevicePairing: false,
     requiresPlatformAccount: true,
-    dataOwner: "gsap_cloud_studio",
+    dataOwner: "codia_cloud_studio",
     officialServiceKind: "cloud_studio",
   }),
 });

@@ -5,17 +5,18 @@ import type { CodiaLive2DHandle } from '../live2d/runtime';
 import styles from './CodiaLive2DMascot.module.css';
 
 interface Props {
-  /** Null until the real Cubism export has passed visual review. */
+  /** Local Cubism export used by the mascot. */
   assets?: CodiaLive2DAssets | null;
   enabled?: boolean;
   gpuSafeMode?: boolean;
   hardwareAccelerationEnabled?: boolean;
-  fallback: ReactNode;
+  /** Optional non-animated fallback for fixtures or non-welcome surfaces. */
+  fallback?: ReactNode;
   className?: string;
 }
 
 export function CodiaLive2DMascot({
-  assets, enabled = false, gpuSafeMode = false, hardwareAccelerationEnabled = true, fallback, className,
+  assets, enabled = false, gpuSafeMode = false, hardwareAccelerationEnabled = true, fallback = null, className,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [state, setState] = useState<'fallback' | 'loading' | 'live2d'>('fallback');
@@ -26,7 +27,12 @@ export function CodiaLive2DMascot({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !enabled || !modelUrl || !shaderPath || gpuSafeMode || !hardwareAccelerationEnabled) {
+    // Attempt the real model even when Electron is running in software-safe
+    // mode. WebGL2 can still be available through WARP; the runtime itself
+    // reports a load error when it is genuinely unavailable. Falling back here
+    // based only on the startup policy was what kept the old sprite animation
+    // visible on affected machines.
+    if (!canvas || !enabled || !modelUrl || !shaderPath) {
       setState('fallback');
       return;
     }

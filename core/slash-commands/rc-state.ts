@@ -1,8 +1,6 @@
 // @ts-nocheck
 /**
   *
-  *
-  *
  *
  * attachment 额外维护 desktopSessionPath -> bridge sessionKey 的反向索引，
   *

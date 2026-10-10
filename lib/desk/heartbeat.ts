@@ -1,7 +1,6 @@
 // @ts-nocheck
 /**
   *
-  *
  * 定时任务（cron）由独立-cron-scheduler 调度，不经过巡检- */
 
 import fs from "fs";
@@ -29,7 +28,6 @@ function formatSize(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }
 
-//
 //
 /**
   *
@@ -244,7 +242,6 @@ function scanJianDirs(wsPath) {
  * @param {() => string} [opts.getAgentName] - 获取当前 agent 名称
  * @param {string} [opts.registryPath] - jian-registry.json 存储路径
  * @param {(prompt: string) => Promise<void>} opts.onBeat - 工作空间巡检回调
-  *
   *
  * @returns {{ start, stop, beat, triggerNow }}
  */

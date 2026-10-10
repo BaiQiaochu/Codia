@@ -70,10 +70,10 @@ async function checkMode(mode) {
   const mock = await startMockOpenAI();
   const home = createIsolatedE2EHome({ mockBaseUrl: mock.baseUrl });
   const inspectPort = await getAvailablePort();
-  const env = { ...process.env, GSAP_HOME: home, GSAP_DEV_DESKTOP_PORT: '0', GSAP_PORT: '0', GSAP_DESKTOP_SERVER_MODE: 'dist' };
+  const env = { ...process.env, CODIA_HOME: home, CODIA_DEV_DESKTOP_PORT: '0', CODIA_PORT: '0', CODIA_DESKTOP_SERVER_MODE: 'dist' };
   delete env.ELECTRON_RUN_AS_NODE;
   // Keep the real tray, single-instance handling and normal window behavior.
-  delete env.GSAP_E2E;
+  delete env.CODIA_E2E;
   const stdout = fs.openSync(path.join(dir, 'stdout.log'), 'w');
   const stderr = fs.openSync(path.join(dir, 'stderr.log'), 'w');
   const child = spawn(process.execPath, ['scripts/launch.js', mode, `--inspect=127.0.0.1:${inspectPort}`], {
@@ -83,6 +83,10 @@ async function checkMode(mode) {
   const report = { mode, ok: false, checks: [] };
   let userData;
   try {
+    // The bundled server performs a clean schema migration and plugin scan in
+    // this isolated profile. On slower Windows hosts that cold start can take
+    // longer than the source modes without indicating a product failure.
+    const startupTimeout = mode === 'electron-built' ? 150000 : 60000;
     // The ESM bootstrap creates a transient inspector context. Wait until the
     // real main window exists before evaluating in the main-process context.
     await waitFor(() => {
@@ -93,16 +97,30 @@ async function checkMode(mode) {
         const entry = JSON.parse(line);
         return entry.event === 'window-created' && entry.details?.label === 'main';
       });
-    }, 'main window creation');
+    }, 'main window creation', startupTimeout);
     inspector = await connect(inspectPort);
     userData = await inspector.evaluate(`${electronAPI}.app.getPath('userData')`);
     const snapshot = () => inspector.evaluate(`(() => {
       const windows = ${electronAPI}.BrowserWindow.getAllWindows();
       const w = ${mainWindow};
       return w ? {visible:w.isVisible(), minimized:w.isMinimized(), focused:w.isFocused(),
-        bounds:w.getBounds(), splash:windows.some(item=>item.webContents.getURL().includes('splash.html'))} : null;
+        bounds:w.getBounds(), splash:windows.some(item=>item.isVisible() && item.webContents.getURL().includes('splash.html'))} : null;
     })()`);
     await waitFor(async () => { const s = await snapshot(); return s && !s.splash; }, 'splash handoff');
+    const rendererSnapshot = () => inspector.evaluate(`${mainWindow}.webContents.executeJavaScript(\`(async () => ({
+      port: await window.platform.getServerPort(),
+      text: document.body.innerText.slice(0, 1600),
+      mascot: document.querySelector('[data-codia-renderer]')?.getAttribute('data-codia-renderer') || null,
+      mascotError: document.querySelector('[data-codia-renderer]')?.getAttribute('data-codia-load-error') || null,
+      appReady: window.__CODIA_E2E__?.appReady ?? null
+    }))()\`)`);
+    let renderer;
+    await waitFor(async () => {
+      renderer = await rendererSnapshot();
+      if (renderer?.mascotError) throw new Error(`Live2D load failed: ${renderer.mascotError}`);
+      return renderer?.mascot === 'live2d' && renderer.text.includes('嗨，我是小豆蔻');
+    }, 'localized renderer and Live2D mascot', 30000);
+    report.renderer = renderer;
     const ready = await snapshot();
     assert.equal(ready.visible, true, 'main window must really be visible after splash closes');
     assert.equal(ready.minimized, false, 'startup must not leave the main window minimized');
@@ -127,8 +145,23 @@ async function checkMode(mode) {
     await inspector.evaluate(`${electronAPI}.app.emit('activate')`);
     await waitFor(async () => { const s = await snapshot(); return s?.visible && !s.minimized; }, 'activate restores minimized window', 5000);
     report.checks.push({ name: 'activate-restores-window', state: await snapshot() });
+    // Hold the mascot's documented reduced-motion pose for the evidence image
+    // instead of occasionally capturing the intentional hidden phase.
+    await inspector.evaluate(`(() => {
+      const wc = ${mainWindow}.webContents;
+      if (!wc.debugger.isAttached()) wc.debugger.attach('1.3');
+      return wc.debugger.sendCommand('Emulation.setEmulatedMedia', {
+        features: [{ name: 'prefers-reduced-motion', value: 'reduce' }]
+      });
+    })()`);
+    await sleep(300);
+    await inspector.evaluate(`${mainWindow}.webContents.executeJavaScript('window.getSelection()?.removeAllRanges()')`);
     const png = await inspector.evaluate(`${mainWindow}.capturePage().then(image=>image.toPNG().toString('base64'))`);
     fs.writeFileSync(path.join(dir, 'main.png'), Buffer.from(png, 'base64'));
+    await inspector.evaluate(`(() => {
+      const wc = ${mainWindow}.webContents;
+      if (wc.debugger.isAttached()) wc.debugger.detach();
+    })()`);
     report.mockRequests = mock.requests.length;
     report.ok = true;
     console.log(`${mode}: ${report.checks.length} native window checks passed`);
@@ -149,14 +182,14 @@ async function checkMode(mode) {
     if (fs.existsSync(log)) fs.copyFileSync(log, path.join(dir, 'renderer.log'));
     await mock.close();
     const resolved = path.resolve(home);
-    if (path.dirname(resolved) !== path.resolve(os.tmpdir()) || !path.basename(resolved).startsWith('gsap-e2e-home-')) {
+    if (path.dirname(resolved) !== path.resolve(os.tmpdir()) || !path.basename(resolved).startsWith('codia-e2e-home-')) {
       throw new Error('Refusing to clean an unexpected smoke home');
     }
     removeE2EHome(resolved);
     if (process.platform === 'win32' && userData) {
       const { getUserDataAppName } = createRequire(import.meta.url)('../desktop/src/shared/single-instance-lock.cjs');
-      const expected = path.resolve(process.env.APPDATA, getUserDataAppName(home, path.join(os.homedir(), '.gsap')));
-      if (path.resolve(userData) !== expected || !path.basename(expected).startsWith('G-SAP-e2e-home-')) {
+      const expected = path.resolve(process.env.APPDATA, getUserDataAppName(home, path.join(os.homedir(), '.codia')));
+      if (path.resolve(userData) !== expected || !path.basename(expected).startsWith('Codia-e2e-home-')) {
         throw new Error('Refusing to clean an unexpected Electron userData directory');
       }
       fs.rmSync(expected, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
@@ -166,4 +199,9 @@ async function checkMode(mode) {
   }
 }
 
-for (const mode of ['electron', 'electron-dev', 'electron-built']) await checkMode(mode);
+const requestedModes = String(process.env.CODIA_E2E_DESKTOP_MODES || '')
+  .split(',')
+  .map(value => value.trim())
+  .filter(Boolean);
+const modes = requestedModes.length ? requestedModes : ['electron', 'electron-dev', 'electron-built'];
+for (const mode of modes) await checkMode(mode);

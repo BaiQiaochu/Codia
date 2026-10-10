@@ -14,7 +14,7 @@ import { extOfName } from './file-kind';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- API 历史消息 JSON 结构动态，难以静态收窄 */
 
-const DEFERRED_RESULT_PREFIXES = ['gsap', ['h', 'ana'].join('')];
+const DEFERRED_RESULT_PREFIXES = ['codia', ['h', 'ana'].join('')];
 const deferredResultPattern = new RegExp(`<(?:${DEFERRED_RESULT_PREFIXES.join('|')})-background-result\\s`);
 const deferredTasksPattern = new RegExp(`<(?:${DEFERRED_RESULT_PREFIXES.join('|')})-deferred-tasks>`);
 type InterludeContentBlock = Extract<ContentBlock, { type: 'interlude' }>;

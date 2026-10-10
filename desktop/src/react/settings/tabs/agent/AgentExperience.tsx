@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { t } from '../../helpers';
 import styles from '../../Settings.module.css';
 
@@ -36,7 +36,7 @@ export async function putExperience(
   try {
     const agentId = store.getSettingsAgentId();
     const content = serializeExperience(cats);
-    const res = await gsapFetch(`/api/agents/${agentId}/experience`, {
+    const res = await codiaFetch(`/api/agents/${agentId}/experience`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content }),

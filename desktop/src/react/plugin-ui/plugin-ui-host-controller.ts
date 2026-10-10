@@ -5,7 +5,7 @@ import {
   PLUGIN_UI_PROTOCOL_VERSION,
   parsePluginUiMessage,
   type PluginUiMessage,
-} from '@g-sap/plugin-protocol';
+} from '@codia/plugin-protocol';
 
 export type PluginIframeStatus = 'loading' | 'ready' | 'error';
 export type PluginUiSlot = 'page' | 'widget' | 'card' | 'settings';
@@ -107,7 +107,7 @@ export function parsePluginIframeHostMessage(data: unknown): PluginIframeHostMes
   if (message.kind === 'request') return { kind: 'request', message };
   if (message.kind !== 'event') return null;
 
-  if (message.type === 'gsap.ready') return { kind: 'ready' };
+  if (message.type === 'codia.ready') return { kind: 'ready' };
 
   if (message.type === PLUGIN_UI_CAPABILITY.UI_RESIZE && isObject(message.payload)) {
     const width = numberField(message.payload.width);

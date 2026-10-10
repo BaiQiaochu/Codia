@@ -1,5 +1,5 @@
 /*
- * BYOUNG Theme: Institutional Light
+ * CODIA Theme: Institutional Light
  * A cool, precise collaborative workspace with restrained brand accents.
  */
 
@@ -42,7 +42,7 @@
     --jian-note-bg: #F4F8F7;
     --jian-note-border: rgba(10, 129, 124, 0.18);
 
-    --gsap-text:    #12383A;
+    --codia-text:    #12383A;
     --mood-bg:      rgba(10, 129, 124, 0.07);
     --mood-text:    #0A6662;
     --mood-border:  rgba(10, 129, 124, 0.22);

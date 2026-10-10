@@ -48,7 +48,7 @@ function makeAgent(id = "agent-a") {
 
 function makeDeps(agent) {
   return {
-    getGsapHome: () => rootDir,
+    getCodiaHome: () => rootDir,
     getAgent: () => agent,
     getAgentById: (id) => (id === agent.id ? agent : null),
     getAgents: () => new Map([[agent.id, agent]]),

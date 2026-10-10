@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '../stores';
 import { usePanel } from '../hooks/use-panel';
-import { gsapFetch, gsapUrl } from '../hooks/use-gsap-fetch';
+import { codiaFetch, codiaUrl } from '../hooks/use-codia-fetch';
 import { formatSessionDate, parseMoodFromContent } from '../utils/format';
 import { splitAssistantMeta } from '../utils/assistant-meta-parser';
 import { renderMarkdown } from '../utils/markdown';
@@ -32,7 +32,7 @@ interface StatusData {
 
 export function BridgePanel() {
 
-  const [platform, setPlatform] = useState(() => localStorage.getItem('gsap_bridge_tab') || 'feishu');
+  const [platform, setPlatform] = useState(() => localStorage.getItem('codia_bridge_tab') || 'feishu');
   const [sessions, setSessions] = useState<BridgeSession[]>([]);
   const [currentKey, setCurrentKey] = useState<string | null>(null);
   const [currentName, setCurrentName] = useState('');
@@ -56,7 +56,7 @@ export function BridgePanel() {
     const snapshotId = bridgeAgentId;
     try {
       const query = snapshotId ? `?agentId=${encodeURIComponent(snapshotId)}` : '';
-      const res = await gsapFetch(`/api/bridge/status${query}`);
+      const res = await codiaFetch(`/api/bridge/status${query}`);
       if (bridgeAgentIdRef.current !== snapshotId) return; // stale
       const data = await res.json();
       if (bridgeAgentIdRef.current !== snapshotId) return; // stale
@@ -73,8 +73,8 @@ export function BridgePanel() {
     try {
       const agentQuery = snapshotId ? `&agentId=${encodeURIComponent(snapshotId)}` : '';
       const [statusRes, sessionsRes] = await Promise.all([
-        gsapFetch(`/api/bridge/status${snapshotId ? `?agentId=${encodeURIComponent(snapshotId)}` : ''}`),
-        gsapFetch(`/api/bridge/sessions?platform=${plat}${agentQuery}`),
+        codiaFetch(`/api/bridge/status${snapshotId ? `?agentId=${encodeURIComponent(snapshotId)}` : ''}`),
+        codiaFetch(`/api/bridge/sessions?platform=${plat}${agentQuery}`),
       ]);
       if (bridgeAgentIdRef.current !== snapshotId) return; // stale
       const sData = await statusRes.json();
@@ -173,7 +173,7 @@ export function BridgePanel() {
     setPlatform(plat);
     setCurrentKey(null);
     setChatOpen(false);
-    localStorage.setItem('gsap_bridge_tab', plat);
+    localStorage.setItem('codia_bridge_tab', plat);
     loadPlatformData(plat);
   }, [loadPlatformData]);
 
@@ -183,7 +183,7 @@ export function BridgePanel() {
     setCurrentName(displayName);
     try {
       const agentQuery = snapshotId ? `?agentId=${encodeURIComponent(snapshotId)}` : '';
-      const res = await gsapFetch(`/api/bridge/sessions/${encodeURIComponent(sessionKey)}/messages${agentQuery}`);
+      const res = await codiaFetch(`/api/bridge/sessions/${encodeURIComponent(sessionKey)}/messages${agentQuery}`);
       if (bridgeAgentIdRef.current !== snapshotId) return; // stale
       const data = await res.json();
       if (bridgeAgentIdRef.current !== snapshotId) return; // stale
@@ -203,7 +203,7 @@ export function BridgePanel() {
     const snapshotId = bridgeAgentId;
     try {
       const agentQuery = snapshotId ? `?agentId=${encodeURIComponent(snapshotId)}` : '';
-      await gsapFetch(`/api/bridge/sessions/${encodeURIComponent(currentKey)}/reset${agentQuery}`, { method: 'POST' });
+      await codiaFetch(`/api/bridge/sessions/${encodeURIComponent(currentKey)}/reset${agentQuery}`, { method: 'POST' });
       if (bridgeAgentIdRef.current !== snapshotId) return; // stale
       openSession(currentKey, currentName);
     } catch (err) {
@@ -236,7 +236,7 @@ export function BridgePanel() {
                     <>
                       <img
                         className={fp.bridgeAgentAvatar}
-                        src={agent?.hasAvatar ? gsapUrl(`/api/agents/${agent.id}/avatar?t=1`, { includeTokenQuery: true }) : yuanFallbackAvatar(agent?.yuan)}
+                        src={agent?.hasAvatar ? codiaUrl(`/api/agents/${agent.id}/avatar?t=1`, { includeTokenQuery: true }) : yuanFallbackAvatar(agent?.yuan)}
                         onError={(e) => { (e.target as HTMLImageElement).src = yuanFallbackAvatar(agent?.yuan); }}
                       />
                       <span className={fp.bridgeAgentName}>{agent?.name || '—'}</span>
@@ -255,7 +255,7 @@ export function BridgePanel() {
                     >
                       <img
                         className={fp.bridgeAgentAvatar}
-                        src={agent.hasAvatar ? gsapUrl(`/api/agents/${agent.id}/avatar?t=1`, { includeTokenQuery: true }) : yuanFallbackAvatar(agent.yuan)}
+                        src={agent.hasAvatar ? codiaUrl(`/api/agents/${agent.id}/avatar?t=1`, { includeTokenQuery: true }) : yuanFallbackAvatar(agent.yuan)}
                         onError={(e) => { (e.target as HTMLImageElement).src = yuanFallbackAvatar(agent.yuan); }}
                       />
                       <span>{agent.name}</span>

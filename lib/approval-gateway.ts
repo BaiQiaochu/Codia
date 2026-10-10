@@ -19,7 +19,7 @@ const GIT_PUSH_RULES = {
 
 const ALLOWED_ACTIONS = new Set(["allow", "deny_and_continue", "ask_user", "hard_deny"]);
 const REVIEWER_ACTIONS = new Set([...ALLOWED_ACTIONS, "escalate"]);
-const REVIEWER_SYSTEM_PROMPT = `You are G-SAP's automatic tool approval reviewer.
+const REVIEWER_SYSTEM_PROMPT = `You are Codia's automatic tool approval reviewer.
 Decide whether the requested tool action may run under Auto mode without interrupting the user.
 Return JSON only, with this shape:
 {"action":"allow|deny_and_continue|ask_user|escalate","reason":"short concrete reason","risk":"low|medium|high|critical","saferAlternative":"optional safer next step","ruleIds":["optional-policy-id"]}

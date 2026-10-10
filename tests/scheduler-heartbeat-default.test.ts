@@ -8,7 +8,7 @@ const { createHeartbeatMock, heartbeatInstances, heartbeatOptions } = vi.hoisted
 }));
 
 vi.mock("../lib/desk/heartbeat.js", () => ({
-  HEARTBEAT_ACTIVITY_DIR: ".hana-heartbeat",
+  HEARTBEAT_ACTIVITY_DIR: ".codia-heartbeat",
   createHeartbeat: createHeartbeatMock,
 }));
 
@@ -51,7 +51,7 @@ describe("Scheduler heartbeat defaults", () => {
   });
 
   it("creates heartbeat handles for config-only agents but starts only explicit opt-in patrols", () => {
-    const root = "/tmp/hana-heartbeat-default";
+    const root = "/tmp/codia-heartbeat-default";
     const optedIn = {
       id: "opted-in",
       agentName: "Opted In",
@@ -83,7 +83,7 @@ describe("Scheduler heartbeat defaults", () => {
   });
 
   it("passes Jian-scoped custom tools into heartbeat isolated execution", () => {
-    const root = "/tmp/hana-heartbeat-jian-tools";
+    const root = "/tmp/codia-heartbeat-jian-tools";
     const agent = {
       id: "agent-a",
       agentName: "Agent A",

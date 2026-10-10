@@ -57,7 +57,7 @@ const { switchTabMock, live2DPropsMock, resolveLive2DAssetsMock } = vi.hoisted((
 
 vi.mock('../../live2d/assets', () => ({ resolveCodiaLive2DAssets: resolveLive2DAssetsMock }));
 vi.mock('../../components/CodiaLive2DMascot', () => ({
-  CodiaLive2DMascot: (props: { fallback: React.ReactNode; className?: string }) => {
+  CodiaLive2DMascot: (props: { fallback?: React.ReactNode; className?: string }) => {
     live2DPropsMock(props);
     return <div data-testid="live2d-mascot" className={props.className}>{props.fallback}</div>;
   },
@@ -90,8 +90,8 @@ vi.mock('../../stores/desk-actions', () => ({
   removeWorkspaceFolder: vi.fn(),
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: vi.fn(async () => ({ json: async () => ({}) })),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: vi.fn(async () => ({ json: async () => ({}) })),
 }));
 
 vi.mock('../../utils/ui-helpers', () => ({
@@ -109,7 +109,7 @@ vi.mock('../../utils/agent-display', () => ({
     <span className={className} aria-label={alt || 'agent'} />
   ),
   refreshAgentAvatarVersion: vi.fn(),
-  resolveAgentDisplayInfo: () => ({ displayName: 'G-SAP', yuan: 'gsap' }),
+  resolveAgentDisplayInfo: () => ({ displayName: 'Codia', yuan: 'codia' }),
 }));
 
 describe('WelcomeScreen studio workspaces', () => {
@@ -118,9 +118,9 @@ describe('WelcomeScreen studio workspaces', () => {
       welcomeVisible: true,
       serverPort: '15733',
       agents: [],
-      agentName: 'G-SAP',
+      agentName: 'Codia',
       agentAvatarUrl: null,
-      agentYuan: 'gsap',
+      agentYuan: 'codia',
       currentAgentId: null,
       selectedAgentId: null,
       memoryEnabled: true,
@@ -169,7 +169,7 @@ describe('WelcomeScreen studio workspaces', () => {
     await waitFor(() => expect(loadStudioWorkspacesMock).toHaveBeenCalledOnce());
     expect(screen.queryByText('今天想对')).toBeNull();
     const workspaceControls = screen.getByText('Workspace: Docs').closest('[class*="workspaceControls"]');
-    expect(workspaceControls?.contains(screen.getByRole('button', { name: 'settings.title' }))).toBe(true);
+    expect(workspaceControls?.querySelector('button[aria-label="settings.title"]')).toBeNull();
     fireEvent.click(screen.getByText('Workspace: Docs'));
     fireEvent.click(screen.getAllByText('Default')[0]);
     expect(applyStudioWorkspaceMock).toHaveBeenCalledWith(expect.objectContaining({ mountId: 'default' }));
@@ -184,7 +184,7 @@ describe('WelcomeScreen studio workspaces', () => {
     const onDraft = (event: Event) => {
       draftEvents.push((event as CustomEvent<{ text?: string; source?: string }>).detail || {});
     };
-    window.addEventListener('gsap-input-draft-request', onDraft);
+    window.addEventListener('codia-input-draft-request', onDraft);
 
     try {
       render(<WelcomeScreen />);
@@ -205,11 +205,11 @@ describe('WelcomeScreen studio workspaces', () => {
       fireEvent.click(screen.getByRole('button', { name: /问问我的 Agent/ }));
       expect(draftEvents.at(-1)?.quickAction).toBe('agents');
     } finally {
-      window.removeEventListener('gsap-input-draft-request', onDraft);
+      window.removeEventListener('codia-input-draft-request', onDraft);
     }
   });
 
-  it('uses the local asset port and a dedicated mascot surface, preserving the PNG fallback', () => {
+  it('uses the local asset port and a dedicated Live2D mascot surface without the removed PNG fallback', () => {
     state.activeServerConnection = { url: 'https://remote.example.test' };
     const { container } = render(<WelcomeScreen />);
 
@@ -219,7 +219,7 @@ describe('WelcomeScreen studio workspaces', () => {
       assets: expect.objectContaining({ modelUrl: expect.stringContaining('/model/Codia.model3.json') }),
     }));
     expect(screen.getByTestId('live2d-mascot').closest('[data-codia-mascot-frame]')).toBeNull();
-    expect(container.querySelector('[data-codia-mascot-frame] img')).not.toBeNull();
+    expect(container.querySelector('[data-codia-mascot-frame] img')).toBeNull();
   });
 
   it('waits for the desktop GPU policy and passes the actual safe mode to the mascot', async () => {
@@ -233,7 +233,7 @@ describe('WelcomeScreen studio workspaces', () => {
     }));
   });
 
-  it('keeps the PNG fallback when the desktop GPU policy cannot be read', async () => {
+  it('does not enable the mascot until the desktop GPU policy is known', async () => {
     window.platform.getGpuRuntimeState = vi.fn().mockRejectedValue(new Error('IPC unavailable'));
     render(<WelcomeScreen />);
     await act(async () => { await Promise.resolve(); });

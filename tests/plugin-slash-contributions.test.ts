@@ -20,7 +20,7 @@ function writePlugin(dir, id, filesMap, manifestExtra: any = {}) {
 }
 
 beforeEach(() => {
-  tmp = path.join(os.tmpdir(), "hana-pscmd-" + Date.now() + Math.random().toString(36).slice(2));
+  tmp = path.join(os.tmpdir(), "codia-pscmd-" + Date.now() + Math.random().toString(36).slice(2));
   builtinDir = path.join(tmp, "builtin");
   communityDir = path.join(tmp, "community");
   dataDir = path.join(tmp, "data");

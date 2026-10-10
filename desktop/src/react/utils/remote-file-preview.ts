@@ -6,7 +6,7 @@ import type {
   VersionedWriteResult,
 } from '../types';
 import type { FileRef } from '../types/file-ref';
-import { gsapFetch, gsapUrl } from '../hooks/use-gsap-fetch';
+import { codiaFetch, codiaUrl } from '../hooks/use-codia-fetch';
 import { useStore } from '../stores';
 import { openPreview, upsertArtifactForOwner } from '../stores/preview-actions';
 import { resolveServerConnection } from '../services/server-connection';
@@ -121,8 +121,8 @@ function numberHeader(headers: Headers, ...names: string[]): number {
 }
 
 function fileVersionFromContentHeaders(headers: Headers): FileVersion | undefined {
-  const mtimeMs = numberHeader(headers, 'X-GSAP-File-MtimeMs', 'X-Hana-File-MtimeMs');
-  const size = numberHeader(headers, 'X-GSAP-File-Size', 'X-Hana-File-Size');
+  const mtimeMs = numberHeader(headers, 'X-CODIA-File-MtimeMs', 'X-Codia-File-MtimeMs');
+  const size = numberHeader(headers, 'X-CODIA-File-Size', 'X-Codia-File-Size');
   if (!Number.isFinite(mtimeMs) || !Number.isFinite(size)) return undefined;
   return { mtimeMs, size };
 }
@@ -154,7 +154,7 @@ function remoteContentRefWithVersion(
 }
 
 async function readContentForPreview(contentPath: string, previewType: string): Promise<PreviewContentSnapshot> {
-  const res = await gsapFetch(contentPath);
+  const res = await codiaFetch(contentPath);
   const fileVersion = fileVersionFromContentHeaders(res.headers);
   if (BINARY_PREVIEW_TYPES.has(previewType)) {
     return { content: await blobToBase64(await res.blob()), fileVersion };
@@ -214,7 +214,7 @@ async function openRemoteContentPreview({
     openSvgDiagramPreviewFromUrl({
       id,
       title,
-      url: gsapUrl(contentPath, { includeTokenQuery: true }),
+      url: codiaUrl(contentPath, { includeTokenQuery: true }),
       ext,
       storageKind: 'remote-content',
     });
@@ -261,7 +261,7 @@ export async function saveRemoteWorkbenchContent(
   expectedVersion?: FileVersion | null,
 ): Promise<VersionedWriteResult> {
   const normalized = normalizeWorkbenchContentRef(ref);
-  const res = await gsapFetch('/api/workbench/actions', {
+  const res = await codiaFetch('/api/workbench/actions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -392,7 +392,7 @@ export async function openFileRefPreview(file: FileRef, context: FileRefPreviewC
       openSvgDiagramPreviewFromUrl({
         id: previewId('resource', file.resource?.resourceId || file.id),
         title: file.name,
-        url: gsapUrl(contentLink, { includeTokenQuery: true }),
+        url: codiaUrl(contentLink, { includeTokenQuery: true }),
         ext: file.ext || extOfName(file.name) || 'svg',
         storageKind: 'remote-content',
       });
@@ -444,7 +444,7 @@ export function fileRefDownloadUrl(file: FileRef): string | null {
   const contentPath = file.resource?.links.content;
   if (contentPath) {
     try {
-      return gsapUrl(contentPath, { includeTokenQuery: true });
+      return codiaUrl(contentPath, { includeTokenQuery: true });
     } catch {
       return contentPath;
     }

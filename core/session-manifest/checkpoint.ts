@@ -44,19 +44,19 @@ function readCheckpointReceipt(checkpointDirectory) {
   return receipt;
 }
 
-function resolveGsapHome(opts: any = {}, fallback?: any) {
-  return opts.gsapHome || opts.hanaHome || fallback?.gsapHome || fallback?.hanaHome || null;
+function resolveCodiaHome(opts: any = {}, fallback?: any) {
+  return opts.codiaHome || opts.codiaHome || fallback?.codiaHome || fallback?.codiaHome || null;
 }
 
 export function createSessionManifestCheckpoint(opts: any = {}) {
-  const inputHome = resolveGsapHome(opts);
-  if (!inputHome) throw new Error("createSessionManifestCheckpoint requires gsapHome");
-  const gsapHome = path.resolve(inputHome);
+  const inputHome = resolveCodiaHome(opts);
+  if (!inputHome) throw new Error("createSessionManifestCheckpoint requires codiaHome");
+  const codiaHome = path.resolve(inputHome);
   const createdAt = opts.createdAt || new Date().toISOString();
   const id = opts.id || sanitizeTimestamp(createdAt);
   const checkpointRoot = opts.checkpointRoot
     ? path.resolve(opts.checkpointRoot)
-    : path.join(gsapHome, "checkpoints", "session-manifest");
+    : path.join(codiaHome, "checkpoints", "session-manifest");
   const checkpointDirectory = path.join(checkpointRoot, id);
   const includes = opts.includes || DEFAULT_SESSION_MANIFEST_CHECKPOINT_INCLUDES;
 
@@ -69,7 +69,7 @@ export function createSessionManifestCheckpoint(opts: any = {}) {
   const includeReceipts = [];
   try {
     for (const name of includes) {
-      const source = path.join(gsapHome, name);
+      const source = path.join(codiaHome, name);
       const target = path.join(checkpointDirectory, name);
       if (!fs.existsSync(source)) {
         includeReceipts.push({ name, source, checkpointPath: target, exists: false });
@@ -85,7 +85,7 @@ export function createSessionManifestCheckpoint(opts: any = {}) {
       id,
       appVersion: opts.appVersion || readPackageVersion(),
       createdAt,
-      gsapHome,
+      codiaHome,
       gitAnchors: opts.gitAnchors || {},
       includes: includeReceipts,
     };
@@ -103,15 +103,15 @@ export function restoreSessionManifestCheckpoint(opts: any = {}) {
   }
   const checkpointDirectory = path.resolve(opts.checkpointDirectory);
   const receipt = readCheckpointReceipt(checkpointDirectory);
-  const inputHome = resolveGsapHome(opts, receipt);
-  if (!inputHome) throw new Error("restoreSessionManifestCheckpoint requires gsapHome");
-  const gsapHome = path.resolve(inputHome);
+  const inputHome = resolveCodiaHome(opts, receipt);
+  if (!inputHome) throw new Error("restoreSessionManifestCheckpoint requires codiaHome");
+  const codiaHome = path.resolve(inputHome);
   const restoredAt = opts.restoredAt || new Date().toISOString();
   const restoreId = sanitizeTimestamp(restoredAt);
-  assertDirectoryWritable(gsapHome);
+  assertDirectoryWritable(codiaHome);
 
   const movedManifestFiles = moveSessionManifestDbFilesAside({
-    gsapHome,
+    codiaHome,
     suffix: `rollback-${restoreId}`,
   });
   const movedManifestDbTo = movedManifestFiles.find((entry) => (
@@ -121,13 +121,13 @@ export function restoreSessionManifestCheckpoint(opts: any = {}) {
   for (const entry of receipt.includes || []) {
     if (!entry?.exists) continue;
     const source = path.join(checkpointDirectory, entry.name);
-    const target = path.join(gsapHome, entry.name);
+    const target = path.join(codiaHome, entry.name);
     safeCopyDir(source, target);
   }
 
   return {
     checkpointDirectory,
-    gsapHome,
+    codiaHome,
     restoredAt,
     movedManifestDbTo,
     movedManifestFiles,

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
 }));
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: mocks.gsapFetch,
+  codiaFetch: mocks.codiaFetch,
 }));
 
 import { loadLlmUsageEntries } from '../../settings/tabs/providers/usage-ledger-actions';
@@ -16,7 +16,7 @@ describe('usage ledger actions', () => {
   });
 
   it('requests explicit date windows without the latest-entry default limit', async () => {
-    mocks.gsapFetch.mockResolvedValue({
+    mocks.codiaFetch.mockResolvedValue({
       json: async () => ({ entries: [] }),
     });
 
@@ -25,7 +25,7 @@ describe('usage ledger actions', () => {
       until: '2026-05-21T00:00:00.000Z',
     });
 
-    expect(mocks.gsapFetch).toHaveBeenCalledWith(
+    expect(mocks.codiaFetch).toHaveBeenCalledWith(
       '/api/usage/llm?since=2026-05-20T00%3A00%3A00.000Z&until=2026-05-21T00%3A00%3A00.000Z',
     );
   });

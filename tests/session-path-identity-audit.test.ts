@@ -23,7 +23,7 @@ function runAuditProcess(root: string, ...args: string[]) {
 
 describe("session path identity audit", () => {
   it("flags path-keyed storage but allows identity adapter lookups", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-session-audit-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-audit-"));
     fs.writeFileSync(path.join(dir, "path-cache.ts"), `
       const sessionCache = new Map();
       sessionCache.set(sessionPath, value);
@@ -41,7 +41,7 @@ describe("session path identity audit", () => {
   });
 
   it("does not treat focus locators as path-keyed identity storage", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-session-audit-focus-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-audit-focus-"));
     fs.writeFileSync(path.join(dir, "focus.ts"), `
       get currentSessionPath() { return this._sessionCoord.currentSessionPath; }
       this._emitEvent(event, this.currentSessionPath);
@@ -54,7 +54,7 @@ describe("session path identity audit", () => {
   });
 
   it("fail-on-risk ignores approved identity boundaries but fails on true risks", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-session-audit-fail-gate-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-audit-fail-gate-"));
     const sessionDir = path.join(dir, "desktop", "src", "react", "stores");
     const appDir = path.join(dir, "core");
     fs.mkdirSync(sessionDir, { recursive: true });

@@ -23,21 +23,21 @@ import type {
 type LocalFsProviderFactory = (options: { cwd: string; guard: { check: (filePath: string, operation: "read" | "write" | "delete") => { allowed: boolean; reason?: string } } }) => any;
 
 type Options = {
-  gsapHome?: string;
+  codiaHome?: string;
   studioId: string;
   localFsProviderFactory: LocalFsProviderFactory;
 };
 
 export class MountProvider {
-  declare gsapHome: string;
+  declare codiaHome: string;
   declare studioId: string;
   declare localFsProviderFactory: LocalFsProviderFactory;
 
-  constructor({ gsapHome, studioId, localFsProviderFactory }: Options) {
-    const home = gsapHome || "";
-    if (!home) throw new Error("gsapHome is required");
+  constructor({ codiaHome, studioId, localFsProviderFactory }: Options) {
+    const home = codiaHome || "";
+    if (!home) throw new Error("codiaHome is required");
     if (!studioId) throw new Error("studioId is required");
-    this.gsapHome = home;
+    this.codiaHome = home;
     this.studioId = studioId;
     this.localFsProviderFactory = localFsProviderFactory;
   }
@@ -195,7 +195,7 @@ export class MountProvider {
     }
     let registry;
     try {
-      registry = loadStudioMountRegistry(this.gsapHome);
+      registry = loadStudioMountRegistry(this.codiaHome);
     } catch (err) {
       throw new ResourceIOError((err as any)?.message || "mount registry unavailable", {
         code: "provider_not_available",

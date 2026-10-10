@@ -141,10 +141,10 @@ function addRoot(roots, value) {
 
 export function createFsRoute(engine) {
   const route = new Hono();
-  const gsapHome = path.resolve(engine.gsapHome);
+  const codiaHome = path.resolve(engine.codiaHome);
 
   function getAllowedRoots(c) {
-    const roots = new Set([gsapHome]);
+    const roots = new Set([codiaHome]);
     addRoot(roots, engine.defaultDeskCwd);
     addRoot(roots, engine.homeCwd);
     addRoot(roots, engine.deskCwd);

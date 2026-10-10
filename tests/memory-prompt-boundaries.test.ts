@@ -35,7 +35,7 @@ describe("memory prompt boundaries", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (callText as any).mockResolvedValue("[]");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-memory-prompts-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-memory-prompts-"));
   });
 
   afterEach(() => {
@@ -47,9 +47,9 @@ describe("memory prompt boundaries", () => {
 
     await manager._callRollingLLM("【用户】我最近在关注记忆系统。", "", RESOLVED_MODEL, 2, {
       memoryReflectionSnapshot: {
-        agentName: "G-SAP",
+        agentName: "Codia",
         userName: "测试用户",
-        identityAndPersonality: "G-SAP 的人格设定。",
+        identityAndPersonality: "Codia 的人格设定。",
         userProfile: "测试用户的主人设定。",
         existingMemory: "已有长期记忆。",
         roster: "同处于这个系统里的别的 Agent：Butter。",
@@ -57,7 +57,7 @@ describe("memory prompt boundaries", () => {
     });
 
     const prompt = (callText as any).mock.calls[0][0].systemPrompt;
-    expect(prompt).toContain("你是 G-SAP");
+    expect(prompt).toContain("你是 Codia");
     expect(prompt).toContain("从自己的视角审视本次对话");
     expect(prompt).toContain("这是你在本次对话开始前已经拥有的记忆");
     expect(prompt).toContain("工作相关内容只允许保留到大主题层级");

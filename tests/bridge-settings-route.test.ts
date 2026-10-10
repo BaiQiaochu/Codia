@@ -9,14 +9,14 @@ function makeApp() {
   let richStreamingEnabled = true;
   let permissionMode = "operate";
   const agent = {
-    id: "gsap",
-    sessionDir: "/tmp/gsap-bridge-settings",
+    id: "codia",
+    sessionDir: "/tmp/codia-bridge-settings",
     config: { bridge: {} },
     updateConfig: vi.fn(),
   };
   const engine = {
-    currentAgentId: "gsap",
-    getAgent: vi.fn((id) => id === "gsap" ? agent : null),
+    currentAgentId: "codia",
+    getAgent: vi.fn((id) => id === "codia" ? agent : null),
     getBridgeIndex: vi.fn(() => ({})),
     getBridgeReadOnly: vi.fn(() => readOnly),
     setBridgeReadOnly: vi.fn((next) => { readOnly = !!next; }),

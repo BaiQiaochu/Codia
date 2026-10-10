@@ -2,7 +2,7 @@ import {
   dispatchCoverNotice,
   requestMarkdownCoverGeneration,
 } from './markdown-cover-generation';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 
 let activeGuidanceDialog: { close: (value: string | null) => void } | null = null;
 
@@ -58,7 +58,7 @@ function getAgentGenerateDisabledText(status: CoverGenerationStatus): string {
 }
 
 async function readCoverGenerationStatus(): Promise<CoverStatus> {
-  const res = await gsapFetch('/api/desk/beautify/status');
+  const res = await codiaFetch('/api/desk/beautify/status');
   return await res.json().catch(() => ({}));
 }
 

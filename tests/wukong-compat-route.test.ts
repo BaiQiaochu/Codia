@@ -12,8 +12,8 @@ function createApp(engine: any) {
 describe("Wukong compatibility route", () => {
   it("exposes an external-runtime compatibility manifest without registering a native bridge platform", async () => {
     const app = createApp({
-      currentAgentId: "gsap",
-      getAgent: vi.fn(() => ({ id: "gsap", agentName: "G-SAP" })),
+      currentAgentId: "codia",
+      getAgent: vi.fn(() => ({ id: "codia", agentName: "Codia" })),
     });
 
     const res = await app.request("/api/wukong/capabilities");
@@ -35,7 +35,7 @@ describe("Wukong compatibility route", () => {
         agents: { run: true, continueSession: true },
         workflows: { run: true },
         subagents: { dispatch: true },
-        media: { generate: true, ocr: true },
+        media: { generate: true },
       },
     });
   });
@@ -95,7 +95,7 @@ describe("Wukong compatibility route", () => {
         agentName: "Wukong Agent",
         skillId: "skill-123",
         workspaceId: "workspace-9",
-        source: { subsystem: "gsap", surface: "api" },
+        source: { subsystem: "codia", surface: "api" },
       });
       return new Response(JSON.stringify({
         taskId: "wk-task-1",
@@ -132,7 +132,7 @@ describe("Wukong compatibility route", () => {
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toMatchObject({
       ok: true,
-      direction: "gsap_to_wukong",
+      direction: "codia_to_wukong",
       platform: "wukong",
       agentId: "agent-wk",
       result: {

@@ -52,8 +52,8 @@ function makeEngine(
   const disabled = options.disabled || [];
   const agent = {
     id: "agent-1",
-    name: "G-SAP",
-    agentName: "G-SAP",
+    name: "Codia",
+    agentName: "Codia",
     config: { tools: { disabled } },
   };
   const emitEvent = vi.fn();
@@ -66,7 +66,7 @@ function makeEngine(
   };
   const imageGenCtx = options.imageGenCtx || makeImageGenCtx(tmpDir);
   return {
-    gsapHome: path.join(tmpDir, "gsap-home"),
+    codiaHome: path.join(tmpDir, "codia-home"),
     deskCwd: tmpDir,
     homeCwd: tmpDir,
     currentAgentId: agent.id,
@@ -91,7 +91,7 @@ describe("desk beautify cover apply route", () => {
   let tmpDir;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-cover-route-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-cover-route-"));
   });
 
   afterEach(() => {

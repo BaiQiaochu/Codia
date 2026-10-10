@@ -94,7 +94,7 @@ export function buildWindowsSandboxHelper({
     return { skipped: true };
   }
 
-  const source = path.join(rootDir, "desktop", "native", "GsapWindowsSandboxHelper", "main.cpp");
+  const source = path.join(rootDir, "desktop", "native", "CodiaWindowsSandboxHelper", "main.cpp");
   if (!fs.existsSync(source)) {
     throw new Error(`[windows-sandbox-helper] source not found: ${source}`);
   }
@@ -102,7 +102,7 @@ export function buildWindowsSandboxHelper({
   const outDir = windowsSandboxHelperOutputDir({ rootDir, arch });
   fs.rmSync(outDir, { recursive: true, force: true });
   fs.mkdirSync(outDir, { recursive: true });
-  const output = path.join(outDir, "gsap-win-sandbox.exe");
+  const output = path.join(outDir, "codia-win-sandbox.exe");
   const command = buildWindowsSandboxCompileCommand({ source, output });
   console.log(`[windows-sandbox-helper] building ${output}`);
   runCompile(command, { rootDir, arch });

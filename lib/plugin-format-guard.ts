@@ -36,7 +36,7 @@ function createOpenClawIssue({ marker, id, name, version }) {
     id,
     name,
     version,
-    message: `This package looks like an OpenClaw-style plugin package (${marker}). G-SAP cannot install it directly. Use a G-SAP plugin package with manifest.json, or port it to the G-SAP plugin SDK.`,
+    message: `This package looks like an OpenClaw-style plugin package (${marker}). Codia cannot install it directly. Use a Codia plugin package with manifest.json, or port it to the Codia plugin SDK.`,
   };
 }
 

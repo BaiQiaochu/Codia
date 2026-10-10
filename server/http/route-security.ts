@@ -85,7 +85,6 @@ export function classifyHttpRoute({ method = "GET", path = "" }: { method?: unkn
   const verb = String(method || "GET").toUpperCase();
   const routePath = normalizePath(path);
 
-  if (isOcrRuntimeRoute(verb, routePath)) return PUBLIC;
   if (isMobileStaticRoute(verb, routePath)) return PUBLIC;
   if (isWebAuthBootstrapRoute(verb, routePath)) return PUBLIC;
   if (isMcpOAuthCallbackRoute(verb, routePath)) return PUBLIC;
@@ -267,7 +266,7 @@ function denied(
 function normalizePath(path: unknown): string {
   const raw = String(path || "");
   try {
-    return new URL(raw, "http://gsap.local").pathname;
+    return new URL(raw, "http://codia.local").pathname;
   } catch {
     return raw.split("?")[0] || "/";
   }
@@ -313,11 +312,6 @@ function isWebClientStaticRoute(routePath: string, prefix: string): boolean {
     || routePath.startsWith(`${prefix}/themes/`)
     || routePath.startsWith(`${prefix}/locales/`)
     || routePath.startsWith(`${prefix}/icons/`);
-}
-
-function isOcrRuntimeRoute(verb: string, routePath: string): boolean {
-  if (verb !== "GET" && verb !== "HEAD") return false;
-  return routePath.startsWith("/ocr-runtime/");
 }
 
 function isHtmlPreviewDocumentRoute(verb: string, routePath: string): boolean {
@@ -629,7 +623,7 @@ function isPluginAssetReadRoute(verb, routePath) {
 
 function hasQueryParam(rawPath, key, expected) {
   try {
-    const url = new URL(String(rawPath || ""), "http://gsap.local");
+    const url = new URL(String(rawPath || ""), "http://codia.local");
     if (!url.searchParams.has(key)) return false;
     if (expected === undefined) return true;
     return url.searchParams.get(key) === expected;

@@ -56,7 +56,7 @@ describe('server connection helpers', () => {
   it('creates a LAN device connection without leaking its credential into URLs', () => {
     const remote = createDeviceServerConnection({
       baseUrl: '192.168.31.75:14500/mobile/',
-      credential: 'gsap_dev_remote_secret',
+      credential: 'codia_dev_remote_secret',
       identity: {
         connectionKind: 'lan',
         serverId: 'server_lan',
@@ -75,7 +75,7 @@ describe('server connection helpers', () => {
       connectionId: 'lan:node_lan:studio_lan',
       baseUrl: 'http://192.168.31.75:14500',
       wsUrl: 'ws://192.168.31.75:14500',
-      token: 'gsap_dev_remote_secret',
+      token: 'codia_dev_remote_secret',
       credentialKind: 'device_credential',
     });
     expect(buildConnectionUrl(remote, '/api/resources/res_1/content', { includeTokenQuery: true }))
@@ -110,24 +110,24 @@ describe('server connection helpers', () => {
 
     const connection = await connectDeviceServerConnection({
       baseUrl: 'http://192.168.31.75:14500/',
-      credential: 'gsap_dev_remote_secret',
+      credential: 'codia_dev_remote_secret',
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });
 
     expect(fetchImpl).toHaveBeenNthCalledWith(1, 'http://192.168.31.75:14500/api/web-auth/login', expect.objectContaining({
       method: 'POST',
       credentials: 'include',
-      body: JSON.stringify({ credential: 'gsap_dev_remote_secret' }),
+      body: JSON.stringify({ credential: 'codia_dev_remote_secret' }),
     }));
     expect(fetchImpl).toHaveBeenNthCalledWith(2, 'http://192.168.31.75:14500/api/server/identity', expect.objectContaining({
-      headers: { Authorization: 'Bearer gsap_dev_remote_secret' },
+      headers: { Authorization: 'Bearer codia_dev_remote_secret' },
       credentials: 'include',
     }));
     expect(connection.connectionId).toBe('lan:node_lan:studio_lan');
     expect(isLocalOwnerConnection(connection)).toBe(false);
   });
 
-  it('persists only non-local server connections under the G-SAP key', () => {
+  it('persists only non-local server connections under the Codia key', () => {
     const storageData = new Map<string, string>();
     const storage = {
       getItem: (key: string) => storageData.get(key) ?? null,
@@ -137,7 +137,7 @@ describe('server connection helpers', () => {
     const local = createLocalServerConnection({ serverPort: 3210, serverToken: 'local-token' })!;
     const remote = createDeviceServerConnection({
       baseUrl: 'http://192.168.31.75:14500',
-      credential: 'gsap_dev_remote_secret',
+      credential: 'codia_dev_remote_secret',
       identity: {
         connectionKind: 'lan',
         serverId: 'server_lan',
@@ -157,7 +157,7 @@ describe('server connection helpers', () => {
       activeServerConnectionId: remote.connectionId,
     }, storage);
 
-    expect(storageData.has('gsap-server-connections-v1')).toBe(true);
+    expect(storageData.has('codia-server-connections-v1')).toBe(true);
     const loaded = readPersistedServerConnectionState(storage);
     expect(Object.keys(loaded.serverConnections)).toEqual([remote.connectionId]);
     expect(loaded.activeServerConnectionId).toBe(remote.connectionId);
@@ -168,7 +168,7 @@ describe('server connection helpers', () => {
     const local = createLocalServerConnection({ serverPort: 3210, serverToken: 'old-token' })!;
     const remote = createDeviceServerConnection({
       baseUrl: 'http://192.168.31.75:14500',
-      credential: 'gsap_dev_remote_secret',
+      credential: 'codia_dev_remote_secret',
       identity: {
         connectionKind: 'lan',
         serverId: 'server_lan',

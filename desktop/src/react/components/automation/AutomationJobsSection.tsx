@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore } from '../../stores';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { AgentAvatar, resolveAgentDisplayInfo } from '../../utils/agent-display';
 import fp from '../FloatingPanels.module.css';
 import styles from './AutomationPanel.module.css';
@@ -74,8 +74,8 @@ export function AutomationJobsSection({
   const loadData = useCallback(async () => {
     try {
       const [cronRes, modelsRes] = await Promise.all([
-        gsapFetch('/api/desk/cron'),
-        gsapFetch('/api/models'),
+        codiaFetch('/api/desk/cron'),
+        codiaFetch('/api/models'),
       ]);
       const cronData = await cronRes.json();
       const modelsData = await modelsRes.json().catch(() => ({ models: [] }));
@@ -101,7 +101,7 @@ export function AutomationJobsSection({
 
   const mutateJob = useCallback(async (payload: Record<string, unknown>, fallbackMessage: string) => {
     try {
-      const response = await gsapFetch('/api/desk/cron', {
+      const response = await codiaFetch('/api/desk/cron', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -161,7 +161,7 @@ export function AutomationJobsSection({
     const cwd = deskWorkspaceMountId
       ? (currentSessionProjection?.cwd || null)
       : (deskBasePath || homeFolder || null);
-    const response = await gsapFetch('/api/desk/cron', {
+    const response = await codiaFetch('/api/desk/cron', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

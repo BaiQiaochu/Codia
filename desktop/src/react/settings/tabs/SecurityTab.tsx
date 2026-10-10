@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useSettingsStore } from '../store';
 import { autoSaveConfig, t } from '../helpers';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { loadSettingsConfig } from '../actions';
 import { Toggle } from '../widgets/Toggle';
 import styles from '../Settings.module.css';
@@ -137,7 +137,7 @@ export function SecurityTab() {
   const loadCheckpoints = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await gsapFetch('/api/checkpoints');
+      const res = await codiaFetch('/api/checkpoints');
       const data = await res.json();
       setCheckpoints(data.checkpoints || []);
     } catch {
@@ -149,7 +149,7 @@ export function SecurityTab() {
 
   const handleRestore = useCallback(async (id: string) => {
     try {
-      const res = await gsapFetch(`/api/checkpoints/${id}/restore`, { method: 'POST' });
+      const res = await codiaFetch(`/api/checkpoints/${id}/restore`, { method: 'POST' });
       const data = await res.json();
       if (data.ok) {
         showToast(t('settings.security.restoreSuccess'), 'success');

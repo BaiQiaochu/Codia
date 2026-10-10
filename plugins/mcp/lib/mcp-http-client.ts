@@ -246,8 +246,8 @@ export class McpStreamableHttpClient {
       protocolVersion: this.initialProtocolVersion,
       capabilities: {},
       clientInfo: {
-        name: "gsap",
-        title: "G-SAP",
+        name: "codia",
+        title: "Codia",
         version: "0.6.7",
       },
     }, { initializing: true, retryOnSessionExpired: false });
@@ -492,8 +492,8 @@ export class McpLegacySseClient {
       protocolVersion: MCP_PROTOCOL_VERSION,
       capabilities: {},
       clientInfo: {
-        name: "gsap",
-        title: "G-SAP",
+        name: "codia",
+        title: "Codia",
         version: "0.6.7",
       },
     });

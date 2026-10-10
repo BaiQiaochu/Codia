@@ -35,7 +35,7 @@ describe("secret custody across HTTP routes", () => {
       },
       authStorage: { getOAuthProviders: () => [] },
       preferences: { getOAuthCustomModels: () => ({}) },
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     };
 
     app.route("/api", createProvidersRoute(engine));
@@ -57,7 +57,7 @@ describe("secret custody across HTTP routes", () => {
           net: {
             base_url: "http://137.220.151.198:8080/v1",
             api: "openai-completions",
-            api_key: "gsap-runtime-api-key:net",
+            api_key: "codia-runtime-api-key:net",
             models: ["GPT-5.5"],
           },
         }),
@@ -74,12 +74,12 @@ describe("secret custody across HTTP routes", () => {
         getApiKey: vi.fn(async (providerId) => providerId === "net" ? "sk-real-net-key" : ""),
       },
       resolveProviderCredentials: () => ({
-        api_key: "gsap-runtime-api-key:net",
+        api_key: "codia-runtime-api-key:net",
         base_url: "http://137.220.151.198:8080/v1",
         api: "openai-completions",
       }),
       preferences: { getOAuthCustomModels: () => ({}) },
-      gsapHome: "/tmp",
+      codiaHome: "/tmp",
     };
 
     app.route("/api", createProvidersRoute(engine));
@@ -87,13 +87,13 @@ describe("secret custody across HTTP routes", () => {
     const summaryRes = await app.request("/api/providers/summary");
     const summaryBody = await summaryRes.json();
     expect(summaryBody.providers.net.api_key).toBe(MASKED_SECRET);
-    expect(JSON.stringify(summaryBody)).not.toContain("gsap-runtime-api-key:net");
+    expect(JSON.stringify(summaryBody)).not.toContain("codia-runtime-api-key:net");
 
     const revealRes = await app.request("/api/providers/net/api-key");
     const revealBody = await revealRes.json();
     expect(revealRes.status).toBe(200);
     expect(revealBody.api_key).toBe("sk-real-net-key");
-    expect(JSON.stringify(revealBody)).not.toContain("gsap-runtime-api-key:net");
+    expect(JSON.stringify(revealBody)).not.toContain("codia-runtime-api-key:net");
   });
 
   it("preserves saved provider secrets when a masked config patch is submitted", async () => {
@@ -102,7 +102,7 @@ describe("secret custody across HTTP routes", () => {
     const engine = {
       config: {},
       configPath: "/tmp/test-config.yaml",
-      currentAgentId: "gsap",
+      currentAgentId: "codia",
       updateConfig: vi.fn().mockResolvedValue(undefined),
       onProviderChanged: vi.fn().mockResolvedValue(undefined),
       emitEvent: vi.fn(),
@@ -145,7 +145,7 @@ describe("secret custody across HTTP routes", () => {
     const engine = {
       config: {},
       configPath: "/tmp/test-config.yaml",
-      currentAgentId: "gsap",
+      currentAgentId: "codia",
       updateConfig: vi.fn().mockResolvedValue(undefined),
       onProviderChanged: vi.fn().mockResolvedValue(undefined),
       emitEvent: vi.fn(),
@@ -229,7 +229,7 @@ describe("secret custody across HTTP routes", () => {
   it("masks bridge secrets in status and preserves masked config updates", async () => {
     const { createBridgeRoute } = await import("../server/routes/bridge.js");
     const agent = {
-      id: "gsap",
+      id: "codia",
       config: {
         bridge: {
           telegram: { token: "tg-secret", enabled: true },
@@ -241,8 +241,8 @@ describe("secret custody across HTTP routes", () => {
       updateConfig: vi.fn(),
     };
     const engine = {
-      currentAgentId: "gsap",
-      getAgent: (id) => id === "gsap" ? agent : null,
+      currentAgentId: "codia",
+      getAgent: (id) => id === "codia" ? agent : null,
       getBridgeIndex: () => ({}),
       getBridgeReadOnly: () => false,
       getBridgeReceiptEnabled: () => true,
@@ -264,7 +264,7 @@ describe("secret custody across HTTP routes", () => {
     expect(JSON.stringify(readBody)).not.toContain("tg-secret");
     expect(JSON.stringify(readBody)).not.toContain("fs-secret");
 
-    const writeRes = await app.request("/api/bridge/config?agentId=gsap", {
+    const writeRes = await app.request("/api/bridge/config?agentId=codia", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

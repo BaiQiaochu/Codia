@@ -68,10 +68,10 @@ export function serveFileContent(c, {
   c.header("Content-Length", String(length));
   c.header("Cache-Control", cacheControl);
   c.header("ETag", resolvedEtag);
-  c.header("X-GSAP-File-MtimeMs", String(stat.mtimeMs));
-  c.header("X-GSAP-File-Size", String(size));
-  c.header("X-Hana-File-MtimeMs", String(stat.mtimeMs));
-  c.header("X-Hana-File-Size", String(size));
+  c.header("X-CODIA-File-MtimeMs", String(stat.mtimeMs));
+  c.header("X-CODIA-File-Size", String(size));
+  c.header("X-Codia-File-MtimeMs", String(stat.mtimeMs));
+  c.header("X-Codia-File-Size", String(size));
   if (range) c.header("Content-Range", `bytes ${start}-${end}/${size}`);
   if (filename) c.header("Content-Disposition", contentDisposition(filename));
   if (headOnly || size === 0) return c.body(null, status);

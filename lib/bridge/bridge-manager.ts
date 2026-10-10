@@ -81,23 +81,23 @@ const ADAPTER_REGISTRY = {
   wechat: {
     create: (creds, onMessage, hooks, agentId) => createWechatAdapter({
       botToken: creds.botToken,
-      hanaHome: creds.hanaHome,
+      codiaHome: creds.codiaHome,
       agentId,
       onMessage,
       onStatus: hooks?.onStatus,
     }),
-    getCredentials: (cfg) => cfg?.enabled && cfg?.botToken ? { botToken: cfg.botToken, hanaHome: cfg._gsapHome || "" } : null,
+    getCredentials: (cfg) => cfg?.enabled && cfg?.botToken ? { botToken: cfg.botToken, codiaHome: cfg._codiaHome || "" } : null,
     ownerSessionKey: (userId, agentId) => `wx_dm_${userId}@${agentId}`,
     connectsAsync: true,
   },
   whatsapp: {
     create: (creds, onMessage, hooks, agentId) => createWhatsAppAdapter({
-      hanaHome: creds.hanaHome,
+      codiaHome: creds.codiaHome,
       agentId,
       onMessage,
       onStatus: hooks?.onStatus,
     }),
-    getCredentials: (cfg) => cfg?.enabled ? { hanaHome: cfg._gsapHome || "" } : null,
+    getCredentials: (cfg) => cfg?.enabled ? { codiaHome: cfg._codiaHome || "" } : null,
     ownerSessionKey: (userId, agentId) => `wa_dm_${userId}@${agentId}`,
     connectsAsync: true,
   },
@@ -291,7 +291,6 @@ export class StreamCleaner {
 /* ── BlockChunker ─────────────────────────────────────────
  * 将流式文本按行拆成多条消息（block streaming）- *
   *
-  *
  * 下一个标题触-flush 并开启新- * 结构块结束后恢复逐行发- */
 class BlockChunker {
   /**
@@ -454,7 +453,7 @@ function timeTag(ts = Date.now()) {
 export class BridgeManager {
   /**
    * @param {object} opts
-   * @param {import('../../core/engine.ts').GsapEngine} opts.engine
+   * @param {import('../../core/engine.ts').CodiaEngine} opts.engine
    * @param {import('../../hub/index.ts').Hub} opts.hub
    */
   constructor({ engine, hub }) {
@@ -473,14 +472,14 @@ export class BridgeManager {
     this._messageLogMax = 200;
     this._reconnectTimers = new Map();
     this._reliability = new BridgeReliabilityLedger({
-      dataDir: path.join(engine.gsapHome || engine.hanakoHome || process.cwd(), "bridge"),
+      dataDir: path.join(engine.codiaHome || engine.codiaHome || process.cwd(), "bridge"),
     });
 
     // Initialize local media allow roots for bridge attachment delivery.
     const roots = this._collectMediaAllowedRoots();
 	    setMediaLocalRoots(roots);
 	    this.mediaPublisher = new MediaPublisher({
-	      baseUrl: engine.getBridgeMediaPublicBaseUrl?.() || process.env.GSAP_BRIDGE_PUBLIC_BASE_URL || "",
+	      baseUrl: engine.getBridgeMediaPublicBaseUrl?.() || process.env.CODIA_BRIDGE_PUBLIC_BASE_URL || "",
 	      allowedRoots: roots,
 	    });
     this._mediaDelivery = new MediaDeliveryService({ engine, mediaPublisher: this.mediaPublisher });
@@ -760,8 +759,8 @@ export class BridgeManager {
       if (!bridgeCfg) continue;
       for (const [platform, spec] of Object.entries(ADAPTER_REGISTRY)) {
         const cfg = { ...(bridgeCfg[platform] || {}) };
-        if (platform === "wechat") cfg._gsapHome = this.engine.gsapHome;
-        if (platform === "whatsapp") cfg._gsapHome = this.engine.gsapHome;
+        if (platform === "wechat") cfg._codiaHome = this.engine.codiaHome;
+        if (platform === "whatsapp") cfg._codiaHome = this.engine.codiaHome;
         const creds = spec.getCredentials(cfg);
         if (creds) this.startPlatform(platform, creds, agentId);
       }
@@ -776,8 +775,8 @@ export class BridgeManager {
   startPlatformFromConfig(platform, cfg, agentId) {
     const spec = ADAPTER_REGISTRY[platform];
     if (!spec) return;
-    if (platform === "wechat") cfg._gsapHome = this.engine.gsapHome;
-    if (platform === "whatsapp") cfg._gsapHome = this.engine.gsapHome;
+    if (platform === "wechat") cfg._codiaHome = this.engine.codiaHome;
+    if (platform === "whatsapp") cfg._codiaHome = this.engine.codiaHome;
     const creds = spec.getCredentials(cfg);
     if (creds) this.startPlatform(platform, creds, agentId);
   }
@@ -2362,7 +2361,6 @@ export class BridgeManager {
 
   /**
   *
-  *
  * @param {string} text - 要发送的文本（会自动 clean mood/pulse 标签- * @returns {{ platform: string, chatId: string } | null} 发成功返回平台信息，失败返回 null
    */
   async sendProactive(text, targetAgentId, opts = {}) {
@@ -2532,18 +2530,26 @@ export class BridgeManager {
     if (entry.platform && agentId !== "_global") {
       this._recordPlatformSync(entry.platform, agentId);
     }
-    this._reliability.recordMessage({
+    const reliabilityItem = this._reliability.recordMessage({
       ...entry,
       agentId: agentId === "_global" ? null : agentId,
       chatId: entry.chatId || this._chatIdFromBridgeSessionKey(entry.sessionKey),
       channelId: entry.sessionKey,
     });
+    const emittedEntry = {
+      ...entry,
+      agentId,
+      id: entry.id || reliabilityItem.id,
+      status: entry.status || reliabilityItem.status,
+      statusVersion: reliabilityItem.statusVersion || 1,
+      textPreview: reliabilityItem.textPreview || null,
+    };
     if (!this._messageLogs.has(agentId)) this._messageLogs.set(agentId, []);
     const log = this._messageLogs.get(agentId);
-    log.push(entry);
+    log.push(emittedEntry);
     if (log.length > this._messageLogMax) log.shift();
     this._hub.eventBus.emit(
-      { type: "bridge_message", message: { ...entry, agentId } },
+      { type: "bridge_message", message: emittedEntry },
       null,
     );
   }
@@ -2566,5 +2572,13 @@ export class BridgeManager {
     for (const log of this._messageLogs.values()) all.push(...log);
     all.sort((a, b) => (a.ts || 0) - (b.ts || 0));
     return all.slice(-limit);
+  }
+
+  getDeliveryRecords(options = {}) {
+    return this._reliability.listDeliveries(options);
+  }
+
+  getReliabilityRecords(options = {}) {
+    return this._reliability.listMessages(options);
   }
 }

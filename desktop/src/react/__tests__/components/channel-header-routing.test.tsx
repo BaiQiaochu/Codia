@@ -5,10 +5,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useStore } from '../../stores';
 
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 vi.mock('../../components/channels/ChannelWorkflowWindow', () => ({
@@ -17,8 +17,8 @@ vi.mock('../../components/channels/ChannelWorkflowWindow', () => ({
 
 describe('ChannelHeader routing', () => {
   beforeEach(() => {
-    gsapFetchMock.mockReset();
-    gsapFetchMock.mockResolvedValue({
+    codiaFetchMock.mockReset();
+    codiaFetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
         ok: true,
@@ -50,8 +50,8 @@ describe('ChannelHeader routing', () => {
       channelMembers: ['agent-a'],
       channelMemberRoles: { 'agent-a': 'project_manager' },
       agents: [
-        { id: 'agent-a', name: 'Agent A', yuan: 'gsap', isPrimary: false },
-        { id: 'agent-b', name: 'Agent B', yuan: 'gsap', isPrimary: false },
+        { id: 'agent-a', name: 'Agent A', yuan: 'codia', isPrimary: false },
+        { id: 'agent-b', name: 'Agent B', yuan: 'codia', isPrimary: false },
       ],
       addToast: vi.fn(),
     } as never);
@@ -69,7 +69,7 @@ describe('ChannelHeader routing', () => {
     fireEvent.click(screen.getByTitle('Add member'));
     fireEvent.click(await screen.findByText('Agent B'));
 
-    await waitFor(() => expect(gsapFetchMock).toHaveBeenCalledWith(
+    await waitFor(() => expect(codiaFetchMock).toHaveBeenCalledWith(
       '/api/channels/ch-team/members',
       expect.objectContaining({
         method: 'POST',
@@ -84,7 +84,7 @@ describe('ChannelHeader routing', () => {
       channelMembers: ['agent-a', 'agent-b'],
       channelMemberRoles: { 'agent-a': 'project_manager', 'agent-b': 'worker' },
     } as never);
-    gsapFetchMock.mockResolvedValueOnce({
+    codiaFetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         ok: true,
@@ -101,7 +101,7 @@ describe('ChannelHeader routing', () => {
     fireEvent.click(screen.getByTitle('Add member'));
     fireEvent.click(await screen.findByText('Remove member: Agent B'));
 
-    await waitFor(() => expect(gsapFetchMock).toHaveBeenCalledWith(
+    await waitFor(() => expect(codiaFetchMock).toHaveBeenCalledWith(
       '/api/channels/ch-team/members/agent-b',
       expect.objectContaining({ method: 'DELETE' }),
     ));
@@ -116,7 +116,7 @@ describe('ChannelHeader routing', () => {
     fireEvent.click(screen.getByTitle('Channel info'));
 
     expect(dispatchSpy).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'gsap-channel-focus-info',
+      type: 'codia-channel-focus-info',
     }));
   });
 });

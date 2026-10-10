@@ -14,7 +14,7 @@ describe("security audit log", () => {
 
   it("redacts secret-like metadata before writing audit JSONL", async () => {
     const { appendSecurityAuditEvent, securityAuditLogPath } = await import("../core/security-audit-log.js");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-security-audit-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-security-audit-"));
 
     const record = appendSecurityAuditEvent(tmpDir, {
       action: "settings.test",

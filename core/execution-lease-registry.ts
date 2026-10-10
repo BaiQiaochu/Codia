@@ -9,8 +9,8 @@ const SCHEMA_VERSION = 1;
 const SECURITY_DIR = "security";
 const STATUSES = new Set(["issued", "consumed", "expired", "revoked"]);
 
-export function ensureExecutionLeaseRegistry(gsapHome, { now = new Date().toISOString() } = {}) {
-  const filePath = executionLeaseRegistryPath(gsapHome);
+export function ensureExecutionLeaseRegistry(codiaHome, { now = new Date().toISOString() } = {}) {
+  const filePath = executionLeaseRegistryPath(codiaHome);
   const existing = readJsonIfPresent(filePath, EXECUTION_LEASES_FILE);
   if (existing) {
     validateExecutionLeaseRegistry(existing, EXECUTION_LEASES_FILE, { now });
@@ -21,17 +21,17 @@ export function ensureExecutionLeaseRegistry(gsapHome, { now = new Date().toISOS
   return registry;
 }
 
-export function loadExecutionLeaseRegistry(gsapHome, { now = new Date().toISOString() } = {}) {
-  ensureExecutionLeaseRegistry(gsapHome, { now });
+export function loadExecutionLeaseRegistry(codiaHome, { now = new Date().toISOString() } = {}) {
+  ensureExecutionLeaseRegistry(codiaHome, { now });
   return validateExecutionLeaseRegistry(
-    readJsonRequired(executionLeaseRegistryPath(gsapHome), EXECUTION_LEASES_FILE),
+    readJsonRequired(executionLeaseRegistryPath(codiaHome), EXECUTION_LEASES_FILE),
     EXECUTION_LEASES_FILE,
     { now },
   );
 }
 
-export function issueExecutionLease(gsapHome, lease, { now = new Date().toISOString() } = {}) {
-  const registry = loadExecutionLeaseRegistry(gsapHome, { now });
+export function issueExecutionLease(codiaHome, lease, { now = new Date().toISOString() } = {}) {
+  const registry = loadExecutionLeaseRegistry(codiaHome, { now });
   const record = normalizeLeaseRecord({
     ...lease,
     status: "issued",
@@ -42,12 +42,12 @@ export function issueExecutionLease(gsapHome, lease, { now = new Date().toISOStr
   }
   registry.leases.push(record);
   registry.updatedAt = now;
-  persistExecutionLeaseRegistry(gsapHome, registry);
+  persistExecutionLeaseRegistry(codiaHome, registry);
   return clonePlain(record);
 }
 
-export function consumeExecutionLease(gsapHome, leaseId, { now = new Date().toISOString() } = {}) {
-  const registry = loadExecutionLeaseRegistry(gsapHome, { now });
+export function consumeExecutionLease(codiaHome, leaseId, { now = new Date().toISOString() } = {}) {
+  const registry = loadExecutionLeaseRegistry(codiaHome, { now });
   const lease = registry.leases.find((item) => item.leaseId === leaseId);
   if (!lease) throw new Error(`execution lease not found: ${leaseId}`);
   if (lease.status !== "issued") throw new Error(`execution lease is ${lease.status}`);
@@ -55,29 +55,29 @@ export function consumeExecutionLease(gsapHome, leaseId, { now = new Date().toIS
   lease.status = "consumed";
   lease.consumedAt = now;
   registry.updatedAt = now;
-  persistExecutionLeaseRegistry(gsapHome, registry);
+  persistExecutionLeaseRegistry(codiaHome, registry);
   return clonePlain(lease);
 }
 
-export function revokeExecutionLease(gsapHome, leaseId, { now = new Date().toISOString() } = {}) {
-  const registry = loadExecutionLeaseRegistry(gsapHome, { now });
+export function revokeExecutionLease(codiaHome, leaseId, { now = new Date().toISOString() } = {}) {
+  const registry = loadExecutionLeaseRegistry(codiaHome, { now });
   const lease = registry.leases.find((item) => item.leaseId === leaseId);
   if (!lease) throw new Error(`execution lease not found: ${leaseId}`);
   lease.status = "revoked";
   lease.revokedAt = now;
   registry.updatedAt = now;
-  persistExecutionLeaseRegistry(gsapHome, registry);
+  persistExecutionLeaseRegistry(codiaHome, registry);
   return clonePlain(lease);
 }
 
-export function persistExecutionLeaseRegistry(gsapHome, registry) {
+export function persistExecutionLeaseRegistry(codiaHome, registry) {
   validateExecutionLeaseRegistry(registry, EXECUTION_LEASES_FILE, { validateExpiry: false });
-  writeJsonAtomic(executionLeaseRegistryPath(gsapHome), registry);
+  writeJsonAtomic(executionLeaseRegistryPath(codiaHome), registry);
 }
 
-export function executionLeaseRegistryPath(gsapHome) {
-  if (!isNonEmptyString(gsapHome)) throw new Error("gsapHome required");
-  return path.join(gsapHome, SECURITY_DIR, EXECUTION_LEASES_FILE);
+export function executionLeaseRegistryPath(codiaHome) {
+  if (!isNonEmptyString(codiaHome)) throw new Error("codiaHome required");
+  return path.join(codiaHome, SECURITY_DIR, EXECUTION_LEASES_FILE);
 }
 
 function createEmptyExecutionLeaseRegistry(now) {

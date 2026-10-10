@@ -14,7 +14,7 @@ describe("model video capability transport", () => {
       provider: "kimi-coding",
       api: "anthropic-messages",
       input: ["text", "image"],
-      compat: { hanaVideoInput: true },
+      compat: { codiaVideoInput: true },
     };
 
     expect(modelSupportsVideoInput(model)).toBe(true);
@@ -28,7 +28,7 @@ describe("model video capability transport", () => {
       provider: "gemini",
       api: "google-generative-ai",
       input: ["text", "image"],
-      compat: { hanaVideoInput: true },
+      compat: { codiaVideoInput: true },
       baseUrl: "https://generativelanguage.googleapis.com/v1beta",
     };
 
@@ -42,7 +42,7 @@ describe("model video capability transport", () => {
       provider: "dashscope",
       api: "openai-completions",
       input: ["text", "image"],
-      compat: { hanaVideoInput: true },
+      compat: { codiaVideoInput: true },
       baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
     })).toBe(MODEL_VIDEO_TRANSPORTS.OPENAI_VIDEO_URL);
 
@@ -51,7 +51,7 @@ describe("model video capability transport", () => {
       provider: "moonshot",
       api: "openai-completions",
       input: ["text", "image"],
-      compat: { hanaVideoInput: true },
+      compat: { codiaVideoInput: true },
       baseUrl: "https://api.moonshot.cn/v1",
     })).toBe(MODEL_VIDEO_TRANSPORTS.OPENAI_VIDEO_URL);
   });
@@ -62,7 +62,7 @@ describe("model video capability transport", () => {
       provider: "mimo-token-plan",
       api: "openai-completions",
       input: ["text", "image"],
-      compat: { gsapVideoInput: true },
+      compat: { codiaVideoInput: true },
       baseUrl: "https://token-plan-cn.xiaomimimo.com/v1",
     })).toBe(MODEL_VIDEO_TRANSPORTS.OPENAI_VIDEO_URL);
   });
@@ -73,7 +73,7 @@ describe("model video capability transport", () => {
       provider: "custom",
       api: "openai-completions",
       input: ["text", "image"],
-      compat: { hanaVideoInput: true },
+      compat: { codiaVideoInput: true },
       baseUrl: "https://api.example.com/v1",
     })).toBe(MODEL_VIDEO_TRANSPORTS.UNSUPPORTED);
   });

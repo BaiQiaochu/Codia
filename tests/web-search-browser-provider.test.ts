@@ -57,7 +57,7 @@ describe("web_search browser providers", () => {
       searchConfigResolver: () => ({ provider: "anysearch", api_key: "paid-key" }),
     });
     const result = await tool.execute("call-anysearch-paid", {
-      query: "gsap paid anysearch",
+      query: "codia paid anysearch",
       maxResults: 2,
     });
 
@@ -78,7 +78,7 @@ describe("web_search browser providers", () => {
 
   it("returns Tavily-like structured details from a browser provider", async () => {
     searchWebMock.mockResolvedValue({
-      query: "gsap search",
+      query: "codia search",
       provider: "bing_browser",
       source_type: "browser",
       results: [
@@ -92,7 +92,7 @@ describe("web_search browser providers", () => {
         },
       ],
       diagnostics: {
-        final_url: "https://www.bing.com/search?q=gsap+search",
+        final_url: "https://www.bing.com/search?q=codia+search",
         blocked: false,
         captcha: false,
         elapsed_ms: 1234,
@@ -102,16 +102,16 @@ describe("web_search browser providers", () => {
     const tool = createWebSearchTool({
       searchConfigResolver: () => ({ provider: "bing_browser", api_key: "" }),
     });
-    const result = await tool.execute("call-1", { query: "gsap search", maxResults: 3 });
+    const result = await tool.execute("call-1", { query: "codia search", maxResults: 3 });
 
     expect(searchWebMock).toHaveBeenCalledWith({
       provider: "bing_browser",
-      query: "gsap search",
+      query: "codia search",
       maxResults: 3,
       locale: "zh",
     });
     expect(result.details).toMatchObject({
-      query: "gsap search",
+      query: "codia search",
       provider: "bing_browser",
       source_type: "browser",
       results: [
@@ -133,7 +133,7 @@ describe("web_search browser providers", () => {
 
   it("routes provider execution through the injected rate limiter", async () => {
     searchWebMock.mockResolvedValue({
-      query: "gsap limited",
+      query: "codia limited",
       provider: "bing_browser",
       source_type: "browser",
       results: [
@@ -156,7 +156,7 @@ describe("web_search browser providers", () => {
       searchConfigResolver: () => ({ provider: "bing_browser", api_key: "" }),
       rateLimiter,
     });
-    const result = await tool.execute("call-limited", { query: "gsap limited", maxResults: 1 });
+    const result = await tool.execute("call-limited", { query: "codia limited", maxResults: 1 });
 
     expect(result.details.results).toHaveLength(1);
     expect(rateLimiter.run).toHaveBeenCalledWith(
@@ -190,7 +190,7 @@ describe("web_search browser providers", () => {
       searchConfigResolver: () => ({ provider: "brave", api_key: "test-key" }),
       rateLimiter,
     });
-    await tool.execute("call-429", { query: "gsap limited", maxResults: 1 });
+    await tool.execute("call-429", { query: "codia limited", maxResults: 1 });
 
     expect(rateLimiter.run).toHaveBeenCalledWith("brave", "api", expect.any(Function));
     expect(capturedError).toMatchObject({
@@ -231,11 +231,11 @@ describe("web_search browser providers", () => {
       searchConfigResolver: () => ({ provider: "auto", api_keys: {} }),
     });
     const result = await tool.execute("call-anysearch-broad-default", {
-      query: "gsap broad default",
+      query: "codia broad default",
     });
 
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({
-      query: "gsap broad default",
+      query: "codia broad default",
       max_results: 20,
     });
     expect(result.details.results).toHaveLength(20);
@@ -258,12 +258,12 @@ describe("web_search browser providers", () => {
       searchConfigResolver: () => ({ provider: "tavily", api_key: "tvly-key" }),
     });
     await tool.execute("call-tavily-clamp", {
-      query: "gsap tavily clamp",
+      query: "codia tavily clamp",
       maxResults: 50,
     });
 
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({
-      query: "gsap tavily clamp",
+      query: "codia tavily clamp",
       max_results: 20,
       search_depth: "basic",
     });
@@ -297,7 +297,7 @@ describe("web_search browser providers", () => {
     ));
     vi.stubGlobal("fetch", fetchMock);
     searchWebMock.mockResolvedValue({
-      query: "gsap default",
+      query: "codia default",
       provider: "bing_browser",
       source_type: "browser",
       results: [
@@ -311,7 +311,7 @@ describe("web_search browser providers", () => {
         },
       ],
       diagnostics: {
-        final_url: "https://www.bing.com/search?q=gsap+default",
+        final_url: "https://www.bing.com/search?q=codia+default",
         blocked: false,
         captcha: false,
       },
@@ -320,12 +320,12 @@ describe("web_search browser providers", () => {
     const tool = createWebSearchTool({
       searchConfigResolver: () => ({ provider: "", api_key: "" }),
     });
-    const result = await tool.execute("call-2", { query: "gsap default", maxResults: 2 });
+    const result = await tool.execute("call-2", { query: "codia default", maxResults: 2 });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(searchWebMock).not.toHaveBeenCalled();
     expect(result.details).toMatchObject({
-      query: "gsap default",
+      query: "codia default",
       provider: "anysearch_free",
       source_type: "api",
       diagnostics: {
@@ -377,7 +377,7 @@ describe("web_search browser providers", () => {
       }),
     });
     const result = await tool.execute("call-anysearch-paid-auto", {
-      query: "gsap paid auto",
+      query: "codia paid auto",
       maxResults: 2,
     });
 
@@ -409,7 +409,7 @@ describe("web_search browser providers", () => {
     ));
     vi.stubGlobal("fetch", fetchMock);
     searchWebMock.mockResolvedValue({
-      query: "gsap quota fallback",
+      query: "codia quota fallback",
       provider: "bing_browser",
       source_type: "browser",
       results: [
@@ -429,14 +429,14 @@ describe("web_search browser providers", () => {
       searchConfigResolver: () => ({ provider: "auto", api_keys: {} }),
     });
     const result = await tool.execute("call-anysearch-fallback", {
-      query: "gsap quota fallback",
+      query: "codia quota fallback",
       maxResults: 1,
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(searchWebMock).toHaveBeenCalledWith({
       provider: "bing_browser",
-      query: "gsap quota fallback",
+      query: "codia quota fallback",
       maxResults: 1,
       locale: "zh",
     });

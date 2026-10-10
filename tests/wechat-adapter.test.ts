@@ -38,8 +38,8 @@ describe("createWechatAdapter", () => {
     const statuses = [];
     const adapter = createWechatAdapter({
       botToken: "test-token",
-      hanaHome: path.join(os.tmpdir(), "gsap-wechat-test"),
-      agentId: "hana",
+      codiaHome: path.join(os.tmpdir(), "codia-wechat-test"),
+      agentId: "codia",
       onMessage: vi.fn(),
       onStatus: (status, error) => statuses.push({ status, error }),
     });
@@ -99,7 +99,7 @@ describe("createWechatAdapter", () => {
     const onMessage = vi.fn();
     const adapter = createWechatAdapter({
       botToken: "wx-token",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage,
       onStatus: vi.fn(),
     });
@@ -159,7 +159,7 @@ describe("createWechatAdapter", () => {
     const onMessage = vi.fn();
     const adapter = createWechatAdapter({
       botToken: "wx-token",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage,
       onStatus: vi.fn(),
     });

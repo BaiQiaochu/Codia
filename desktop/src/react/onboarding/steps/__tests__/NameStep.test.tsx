@@ -7,7 +7,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NameStep } from '../NameStep';
-import type { gsapFetch } from '../../onboarding-actions';
+import type { codiaFetch } from '../../onboarding-actions';
 
 describe('NameStep', () => {
   beforeEach(() => {
@@ -34,7 +34,7 @@ describe('NameStep', () => {
   });
 
   it('renders user name, agent name, and memory controls', () => {
-    render(<NameStep preview gsapFetch={vi.fn<gsapFetch>()} goToStep={vi.fn()} showError={vi.fn()} />);
+    render(<NameStep preview codiaFetch={vi.fn<codiaFetch>()} goToStep={vi.fn()} showError={vi.fn()} />);
 
     expect(screen.getByPlaceholderText('你的名字')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('小助')).toBeInTheDocument();
@@ -42,10 +42,10 @@ describe('NameStep', () => {
   });
 
   it('saves identity and memory settings before moving to provider setup', async () => {
-    const gsapFetchMock = vi.fn<gsapFetch>(async () => ({ json: async () => ({ ok: true }) } as Response));
+    const codiaFetchMock = vi.fn<codiaFetch>(async () => ({ json: async () => ({ ok: true }) } as Response));
     const goToStep = vi.fn();
 
-    render(<NameStep preview={false} gsapFetch={gsapFetchMock} goToStep={goToStep} showError={vi.fn()} />);
+    render(<NameStep preview={false} codiaFetch={codiaFetchMock} goToStep={goToStep} showError={vi.fn()} />);
     fireEvent.change(screen.getByPlaceholderText('你的名字'), { target: { value: '测试用户' } });
     fireEvent.change(screen.getByPlaceholderText('小助'), { target: { value: '项目助手' } });
     fireEvent.click(screen.getByRole('switch', { name: '记忆系统' }));
@@ -54,7 +54,7 @@ describe('NameStep', () => {
     await waitFor(() => {
       expect(goToStep).toHaveBeenCalledWith(2);
     });
-    const body = JSON.parse(String(gsapFetchMock.mock.calls[0][1]?.body));
+    const body = JSON.parse(String(codiaFetchMock.mock.calls[0][1]?.body));
     expect(body).toEqual({
       user: { name: '测试用户' },
       agent: { name: '项目助手' },

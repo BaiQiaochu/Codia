@@ -14,16 +14,16 @@ describe("resources route", () => {
   });
 
   function makeFile() {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resources-route-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resources-route-"));
     const filePath = path.join(tmpDir, "asset.txt");
     fs.writeFileSync(filePath, "hello resources\n", "utf-8");
     return filePath;
   }
 
   function makeMissingSessionFileSidecar({ fileId = "sf_route_missing" } = {}) {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resources-route-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resources-route-"));
     const agentsDir = path.join(tmpDir, "agents");
-    const sessionPath = path.join(agentsDir, "gsap", "sessions", "main.jsonl");
+    const sessionPath = path.join(agentsDir, "codia", "sessions", "main.jsonl");
     const filePath = path.join(tmpDir, "workspace", "missing.txt");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(sessionPath, "{}\n", "utf-8");
@@ -234,7 +234,7 @@ describe("resources route", () => {
 
   it("serves local content whose filename contains non-ASCII characters", async () => {
     const { createResourcesRoute } = await import("../server/routes/resources.js");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resources-route-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resources-route-"));
     const filePath = path.join(tmpDir, "粘贴图片_mp0qkfvq_eb2b8042.png");
     fs.writeFileSync(filePath, "png-bytes", "utf-8");
     const app = new Hono();
@@ -283,7 +283,7 @@ describe("resources route", () => {
 
   it("issues a short-lived content ticket and serves content without auth context when ticket is valid", async () => {
     const { createResourcesRoute } = await import("../server/routes/resources.js");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resources-ticket-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resources-ticket-"));
     const filePath = path.join(tmpDir, "asset.txt");
     fs.writeFileSync(filePath, "ticket content", "utf-8");
     const app = new Hono();
@@ -304,7 +304,7 @@ describe("resources route", () => {
       await next();
     });
     app.route("/api", createResourcesRoute({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       getRuntimeContext: () => ({
         serverId: "server_1",
         serverNodeId: "node_1",

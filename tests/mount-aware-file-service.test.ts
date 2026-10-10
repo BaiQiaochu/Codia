@@ -14,7 +14,7 @@ describe("MountAwareFileService", () => {
   it("resolves default root and active local_fs studio mounts without exposing paths", async () => {
     const { upsertStudioMount } = await import("../core/studio-mounts.ts");
     const { MountAwareFileService } = await import("../core/mount-aware-file-service.ts");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-mount-file-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-mount-file-"));
     const defaultRoot = path.join(tmpDir, "default");
     const mountRoot = path.join(tmpDir, "mount");
     fs.mkdirSync(defaultRoot, { recursive: true });
@@ -32,7 +32,7 @@ describe("MountAwareFileService", () => {
     });
 
     const service = new MountAwareFileService({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       defaultRoot,
       studioId: "studio_1",
     });
@@ -60,11 +60,11 @@ describe("MountAwareFileService", () => {
 
   it("rejects local_fs mounts outside their resolved root", async () => {
     const { MountAwareFileService } = await import("../core/mount-aware-file-service.ts");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-mount-file-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-mount-file-"));
     const defaultRoot = path.join(tmpDir, "default");
     fs.mkdirSync(defaultRoot, { recursive: true });
     const service = new MountAwareFileService({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       defaultRoot,
       studioId: "studio_1",
     });
@@ -75,7 +75,7 @@ describe("MountAwareFileService", () => {
   it("discloses local_fs native roots only when explicitly enabled", async () => {
     const { upsertStudioMount } = await import("../core/studio-mounts.ts");
     const { MountAwareFileService } = await import("../core/mount-aware-file-service.ts");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-mount-file-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-mount-file-"));
     const defaultRoot = path.join(tmpDir, "default");
     const mountRoot = path.join(tmpDir, "mount");
     fs.mkdirSync(defaultRoot, { recursive: true });
@@ -93,7 +93,7 @@ describe("MountAwareFileService", () => {
     });
 
     const disclosing = new MountAwareFileService({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       defaultRoot,
       studioId: "studio_1",
       discloseNativeRoot: true,
@@ -109,7 +109,7 @@ describe("MountAwareFileService", () => {
     });
 
     const closed = new MountAwareFileService({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       defaultRoot,
       studioId: "studio_1",
     });

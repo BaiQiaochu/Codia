@@ -14,7 +14,7 @@ function createEngine(overrides = {}) {
   return {
     agentsDir: "/agents",
     channelsDir: null,
-    hanakoHome: "/tmp/hana",
+    codiaHome: "/tmp/codia",
     providerRegistry: {
       getCredentials: vi.fn(() => ({})),
       getModelsByType: vi.fn(() => []),
@@ -44,23 +44,23 @@ describe("Hub media routing", () => {
     const audios = [{ type: "audio", data: "UklGRg==", mimeType: "audio/wav" }];
 
     await hub.send("listen", {
-      sessionPath: "/agents/gsap/sessions/audio.jsonl",
+      sessionPath: "/agents/codia/sessions/audio.jsonl",
       clientMessageId: "client-user-audio",
       audios,
-      audioAttachmentPaths: ["/tmp/hana/voice.wav"],
+      audioAttachmentPaths: ["/tmp/codia/voice.wav"],
       displayMessage: {
         text: "listen",
-        attachments: [{ path: "/tmp/hana/voice.wav", name: "voice.wav", mimeType: "audio/wav" }],
+        attachments: [{ path: "/tmp/codia/voice.wav", name: "voice.wav", mimeType: "audio/wav" }],
       },
     });
 
     expect(submitDesktopSessionMessageMock).toHaveBeenCalledWith(
       engine,
       expect.objectContaining({
-        sessionPath: "/agents/gsap/sessions/audio.jsonl",
+        sessionPath: "/agents/codia/sessions/audio.jsonl",
         clientMessageId: "client-user-audio",
         audios,
-        audioAttachmentPaths: ["/tmp/hana/voice.wav"],
+        audioAttachmentPaths: ["/tmp/codia/voice.wav"],
       }),
     );
   });
@@ -88,7 +88,7 @@ describe("Hub media routing", () => {
     await hub.send("listen", {
       sessionKey: "telegram_dm_1",
       audios,
-      audioAttachmentPaths: ["/tmp/hana/voice.wav"],
+      audioAttachmentPaths: ["/tmp/codia/voice.wav"],
     });
 
     expect(engine.executeExternalMessage).toHaveBeenCalledWith(
@@ -97,7 +97,7 @@ describe("Hub media routing", () => {
       undefined,
       expect.objectContaining({
         audios,
-        audioAttachmentPaths: ["/tmp/hana/voice.wav"],
+        audioAttachmentPaths: ["/tmp/codia/voice.wav"],
       }),
     );
   });
@@ -112,7 +112,7 @@ describe("Hub media routing", () => {
       role: "guest",
       meta: { name: "Guest" },
       audios,
-      audioAttachmentPaths: ["/tmp/hana/voice.wav"],
+      audioAttachmentPaths: ["/tmp/codia/voice.wav"],
     });
 
     expect(engine.executeExternalMessage).toHaveBeenCalledWith(
@@ -122,7 +122,7 @@ describe("Hub media routing", () => {
       expect.objectContaining({
         guest: true,
         audios,
-        audioAttachmentPaths: ["/tmp/hana/voice.wav"],
+        audioAttachmentPaths: ["/tmp/codia/voice.wav"],
       }),
     );
   });

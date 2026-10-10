@@ -24,7 +24,7 @@ export const CORE_TOOL_NAMES = [
 export const STANDARD_TOOL_NAMES = [
   "web_fetch",
   "todo_write",
-  "hana_card_guide",
+  "codia_card_guide",
   "show_card",
   "create_artifact",
   "hermes_agent",

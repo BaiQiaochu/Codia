@@ -123,7 +123,7 @@ export class EventBus {
     this._sessionIndex.clear();
   }
 
-  static SKIP = Symbol.for("gsap.event-bus.skip");
+  static SKIP = Symbol.for("codia.event-bus.skip");
 
   /**
    * 注册请求处理器

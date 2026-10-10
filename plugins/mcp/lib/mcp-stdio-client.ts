@@ -63,8 +63,8 @@ export class McpStdioClient {
       protocolVersion: MCP_PROTOCOL_VERSION,
       capabilities: {},
       clientInfo: {
-        name: "gsap",
-        title: "G-SAP",
+        name: "codia",
+        title: "Codia",
         version: "0.6.7",
       },
     });

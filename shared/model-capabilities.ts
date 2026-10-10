@@ -209,8 +209,8 @@ export function normalizeModelProtocolCompat(value: any): Record<string, any> | 
     out.reasoningProfile = reasoningProfile;
   }
 
-  if (value.gsapVideoInput === true || value[LEGACY_VIDEO_INPUT_COMPAT_KEY] === true) out.gsapVideoInput = true;
-  if (value.gsapAudioInput === true || value[LEGACY_AUDIO_INPUT_COMPAT_KEY] === true) out.gsapAudioInput = true;
+  if (value.codiaVideoInput === true || value[LEGACY_VIDEO_INPUT_COMPAT_KEY] === true) out.codiaVideoInput = true;
+  if (value.codiaAudioInput === true || value[LEGACY_AUDIO_INPUT_COMPAT_KEY] === true) out.codiaAudioInput = true;
   if (value.outputCapRequired === true) out.outputCapRequired = true;
   if (typeof value.outputCapField === "string" && OUTPUT_CAP_FIELDS.has(value.outputCapField)) {
     out.outputCapField = value.outputCapField;
@@ -413,7 +413,7 @@ export function modelSupportsVideoInput(model, context = {}) {
 
   if (model.video === false) return false;
   if (model.video === true) return true;
-  if (model.compat?.gsapVideoInput === true || model.compat?.[LEGACY_VIDEO_INPUT_COMPAT_KEY] === true) return true;
+  if (model.compat?.codiaVideoInput === true || model.compat?.[LEGACY_VIDEO_INPUT_COMPAT_KEY] === true) return true;
 
   const knownVideo = knownVideoSupport(model, context);
   if (knownVideo === false) return false;
@@ -457,7 +457,7 @@ function knownAudioSupport(model, context = {}) {
 
 function compatSupportsAudioInput(model) {
   const compat = model?.compat;
-  return compat?.gsapAudioInput === true
+  return compat?.codiaAudioInput === true
     || compat?.[LEGACY_AUDIO_INPUT_COMPAT_KEY] === true
     || compat?.supportsAudioInput === true
     || compat?.supports_audio_input === true;
@@ -467,7 +467,7 @@ function compatDisablesAudioInput(model) {
   const compat = model?.compat;
   return compat?.supportsAudioInput === false
     || compat?.supports_audio_input === false
-    || compat?.gsapAudioInput === false
+    || compat?.codiaAudioInput === false
     || compat?.[LEGACY_AUDIO_INPUT_COMPAT_KEY] === false;
 }
 
@@ -499,7 +499,7 @@ export function resolveModelAudioInputTransport(model, context = {}) {
 
   const compat = isPlainObject(model?.compat) ? model.compat : {};
   const explicit = lower(
-    compat.gsapAudioTransport
+    compat.codiaAudioTransport
       || compat[LEGACY_AUDIO_TRANSPORT_COMPAT_KEY]
       || compat.audioTransport,
   );
@@ -556,11 +556,11 @@ function isMoonshotEndpoint(model, context = {}) {
     || baseUrl.includes("moonshot.ai");
 }
 
-export function withGsapVideoInputCompat(model, enabled) {
+export function withCodiaVideoInputCompat(model, enabled) {
   if (!isPlainObject(model) || enabled !== true) return model;
 
   const compat = isPlainObject(model.compat) ? model.compat : {};
-  if (compat.gsapVideoInput === true && compat[LEGACY_VIDEO_INPUT_COMPAT_KEY] !== true) return model;
+  if (compat.codiaVideoInput === true && compat[LEGACY_VIDEO_INPUT_COMPAT_KEY] !== true) return model;
   const nextCompat = { ...compat };
   delete nextCompat[LEGACY_VIDEO_INPUT_COMPAT_KEY];
 
@@ -568,16 +568,16 @@ export function withGsapVideoInputCompat(model, enabled) {
     ...model,
     compat: {
       ...nextCompat,
-      gsapVideoInput: true,
+      codiaVideoInput: true,
     },
   };
 }
 
-export function withGsapAudioInputCompat(model, enabled) {
+export function withCodiaAudioInputCompat(model, enabled) {
   if (!isPlainObject(model) || enabled !== true) return model;
 
   const compat = isPlainObject(model.compat) ? model.compat : {};
-  if (compat.gsapAudioInput === true && compat[LEGACY_AUDIO_INPUT_COMPAT_KEY] !== true) return model;
+  if (compat.codiaAudioInput === true && compat[LEGACY_AUDIO_INPUT_COMPAT_KEY] !== true) return model;
   const nextCompat = { ...compat };
   delete nextCompat[LEGACY_AUDIO_INPUT_COMPAT_KEY];
 
@@ -585,7 +585,7 @@ export function withGsapAudioInputCompat(model, enabled) {
     ...model,
     compat: {
       ...nextCompat,
-      gsapAudioInput: true,
+      codiaAudioInput: true,
     },
   };
 }
@@ -724,8 +724,8 @@ export function normalizeVisionCapabilities(value) {
   const points = value.points === true;
   const rawOutputFormat = lower(value.outputFormat);
   const outputFormat = rawOutputFormat === LEGACY_VISION_OUTPUT_FORMAT
-    ? "gsap"
-    : (["gemini", "qwen", "anchor", "gsap"].includes(rawOutputFormat) ? rawOutputFormat : "gsap");
+    ? "codia"
+    : (["gemini", "qwen", "anchor", "codia"].includes(rawOutputFormat) ? rawOutputFormat : "codia");
   const groundingMode = ["native", "prompted"].includes(lower(value.groundingMode))
     ? lower(value.groundingMode)
     : "native";

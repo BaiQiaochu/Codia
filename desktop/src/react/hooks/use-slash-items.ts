@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useState } from 'react';
-import { gsapFetch } from './use-gsap-fetch';
+import { codiaFetch } from './use-codia-fetch';
 import { useStore } from '../stores';
 import { getSkillIcon } from '../utils/skill-icons';
 import type { SlashItem } from '../components/input/slash-commands';
@@ -33,8 +33,8 @@ export function useSkillSlashItems({
         setRefreshSeq(seq => seq + 1);
       }
     };
-    window.addEventListener('gsap-skills-changed', handler);
-    return () => window.removeEventListener('gsap-skills-changed', handler);
+    window.addEventListener('codia-skills-changed', handler);
+    return () => window.removeEventListener('codia-skills-changed', handler);
   }, [agentId]);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export function useSkillSlashItems({
     }
     let cancelled = false;
     setSkills([]);
-    gsapFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}&runtime=1`)
+    codiaFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}&runtime=1`)
       .then(r => r.json())
       .then(data => {
         if (!cancelled && data.skills) setSkills(data.skills);

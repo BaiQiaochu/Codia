@@ -21,7 +21,7 @@ describe('SessionRegistryFilesPanel PWA behavior', () => {
     document.documentElement.setAttribute('data-platform', 'web');
     (window as typeof window & { t?: (key: string, vars?: Record<string, string | number>) => string }).t = (key, vars) =>
       vars?.n ? `${key}:${vars.n}` : key;
-    (window as typeof window & { __GSAP_PWA__?: { serverUrl: (path: string) => string } }).__GSAP_PWA__ = {
+    (window as typeof window & { __CODIA_PWA__?: { serverUrl: (path: string) => string } }).__CODIA_PWA__ = {
       serverUrl: (path: string) => `https://pwa.local${path}`,
     };
     (window as typeof window & { platform?: unknown }).platform = undefined;
@@ -57,7 +57,7 @@ describe('SessionRegistryFilesPanel PWA behavior', () => {
   afterEach(() => {
     cleanup();
     document.documentElement.removeAttribute('data-platform');
-    delete (window as typeof window & { __GSAP_PWA__?: unknown }).__GSAP_PWA__;
+    delete (window as typeof window & { __CODIA_PWA__?: unknown }).__CODIA_PWA__;
   });
 
   it('renders preview and download actions for resource-backed files without desktop platform APIs', async () => {

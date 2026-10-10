@@ -21,7 +21,7 @@ export type AppFileDragPayloadInput = Omit<AppFileDragPayload, 'dragId'> & {
   dragId?: string;
 };
 
-const APP_FILE_DRAG_MIME = 'application/x-gsap-file-drag';
+const APP_FILE_DRAG_MIME = 'application/x-codia-file-drag';
 
 let dragSeq = 0;
 let activeDragId: string | null = null;
@@ -30,7 +30,7 @@ const cleanupTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 function nextDragId(): string {
   dragSeq += 1;
-  return `gsap-drag-${Date.now().toString(36)}-${dragSeq.toString(36)}`;
+  return `codia-drag-${Date.now().toString(36)}-${dragSeq.toString(36)}`;
 }
 
 export function writeAppFileDragPayload(

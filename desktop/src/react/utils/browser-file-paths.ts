@@ -4,7 +4,7 @@ interface PwaUploadBridge {
 
 function pwaBridge(): PwaUploadBridge | undefined {
   if (typeof window === 'undefined') return undefined;
-  return (window as typeof window & { __GSAP_PWA__?: PwaUploadBridge }).__GSAP_PWA__;
+  return (window as typeof window & { __CODIA_PWA__?: PwaUploadBridge }).__CODIA_PWA__;
 }
 
 export interface ResolvedBrowserFiles {

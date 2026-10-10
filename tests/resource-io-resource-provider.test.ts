@@ -33,9 +33,9 @@ describe("ResourceProvider", () => {
   });
 
   function setup() {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-provider-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-provider-"));
     const agentsDir = path.join(tempRoot, "agents");
-    const sessionPath = path.join(agentsDir, "gsap", "sessions", "a.jsonl");
+    const sessionPath = path.join(agentsDir, "codia", "sessions", "a.jsonl");
     const filePath = path.join(tempRoot, "files", "note.txt");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.mkdirSync(path.dirname(filePath), { recursive: true });

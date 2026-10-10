@@ -14,8 +14,8 @@ const block = {
   taskId: 'subagent-1',
   status: 'success',
   sourceKind: 'subagent',
-  sourceLabel: 'G-SAP 代码审查',
-  text: 'G-SAP 收到来自代码审查的回复',
+  sourceLabel: 'Codia 代码审查',
+  text: 'Codia 收到来自代码审查的回复',
   detailMarkdown: '**内部详情**\n\n- 第一条',
 } as const;
 
@@ -46,7 +46,7 @@ describe('InterludeBlock', () => {
     mockMatchMedia(false);
     render(<InterludeBlock block={block} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /G-SAP 收到来自代码审查的回复/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Codia 收到来自代码审查的回复/ }));
 
     expect(screen.getByRole('dialog')).toHaveTextContent('内部详情');
     expect(screen.getByRole('dialog')).toHaveTextContent('第一条');
@@ -56,7 +56,7 @@ describe('InterludeBlock', () => {
     mockMatchMedia(false);
     render(<InterludeBlock block={block} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /G-SAP 收到来自代码审查的回复/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Codia 收到来自代码审查的回复/ }));
     fireEvent.scroll(screen.getByRole('dialog'));
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();

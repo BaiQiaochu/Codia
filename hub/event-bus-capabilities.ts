@@ -13,7 +13,7 @@ export const BUILTIN_EVENT_BUS_CAPABILITIES = Object.freeze([
   {
     type: "session:create",
     title: "Create session",
-    description: "Create a detached G-SAP session, optionally owned and hidden by a plugin.",
+    description: "Create a detached Codia session, optionally owned and hidden by a plugin.",
     inputSchema: OBJECT_SCHEMA,
     outputSchema: OBJECT_SCHEMA,
     permission: "session.write",
@@ -24,7 +24,7 @@ export const BUILTIN_EVENT_BUS_CAPABILITIES = Object.freeze([
   {
     type: "session:get",
     title: "Get session",
-    description: "Read one G-SAP session projection by path.",
+    description: "Read one Codia session projection by path.",
     inputSchema: {
       type: "object",
       properties: {
@@ -54,7 +54,7 @@ export const BUILTIN_EVENT_BUS_CAPABILITIES = Object.freeze([
   {
     type: "session:send",
     title: "Send session message",
-    description: "Send text into a G-SAP session on behalf of a plugin.",
+    description: "Send text into a Codia session on behalf of a plugin.",
     inputSchema: {
       type: "object",
       properties: {
@@ -145,7 +145,7 @@ export const BUILTIN_EVENT_BUS_CAPABILITIES = Object.freeze([
   {
     type: "agent:list",
     title: "List agents",
-    description: "List configured G-SAP agents.",
+    description: "List configured Codia agents.",
     inputSchema: {
       type: "object",
       properties: {

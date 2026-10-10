@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import type { SessionConfirmationBlock } from '../../stores/chat-types';
 import styles from './InputArea.module.css';
 import {
@@ -124,7 +124,7 @@ export function SessionConfirmationPrompt({ block, exiting = false }: SessionCon
     setMenuOpen(false);
     setSubmission({ confirmId: block.confirmId, action });
     try {
-      await gsapFetch(`/api/confirm/${block.confirmId}`, {
+      await codiaFetch(`/api/confirm/${block.confirmId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
@@ -142,7 +142,7 @@ export function SessionConfirmationPrompt({ block, exiting = false }: SessionCon
     setMenuOpen(false);
     setSwitchingMode(true);
     try {
-      const res = await gsapFetch('/api/session-permission-mode', {
+      const res = await codiaFetch('/api/session-permission-mode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'operate', currentSessionOnly: true }),
@@ -151,12 +151,12 @@ export function SessionConfirmationPrompt({ block, exiting = false }: SessionCon
       if (!res.ok || data?.ok === false) {
         throw new Error(data?.error || 'failed to switch current session permission mode');
       }
-      window.dispatchEvent(new CustomEvent('gsap-plan-mode', {
+      window.dispatchEvent(new CustomEvent('codia-plan-mode', {
         detail: { enabled: false, mode: data?.mode || 'operate' },
       }));
       await submit('confirmed');
     } catch (err) {
-      window.dispatchEvent(new CustomEvent('gsap-inline-notice', {
+      window.dispatchEvent(new CustomEvent('codia-inline-notice', {
         detail: {
           text: textWithFallback('input.accessModeLocked', '当前无法更改权限模式'),
           type: 'error',

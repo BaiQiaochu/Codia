@@ -3,7 +3,6 @@
   *
  *
   *
-  *
  */
 import fs from "fs";
 import path from "path";
@@ -78,7 +77,6 @@ export class Agent {
   /**
    * @param {object} opts
   *
-  *
  * @param {string} opts.productDir - 产品模板目录（ishiki.example.md, yuan 模板等）
   *
    */
@@ -90,8 +88,6 @@ export class Agent {
     if (!resolvedId) throw new Error("Agent: id is required");
     if (!resolvedAgentsDir) throw new Error("Agent: agentsDir is required");
 
- //
- //
  //
     this.id = resolvedId;
     this.agentsDir = resolvedAgentsDir;
@@ -159,7 +155,6 @@ export class Agent {
 
     /**
   *
-  *
      */
     this._cb = null;
   }
@@ -175,7 +170,6 @@ export class Agent {
  * @param {(bareId: string, agentConfig: object) => object} [resolveModel] - 统一模型解析回调
    */
   /**
-  *
   *
  * agent.config.models.chat 仍能被下游正确读取（模型解析 / session 创建）-
   *
@@ -196,7 +190,7 @@ export class Agent {
  // 0. 兼容性检查（目录、数据库、配置文件）
     await runCompatChecks({
       agentDir: this.agentDir,
-      gsapHome: path.dirname(path.dirname(this.agentDir)),
+      codiaHome: path.dirname(path.dirname(this.agentDir)),
       log,
     });
 
@@ -388,7 +382,7 @@ export class Agent {
       registerSessionFile: (entry) => this._cb?.registerSessionFile?.(entry),
     });
     this._artifactTool = createArtifactTool({
-      getGsapHome: () => this._cb?.getEngine?.()?.gsapHome,
+      getCodiaHome: () => this._cb?.getEngine?.()?.codiaHome,
       registerSessionFile: (entry) => this._cb?.registerSessionFile?.(entry),
       getSessionPath: () => this._cb?.getCurrentSessionPath?.(),
     });
@@ -396,14 +390,14 @@ export class Agent {
       getSessionModel: (sessionPath) => this._cb?.getEngine?.()?.getSessionByPath?.(sessionPath)?.model || null,
       getVisionBridge: () => this._cb?.getEngine?.()?.getVisionBridge?.() || null,
       isVisionAuxiliaryEnabled: () => this._cb?.getEngine?.()?.isVisionAuxiliaryEnabled?.() === true,
-      getGsapHome: () => this._cb?.getEngine?.()?.gsapHome,
+      getCodiaHome: () => this._cb?.getEngine?.()?.codiaHome,
       registerSessionFile: (entry) => this._cb?.registerSessionFile?.(entry),
     });
     this._browserToolNoScreenshot = createBrowserTool(() => this._cb?.getCurrentSessionPath?.(), {
       getSessionModel: (sessionPath) => this._cb?.getEngine?.()?.getSessionByPath?.(sessionPath)?.model || null,
       getVisionBridge: () => this._cb?.getEngine?.()?.getVisionBridge?.() || null,
       isVisionAuxiliaryEnabled: () => this._cb?.getEngine?.()?.isVisionAuxiliaryEnabled?.() === true,
-      getGsapHome: () => this._cb?.getEngine?.()?.gsapHome,
+      getCodiaHome: () => this._cb?.getEngine?.()?.codiaHome,
       registerSessionFile: (entry) => this._cb?.registerSessionFile?.(entry),
       screenshotEnabled: false,
     });
@@ -832,7 +826,6 @@ export class Agent {
 
   /**
   *
-  *
    */
   get resolvedMemoryModel() {
     if (!this._memoryModel || !this._resolveModel) return null;
@@ -1032,7 +1025,7 @@ export class Agent {
       agentDir: this.agentDir,
       productDir: this.productDir,
       locale: this._locale(),
-      yuan: this._config?.agent?.yuan || "gsap",
+      yuan: this._config?.agent?.yuan || "codia",
       userName: this.userName,
       agentName: this.agentName,
     };
@@ -1044,7 +1037,7 @@ export class Agent {
 
  /** 读取 yuan 模板（能力定义） */
   _readYuan() {
-    const yuanType = this._config?.agent?.yuan || "gsap";
+    const yuanType = this._config?.agent?.yuan || "codia";
     const isZh = String(this._locale()).startsWith("zh");
     const langDir = isZh ? "" : "en/";
     return safeReadFile(path.join(this.productDir, "yuan", `${langDir}${yuanType}.md`), "")
@@ -1058,7 +1051,7 @@ export class Agent {
       .replace(/\{\{userName\}\}/g, this.userName)
       .replace(/\{\{agentName\}\}/g, this.agentName)
       .replace(/\{\{agentId\}\}/g, this.id);
-    const yuanType = this._config?.agent?.yuan || "gsap";
+    const yuanType = this._config?.agent?.yuan || "codia";
     const isZh = String(this._locale()).startsWith("zh");
     const langDir = isZh ? "" : "en/";
     const raw = readFile(path.join(this.agentDir, "public-ishiki.md"))
@@ -1073,8 +1066,6 @@ export class Agent {
    * @param {object} [options]
   *
  * 跳过记忆三段（规-+ pinned.md + memory.md）和团队 agent 名单-
-  *
-  *
   *
    */
   buildSystemPrompt(options = {}) {
@@ -1100,7 +1091,7 @@ export class Agent {
     const readFile = (filePath) => safeReadFile(filePath, "");
 
  //
-    const yuanType = this._config?.agent?.yuan || "gsap";
+    const yuanType = this._config?.agent?.yuan || "codia";
     if (!this._readYuan()) throw new Error(`Cannot find yuan "${yuanType}". Check lib/yuan/`);
     const ishiki = this.personality;
 
@@ -1203,7 +1194,6 @@ export class Agent {
       }
     }
 
- //
  //
  // 显示路径（GET /system-prompt）会自行拼接 skills 以保持开发视图一致-
 
@@ -1378,7 +1368,6 @@ export class Agent {
     );
 
  //
- //
     const learnCfg = this._cb?.getLearnSkills?.() || this._config?.capabilities?.learn_skills || {};
     if (learnCfg.enabled && learnCfg.allow_github_fetch) {
       parts.push(isZh
@@ -1413,7 +1402,6 @@ export class Agent {
       );
     }
 
- //
  //
     if (this._listAgents && !forSubagent) {
       const myId = this.id;

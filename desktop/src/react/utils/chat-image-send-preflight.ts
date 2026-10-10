@@ -15,7 +15,7 @@ export interface ChatImageModel {
   vision?: boolean;
   video?: boolean;
   compat?: ({
-    gsapVideoInput?: boolean;
+    codiaVideoInput?: boolean;
   } & Record<string, unknown>) | null;
 }
 

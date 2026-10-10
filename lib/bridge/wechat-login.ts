@@ -47,7 +47,6 @@ export async function getWechatQrcode() {
 /**
  * 轮询微信扫码状- *
   *
-  *
  */
 export async function pollWechatQrcodeStatus(qrcodeId) {
   if (!qrcodeId) {

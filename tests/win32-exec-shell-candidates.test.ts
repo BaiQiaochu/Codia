@@ -4,7 +4,7 @@ import { __testing } from "../lib/sandbox/win32-exec.js";
 
 describe("win32 bundled shell candidates", () => {
   it("discovers PortableGit Bash before legacy MinGit fallbacks", () => {
-    const gitRoot = "C:\\Program Files\\G-SAP\\resources\\git";
+    const gitRoot = "C:\\Program Files\\Codia\\resources\\git";
     const existing = new Set([
       path.win32.join(gitRoot, "bin", "bash.exe"),
       path.win32.join(gitRoot, "usr", "bin", "bash.exe"),
@@ -13,9 +13,9 @@ describe("win32 bundled shell candidates", () => {
     ]);
 
     const candidates = __testing.getBundledShellCandidates(
-      { GSAP_ROOT: "C:\\Program Files\\G-SAP\\resources\\server" },
+      { CODIA_ROOT: "C:\\Program Files\\Codia\\resources\\server" },
       {
-        resourcesPath: "C:\\Program Files\\G-SAP\\resources",
+        resourcesPath: "C:\\Program Files\\Codia\\resources",
         resourceSiblingDir: () => null,
         exists: (filePath) => existing.has(filePath),
       },
@@ -33,7 +33,7 @@ describe("win32 bundled shell candidates", () => {
   });
 
   it("prepends bundled PortableGit runtime directories to the shell PATH", () => {
-    const gitRoot = "C:\\Program Files\\G-SAP\\resources\\git";
+    const gitRoot = "C:\\Program Files\\Codia\\resources\\git";
     const shell = path.win32.join(gitRoot, "bin", "bash.exe");
     const env = __testing.getShellEnvForCandidate(
       { Path: "C:\\Windows\\System32" },

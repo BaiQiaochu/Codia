@@ -1,5 +1,5 @@
 {
-  "name": "@g-sap/plugin-components",
+  "name": "@codia/plugin-components",
   "version": "0.0.0",
   "private": true,
   "type": "module",

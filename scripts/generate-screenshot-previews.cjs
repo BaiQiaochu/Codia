@@ -19,8 +19,8 @@ const THEMES = {
   "solarized-dark":          { width: 460 },
   "solarized-light-desktop": { width: 880 },
   "solarized-dark-desktop":  { width: 880 },
-  "gsap-brand":              { width: 460 },
-  "gsap-brand-desktop":      { width: 880 },
+  "codia-brand":              { width: 460 },
+  "codia-brand-desktop":      { width: 880 },
   "sakura-light":            { width: 460 },
   "sakura-light-desktop":    { width: 880 },
 };
@@ -30,8 +30,8 @@ const COMBOS = [
   { color: "light",  width: "desktop", theme: "solarized-light-desktop" },
   { color: "dark",   width: "mobile",  theme: "solarized-dark" },
   { color: "dark",   width: "desktop", theme: "solarized-dark-desktop" },
-  { color: "gsap",   width: "mobile",  theme: "gsap-brand" },
-  { color: "gsap",   width: "desktop", theme: "gsap-brand-desktop" },
+  { color: "codia",   width: "mobile",  theme: "codia-brand" },
+  { color: "codia",   width: "desktop", theme: "codia-brand-desktop" },
 ];
 
 const PREVIEW_ESSAY = `# 风
@@ -46,7 +46,7 @@ const PREVIEW_ESSAY = `# 风
 
 const THEME_DIR = path.join(__dirname, "..", "desktop", "src", "screenshot-themes");
 const OUT_DIR = path.join(__dirname, "..", "desktop", "src", "assets", "screenshot-previews");
-const LOGO_PATH = path.join(__dirname, "..", "desktop", "src", "assets", "G-SAP.png");
+const LOGO_PATH = path.join(__dirname, "..", "desktop", "src", "assets", "codia.png");
 
 function buildHTML(themeName) {
   const MarkdownIt = require("markdown-it");
@@ -105,7 +105,7 @@ function buildHTML(themeName) {
   ${bodyHTML}
   <footer class="watermark">
     <img class="watermark-logo" src="${logoUrl}" />
-    <span class="watermark-text">G-SAP</span>
+    <span class="watermark-text">Codia</span>
   </footer>
 </body>
 </html>`;

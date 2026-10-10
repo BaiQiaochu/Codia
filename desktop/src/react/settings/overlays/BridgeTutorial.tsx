@@ -6,8 +6,8 @@ export function BridgeTutorial() {
 
   useEffect(() => {
     const handler = () => setVisible(true);
-    window.addEventListener('gsap-show-bridge-tutorial', handler);
-    return () => window.removeEventListener('gsap-show-bridge-tutorial', handler);
+    window.addEventListener('codia-show-bridge-tutorial', handler);
+    return () => window.removeEventListener('codia-show-bridge-tutorial', handler);
   }, []);
 
   const close = () => setVisible(false);

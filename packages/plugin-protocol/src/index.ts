@@ -1,7 +1,7 @@
-export const PLUGIN_UI_PROTOCOL = 'gsap.plugin.ui' as const;
+export const PLUGIN_UI_PROTOCOL = 'codia.plugin.ui' as const;
 export const PLUGIN_UI_PROTOCOL_VERSION = 1 as const;
 
-export const PLUGIN_SURFACE_SESSION_HEADER = 'X-GSAP-Plugin-Surface-Session' as const;
+export const PLUGIN_SURFACE_SESSION_HEADER = 'X-CODIA-Plugin-Surface-Session' as const;
 export const PLUGIN_SURFACE_SESSION_QUERY = 'pluginSurfaceSession' as const;
 
 export const PLUGIN_UI_ERROR_CODE = {

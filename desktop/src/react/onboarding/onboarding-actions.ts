@@ -5,12 +5,12 @@
 import { AGENT_ID } from './constants';
 import { DEFAULT_HEARTBEAT_INTERVAL_MINUTES } from '../../../../shared/default-workspace-constants.ts';
 
-export type gsapFetch = (path: string, opts?: RequestInit) => Promise<Response>;
+export type codiaFetch = (path: string, opts?: RequestInit) => Promise<Response>;
 
 // ── Test connection ──
 
 interface TestConnectionParams {
-  gsapFetch: gsapFetch;
+  codiaFetch: codiaFetch;
   providerUrl: string;
   providerApi: string;
   apiKey: string;
@@ -21,8 +21,8 @@ export interface TestResult {
   text: string;
 }
 
-export async function testConnection({ gsapFetch, providerUrl, providerApi, apiKey }: TestConnectionParams): Promise<TestResult> {
-  const res = await gsapFetch('/api/providers/test', {
+export async function testConnection({ codiaFetch, providerUrl, providerApi, apiKey }: TestConnectionParams): Promise<TestResult> {
+  const res = await codiaFetch('/api/providers/test', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -44,15 +44,15 @@ export async function testConnection({ gsapFetch, providerUrl, providerApi, apiK
 // ── Save provider ──
 
 interface SaveProviderParams {
-  gsapFetch: gsapFetch;
+  codiaFetch: codiaFetch;
   providerName: string;
   providerUrl: string;
   apiKey: string;
   providerApi: string;
 }
 
-export async function saveProvider({ gsapFetch, providerName, providerUrl, apiKey, providerApi }: SaveProviderParams): Promise<void> {
-  await gsapFetch(`/api/agents/${AGENT_ID}/config`, {
+export async function saveProvider({ codiaFetch, providerName, providerUrl, apiKey, providerApi }: SaveProviderParams): Promise<void> {
+  await codiaFetch(`/api/agents/${AGENT_ID}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -71,7 +71,7 @@ export async function saveProvider({ gsapFetch, providerName, providerUrl, apiKe
 // ── Load models ──
 
 interface LoadModelsParams {
-  gsapFetch: gsapFetch;
+  codiaFetch: codiaFetch;
   providerName: string;
   providerUrl: string;
   providerApi: string;
@@ -93,8 +93,8 @@ export interface LoadModelsResult {
   error?: string;
 }
 
-export async function loadModels({ gsapFetch, providerName, providerUrl, providerApi, apiKey }: LoadModelsParams): Promise<LoadModelsResult> {
-  const res = await gsapFetch('/api/providers/fetch-models', {
+export async function loadModels({ codiaFetch, providerName, providerUrl, providerApi, apiKey }: LoadModelsParams): Promise<LoadModelsResult> {
+  const res = await codiaFetch('/api/providers/fetch-models', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -126,7 +126,7 @@ export interface AddedModelObject {
 export type AddedModelEntry = string | AddedModelObject;
 
 interface SaveModelParams {
-  gsapFetch: gsapFetch;
+  codiaFetch: codiaFetch;
   selectedModel: string;
   providerName: string;
   addedModels: AddedModelEntry[];
@@ -147,9 +147,9 @@ function compactModelEntry(entry: AddedModelEntry): AddedModelEntry {
   return Object.keys(next).length === 1 ? next.id : next;
 }
 
-export async function saveModel({ gsapFetch, selectedModel, providerName, addedModels, selectedUtility, selectedUtilityLarge }: SaveModelParams): Promise<void> {
+export async function saveModel({ codiaFetch, selectedModel, providerName, addedModels, selectedUtility, selectedUtilityLarge }: SaveModelParams): Promise<void> {
   const modelEntries = addedModels.map(compactModelEntry);
-  await gsapFetch(`/api/agents/${AGENT_ID}/config`, {
+  await codiaFetch(`/api/agents/${AGENT_ID}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -163,7 +163,7 @@ export async function saveModel({ gsapFetch, selectedModel, providerName, addedM
     const utilityModels: Record<string, { id: string; provider: string }> = {};
     if (selectedUtility) utilityModels.utility = { id: selectedUtility, provider: providerName };
     if (selectedUtilityLarge) utilityModels.utility_large = { id: selectedUtilityLarge, provider: providerName };
-    await gsapFetch('/api/preferences/models', {
+    await codiaFetch('/api/preferences/models', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ models: utilityModels }),
@@ -173,8 +173,8 @@ export async function saveModel({ gsapFetch, selectedModel, providerName, addedM
 
 // ── Save locale ──
 
-export async function saveLocale(gsapFetch: gsapFetch, locale: string): Promise<void> {
-  await gsapFetch(`/api/agents/${AGENT_ID}/config`, {
+export async function saveLocale(codiaFetch: codiaFetch, locale: string): Promise<void> {
+  await codiaFetch(`/api/agents/${AGENT_ID}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ locale }),
@@ -184,14 +184,14 @@ export async function saveLocale(gsapFetch: gsapFetch, locale: string): Promise<
 // ── Save user name ──
 
 interface SaveOnboardingIdentityParams {
-  gsapFetch: gsapFetch;
+  codiaFetch: codiaFetch;
   userName: string;
   agentName: string;
   memoryEnabled: boolean;
 }
 
 export async function saveOnboardingIdentity({
-  gsapFetch,
+  codiaFetch,
   userName,
   agentName,
   memoryEnabled,
@@ -205,7 +205,7 @@ export async function saveOnboardingIdentity({
   } = { user: { name: trimmedUserName }, memory: { enabled: memoryEnabled } };
   if (trimmedAgentName) body.agent = { name: trimmedAgentName };
 
-  await gsapFetch(`/api/agents/${AGENT_ID}/config`, {
+  await codiaFetch(`/api/agents/${AGENT_ID}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -216,8 +216,8 @@ export async function saveOnboardingIdentity({
   });
 }
 
-export async function saveUserName(gsapFetch: gsapFetch, name: string): Promise<void> {
-  await gsapFetch(`/api/agents/${AGENT_ID}/config`, {
+export async function saveUserName(codiaFetch: codiaFetch, name: string): Promise<void> {
+  await codiaFetch(`/api/agents/${AGENT_ID}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user: { name } }),
@@ -226,35 +226,35 @@ export async function saveUserName(gsapFetch: gsapFetch, name: string): Promise<
 
 // Workspace
 
-export async function loadDefaultWorkspace(gsapFetch: gsapFetch): Promise<string> {
-  const res = await gsapFetch('/api/config/default-workspace');
+export async function loadDefaultWorkspace(codiaFetch: codiaFetch): Promise<string> {
+  const res = await codiaFetch('/api/config/default-workspace');
   const data = await res.json();
   if (data.error) throw new Error(data.error);
   return data.path || '';
 }
 
-async function ensureDefaultWorkspace(gsapFetch: gsapFetch): Promise<string> {
-  const res = await gsapFetch('/api/config/default-workspace', { method: 'POST' });
+async function ensureDefaultWorkspace(codiaFetch: codiaFetch): Promise<string> {
+  const res = await codiaFetch('/api/config/default-workspace', { method: 'POST' });
   const data = await res.json();
   if (data.error) throw new Error(data.error);
   return data.path || '';
 }
 
 interface SaveWorkspaceParams {
-  gsapFetch: gsapFetch;
+  codiaFetch: codiaFetch;
   workspacePath: string;
   defaultPath: string;
 }
 
-export async function saveWorkspace({ gsapFetch, workspacePath, defaultPath }: SaveWorkspaceParams): Promise<void> {
+export async function saveWorkspace({ codiaFetch, workspacePath, defaultPath }: SaveWorkspaceParams): Promise<void> {
   const selected = workspacePath.trim();
   if (!selected) throw new Error('workspacePath is required');
 
   if (selected === defaultPath) {
-    await ensureDefaultWorkspace(gsapFetch);
+    await ensureDefaultWorkspace(codiaFetch);
   }
 
-  await gsapFetch(`/api/agents/${AGENT_ID}/config`, {
+  await codiaFetch(`/api/agents/${AGENT_ID}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

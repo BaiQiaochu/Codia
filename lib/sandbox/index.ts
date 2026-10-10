@@ -45,8 +45,7 @@ export function createSandboxedTools(
     workspaceFolders = [],
     authorizedFolders = [],
     getAuthorizedFolders,
-    gsapHome,
-    hanakoHome,
+    codiaHome,
     executionBoundary,
     getSandboxEnabled,
     getSandboxNetworkEnabled,
@@ -62,7 +61,7 @@ export function createSandboxedTools(
     emitEvent,
   },
 ) {
-  const effectiveGsapHome = gsapHome || hanakoHome;
+  const effectiveCodiaHome = codiaHome || codiaHome;
   const resolveAuthorizedFolders = () => {
     if (typeof getAuthorizedFolders === "function") {
       const folders = getAuthorizedFolders();
@@ -76,7 +75,7 @@ export function createSandboxedTools(
     workspace,
     workspaceFolders,
     authorizedFolders: resolveAuthorizedFolders(),
-    gsapHome: effectiveGsapHome,
+    codiaHome: effectiveCodiaHome,
     mode: "standard",
   });
   const guard = {
@@ -91,7 +90,7 @@ export function createSandboxedTools(
     getSandboxNetworkEnabled,
     platform,
   };
-  const checkManagedConfigWrite = createManagedConfigWriteGuard({ gsapHome: effectiveGsapHome });
+  const checkManagedConfigWrite = createManagedConfigWriteGuard({ codiaHome: effectiveCodiaHome });
   const wrapOpts = { getSandboxEnabled, getExternalReadPaths, checkManagedConfigWrite, ...traceWrapOpts };
   const normalBashTool = isWin32RestrictedToken
     ? createBashTool(cwd, { operations: { exec: createWin32Exec() } })
@@ -103,7 +102,7 @@ export function createSandboxedTools(
     workspaceFolders,
     authorizedFolders,
     getAuthorizedFolders,
-    gsapHome: effectiveGsapHome,
+    codiaHome: effectiveCodiaHome,
     getSandboxEnabled,
     getExternalReadPaths,
     getSessionPath,
@@ -147,7 +146,7 @@ export function createSandboxedTools(
     recordFileOperation,
   });
   const readTool = wrapSessionFilePathTool(wrapReadImageWithVisionBridge(wrapReadOfficeMedia(createReadTool(cwd, { operations: readOps }), cwd, {
-    gsapHome,
+    codiaHome,
     getSessionPath,
     recordFileOperation,
     getVisionBridge,
@@ -167,7 +166,7 @@ export function createSandboxedTools(
             policy: makePolicy(),
             getExternalReadPaths,
             getSandboxNetworkEnabled,
-            gsapHome: effectiveGsapHome,
+            codiaHome: effectiveCodiaHome,
           },
         })(command, execCwd, execOpts),
       },

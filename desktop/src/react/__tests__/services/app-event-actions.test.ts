@@ -6,7 +6,7 @@ type TestPlatform = { settingsChanged: ReturnType<typeof vi.fn> };
 
 const mockState: MockState = {};
 
-const mockgsapFetch = vi.fn();
+const mockcodiaFetch = vi.fn();
 const mockApplyAgentIdentity = vi.fn(async () => {});
 const mockLoadAgents = vi.fn(async () => {});
 const mockLoadSessions = vi.fn(async () => {});
@@ -25,8 +25,8 @@ vi.mock('../../stores', () => ({
   },
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: mockgsapFetch,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: mockcodiaFetch,
 }));
 
 vi.mock('../../stores/agent-actions', () => ({
@@ -72,14 +72,13 @@ function testI18n(): { locale: string } {
 
 async function flushPromises(): Promise<void> {
   await Promise.resolve();
-  await Promise.resolve();
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 describe('app-event-actions', () => {
   beforeEach(() => {
     Object.keys(mockState).forEach((key) => delete mockState[key]);
-    mockgsapFetch.mockReset();
+    mockcodiaFetch.mockReset();
     mockApplyAgentIdentity.mockReset();
     mockLoadAgents.mockReset();
     mockLoadSessions.mockReset();
@@ -91,7 +90,7 @@ describe('app-event-actions', () => {
     vi.resetModules();
 
     Object.assign(mockState, {
-      agentName: 'G-SAP',
+      agentName: 'Codia',
       currentAgentId: null,
       currentSessionPath: null,
       cwdHistory: [],
@@ -106,7 +105,7 @@ describe('app-event-actions', () => {
     };
     (globalThis as Record<string, unknown>).i18n = {
       locale: 'zh-CN',
-      defaultName: 'G-SAP',
+      defaultName: 'Codia',
       load: vi.fn(async (locale: string) => {
         testI18n().locale = locale;
       }),
@@ -114,7 +113,7 @@ describe('app-event-actions', () => {
   });
 
   it('agent-switched reloads dependent state and preserves desk skill refresh hooks', async () => {
-    mockgsapFetch
+    mockcodiaFetch
       .mockResolvedValueOnce(jsonResponse({
         desk: { home_folder: '/agent-home' },
         cwd_history: ['/agent-home/work', '/recent'],
@@ -132,11 +131,11 @@ describe('app-event-actions', () => {
     });
 
     const { handleAppEvent } = await import('../../services/app-event-actions');
-    handleAppEvent('agent-switched', { agentName: 'Hana', agentId: 'agent-a' });
+    handleAppEvent('agent-switched', { agentName: 'Codia', agentId: 'agent-a' });
     await flushPromises();
 
     expect(mockApplyAgentIdentity).toHaveBeenCalledWith({
-      agentName: 'Hana',
+      agentName: 'Codia',
       agentId: 'agent-a',
     });
     expect(mockLoadSessions).toHaveBeenCalledTimes(1);
@@ -165,7 +164,7 @@ describe('app-event-actions', () => {
     expect(testWindow().__loadDeskSkills).toHaveBeenCalledTimes(1);
     expect(testWindow().dispatchEvent).toHaveBeenCalledTimes(1);
     const event = vi.mocked(testWindow().dispatchEvent).mock.calls[0][0] as CustomEvent;
-    expect(event.type).toBe('gsap-skills-changed');
+    expect(event.type).toBe('codia-skills-changed');
     expect(event.detail).toEqual({ agentId: 'agent-a' });
   });
   it('models-changed reloads models and requests context usage for the active session', async () => {
@@ -210,13 +209,13 @@ describe('app-event-actions', () => {
 
     handleAppEvent('agent-updated', {
       agentId: 'agent-a',
-      agentName: 'Hana Prime',
+      agentName: 'Codia Prime',
       yuan: 'muse',
     });
 
     expect(mockLoadAgents).not.toHaveBeenCalled();
     expect(mockApplyAgentIdentity).toHaveBeenCalledWith({
-      agentName: 'Hana Prime',
+      agentName: 'Codia Prime',
       agentId: 'agent-a',
       yuan: 'muse',
       ui: { settings: false },
@@ -228,7 +227,7 @@ describe('app-event-actions', () => {
       currentAgentId: 'agent-a',
       memoryMasterEnabled: true,
       agents: [
-        { id: 'agent-a', name: 'G-SAP', memoryMasterEnabled: true },
+        { id: 'agent-a', name: 'Codia', memoryMasterEnabled: true },
         { id: 'agent-b', name: 'Other', memoryMasterEnabled: true },
       ],
     });

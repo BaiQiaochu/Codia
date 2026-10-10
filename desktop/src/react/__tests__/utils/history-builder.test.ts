@@ -43,7 +43,7 @@ describe('buildItemsFromHistory user image restoration', () => {
       messages: [{
         id: 'u1',
         role: 'user',
-        content: '[attached_image: /Users/test/.hanako/attachments/upload-abc.png]\n(看图)',
+        content: '[attached_image: /Users/test/.codia/attachments/upload-abc.png]\n(看图)',
       }],
     });
 
@@ -54,7 +54,7 @@ describe('buildItemsFromHistory user image restoration', () => {
     expect(first.data.text).toBe('(看图)');
     expect(first.data.textHtml).not.toContain('attached_image');
     expect(first.data.attachments).toEqual([{
-      path: '/Users/test/.hanako/attachments/upload-abc.png',
+      path: '/Users/test/.codia/attachments/upload-abc.png',
       name: 'upload-abc.png',
       isDir: false,
       visionAuxiliary: true,
@@ -66,7 +66,7 @@ describe('buildItemsFromHistory user image restoration', () => {
       messages: [{
         id: 'u1',
         role: 'user',
-        content: '[attached_image: /Users/test/.hanako/attachments/upload-native.png]\n看看这个',
+        content: '[attached_image: /Users/test/.codia/attachments/upload-native.png]\n看看这个',
         images: [{ data: 'BASE64', mimeType: 'image/png' }],
       }],
     });
@@ -76,7 +76,7 @@ describe('buildItemsFromHistory user image restoration', () => {
     if (first.type !== 'message') throw new Error('expected message');
     expect(first.data.text).toBe('看看这个');
     expect(first.data.attachments).toEqual([{
-      path: '/Users/test/.hanako/attachments/upload-native.png',
+      path: '/Users/test/.codia/attachments/upload-native.png',
       name: 'upload-native.png',
       isDir: false,
       base64Data: 'BASE64',

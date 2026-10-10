@@ -72,13 +72,13 @@ describe('McpTab', () => {
       .mockResolvedValueOnce(state(true));
     apiMocks.setMcpEnabled.mockResolvedValue(undefined);
     useSettingsStore.setState({
-      currentAgentId: 'gsap',
-      agents: [{ id: 'gsap', name: 'G-SAP', yuan: 'gsap', isPrimary: true }],
+      currentAgentId: 'codia',
+      agents: [{ id: 'codia', name: 'Codia', yuan: 'codia', isPrimary: true }],
     });
 
     render(<McpTab />);
 
-    await waitFor(() => expect(apiMocks.loadMcpState).toHaveBeenCalledWith('gsap'));
+    await waitFor(() => expect(apiMocks.loadMcpState).toHaveBeenCalledWith('codia'));
     fireEvent.click(screen.getByText('settings.mcp.masterName'));
 
     await waitFor(() => expect(apiMocks.setMcpEnabled).toHaveBeenCalledWith(true));
@@ -90,13 +90,13 @@ describe('McpTab', () => {
       .mockResolvedValueOnce(state(true));
     apiMocks.setMcpEnabled.mockResolvedValue(undefined);
     useSettingsStore.setState({
-      currentAgentId: 'gsap',
-      agents: [{ id: 'gsap', name: 'G-SAP', yuan: 'gsap', isPrimary: true }],
+      currentAgentId: 'codia',
+      agents: [{ id: 'codia', name: 'Codia', yuan: 'codia', isPrimary: true }],
     });
 
     render(<McpTab />);
 
-    await waitFor(() => expect(apiMocks.loadMcpState).toHaveBeenCalledWith('gsap'));
+    await waitFor(() => expect(apiMocks.loadMcpState).toHaveBeenCalledWith('codia'));
     fireEvent.click(screen.getByRole('switch', { name: 'common.off' }));
 
     await waitFor(() => expect(apiMocks.setMcpEnabled).toHaveBeenCalledTimes(1));
@@ -131,8 +131,8 @@ describe('McpTab', () => {
       }));
     apiMocks.setAgentMcpConnector.mockResolvedValue(undefined);
     useSettingsStore.setState({
-      currentAgentId: 'gsap',
-      agents: [{ id: 'gsap', name: 'G-SAP', yuan: 'gsap', isPrimary: true }],
+      currentAgentId: 'codia',
+      agents: [{ id: 'codia', name: 'Codia', yuan: 'codia', isPrimary: true }],
     });
 
     render(<McpTab />);
@@ -140,7 +140,7 @@ describe('McpTab', () => {
     const connectorRow = await screen.findByTestId('mcp-connector-row-github');
     fireEvent.click(within(connectorRow).getByRole('switch'));
 
-    await waitFor(() => expect(apiMocks.setAgentMcpConnector).toHaveBeenCalledWith('gsap', 'github', true));
+    await waitFor(() => expect(apiMocks.setAgentMcpConnector).toHaveBeenCalledWith('codia', 'github', true));
   });
 
   it('ignores stale agent loads before clearing the loading state', async () => {
@@ -154,8 +154,8 @@ describe('McpTab', () => {
     useSettingsStore.setState({
       currentAgentId: 'first',
       agents: [
-        { id: 'first', name: 'First Agent', yuan: 'gsap', isPrimary: true },
-        { id: 'second', name: 'Second Agent', yuan: 'gsap', isPrimary: false },
+        { id: 'first', name: 'First Agent', yuan: 'codia', isPrimary: true },
+        { id: 'second', name: 'Second Agent', yuan: 'codia', isPrimary: false },
       ],
     });
 
@@ -211,8 +211,8 @@ describe('McpTab', () => {
       agentConfig: { connectors: {} },
     }));
     useSettingsStore.setState({
-      currentAgentId: 'gsap',
-      agents: [{ id: 'gsap', name: 'G-SAP', yuan: 'gsap', isPrimary: true }],
+      currentAgentId: 'codia',
+      agents: [{ id: 'codia', name: 'Codia', yuan: 'codia', isPrimary: true }],
     });
 
     render(<McpTab />);

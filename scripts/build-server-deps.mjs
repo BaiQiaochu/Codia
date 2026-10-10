@@ -13,7 +13,7 @@ function getLockedPackageVersion(rootLock, packageName) {
 export function buildExternalPackage(
   rootPkg,
   externalDeps,
-  { rootLock, pinnedTransitiveDeps = [], packageName = "gsap-server" } = {},
+  { rootLock, pinnedTransitiveDeps = [], packageName = "codia-server" } = {},
 ) {
   const dependencies = {};
 

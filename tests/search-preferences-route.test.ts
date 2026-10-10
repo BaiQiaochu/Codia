@@ -31,7 +31,7 @@ describe("search preferences route", () => {
     const setSearchConfig = vi.fn();
     const app = new Hono();
     app.route("/api", createPreferencesRoute({
-      currentAgentId: "gsap",
+      currentAgentId: "codia",
       getSharedModels: () => ({}),
       getSearchConfig: () => ({ provider: "auto", api_key: "", api_keys: {} }),
       getUtilityApi: () => ({}),

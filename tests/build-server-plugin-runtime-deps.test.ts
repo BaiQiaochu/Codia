@@ -29,7 +29,7 @@ describe("bundled plugin runtime dependencies", () => {
   let outDir;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-plugin-runtime-deps-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-runtime-deps-"));
     rootDir = path.join(tempDir, "root");
     outDir = path.join(tempDir, "dist-server", "win-x64");
 

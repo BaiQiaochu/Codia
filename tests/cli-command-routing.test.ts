@@ -73,14 +73,13 @@ describe("CLI command routing", () => {
     expect(handlers.commandPermissions).toHaveBeenCalledWith({}, ["get"], {});
   });
 
-  it("publishes gsap as the formal CLI command while keeping compatibility aliases", () => {
+  it("publishes codia as the formal CLI command while keeping compatibility aliases", () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8"));
 
     expect(pkg.bin).toMatchObject({
-      gsap: "scripts/gsapctl.mjs",
-      "g-sap": "scripts/gsapctl.mjs",
-      "gsap-cli": "scripts/gsapctl.mjs",
-      gsapctl: "scripts/gsapctl.mjs",
+      codia: "scripts/codiactl.mjs",
+      "codia-cli": "scripts/codiactl.mjs",
+      codiactl: "scripts/codiactl.mjs",
     });
   });
 
@@ -88,7 +87,7 @@ describe("CLI command routing", () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8"));
     const version = execFileSync(process.execPath, ["index.js", "--version"], {
       cwd: process.cwd(),
-      env: { ...process.env, NO_COLOR: "1", GSAP_SERVER_INFO: path.join(process.cwd(), "missing-server-info-for-version.json") },
+      env: { ...process.env, NO_COLOR: "1", CODIA_SERVER_INFO: path.join(process.cwd(), "missing-server-info-for-version.json") },
       encoding: "utf-8",
       stdio: ["ignore", "pipe", "pipe"],
     }).trim();
@@ -96,10 +95,10 @@ describe("CLI command routing", () => {
     expect(version).toBe(pkg.version);
   });
 
-  it("routes npm cli launcher through the maintained gsapctl entry", () => {
+  it("routes npm cli launcher through the maintained codiactl entry", () => {
     const launchScript = fs.readFileSync(path.join(process.cwd(), "scripts", "launch.js"), "utf-8");
 
-    expect(launchScript).toContain("scripts/gsapctl.mjs");
+    expect(launchScript).toContain("scripts/codiactl.mjs");
     expect(launchScript).not.toContain('args = ["index.js"');
   });
 

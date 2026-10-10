@@ -22,7 +22,7 @@ function readJson(filePath: string) {
 
 describe("ProviderCatalogStore", () => {
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-provider-catalog-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-provider-catalog-"));
   });
 
   afterEach(() => {

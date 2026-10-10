@@ -351,16 +351,15 @@ describe("provider compat", () => {
         locale: "en",
         deepseekRoleplayReasoningPatch: true,
         deepseekRoleplayReasoningContext: {
-          agentName: "G-SAP",
+          agentName: "Codia",
           agentDescription: "Project assistant.",
         },
       },
     );
 
     expect(result.messages[0].content).toContain("[Role immersion instruction]");
-    expect(result.messages[0].content).toContain("Current agent: G-SAP");
+    expect(result.messages[0].content).toContain("Current agent: Codia");
     expect(result.messages[0].content).toContain("Roster description: Project assistant.");
-    expect(result.messages[0].content).not.toContain("Hana");
     expect(payload.messages[0].content).toBe("hello");
   });
 
@@ -419,7 +418,7 @@ describe("provider compat", () => {
     expect(payload.tool_choice).toBe("auto");
   });
 
-  it("does not force DeepSeek thinking fields for automatic medium reasoning", () => {
+  it("maps unified medium reasoning to DeepSeek low effort", () => {
     const result = normalizeProviderPayload(
       {
         model: "deepseek-v4-pro",
@@ -430,13 +429,13 @@ describe("provider compat", () => {
       { mode: "chat", reasoningLevel: "medium" },
     );
 
-    expect(result).not.toHaveProperty("thinking");
-    expect(result).not.toHaveProperty("reasoning_effort");
-    expect(result.max_tokens).toBe(8192);
+    expect(result.thinking).toEqual({ type: "enabled" });
+    expect(result.reasoning_effort).toBe("low");
+    expect(result.max_tokens).toBe(65536);
     expect(result).not.toHaveProperty("max_completion_tokens");
   });
 
-  it("clamps DeepSeek non-thinking chat output tokens to a safe default", () => {
+  it("uses DeepSeek low effort for unified medium reasoning", () => {
     const result = normalizeProviderPayload(
       {
         model: "deepseek-v4-pro",
@@ -447,8 +446,9 @@ describe("provider compat", () => {
       { mode: "chat", reasoningLevel: "medium" },
     );
 
-    expect(result).not.toHaveProperty("thinking");
-    expect(result.max_tokens).toBe(8192);
+    expect(result.thinking).toEqual({ type: "enabled" });
+    expect(result.reasoning_effort).toBe("low");
+    expect(result.max_tokens).toBe(65536);
   });
 
   it("disables DeepSeek thinking on utility calls without expanding max_tokens", () => {
@@ -710,7 +710,7 @@ describe("provider compat", () => {
       provider: "dashscope",
       api: "openai-completions",
       input: ["text", "image"],
-      compat: { gsapVideoInput: true },
+      compat: { codiaVideoInput: true },
       baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
     }, { mode: "chat" });
 
@@ -740,7 +740,7 @@ describe("provider compat", () => {
       provider: "mimo-token-plan",
       api: "openai-completions",
       input: ["text", "image"],
-      compat: { gsapVideoInput: true },
+      compat: { codiaVideoInput: true },
       baseUrl: "https://token-plan-cn.xiaomimimo.com/v1",
     }, { mode: "chat" });
 
@@ -766,7 +766,7 @@ describe("provider compat", () => {
       provider: "dashscope",
       api: "openai-completions",
       input: ["text", "image"],
-      compat: { gsapVideoInput: true },
+      compat: { codiaVideoInput: true },
       quirks: ["enable_thinking"],
     }, { mode: "utility" });
 

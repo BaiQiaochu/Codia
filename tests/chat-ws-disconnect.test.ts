@@ -23,7 +23,7 @@ describe("chat websocket disconnect lifecycle", () => {
 
   it("keeps long streaming tasks alive across transient websocket disconnects", async () => {
     vi.useFakeTimers();
-    vi.stubEnv("GSAP_WS_DISCONNECT_ABORT_GRACE_MS", "25");
+    vi.stubEnv("CODIA_WS_DISCONNECT_ABORT_GRACE_MS", "25");
     let wsFactory = null;
     const upgradeWebSocket = (factory) => {
       wsFactory = factory;
@@ -67,7 +67,7 @@ describe("chat websocket disconnect lifecycle", () => {
     };
     const sessionPath = "/agents/a/sessions/s.jsonl";
     const engine = {
-      agentName: "G-SAP",
+      agentName: "Codia",
       isSessionStreaming: vi.fn(() => false),
       isSessionSwitching: vi.fn(() => false),
     };
@@ -94,7 +94,6 @@ describe("chat websocket disconnect lifecycle", () => {
     await promptStartedPromise;
     firstHandlers.onClose({}, firstWs);
     releasePrompt();
-    await Promise.resolve();
     await Promise.resolve();
 
     const secondHandlers = wsFactory({});
@@ -140,13 +139,13 @@ describe("chat websocket disconnect lifecycle", () => {
     handlers.onOpen({}, ws);
     hubSubscriber({
       type: "session_created",
-      session: { path: "/sessions/new.jsonl", agentName: "G-SAP" },
+      session: { path: "/sessions/new.jsonl", agentName: "Codia" },
     }, "/sessions/new.jsonl");
 
     expect(ws.send).toHaveBeenCalledWith(JSON.stringify({
       type: "session_created",
       sessionPath: "/sessions/new.jsonl",
-      session: { path: "/sessions/new.jsonl", agentName: "G-SAP" },
+      session: { path: "/sessions/new.jsonl", agentName: "Codia" },
     }));
   });
 

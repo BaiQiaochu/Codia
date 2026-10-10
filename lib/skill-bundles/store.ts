@@ -82,8 +82,8 @@ function allocateBundleId(store, baseName) {
 }
 
 export function getSkillBundleStorePath(engine) {
-  if (!engine?.gsapHome) throw new Error("gsapHome is required for skill bundle store");
-  return path.join(engine.gsapHome, STORE_FILE);
+  if (!engine?.codiaHome) throw new Error("codiaHome is required for skill bundle store");
+  return path.join(engine.codiaHome, STORE_FILE);
 }
 
 export function loadSkillBundleStore(engine) {

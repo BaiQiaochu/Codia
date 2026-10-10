@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { t } from '../helpers';
 import { useSettingsStore } from '../store';
 import { renderMarkdown } from '../../utils/markdown';
 import { SettingsRow } from '../components/SettingsRow';
 import { SettingsSection } from '../components/SettingsSection';
-import { ComputerUseSection } from './ComputerUseSection';
 import { SelectWidget, type SelectOption } from '../widgets/SelectWidget';
 import {
   COMPACTION_MODE_EXPERIMENT_ID,
@@ -107,7 +106,7 @@ function SwitchButton({
       role="switch"
       aria-label={label}
       aria-checked={checked}
-      className={`gsap-toggle${checked ? ' on' : ''}${disabled ? ' disabled' : ''}`}
+      className={`codia-toggle${checked ? ' on' : ''}${disabled ? ' disabled' : ''}`}
       disabled={disabled}
       onClick={onClick}
     />
@@ -202,7 +201,7 @@ function CacheSnapshotExperiment({
 
   const loadObservation = useCallback(async () => {
     if (!observationUrl) return;
-    const res = await gsapFetch(observationUrl);
+    const res = await codiaFetch(observationUrl);
     const data = await res.json();
     setObservation(data.observation || null);
     setObservationLoaded(true);
@@ -229,7 +228,7 @@ function CacheSnapshotExperiment({
 
   const clearObservation = async () => {
     if (!observationUrl) return;
-    await gsapFetch(observationUrl, { method: 'DELETE' });
+    await codiaFetch(observationUrl, { method: 'DELETE' });
     setObservation(null);
   };
 
@@ -367,7 +366,6 @@ function BooleanExperiment({
 
 export function ExperimentsTab() {
   const showToast = useSettingsStore(s => s.showToast);
-  const platformName = useSettingsStore(s => s.platformName);
   const [experiments, setExperiments] = useState<ExperimentDefinition[]>([]);
   const [loading, setLoading] = useState(true);
   const sessionExperiments = experiments.filter((experiment) => experiment.owner === 'session');
@@ -379,10 +377,9 @@ export function ExperimentsTab() {
   const cacheSnapshotExperiment = memoryExperiments.find((experiment) => (
     experiment.id === CACHE_SNAPSHOT_EXPERIMENT_ID
   ));
-  const showComputerUse = platformName !== 'linux';
 
   useEffect(() => {
-    gsapFetch('/api/experiments')
+    codiaFetch('/api/experiments')
       .then((res) => res.json())
       .then((data) => setExperiments(Array.isArray(data.experiments) ? data.experiments : []))
       .catch(() => setExperiments([]))
@@ -390,7 +387,7 @@ export function ExperimentsTab() {
   }, []);
 
   const updateExperimentValue = async (id: string, value: unknown) => {
-    const res = await gsapFetch(`/api/experiments/${id}`, {
+    const res = await codiaFetch(`/api/experiments/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value }),
@@ -406,7 +403,6 @@ export function ExperimentsTab() {
 
   return (
     <>
-      {showComputerUse && <ComputerUseSection />}
       {!loading && sessionExperiments.length > 0 && (
         <SettingsSection
           title={t('settings.experiments.compactionTitle')}

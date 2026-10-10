@@ -127,7 +127,7 @@ const ENTITY_MARKERS = [
   "LLM",
   "GPT",
   "JSON",
-  "G-SAP",
+  "Codia",
   "SparkNoteAI",
   "Hermes",
   "DeepSeek",
@@ -151,7 +151,7 @@ const EXACT_TERMS = [
   "来源文档",
   "对话队列",
   "内置浏览器",
-  "G-SAP",
+  "Codia",
   "SparkNoteAI",
   "Hermes Agent",
   "Hermes",
@@ -476,7 +476,7 @@ function extractLatinCandidates(text) {
   const patterns = [
     /\b[A-Z][A-Za-z0-9.+#/-]*(?:\s+[A-Z][A-Za-z0-9.+#/-]*){0,3}\b/g,
     /\b[A-Za-z]+(?:[-_/][A-Za-z0-9]+)+\b/g,
-    /\b(?:GPT|API|LLM|SDK|JSON|Node|React|Electron|DeepSeek|ComfyUI|MiniMax|Hermes|SparkNoteAI|G-SAP|OpenAI|SGLang)\b/g,
+    /\b(?:GPT|API|LLM|SDK|JSON|Node|React|Electron|DeepSeek|ComfyUI|MiniMax|Hermes|SparkNoteAI|Codia|OpenAI|SGLang)\b/g,
   ];
 
   for (const pattern of patterns) {

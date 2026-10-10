@@ -6,14 +6,14 @@ import { afterEach, describe, expect, it } from "vitest";
 import { prepareBundledFfmpeg } from "../scripts/prepare-ffmpeg-portable.mjs";
 
 describe("prepare bundled ffmpeg", () => {
-  const previous = process.env.GSAP_SKIP_BUNDLED_FFMPEG;
+  const previous = process.env.CODIA_SKIP_BUNDLED_FFMPEG;
   const tempDirs = [];
 
   afterEach(() => {
     if (previous === undefined) {
-      delete process.env.GSAP_SKIP_BUNDLED_FFMPEG;
+      delete process.env.CODIA_SKIP_BUNDLED_FFMPEG;
     } else {
-      process.env.GSAP_SKIP_BUNDLED_FFMPEG = previous;
+      process.env.CODIA_SKIP_BUNDLED_FFMPEG = previous;
     }
     for (const dir of tempDirs.splice(0)) {
       fs.rmSync(dir, { recursive: true, force: true });
@@ -21,7 +21,7 @@ describe("prepare bundled ffmpeg", () => {
   });
 
   function makeTempRoot() {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-ffmpeg-test-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-ffmpeg-test-"));
     tempDirs.push(root);
     return {
       rootDir: path.join(root, "root"),
@@ -29,8 +29,8 @@ describe("prepare bundled ffmpeg", () => {
     };
   }
 
-  it("skips network download when GSAP_SKIP_BUNDLED_FFMPEG is enabled", () => {
-    process.env.GSAP_SKIP_BUNDLED_FFMPEG = "1";
+  it("skips network download when CODIA_SKIP_BUNDLED_FFMPEG is enabled", () => {
+    process.env.CODIA_SKIP_BUNDLED_FFMPEG = "1";
     const { rootDir, outDir } = makeTempRoot();
 
     const result = prepareBundledFfmpeg({ rootDir, outDir, platform: "win32" });

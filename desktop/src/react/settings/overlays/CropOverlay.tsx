@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSettingsStore } from '../store';
-import { gsapFetch, gsapUrl } from '../api';
+import { codiaFetch, codiaUrl } from '../api';
 import { t } from '../helpers';
 import { loadAgents } from '../actions';
 import { getErrorMessage } from '../shared-types';
@@ -47,8 +47,8 @@ export function CropOverlay() {
       };
       reader.readAsDataURL(file);
     };
-    window.addEventListener('gsap-open-cropper', handler);
-    return () => window.removeEventListener('gsap-open-cropper', handler);
+    window.addEventListener('codia-open-cropper', handler);
+    return () => window.removeEventListener('codia-open-cropper', handler);
   }, []);
 
   const close = useCallback(() => {
@@ -161,7 +161,7 @@ async function uploadCroppedAvatar(role: string, dataUrl: string) {
       uploadUrl = `/api/avatar/${role}`;
     }
 
-    const res = await gsapFetch(uploadUrl, {
+    const res = await codiaFetch(uploadUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: dataUrl }),
@@ -177,7 +177,7 @@ async function uploadCroppedAvatar(role: string, dataUrl: string) {
         platform?.settingsChanged?.('agent-updated', { agentId });
       }
     } else {
-      const url = gsapUrl(`/api/avatar/${role}?t=${ts}`, { includeTokenQuery: true });
+      const url = codiaUrl(`/api/avatar/${role}?t=${ts}`, { includeTokenQuery: true });
       store.set({ userAvatarUrl: url });
     }
     store.showToast(t('settings.crop.updated'), 'success');

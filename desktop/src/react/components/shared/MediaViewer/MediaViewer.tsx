@@ -1,24 +1,34 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../../../stores';
 import { isMediaKind } from '../../../utils/file-kind';
-import { fileRefVersionToken } from '../../../services/resource-url';
+import { fileRefVersionToken, resolveFileRefNativePath } from '../../../services/resource-url';
+import { resolveServerConnection } from '../../../services/server-connection';
 import { ImageStage } from './ImageStage';
 import { VideoStage } from './VideoStage';
 import { AudioStage } from './AudioStage';
-import { OcrPanel } from './OcrPanel';
 import styles from './MediaViewer.module.css';
 
 export function MediaViewer() {
   const state = useStore(s => s.mediaViewer);
   const closeMediaViewer = useStore(s => s.closeMediaViewer);
   const setMediaViewerCurrent = useStore(s => s.setMediaViewerCurrent);
+  const connection = useStore(s => resolveServerConnection(s));
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [chromeVisible, setChromeVisible] = useState(true);
   const idleTimerRef = useRef<number | null>(null);
   const [viewport, setViewport] = useState({ width: 800, height: 600 });
   const [zoomCmd, setZoomCmd] = useState({ in: 0, out: 0, reset: 0 });
+  const [zoomPercent, setZoomPercent] = useState(100);
+  const [mediaError, setMediaError] = useState<string | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
   const isOpen = !!state;
+
+  useEffect(() => {
+    setMediaError(null);
+    setRetryToken(0);
+    setZoomPercent(100);
+  }, [state?.currentId]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -111,6 +121,7 @@ export function MediaViewer() {
 
   const current = state.files[currentIndex];
   if (!current || !isMediaKind(current.kind)) return null;
+  const currentNativePath = resolveFileRefNativePath(current, connection);
 
   const prev = canPrev ? state.files[currentIndex - 1] : undefined;
   const next = canNext ? state.files[currentIndex + 1] : undefined;
@@ -118,12 +129,12 @@ export function MediaViewer() {
 
   const handleSave = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    if (!current.path) return;
+    if (!currentNativePath) return;
     if (window.platform?.saveFileAs) {
-      window.platform.saveFileAs(current.path, current.name);
+      window.platform.saveFileAs(currentNativePath, current.name);
       return;
     }
-    window.platform?.showInFinder?.(current.path);
+    void window.platform?.showInFinder?.(currentNativePath);
   };
 
   const onOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -146,10 +157,10 @@ export function MediaViewer() {
             {currentIndex + 1} / {state.files.length}
           </span>
         )}
-        {current.path && (
+        {currentNativePath && (
           <button
             type="button"
-            className={styles.topbarBtn}
+            className={styles.primaryAction}
             data-testid="media-viewer-save"
             aria-label="Save"
             onClick={handleSave}
@@ -157,12 +168,9 @@ export function MediaViewer() {
             保存
           </button>
         )}
-        {current.kind === 'image' && (
-          <OcrPanel file={current} />
-        )}
         <button
           type="button"
-          className={styles.closeBtn}
+          className={`${styles.primaryAction} ${styles.closeBtn}`}
           data-testid="media-viewer-close"
           aria-label="Close"
           onClick={(e) => {
@@ -209,6 +217,7 @@ export function MediaViewer() {
         <div className={`${styles.zoomToolbar} ${chromeVisible ? '' : styles.hidden}`} aria-label="Image zoom tools">
           <button
             type="button"
+            className={styles.primaryAction}
             aria-label="Zoom out"
             onClick={(e) => {
               e.stopPropagation();
@@ -219,16 +228,18 @@ export function MediaViewer() {
           </button>
           <button
             type="button"
+            className={styles.primaryAction}
             aria-label="Reset zoom"
             onClick={(e) => {
               e.stopPropagation();
               setZoomCmd(c => ({ ...c, reset: c.reset + 1 }));
             }}
           >
-            100%
+            {zoomPercent}%
           </button>
           <button
             type="button"
+            className={styles.primaryAction}
             aria-label="Zoom in"
             onClick={(e) => {
               e.stopPropagation();
@@ -251,13 +262,31 @@ export function MediaViewer() {
           <AudioStage file={current} key={current.id} />
         ) : current.kind === 'video' ? (
           <VideoStage file={current} viewport={viewport} />
+        ) : mediaError ? (
+          <div className={styles.mediaError} role="status" data-testid="media-viewer-error">
+            <strong>图片暂时无法显示</strong>
+            <span>{mediaError}</span>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setMediaError(null);
+                setRetryToken(token => token + 1);
+              }}
+            >
+              重试
+            </button>
+          </div>
         ) : (
           <ImageStage
             file={current}
             viewport={viewport}
             neighbors={{ prev, next }}
             zoomCmd={zoomCmd}
-            key={`${current.id}:${fileRefVersionToken(current) || ''}`}
+            onZoomChange={setZoomPercent}
+            onReady={() => setMediaError(null)}
+            onError={(error) => setMediaError(error instanceof Error ? error.message : String(error))}
+            key={`${current.id}:${fileRefVersionToken(current) || ''}:${retryToken}`}
           />
         )}
       </div>

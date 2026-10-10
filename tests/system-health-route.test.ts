@@ -14,7 +14,7 @@ function createApp(engine, options) {
 
 describe("system health route", () => {
   it("does not report a removed VS Code coding runtime in startup health", () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-health-vscode-"));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "codia-health-vscode-"));
     const snapshot = createStartupHealthSnapshot({
       projectRoot: tmp,
       artifactsDir: path.join(tmp, "artifacts"),
@@ -26,7 +26,7 @@ describe("system health route", () => {
   });
 
   it("returns local health, plugin, task, schedule and deferred summaries", async () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-health-"));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "codia-health-"));
     try {
       const localHealthPath = path.join(tmp, "local-health.json");
       fs.writeFileSync(localHealthPath, JSON.stringify({
@@ -151,7 +151,7 @@ describe("system health route", () => {
   });
 
   it("returns an operations overview with health, provider, workflow, and release modules", async () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-ops-overview-"));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "codia-ops-overview-"));
     try {
       const localHealthPath = path.join(tmp, "local-health.json");
       fs.writeFileSync(localHealthPath, JSON.stringify({
@@ -191,7 +191,7 @@ describe("system health route", () => {
             ? [{ id: "img", provider: "openai", type: "image" }]
             : [],
           getAll: () => new Map([
-            ["openai", { id: "openai", displayName: "OpenAI", api: "openai", api_key: "gsap-runtime-api-key:openai", models: [{ id: "chat" }] }],
+            ["openai", { id: "openai", displayName: "OpenAI", api: "openai", api_key: "codia-runtime-api-key:openai", models: [{ id: "chat" }] }],
             ["empty", { id: "empty", displayName: "Empty", api: "openai-compatible", api_key: "", models: [] }],
           ]),
         },
@@ -250,7 +250,7 @@ describe("system health route", () => {
   });
 
   it("returns warning-shaped defaults when local health and registries are unavailable", async () => {
-    const missingRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-health-missing-"));
+    const missingRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-health-missing-"));
     fs.rmSync(missingRoot, { recursive: true, force: true });
     const app = createApp({}, {
       localHealthPath: path.join(missingRoot, "local-health.json"),

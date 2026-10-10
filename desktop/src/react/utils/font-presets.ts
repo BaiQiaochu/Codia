@@ -1,6 +1,6 @@
 export const DEFAULT_READING_FONT_PRESET_ID = 'serif' as const;
 export const FOLLOW_READING_FONT_ID = 'follow' as const;
-export const SCREENSHOT_FONT_STORAGE_KEY = 'gsap-screenshot-font' as const;
+export const SCREENSHOT_FONT_STORAGE_KEY = 'codia-screenshot-font' as const;
 
 export type FontPresetId = 'serif' | 'sans';
 export type FontSelectionId = FontPresetId | typeof FOLLOW_READING_FONT_ID;

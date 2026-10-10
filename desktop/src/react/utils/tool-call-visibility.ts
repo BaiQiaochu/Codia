@@ -3,7 +3,7 @@ import type { ToolCall } from '../stores/chat-types';
 type ToolCallVisibilityInput = Pick<ToolCall, 'name' | 'args'>;
 
 const CARD_BACKED_TOOL_NAMES = new Set([
-  'hana_card_guide',
+  'codia_card_guide',
   'show_card',
   'media_generate-image',
   'media_generate-video',

@@ -19,6 +19,8 @@ vi.mock("node:child_process", () => ({
 
 vi.mock("@earendil-works/pi-coding-agent", () => ({
   createAgentSession: vi.fn(),
+  createCodemodeExtension: vi.fn(),
+  createToolSearchExtension: vi.fn(),
   ModelRegistry: class {},
   ModelRuntime: class {},
   resizeImage: vi.fn(),
@@ -105,7 +107,7 @@ function createChildProcess({ stdout = "", stderr = "", code = 0 }: any = {}) {
   return child;
 }
 
-describe("G-SAP Pi SDK search tools", () => {
+describe("Codia Pi SDK search tools", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     spawnSync.mockReturnValue({ status: 0, stdout: "tool version\n", stderr: "" });

@@ -13,7 +13,7 @@ describe("ResourceService", () => {
   });
 
   function makeTmpDir() {
-    if (!tmpDir) tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-resource-service-"));
+    if (!tmpDir) tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-service-"));
     return tmpDir;
   }
 
@@ -25,7 +25,7 @@ describe("ResourceService", () => {
   } = {}) {
     const root = makeTmpDir();
     const agentsDir = path.join(root, "agents");
-    const sessionPath = path.join(agentsDir, "hana", "sessions", "legacy.jsonl");
+    const sessionPath = path.join(agentsDir, "codia", "sessions", "legacy.jsonl");
     const filePath = path.join(root, "legacy", "note.txt");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.mkdirSync(path.dirname(filePath), { recursive: true });

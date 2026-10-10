@@ -104,7 +104,7 @@ function hashStringBase36(value: string): string {
 }
 
 function footnoteIdPrefixForSource(src: string): string {
-  return `gsap-fn-${hashStringBase36(src)}`;
+  return `codia-fn-${hashStringBase36(src)}`;
 }
 
 function normalizeFootnoteLabel(label: string): string {
@@ -741,7 +741,7 @@ function collectFootnoteDefinitionContent(
 }
 
 function footnoteDefinitions(md: MarkdownItInstance): void {
-  md.block.ruler.before('reference', 'gsap_footnote_definitions', (
+  md.block.ruler.before('reference', 'codia_footnote_definitions', (
     state: StateBlock,
     startLine: number,
     _endLine: number,
@@ -808,7 +808,7 @@ function recordFootnoteReference(footnotes: FootnoteState, label: string): {
 }
 
 function footnoteReferences(md: MarkdownItInstance): void {
-  md.inline.ruler.before('link', 'gsap_footnote_refs', (state: StateInline, silent: boolean) => {
+  md.inline.ruler.before('link', 'codia_footnote_refs', (state: StateInline, silent: boolean) => {
     const start = state.pos;
     if (state.src.slice(start, start + 2) !== '[^') return false;
 
@@ -856,7 +856,7 @@ function appendFootnoteBackrefs(state: StateCore, inlineToken: Token, refIds: st
 }
 
 function appendFootnoteList(md: MarkdownItInstance): void {
-  md.core.ruler.after('inline', 'gsap_footnote_tail', (state: StateCore) => {
+  md.core.ruler.after('inline', 'codia_footnote_tail', (state: StateCore) => {
     const markdownEnv = state.env as MarkdownRenderEnv;
     const footnotes = markdownEnv.footnotes;
     if (!footnotes || footnotes.references.length === 0) return;
@@ -1018,7 +1018,7 @@ function applyMarkdownPlugins(md: MarkdownItInstance): void {
 }
 
 function markdownHeadingAnchors(md: MarkdownItInstance): void {
-  md.core.ruler.push('hana_heading_anchors', (state: StateCore) => {
+  md.core.ruler.push('codia_heading_anchors', (state: StateCore) => {
     const seen = new Map<string, number>();
     for (let i = 0; i < state.tokens.length; i += 1) {
       const token = state.tokens[i];

@@ -128,7 +128,7 @@ export class MediaDeliveryService {
 
   _refreshPublisherBaseUrl() {
 	    if (!this.mediaPublisher?.setBaseUrl) return;
-	    const baseUrl = this.engine?.getBridgeMediaPublicBaseUrl?.() || process.env.GSAP_BRIDGE_PUBLIC_BASE_URL || "";
+	    const baseUrl = this.engine?.getBridgeMediaPublicBaseUrl?.() || process.env.CODIA_BRIDGE_PUBLIC_BASE_URL || "";
 	    this.mediaPublisher.setBaseUrl(baseUrl);
   }
 
@@ -245,7 +245,7 @@ function kindFromExt(ext) {
 
 function publicUrlRequiredMessage(platform, detail = null) {
   const suffix = detail ? ` (${detail.message || detail})` : "";
-  return `${platform || "platform"} adapter cannot consume this local staged file directly; it requires public_url fallback. Configure bridge_media_public_base_url or GSAP_BRIDGE_PUBLIC_BASE_URL to enable it.${suffix}`;
+  return `${platform || "platform"} adapter cannot consume this local staged file directly; it requires public_url fallback. Configure bridge_media_public_base_url or CODIA_BRIDGE_PUBLIC_BASE_URL to enable it.${suffix}`;
 }
 
 function logDelivery({ platform, mode, kind, file, metadata, filename, size } = {}) {

@@ -20,22 +20,20 @@ export class PluginSurfaceSessionError extends Error {
 }
 
 export function issuePluginSurfaceSession({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   pluginId,
   principalId,
   now = new Date().toISOString(),
   ttlMs = DEFAULT_PLUGIN_SURFACE_SESSION_TTL_MS,
 }: {
-  gsapHome?: string;
-  hanakoHome?: string;
+  codiaHome?: string;
   pluginId?: string;
   principalId?: string;
   now?: string;
   ttlMs?: number;
 } = {}) {
-  const home = gsapHome || hanakoHome;
-  assertNonEmpty(home, "gsapHome");
+  const home = codiaHome || codiaHome;
+  assertNonEmpty(home, "codiaHome");
   assertNonEmpty(pluginId, "pluginId");
   assertNonEmpty(principalId, "principalId");
   const issuedAtMs = Date.parse(now);
@@ -62,20 +60,18 @@ export function issuePluginSurfaceSession({
 }
 
 export function verifyPluginSurfaceSession({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   pluginId,
   token,
   now = new Date().toISOString(),
 }: {
-  gsapHome?: string;
-  hanakoHome?: string;
+  codiaHome?: string;
   pluginId?: string;
   token?: string;
   now?: string;
 } = {}) {
-  const home = gsapHome || hanakoHome;
-  assertNonEmpty(home, "gsapHome");
+  const home = codiaHome || codiaHome;
+  assertNonEmpty(home, "codiaHome");
   assertNonEmpty(pluginId, "pluginId");
   if (typeof token !== "string" || !token.trim()) {
     throw new PluginSurfaceSessionError("plugin surface session required", {
@@ -124,20 +120,20 @@ export function verifyPluginSurfaceSession({
   });
 }
 
-function pluginSurfaceSessionKeyPath(gsapHome: string) {
-  assertNonEmpty(gsapHome, "gsapHome");
-  return path.join(gsapHome, "security", PLUGIN_SURFACE_SESSION_KEY_FILE);
+function pluginSurfaceSessionKeyPath(codiaHome: string) {
+  assertNonEmpty(codiaHome, "codiaHome");
+  return path.join(codiaHome, "security", PLUGIN_SURFACE_SESSION_KEY_FILE);
 }
 
-function signBody(gsapHome: string, body: string) {
+function signBody(codiaHome: string, body: string) {
   return crypto
-    .createHmac("sha256", readOrCreateSessionKey(gsapHome))
+    .createHmac("sha256", readOrCreateSessionKey(codiaHome))
     .update(body)
     .digest("base64url");
 }
 
-function readOrCreateSessionKey(gsapHome: string) {
-  const filePath = pluginSurfaceSessionKeyPath(gsapHome);
+function readOrCreateSessionKey(codiaHome: string) {
+  const filePath = pluginSurfaceSessionKeyPath(codiaHome);
   try {
     const existing = fs.readFileSync(filePath, "utf-8").trim();
     if (existing) return existing;

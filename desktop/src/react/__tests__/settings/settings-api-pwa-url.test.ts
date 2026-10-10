@@ -11,9 +11,9 @@ vi.mock('../../settings/store', () => ({
   },
 }));
 
-import { gsapUrl } from '../../settings/api';
+import { codiaUrl } from '../../settings/api';
 
-describe('settings gsapUrl', () => {
+describe('settings codiaUrl', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
@@ -26,18 +26,18 @@ describe('settings gsapUrl', () => {
   it('only appends the stored PWA token when query auth is explicitly requested', () => {
     settingsState.serverToken = null as unknown as string;
     vi.stubGlobal('window', {
-      __GSAP_PWA__: {
-        serverUrl: (path: string) => `/__gsap_backend__${path}`,
+      __CODIA_PWA__: {
+        serverUrl: (path: string) => `/__codia_backend__${path}`,
       },
       localStorage: {
-        getItem: (key: string) => (key === 'gsap-token' ? 'pwa.settings-avatar-token' : null),
+        getItem: (key: string) => (key === 'codia-token' ? 'pwa.settings-avatar-token' : null),
       },
     });
 
-    const url = gsapUrl('/api/agents/gsap/avatar?t=1');
-    expect(url).toBe('/__gsap_backend__/api/agents/gsap/avatar?t=1');
+    const url = codiaUrl('/api/agents/codia/avatar?t=1');
+    expect(url).toBe('/__codia_backend__/api/agents/codia/avatar?t=1');
 
-    const authenticatedUrl = gsapUrl('/api/agents/gsap/avatar?t=1', { includeTokenQuery: true });
-    expect(authenticatedUrl).toBe('/__gsap_backend__/api/agents/gsap/avatar?t=1&token=pwa.settings-avatar-token');
+    const authenticatedUrl = codiaUrl('/api/agents/codia/avatar?t=1', { includeTokenQuery: true });
+    expect(authenticatedUrl).toBe('/__codia_backend__/api/agents/codia/avatar?t=1&token=pwa.settings-avatar-token');
   });
 });

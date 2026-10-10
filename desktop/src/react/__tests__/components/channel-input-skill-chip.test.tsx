@@ -67,8 +67,8 @@ vi.mock('../../hooks/use-config', () => ({
   fetchConfig: vi.fn(),
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: vi.fn(),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: vi.fn(),
 }));
 
 vi.mock('../../components/chat/ChatTranscript', () => ({

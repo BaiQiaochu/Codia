@@ -53,8 +53,8 @@ export function createAccessRoute({
   listLanAddresses?: () => any[];
   now?: () => string;
 } = {}) {
-  const gsapHome = engine?.gsapHome;
-  if (!gsapHome) throw new Error("engine.gsapHome required");
+  const codiaHome = engine?.codiaHome;
+  if (!codiaHome) throw new Error("engine.codiaHome required");
   const route = new Hono();
 
   route.get("/access/summary", (c) => {
@@ -87,11 +87,11 @@ export function createAccessRoute({
     if (denied) return denied;
     try {
       const body = await safeJson(c);
-      const existing = loadServerNetworkConfig(gsapHome);
+      const existing = loadServerNetworkConfig(codiaHome);
       const mode = normalizeNetworkMode(body?.mode);
       const listenPort = normalizePort(body?.listenPort ?? body?.configuredPort ?? existing.listenPort);
       const listenHost = mode === "lan" ? "0.0.0.0" : "127.0.0.1";
-      const network = saveServerNetworkConfig(gsapHome, {
+      const network = saveServerNetworkConfig(codiaHome, {
         ...existing,
         mode,
         listenHost,
@@ -124,7 +124,7 @@ export function createAccessRoute({
     try {
       const body = await safeJson(c);
       const runtimeContext = resolveRuntimeContext(c, engine);
-      const issued = createDeviceCredential(gsapHome, {
+      const issued = createDeviceCredential(codiaHome, {
         serverNodeId: runtimeContext.serverNodeId,
         userId: runtimeContext.userId,
         studioIds: [runtimeContext.studioId],
@@ -155,7 +155,7 @@ export function createAccessRoute({
     if (denied) return denied;
     try {
       const body = await safeJson(c);
-      const account = updateLocalAccountProfile(gsapHome, {
+      const account = updateLocalAccountProfile(codiaHome, {
         username: body?.username,
         displayName: body?.displayName,
         now: now(),
@@ -171,7 +171,7 @@ export function createAccessRoute({
     if (denied) return denied;
     try {
       const body = await safeJson(c);
-      const account = setLocalAccountPassword(gsapHome, {
+      const account = setLocalAccountPassword(codiaHome, {
         password: body?.password,
         now: now(),
       });
@@ -185,7 +185,7 @@ export function createAccessRoute({
     const denied = requireLocalOwner(c);
     if (denied) return denied;
     try {
-      const account = clearLocalAccountPassword(gsapHome, { now: now() });
+      const account = clearLocalAccountPassword(codiaHome, { now: now() });
       return c.json({ ok: true, account });
     } catch (err) {
       return c.json({ error: err.message }, 400);
@@ -196,11 +196,11 @@ export function createAccessRoute({
 }
 
 export function createAccessSummary(engine, runtimeState, listLanAddresses) {
-  const network = loadServerNetworkConfig(engine.gsapHome);
-  const registries = loadDeviceAccessRegistries(engine.gsapHome);
+  const network = loadServerNetworkConfig(engine.codiaHome);
+  const registries = loadDeviceAccessRegistries(engine.codiaHome);
   return {
     network: createNetworkSummary(network, runtimeState, listLanAddresses),
-    account: getLocalAccountSummary(engine.gsapHome),
+    account: getLocalAccountSummary(engine.codiaHome),
     devices: registries.devices.devices.map(sanitizeDevice),
     credentials: registries.credentials.credentials.map(sanitizeCredential),
   };

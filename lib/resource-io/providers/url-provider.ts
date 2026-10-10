@@ -38,7 +38,7 @@ export class UrlProvider {
   constructor({
     fetch: fetchImpl = globalThis.fetch,
     resolveHostname = defaultResolveHostname,
-    materializeRoot = path.join(os.tmpdir(), "gsap-resource-io-url"),
+    materializeRoot = path.join(os.tmpdir(), "codia-resource-io-url"),
     timeoutMs = 10_000,
     maxBytes = 10 * 1024 * 1024,
     maxRedirects = 3,

@@ -19,7 +19,7 @@ function readJson(filePath: string) {
 
 describe("LocalProviderPluginStore", () => {
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-local-provider-plugin-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-local-provider-plugin-"));
   });
 
   afterEach(() => {

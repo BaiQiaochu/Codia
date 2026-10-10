@@ -24,7 +24,7 @@ export default function (app, ctx) {
     const token = c.req.query("token") || "";
     const mediaBase = `/api/plugins/${ctx.pluginId}`;
     const tokenParam = token ? `?token=${encodeURIComponent(token)}` : "";
-    const gsapCss = c.req.query("gsap-css") || "";
+    const codiaCss = c.req.query("codia-css") || "";
     const hasPending = tasks.some((t) => t.status === "pending");
     const ratio = tasks[0]?.params?.ratio || "16:9";
     const [rw, rh] = ratio.split(":").map(Number);
@@ -38,7 +38,7 @@ export default function (app, ctx) {
 
     return c.html(`<!DOCTYPE html>
 <html><head><meta charset="utf-8">
-${gsapCss ? `<link rel="stylesheet" href="${escAttr(gsapCss)}">` : ""}
+${codiaCss ? `<link rel="stylesheet" href="${escAttr(codiaCss)}">` : ""}
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;max-width:100%;overflow:auto}

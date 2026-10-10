@@ -1,5 +1,5 @@
 // @ts-nocheck
-const DEFAULT_APP_NAME = "BYOUNG";
+const DEFAULT_APP_NAME = "CODIA";
 const DEFAULT_MAX_DIAGNOSTICS = 100;
 const DEFAULT_MAX_RECORDS = 200;
 

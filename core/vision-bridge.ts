@@ -160,7 +160,7 @@ function primitiveBoxOrderLabel(visionCapabilities) {
 }
 
 function primitivePromptShape(visionCapabilities) {
-  const format = visionCapabilities?.outputFormat || "gsap";
+  const format = visionCapabilities?.outputFormat || "codia";
   if (format === "gemini") {
     return [
       '  "visual_primitives": [',

@@ -13,7 +13,7 @@ const {
 const tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-fix-modules-server-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-fix-modules-server-"));
   tempDirs.push(dir);
   return dir;
 }

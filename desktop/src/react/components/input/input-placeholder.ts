@@ -32,7 +32,7 @@ export function resolveInputPlaceholder({
   t?: Translator | null;
 }): string {
   const translate = typeof t === 'function' ? t : ((key: string) => key);
-  const yuanKey = `yuan.placeholder.${agentYuan || 'gsap'}`;
+  const yuanKey = `yuan.placeholder.${agentYuan || 'codia'}`;
   const yuanPlaceholder = translated(translate(yuanKey), yuanKey);
   if (yuanPlaceholder) return yuanPlaceholder;
 

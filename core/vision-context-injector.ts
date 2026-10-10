@@ -26,7 +26,7 @@ function errorMessage(err) {
 function buildFailureDiagnostic({ path, sessionPath, targetModel, err }) {
   return {
     code: VISION_CONTEXT_INJECTION_FAILED,
-    path: path || "gsap-vision-context-injection",
+    path: path || "codia-vision-context-injection",
     stage: "context",
     sessionPath: sessionPath || null,
     targetModel: compactModel(targetModel),
@@ -116,7 +116,7 @@ export async function runVisionContextInjection({
 }
 
 export function createVisionContextInjectionExtension({
-  path = "gsap-vision-context-injection",
+  path = "codia-vision-context-injection",
   sessionPathRef,
   targetModelRef,
   getVisionBridge,

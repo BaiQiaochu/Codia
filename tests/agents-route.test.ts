@@ -33,7 +33,7 @@ vi.mock("../lib/tools/experience.js", () => ({
 }));
 
 describe("agents route", () => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-agents-route-"));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-agents-route-"));
 
   afterEach(() => {
     fs.rmSync(tempRoot, { recursive: true, force: true });
@@ -41,7 +41,7 @@ describe("agents route", () => {
   });
 
   it("editing another agent config can clear saved provider credentials", async () => {
-    const agentId = "hana";
+    const agentId = "codia";
     const agentDir = path.join(tempRoot, agentId);
     fs.mkdirSync(agentDir, { recursive: true });
     fs.writeFileSync(path.join(agentDir, "config.yaml"), "api:\n  provider: openai\n", "utf-8");
@@ -92,7 +92,7 @@ describe("agents route", () => {
       createAgent: vi.fn(async (opts) => ({
         id: opts.id || "worker-a",
         name: opts.name,
-        yuan: opts.yuan || "gsap",
+        yuan: opts.yuan || "codia",
       })),
       emitEvent: vi.fn(),
       listAgents: vi.fn(() => []),
@@ -123,7 +123,7 @@ describe("agents route", () => {
   it("includes workspace and memory context when switching agents", async () => {
     const { createAgentsRoute } = await import("../server/routes/agents.js");
     const app = new Hono();
-    const sessionPath = path.join(tempRoot, "gsap", "sessions", "main.jsonl");
+    const sessionPath = path.join(tempRoot, "codia", "sessions", "main.jsonl");
     const engine = {
       agentsDir: tempRoot,
       config: { cwd_history: ["/old"] },
@@ -132,10 +132,10 @@ describe("agents route", () => {
       switchAgent: vi.fn(async () => ({
         cwd: "/workspace",
         sessionPath,
-        homeFolder: "/home/gsap",
+        homeFolder: "/home/codia",
       })),
-      getAgent: vi.fn(() => ({ agentName: "G-SAP", memoryMasterEnabled: false })),
-      getExplicitHomeCwd: vi.fn(() => "/home/gsap"),
+      getAgent: vi.fn(() => ({ agentName: "Codia", memoryMasterEnabled: false })),
+      getExplicitHomeCwd: vi.fn(() => "/home/codia"),
       getSessionWorkspaceFolders: vi.fn(() => ["/workspace", "/workspace/lib"]),
       updateConfig: vi.fn(async () => {}),
       emitEvent: vi.fn(),
@@ -146,7 +146,7 @@ describe("agents route", () => {
     const res = await app.request("/api/agents/switch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: "gsap" }),
+      body: JSON.stringify({ id: "codia" }),
     });
     const data = await res.json();
 
@@ -154,7 +154,7 @@ describe("agents route", () => {
     expect(data).toMatchObject({
       sessionPath,
       cwd: "/workspace",
-      homeFolder: "/home/gsap",
+      homeFolder: "/home/codia",
       workspaceFolders: ["/workspace", "/workspace/lib"],
       cwdHistory: ["/workspace", "/old"],
       memoryMasterEnabled: false,
@@ -165,7 +165,7 @@ describe("agents route", () => {
         event: {
           type: "agent-switched",
           payload: expect.objectContaining({
-            agentId: "gsap",
+            agentId: "codia",
             sessionPath,
             memoryMasterEnabled: false,
           }),
@@ -177,10 +177,10 @@ describe("agents route", () => {
   });
 
   it("emits memory-master-changed when agent memory is toggled", async () => {
-    const agentId = "gsap";
+    const agentId = "codia";
     const agentDir = path.join(tempRoot, agentId);
     fs.mkdirSync(agentDir, { recursive: true });
-    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: G-SAP\n", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: Codia\n", "utf-8");
 
     const { createAgentsRoute } = await import("../server/routes/agents.js");
     const app = new Hono();
@@ -225,7 +225,7 @@ describe("agents route", () => {
   });
 
   it("applies provider models before the first-run chat model in one config update", async () => {
-    const agentId = "gsap";
+    const agentId = "codia";
     const agentDir = path.join(tempRoot, agentId);
     fs.mkdirSync(agentDir, { recursive: true });
     fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: Assistant\n", "utf-8");
@@ -283,7 +283,7 @@ describe("agents route", () => {
   });
 
   it("returns Yuan templates when identity and ishiki files are missing", async () => {
-    const agentId = "hana";
+    const agentId = "codia";
     const agentDir = path.join(tempRoot, agentId);
     const productDir = path.join(tempRoot, "product");
     fs.mkdirSync(path.join(productDir, "identity-templates"), { recursive: true });
@@ -315,7 +315,7 @@ describe("agents route", () => {
     expect(identityRes.status).toBe(200);
     expect(await identityRes.json()).toEqual({ content: "# Test Agent\nGhost identity" });
     expect(ishikiRes.status).toBe(200);
-    expect(await ishikiRes.json()).toEqual({ content: "hana ishiki for Test Agent" });
+    expect(await ishikiRes.json()).toEqual({ content: "codia ishiki for Test Agent" });
   });
 
   it("returns Yuan templates when identity and ishiki files are empty", async () => {
@@ -357,7 +357,7 @@ describe("agents route", () => {
   });
 
   it("returns bundled kong identity and ishiki templates", async () => {
-    const agentId = "gsap";
+    const agentId = "codia";
     const agentDir = path.join(tempRoot, agentId);
     const productDir = path.join(process.cwd(), "lib");
     fs.mkdirSync(agentDir, { recursive: true });
@@ -447,17 +447,17 @@ describe("agents route", () => {
     fs.mkdirSync(brokenDir, { recursive: true });
     fs.writeFileSync(
       path.join(brokenDir, "config.yaml"),
-      YAML.dump({ locale: "zh-CN", agent: { name: "G-SAP", yuan: "kong" }, user: { name: "Ghost" } }),
+      YAML.dump({ locale: "zh-CN", agent: { name: "Codia", yuan: "kong" }, user: { name: "Ghost" } }),
       "utf-8",
     );
-    fs.writeFileSync(path.join(brokenDir, "identity.md"), "# G-SAP\n\n的个人助手。\n", "utf-8");
+    fs.writeFileSync(path.join(brokenDir, "identity.md"), "# Codia\n\n的个人助手。\n", "utf-8");
 
     const customId = "custom-identity";
     const customDir = path.join(tempRoot, customId);
     fs.mkdirSync(customDir, { recursive: true });
     fs.writeFileSync(
       path.join(customDir, "config.yaml"),
-      YAML.dump({ locale: "zh-CN", agent: { name: "G-SAP", yuan: "kong" }, user: { name: "Ghost" } }),
+      YAML.dump({ locale: "zh-CN", agent: { name: "Codia", yuan: "kong" }, user: { name: "Ghost" } }),
       "utf-8",
     );
     fs.writeFileSync(path.join(customDir, "identity.md"), "# Custom\n\n保留我的自定义身份。\n", "utf-8");
@@ -477,12 +477,12 @@ describe("agents route", () => {
     const brokenRes = await app.request(`/api/agents/${brokenId}/identity`);
     const customRes = await app.request(`/api/agents/${customId}/identity`);
 
-    expect((await brokenRes.json()).content).toContain("# G-SAP");
+    expect((await brokenRes.json()).content).toContain("# Codia");
     expect((await customRes.json()).content).toContain("# Custom");
   });
 
   it("refreshes default identity and ishiki when switching Yuan", async () => {
-    const agentId = "gsap";
+    const agentId = "codia";
     const agentDir = path.join(tempRoot, agentId);
     const productDir = path.join(tempRoot, "product-yuan-switch");
     fs.mkdirSync(path.join(productDir, "identity-templates"), { recursive: true });
@@ -491,7 +491,7 @@ describe("agents route", () => {
     fs.mkdirSync(agentDir, { recursive: true });
     fs.writeFileSync(
       path.join(agentDir, "config.yaml"),
-      YAML.dump({ locale: "zh-CN", agent: { name: "G-SAP", yuan: "butter" }, user: { name: "KSKOOO" } }),
+      YAML.dump({ locale: "zh-CN", agent: { name: "Codia", yuan: "butter" }, user: { name: "KSKOOO" } }),
       "utf-8",
     );
     fs.writeFileSync(path.join(productDir, "identity-templates", "butter.md"), "# {{agentName}}\n{{userName}} butter identity", "utf-8");
@@ -500,8 +500,8 @@ describe("agents route", () => {
     fs.writeFileSync(path.join(productDir, "ishiki-templates", "kong.md"), "{{agentName}} kong ishiki", "utf-8");
     fs.writeFileSync(path.join(productDir, "yuan", "butter.md"), "butter yuan", "utf-8");
     fs.writeFileSync(path.join(productDir, "yuan", "kong.md"), "kong yuan", "utf-8");
-    fs.writeFileSync(path.join(agentDir, "identity.md"), "# G-SAP\nKSKOOO butter identity", "utf-8");
-    fs.writeFileSync(path.join(agentDir, "ishiki.md"), "G-SAP butter ishiki", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "identity.md"), "# Codia\nKSKOOO butter identity", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "ishiki.md"), "Codia butter ishiki", "utf-8");
 
     const { createAgentsRoute } = await import("../server/routes/agents.js");
     const app = new Hono();
@@ -525,25 +525,25 @@ describe("agents route", () => {
     });
 
     expect(res.status).toBe(200);
-    expect(fs.readFileSync(path.join(agentDir, "identity.md"), "utf-8")).toBe("# G-SAP\nKSKOOO kong identity");
-    expect(fs.readFileSync(path.join(agentDir, "ishiki.md"), "utf-8")).toBe("G-SAP kong ishiki");
+    expect(fs.readFileSync(path.join(agentDir, "identity.md"), "utf-8")).toBe("# Codia\nKSKOOO kong identity");
+    expect(fs.readFileSync(path.join(agentDir, "ishiki.md"), "utf-8")).toBe("Codia kong ishiki");
 
     const identityRes = await app.request(`/api/agents/${agentId}/identity`);
     const ishikiRes = await app.request(`/api/agents/${agentId}/ishiki`);
-    expect(await identityRes.json()).toEqual({ content: "# G-SAP\nKSKOOO kong identity" });
-    expect(await ishikiRes.json()).toEqual({ content: "G-SAP kong ishiki" });
+    expect(await identityRes.json()).toEqual({ content: "# Codia\nKSKOOO kong identity" });
+    expect(await ishikiRes.json()).toEqual({ content: "Codia kong ishiki" });
   });
 
   it("rejects config writes that point to a missing Yuan template", async () => {
-    const agentId = "gsap-invalid-yuan";
+    const agentId = "codia-invalid-yuan";
     const agentDir = path.join(tempRoot, agentId);
     const productDir = path.join(tempRoot, "product-yuan-invalid");
     fs.mkdirSync(path.join(productDir, "yuan"), { recursive: true });
     fs.mkdirSync(agentDir, { recursive: true });
-    fs.writeFileSync(path.join(productDir, "yuan", "gsap.md"), "valid yuan", "utf-8");
+    fs.writeFileSync(path.join(productDir, "yuan", "codia.md"), "valid yuan", "utf-8");
     fs.writeFileSync(
       path.join(agentDir, "config.yaml"),
-      YAML.dump({ locale: "zh-CN", agent: { name: "G-SAP", yuan: "gsap" }, user: { name: "KSKOOO" } }),
+      YAML.dump({ locale: "zh-CN", agent: { name: "Codia", yuan: "codia" }, user: { name: "KSKOOO" } }),
       "utf-8",
     );
 
@@ -574,11 +574,11 @@ describe("agents route", () => {
     });
     expect(engine.updateConfig).not.toHaveBeenCalled();
     const saved = YAML.load(fs.readFileSync(path.join(agentDir, "config.yaml"), "utf-8"));
-    expect(saved.agent.yuan).toBe("gsap");
+    expect(saved.agent.yuan).toBe("codia");
   });
 
   it("keeps handwritten identity and ishiki when switching Yuan", async () => {
-    const agentId = "custom-gsap";
+    const agentId = "custom-codia";
     const agentDir = path.join(tempRoot, agentId);
     const productDir = path.join(tempRoot, "product-yuan-custom");
     fs.mkdirSync(path.join(productDir, "identity-templates"), { recursive: true });
@@ -587,7 +587,7 @@ describe("agents route", () => {
     fs.mkdirSync(agentDir, { recursive: true });
     fs.writeFileSync(
       path.join(agentDir, "config.yaml"),
-      YAML.dump({ locale: "zh-CN", agent: { name: "G-SAP", yuan: "butter" }, user: { name: "KSKOOO" } }),
+      YAML.dump({ locale: "zh-CN", agent: { name: "Codia", yuan: "butter" }, user: { name: "KSKOOO" } }),
       "utf-8",
     );
     fs.writeFileSync(path.join(productDir, "identity-templates", "kong.md"), "{{userName}} kong identity", "utf-8");

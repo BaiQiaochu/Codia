@@ -9,8 +9,8 @@ import { useStore } from '../../stores';
 
 const fetchMock = vi.fn();
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => fetchMock(...args),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => fetchMock(...args),
 }));
 
 function jsonResponse(body: unknown): Response {

@@ -25,7 +25,7 @@ function readJson(filePath: string): AnyRecord {
 
 function writeProvidersYaml(filePath: string, raw: AnyRecord, providers: AnyRecord) {
   const header =
-    "# G-SAP provider configuration (global, shared across agents)\n" +
+    "# Codia provider configuration (global, shared across agents)\n" +
     "# Managed by Settings.\n\n";
   const tmpPath = `${filePath}.tmp`;
   fs.writeFileSync(
@@ -130,24 +130,24 @@ function filterInvalidProviderModels(providerId: string, models: string[], baseU
 }
 
 export function migrateLegacyApiKeyAuthToProviders({
-  gsapHome,
+  codiaHome,
   providerRegistry,
   log = () => {},
 }: {
-  gsapHome?: string;
+  codiaHome?: string;
   providerRegistry?: AnyRecord;
   log?: (message: string) => void;
 }) {
-  if (!gsapHome) return { migrated: 0, providers: [] };
+  if (!codiaHome) return { migrated: 0, providers: [] };
 
-  const authPath = path.join(gsapHome, "auth.json");
-  const providersPath = path.join(gsapHome, "added-models.yaml");
+  const authPath = path.join(codiaHome, "auth.json");
+  const providersPath = path.join(codiaHome, "added-models.yaml");
   const auth = readJson(authPath);
 
   providerRegistry?.reload?.();
   const raw = safeReadYAMLSync(providersPath, {}, YAML) || {};
   const providers: AnyRecord = isPlainObject(raw.providers) ? { ...raw.providers } : {};
-  const modelsJsonProvidersRaw = readJson(path.join(gsapHome, "models.json")).providers || {};
+  const modelsJsonProvidersRaw = readJson(path.join(codiaHome, "models.json")).providers || {};
   const modelsJsonProviders = isPlainObject(modelsJsonProvidersRaw) ? modelsJsonProvidersRaw : {};
   const providerKeys = new Set([
     ...(isPlainObject(auth) ? Object.keys(auth) : []),

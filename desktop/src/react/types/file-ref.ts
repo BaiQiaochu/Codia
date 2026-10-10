@@ -27,6 +27,8 @@ export interface FileRef {
   name: string;
   /** 当 source === 'session-block-screenshot' 时为 '' */
   path: string;
+  /** Already resolved display source used by media cards; never passed to native file APIs. */
+  previewUrl?: string;
   ext?: string;
   mime?: string;
   status?: 'available' | 'expired' | string;

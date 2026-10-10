@@ -9,7 +9,7 @@ import { adaptVisualContextMessages } from "../core/visual-context-pipeline.js";
 const tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-visual-context-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-visual-context-"));
   tempDirs.push(dir);
   return dir;
 }

@@ -11,7 +11,7 @@ describe("cache-aware prompt layout", () => {
   it("keeps rolling summary semantic rules in the stable system prompt", () => {
     const prompt = buildRollingSummaryPrompt({
       locale: "zh-CN",
-      agentName: "G-SAP",
+      agentName: "Codia",
       userName: "主人",
       identityAndPersonality: "身份",
       userProfile: "用户",

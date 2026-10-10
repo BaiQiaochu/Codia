@@ -10,11 +10,11 @@ import { FloatingActions } from '../../components/preview/FloatingActions';
 import { useStore } from '../../stores';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: mocks.gsapFetch,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: mocks.codiaFetch,
 }));
 
 describe('FloatingActions cover gallery', () => {
@@ -25,8 +25,8 @@ describe('FloatingActions cover gallery', () => {
       readFile: vi.fn(async () => null),
       readFileSnapshot: vi.fn(async () => null),
     } as never;
-    mocks.gsapFetch.mockReset();
-    mocks.gsapFetch.mockImplementation(async (url: string) => {
+    mocks.codiaFetch.mockReset();
+    mocks.codiaFetch.mockImplementation(async (url: string) => {
       if (url.startsWith('/api/desk/beautify/status')) {
         return new Response(JSON.stringify({
           systemCover: { available: true },
@@ -55,8 +55,8 @@ describe('FloatingActions cover gallery', () => {
     render(<FloatingActions content="# Demo\n" filePath="/tmp/note.md" contentType="markdown" />);
 
     await waitFor(() => expect(screen.getByLabelText('制作 cover')).toBeInTheDocument());
-    expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/desk/beautify/status');
-    expect(mocks.gsapFetch).not.toHaveBeenCalledWith('/api/desk/beautify/status?executorAgentId=agent-1');
+    expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/desk/beautify/status');
+    expect(mocks.codiaFetch).not.toHaveBeenCalledWith('/api/desk/beautify/status?executorAgentId=agent-1');
     fireEvent.click(screen.getByLabelText('制作 cover'));
     expect(screen.getByRole('button', { name: 'AI 生成' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '封面图库' })).toBeInTheDocument();
@@ -67,7 +67,7 @@ describe('FloatingActions cover gallery', () => {
     fireEvent.click(screen.getByRole('button', { name: COVER_GALLERY_PRESETS[0].title }));
 
     await waitFor(() => {
-      expect(mocks.gsapFetch).toHaveBeenCalledWith(
+      expect(mocks.codiaFetch).toHaveBeenCalledWith(
         '/api/desk/beautify/cover/preset/apply',
         expect.objectContaining({
           method: 'POST',
@@ -98,7 +98,7 @@ describe('FloatingActions cover gallery', () => {
   });
 
   it('keeps system cover actions visible when AI generation is disabled', async () => {
-    mocks.gsapFetch.mockImplementation(async (url: string) => {
+    mocks.codiaFetch.mockImplementation(async (url: string) => {
       if (url.startsWith('/api/desk/beautify/status')) {
         return new Response(JSON.stringify({
           systemCover: { available: true },
@@ -122,22 +122,22 @@ describe('FloatingActions cover gallery', () => {
     fireEvent.click(screen.getByLabelText(/cover/));
 
     const generateButton = screen.getByRole('button', { name: /AI/ });
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(generateButton).toBeDisabled());
     expect(generateButton).toHaveAttribute('title', '尚未配置默认图片模型。');
     expect(screen.getByRole('button', { name: '封面图库' })).toBeEnabled();
     expect(screen.getByRole('button', { name: '自己上传' })).toBeEnabled();
 
     fireEvent.click(generateButton);
-    expect(mocks.gsapFetch).not.toHaveBeenCalledWith(
+    expect(mocks.codiaFetch).not.toHaveBeenCalledWith(
       '/api/desk/beautify/cover',
       expect.anything(),
     );
   });
 
   it('refreshes stale disabled AI generation status when the cover menu opens', async () => {
-    mocks.gsapFetch.mockReset();
-    mocks.gsapFetch
+    mocks.codiaFetch.mockReset();
+    mocks.codiaFetch
       .mockResolvedValueOnce(new Response(JSON.stringify({
         systemCover: { available: true },
         agentGenerate: {
@@ -168,10 +168,10 @@ describe('FloatingActions cover gallery', () => {
 
     render(<FloatingActions content="# Demo\n" filePath="/tmp/note.md" contentType="markdown" />);
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByLabelText(/cover/));
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledTimes(2));
     const generateButton = screen.getByRole('button', { name: /AI/ });
     expect(generateButton).toBeEnabled();
     expect(generateButton.getAttribute('title')).not.toContain('tu/gptimage2');
@@ -185,7 +185,7 @@ describe('FloatingActions cover gallery', () => {
     fireEvent.click(screen.getByRole('button', { name: '自己上传' }));
 
     await waitFor(() => {
-      expect(mocks.gsapFetch).toHaveBeenCalledWith(
+      expect(mocks.codiaFetch).toHaveBeenCalledWith(
         '/api/desk/beautify/cover/apply',
         expect.objectContaining({
           method: 'POST',
@@ -218,7 +218,7 @@ describe('FloatingActions cover gallery', () => {
     });
 
     await waitFor(() => {
-      expect(mocks.gsapFetch).toHaveBeenCalledWith(
+      expect(mocks.codiaFetch).toHaveBeenCalledWith(
         '/api/desk/beautify/cover/apply',
         expect.objectContaining({
           method: 'POST',

@@ -33,9 +33,9 @@ describe("BridgeManager session_file media delivery", () => {
   });
 
   function makeManager(sessionFile) {
-    if (!tmpDir) tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-bridge-media-"));
+    if (!tmpDir) tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bridge-media-"));
     const engine = {
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agent: null,
       getSessionFile: vi.fn((id) => id === sessionFile?.id ? sessionFile : null),
     };
@@ -44,7 +44,7 @@ describe("BridgeManager session_file media delivery", () => {
   }
 
   it("sends a session_file through sendMediaBuffer on buffer-capable platforms", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-bridge-media-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bridge-media-"));
     const filePath = path.join(tmpDir, "image.png");
     fs.writeFileSync(filePath, Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A]));
     const sessionFile = {
@@ -76,7 +76,7 @@ describe("BridgeManager session_file media delivery", () => {
   });
 
   it("sends QQ local staged files through direct local file upload", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-bridge-media-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bridge-media-"));
     const filePath = path.join(tmpDir, "image.png");
     fs.writeFileSync(filePath, Buffer.from([0x89, 0x50, 0x4E, 0x47]));
     const bm = makeManager({

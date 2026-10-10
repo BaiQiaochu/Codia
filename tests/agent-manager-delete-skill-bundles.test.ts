@@ -11,7 +11,7 @@ describe("AgentManager.deleteAgent skill bundle lifecycle", () => {
   let manager;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-agent-delete-bundles-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-agent-delete-bundles-"));
     agentsDir = path.join(tempDir, "agents");
     fs.mkdirSync(path.join(agentsDir, "active"), { recursive: true });
     fs.mkdirSync(path.join(agentsDir, "imported-agent"), { recursive: true });
@@ -40,7 +40,7 @@ describe("AgentManager.deleteAgent skill bundle lifecycle", () => {
       savePreferences: vi.fn(),
     };
     manager = new AgentManager({
-      gsapHome: tempDir,
+      codiaHome: tempDir,
       agentsDir,
       productDir: tempDir,
       userDir: tempDir,

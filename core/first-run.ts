@@ -16,17 +16,8 @@ import {
 } from "../shared/default-workspace.ts";
 import { USER_PROFILE_FILENAME } from "../lib/user-profile-store.ts";
 
-const DEFAULT_AGENT_ID = "gsap";
+const DEFAULT_AGENT_ID = "codia";
 const LEGACY_IMPORTED_SKILL_MARKER = ".hermes-import.json";
-const LEGACY_AGENT_ID = ["h", "anako"].join("");
-const LEGACY_PRODUCT_ID = ["open", LEGACY_AGENT_ID].join("");
-const LEGACY_DEFAULT_AGENT_NAMES = new Set([
-  LEGACY_AGENT_ID,
-  LEGACY_PRODUCT_ID,
-  "g-sap",
-  "gsap",
-  "星河智域",
-]);
 
 function hasAgentConfig(agentsDir, agentId) {
   return fs.existsSync(path.join(agentsDir, agentId, "config.yaml"));
@@ -44,19 +35,8 @@ function findFirstAgentWithConfig(agentsDir) {
   return null;
 }
 
-function neutralizeLegacyDefaultIdentity(agentDir) {
-  const identityPath = path.join(agentDir, "identity.md");
-  if (!fs.existsSync(identityPath)) return;
-  const current = fs.readFileSync(identityPath, "utf-8");
-  const updated = current.replace(
-    /^(\uFEFF?)#[ \t]*(?:G-SAP|GSAP|星河智域)[ \t]*(\r?\n|$)/u,
-    "$1# 小豆蔻$2",
-  );
-  if (updated !== current) fs.writeFileSync(identityPath, updated, "utf-8");
-}
-
-function repairPrimaryAgentPreference(gsapHome, agentsDir) {
-  const prefsPath = path.join(gsapHome, "user", "preferences.json");
+function repairPrimaryAgentPreference(codiaHome, agentsDir) {
+  const prefsPath = path.join(codiaHome, "user", "preferences.json");
   let prefs = {};
   try {
     if (fs.existsSync(prefsPath)) {
@@ -82,76 +62,17 @@ function repairPrimaryAgentPreference(gsapHome, agentsDir) {
   );
 }
 
-function migrateLegacyAgentIdsAndYuan(gsapHome) {
-  const agentsDir = path.join(gsapHome, "agents");
-  const legacyAgentDir = path.join(agentsDir, LEGACY_AGENT_ID);
-  const defaultAgentDir = path.join(agentsDir, DEFAULT_AGENT_ID);
-  const prefsPath = path.join(gsapHome, "user", "preferences.json");
-
-  if (fs.existsSync(legacyAgentDir) && !fs.existsSync(defaultAgentDir)) {
-    fs.renameSync(legacyAgentDir, defaultAgentDir);
-  }
-
-  if (fs.existsSync(prefsPath)) {
-    try {
-      const prefs = JSON.parse(fs.readFileSync(prefsPath, "utf-8"));
-      if (prefs.primaryAgent === LEGACY_AGENT_ID) {
-        prefs.primaryAgent = DEFAULT_AGENT_ID;
-        fs.writeFileSync(prefsPath, JSON.stringify(prefs, null, 2) + "\n", "utf-8");
-      }
-    } catch {
-      // Ignore malformed preferences here; later code handles normal defaults.
-    }
-  }
-
-  if (!fs.existsSync(agentsDir)) return;
-  for (const entry of fs.readdirSync(agentsDir, { withFileTypes: true })) {
-    if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
-    if (entry.name === DEFAULT_AGENT_ID) {
-      neutralizeLegacyDefaultIdentity(path.join(agentsDir, entry.name));
-    }
-    const configPath = path.join(agentsDir, entry.name, "config.yaml");
-    if (!fs.existsSync(configPath)) continue;
-    try {
-      const raw = YAML.load(fs.readFileSync(configPath, "utf-8")) || {};
-      let changed = false;
-      if (raw?.agent?.yuan === LEGACY_AGENT_ID) {
-        raw.agent = { ...(raw.agent || {}), yuan: "gsap" };
-        changed = true;
-      }
-      const agentName = String(raw?.agent?.name || "").trim().toLowerCase();
-      if (
-        entry.name === DEFAULT_AGENT_ID
-        && LEGACY_DEFAULT_AGENT_NAMES.has(agentName)
-      ) {
-        raw.agent = { ...(raw.agent || {}), name: "小豆蔻" };
-        changed = true;
-      }
-      if (changed) {
-        fs.writeFileSync(
-          configPath,
-          YAML.dump(raw, { indent: 2, lineWidth: -1, sortKeys: false, quotingType: '"' }),
-          "utf-8",
-        );
-      }
-    } catch {
-      // Leave malformed config files untouched; later config loading reports them.
-    }
-  }
-}
-
 /**
   *
- * @param {string} gsapHome - 数据目录绝对路径
+ * @param {string} codiaHome - 数据目录绝对路径
  * @param {string} productDir - 产品模板目录（lib/- */
-export function ensureFirstRun(gsapHome, productDir, { defaultWorkspaceHome } = {}) {
+export function ensureFirstRun(codiaHome, productDir, { defaultWorkspaceHome } = {}) {
  // 1. 确保目录结构存在
-  fs.mkdirSync(path.join(gsapHome, "agents"), { recursive: true });
-  fs.mkdirSync(path.join(gsapHome, "user"), { recursive: true });
-  migrateLegacyAgentIdsAndYuan(gsapHome);
+  fs.mkdirSync(path.join(codiaHome, "agents"), { recursive: true });
+  fs.mkdirSync(path.join(codiaHome, "user"), { recursive: true });
 
  // 2. 如果 agents/ 没有任何 agent -播种默认 agent
-  const agentsDir = path.join(gsapHome, "agents");
+  const agentsDir = path.join(codiaHome, "agents");
   const hasAgent = fs.readdirSync(agentsDir, { withFileTypes: true }).some(entry => {
     return entry.isDirectory() && !entry.name.startsWith('.') && hasAgentConfig(agentsDir, entry.name);
   });
@@ -168,7 +89,7 @@ export function ensureFirstRun(gsapHome, productDir, { defaultWorkspaceHome } = 
 
  // 3. 同步 skills：从 skills2set/ 复制到数据目-skills/
   const skillsSrc = path.join(productDir, "..", "skills2set");
-  const skillsDst = path.join(gsapHome, "skills");
+  const skillsDst = path.join(codiaHome, "skills");
   fs.mkdirSync(skillsDst, { recursive: true });
   if (fs.existsSync(skillsSrc)) {
     syncSkills(skillsSrc, skillsDst);
@@ -176,7 +97,7 @@ export function ensureFirstRun(gsapHome, productDir, { defaultWorkspaceHome } = 
 
  // 4. 确保可文件存在（老用户升-+ -agent 都覆盖）
   const touchIfMissing = (p) => { if (!fs.existsSync(p)) fs.writeFileSync(p, '', 'utf-8'); };
-  touchIfMissing(path.join(gsapHome, 'user', USER_PROFILE_FILENAME));
+  touchIfMissing(path.join(codiaHome, 'user', USER_PROFILE_FILENAME));
   const agents = fs.readdirSync(agentsDir, { withFileTypes: true });
   for (const entry of agents) {
     if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
@@ -184,7 +105,7 @@ export function ensureFirstRun(gsapHome, productDir, { defaultWorkspaceHome } = 
   }
 
  // 5. 确保 user/preferences.json 存在
-  const prefsPath = path.join(gsapHome, "user", "preferences.json");
+  const prefsPath = path.join(codiaHome, "user", "preferences.json");
   if (!fs.existsSync(prefsPath)) {
     fs.writeFileSync(
       prefsPath,
@@ -194,7 +115,7 @@ export function ensureFirstRun(gsapHome, productDir, { defaultWorkspaceHome } = 
       "utf-8",
     );
   }
-  repairPrimaryAgentPreference(gsapHome, agentsDir);
+  repairPrimaryAgentPreference(codiaHome, agentsDir);
 }
 
 /**
@@ -219,6 +140,11 @@ function seedDefaultAgent(agentsDir, productDir, defaultWorkspaceHome) {
  //
   try {
     const raw = fs.existsSync(cfgDest) ? YAML.load(fs.readFileSync(cfgDest, "utf-8")) || {} : {};
+    raw.agent = {
+      ...(raw.agent || {}),
+      name: "小豆蔻",
+      yuan: DEFAULT_AGENT_ID,
+    };
     raw.desk = {
       ...(raw.desk || {}),
       home_folder: ensureDefaultWorkspace(defaultWorkspaceHome),

@@ -12,7 +12,7 @@ describe("SessionManifestResolver", () => {
   let nextId;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-session-resolver-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-resolver-"));
     nextId = 1;
     store = new SessionManifestStore({
       dbPath: path.join(tmpDir, "session-manifest.db"),
@@ -28,7 +28,7 @@ describe("SessionManifestResolver", () => {
   });
 
   function createSessionFile(name) {
-    const sessionPath = path.join(tmpDir, "agents", "gsap", "sessions", `${name}.jsonl`);
+    const sessionPath = path.join(tmpDir, "agents", "codia", "sessions", `${name}.jsonl`);
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(sessionPath, [
       JSON.stringify({ type: "session", version: 3, id: name, timestamp: "2026-06-18T01:00:00.000Z", cwd: tmpDir }),
@@ -81,16 +81,16 @@ describe("SessionManifestResolver", () => {
 
     const manifest = resolver.resolve({ sessionPath }, {
       createOnDemand: true,
-      manifestDefaults: { domain: "desktop", ownerAgentId: "gsap" },
+      manifestDefaults: { domain: "desktop", ownerAgentId: "codia" },
     });
 
     expect(manifest.sessionId).toBe("sess_resolver_0001");
-    expect(manifest.ownerAgentId).toBe("gsap");
+    expect(manifest.ownerAgentId).toBe("codia");
     expect(store.resolveByLocatorPath(sessionPath)?.sessionId).toBe(manifest.sessionId);
   });
 
   it("rejects missing legacy paths instead of silently inventing a session", () => {
-    const missingPath = path.join(tmpDir, "agents", "gsap", "sessions", "missing.jsonl");
+    const missingPath = path.join(tmpDir, "agents", "codia", "sessions", "missing.jsonl");
 
     expect(() => resolver.resolve({ sessionPath: missingPath })).toThrow(
       expect.objectContaining({

@@ -60,8 +60,8 @@ describe('PluginCardBlock knowledge graph desktop behavior', () => {
     const src = iframe.getAttribute('src') || '';
     expect(src).toContain('http://127.0.0.1:3210/api/plugins/knowledge-graph/card?token=desktop-token');
     expect(src).toContain('agentId=agent-1');
-    expect(src).toContain('gsap-theme=warm-paper');
-    expect(src).toContain('gsap-css=');
+    expect(src).toContain('codia-theme=warm-paper');
+    expect(src).toContain('codia-css=');
 
     postIframeMessage(iframe, {
       type: 'resize-request',
@@ -189,7 +189,7 @@ describe('PluginCardBlock knowledge graph desktop behavior', () => {
       kind: 'lan' as const,
       serverId: 'remote',
       studioId: 'studio',
-      label: 'Remote G-SAP',
+      label: 'Remote Codia',
       baseUrl: 'http://remote.example',
       wsUrl: 'ws://remote.example',
       token: 'remote-token',

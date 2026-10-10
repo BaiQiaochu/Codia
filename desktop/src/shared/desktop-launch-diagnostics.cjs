@@ -6,7 +6,7 @@ const MAX_ARRAY_LENGTH = 20;
 const MAX_OBJECT_KEYS = 40;
 
 function createDesktopLaunchDiagnostics({
-  gsapHome,
+  codiaHome,
   startupId,
   appVersion = "unknown",
   platform = process.platform,
@@ -14,8 +14,8 @@ function createDesktopLaunchDiagnostics({
   redactText = (value) => String(value),
   now = () => new Date().toISOString(),
 } = {}) {
-  if (!gsapHome) throw new Error("gsapHome required");
-  const dir = path.join(gsapHome, "diagnostics", "desktop-launch");
+  if (!codiaHome) throw new Error("codiaHome required");
+  const dir = path.join(codiaHome, "diagnostics", "desktop-launch");
   const rendererLogPath = path.join(dir, "renderer.log");
 
   const base = {

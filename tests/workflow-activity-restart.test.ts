@@ -27,7 +27,7 @@ describe("workflow 卡重启持久化（端到端）", () => {
       const store = new WorkflowActivityStore(file);
       const hub = new ActivityHub(null, store);
       // workflow-tool.js 的真实 upsert 序列（父 running → 节点 running → 节点 done → 父 done）
-      hub.upsert({ id: "wf-1", kind: "workflow", status: "running", sessionPath: SP, agentId: "hana", summary: "三主题诗", startedAt: 1000 });
+      hub.upsert({ id: "wf-1", kind: "workflow", status: "running", sessionPath: SP, agentId: "codia", summary: "三主题诗", startedAt: 1000 });
       hub.upsert({ id: "wf-1::n0", kind: "workflow_agent", status: "running", sessionPath: SP, parentTaskId: "wf-1", label: "写诗", startedAt: 1100 });
       hub.upsert({ id: "wf-1::n0", status: "done", childSessionPath: "/s/child.jsonl", tokens: 800, finishedAt: 1500 });
       hub.upsert({ id: "wf-1", status: "done", finishedAt: 1600 });

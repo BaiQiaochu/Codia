@@ -9,6 +9,7 @@ import {
   resolveOpenAiImageSize,
 } from "../lib/resolution-tiers.ts";
 import { inferMediaTypeFromModelId } from "../../../shared/model-type-inference.ts";
+import { supportsFlexibleOpenAIImageSize } from "../../../shared/openai-image-models.ts";
 
 const FORMAT_TO_MIME = {
   png: "image/png",
@@ -251,7 +252,7 @@ export const openaiImageAdapter = {
       providerDefaults,
       {
         sourceName: "OpenAI image",
-        flexible: String(modelId).startsWith("gpt-image-2"),
+        flexible: supportsFlexibleOpenAIImageSize(modelId),
       },
     );
     const body = {

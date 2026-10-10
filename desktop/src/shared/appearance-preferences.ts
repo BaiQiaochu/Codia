@@ -3,7 +3,7 @@ import registry from './theme-registry';
 type PreferenceStorage = Pick<Storage, 'getItem' | 'setItem'>;
 type PaperTextureTheme = string | null | undefined;
 
-export const PAPER_TEXTURE_STORAGE_KEY = 'gsap-paper-texture';
+export const PAPER_TEXTURE_STORAGE_KEY = 'codia-paper-texture';
 export const LEGACY_NO_PAPER_TEXTURE_CLASS = 'no-paper-texture';
 
 function getCurrentTheme(): PaperTextureTheme {

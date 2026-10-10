@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSettingsStore } from '../../store';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import {
   t, lookupModelMeta, formatContext, autoSaveGlobalModels,
 } from '../../helpers';
@@ -63,7 +63,7 @@ function ToolModelTestBtn({ modelRef }: { modelRef: unknown }) {
     if (!parsedRef) return;
     setStatus('testing');
     try {
-      const res = await gsapFetch('/api/models/health', {
+      const res = await codiaFetch('/api/models/health', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ modelId: parsedRef.id, provider: parsedRef.provider }),
@@ -135,7 +135,7 @@ export function OtherModelsSection({ providers }: { providers: Record<string, un
     if (!provider) { showToast(t('settings.search.noProvider'), 'error'); return; }
     if (searchProviderNeedsApiKey(provider) && !apiKey) { showToast(t('settings.search.noKey'), 'error'); return; }
     try {
-      const res = await gsapFetch('/api/search/verify', {
+      const res = await codiaFetch('/api/search/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider, api_key: apiKey, search_provider: searchProvider }),

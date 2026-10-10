@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useStore } from '../../stores';
-import { gsapFetch, gsapUrl } from '../../hooks/use-gsap-fetch';
+import { codiaFetch, codiaUrl } from '../../hooks/use-codia-fetch';
 import styles from './InteractiveCard.module.css';
 
 const THEME_VARS = [
@@ -26,8 +26,8 @@ const THEME_VARS = [
 ] as const;
 
 const HEIGHT_CAP = 900;
-const RESIZE_EVENT = 'gsap.card-resize';
-const PING_EVENT = 'gsap.card-ping';
+const RESIZE_EVENT = 'codia.card-resize';
+const PING_EVENT = 'codia.card-ping';
 
 function collectThemeVars(): string {
   const root = getComputedStyle(document.documentElement);
@@ -67,13 +67,13 @@ export const InteractiveCard = memo(function InteractiveCard({ block }: Interact
     const varsCss = collectThemeVars();
     (async () => {
       try {
-        await gsapFetch(`/api/cards/${encodeURIComponent(cardId)}`, {
+        await codiaFetch(`/api/cards/${encodeURIComponent(cardId)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code: block.code, title: block.title, varsCss }),
         });
         if (cancelled) return;
-        const base = gsapUrl(`/api/cards/${encodeURIComponent(cardId)}`, { includeTokenQuery: true });
+        const base = codiaUrl(`/api/cards/${encodeURIComponent(cardId)}`, { includeTokenQuery: true });
         versionRef.current += 1;
         const sep = base.includes('?') ? '&' : '?';
         setSrc(`${base}${sep}v=${versionRef.current}`);

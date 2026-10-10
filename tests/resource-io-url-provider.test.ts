@@ -31,7 +31,7 @@ describe("UrlProvider", () => {
   });
 
   it("reads and materializes safe http resources with version metadata", async () => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-url-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-url-"));
     const fetch = vi.fn(async () => new Response("hello url", {
       status: 200,
       headers: {

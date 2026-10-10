@@ -1,6 +1,6 @@
 import React from 'react';
 import { t } from '../../helpers';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { Toggle } from '../../widgets/Toggle';
 import { BridgeStatusDot, BridgeStatusText, OwnerSelect } from './BridgeWidgets';
 import { PlatformDiagnostics } from './PlatformDiagnostics';
@@ -49,7 +49,7 @@ export function WhatsappSection({
       return;
     }
 
-    window.dispatchEvent(new CustomEvent('gsap-show-whatsapp-qrcode', {
+    window.dispatchEvent(new CustomEvent('codia-show-whatsapp-qrcode', {
       detail: { agentId, force },
     }));
   };
@@ -70,7 +70,7 @@ export function WhatsappSection({
             return;
           }
           try {
-            await gsapFetch(`/api/bridge/config?agentId=${encodeURIComponent(agentId || '')}`, {
+            await codiaFetch(`/api/bridge/config?agentId=${encodeURIComponent(agentId || '')}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ platform: 'whatsapp', enabled: false }),

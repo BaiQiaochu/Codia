@@ -105,7 +105,7 @@ export function Tooltip({
   anchorClassName,
 }: TooltipProps) {
   const reactId = useId();
-  const tooltipId = id || `gsap-tooltip-${reactId}`;
+  const tooltipId = id || `codia-tooltip-${reactId}`;
   const anchorRef = useRef<HTMLElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const timerRef = useRef<number | null>(null);

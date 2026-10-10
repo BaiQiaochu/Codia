@@ -85,10 +85,10 @@ export function installI18nKeyLeakAudit({
 
 export function shouldEnableI18nKeyLeakAudit(): boolean {
   if (typeof window === 'undefined') return false;
-  const win = window as Window & { __GSAP_I18N_LEAK_AUDIT__?: boolean };
-  if (win.__GSAP_I18N_LEAK_AUDIT__ === true) return true;
+  const win = window as Window & { __CODIA_I18N_LEAK_AUDIT__?: boolean };
+  if (win.__CODIA_I18N_LEAK_AUDIT__ === true) return true;
   try {
-    if (window.localStorage?.getItem('gsap:i18n-leak-audit') === '1') return true;
+    if (window.localStorage?.getItem('codia:i18n-leak-audit') === '1') return true;
   } catch {
     // Ignore localStorage access failures in restricted renderer contexts.
   }

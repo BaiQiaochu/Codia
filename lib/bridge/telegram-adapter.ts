@@ -77,7 +77,6 @@ function telegramTextOptions(options = {}) {
 /**
  * @param {object} opts
   *
-  *
  * @returns {{ sendReply, stop, getMe }}
  */
 export function createTelegramAdapter({ token, agentId, onMessage, onStatus }) {

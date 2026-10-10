@@ -73,7 +73,7 @@ describe("MCP HTTP clients", () => {
 
     await client.start();
     const tools = await client.listTools();
-    const result = await client.callTool("search", { q: "G-SAP" });
+    const result = await client.callTool("search", { q: "Codia" });
 
     expect(tools).toEqual([{ name: "search", inputSchema: { type: "object" } }]);
     expect(result.content[0].text).toBe("ok");
@@ -380,7 +380,7 @@ describe("MCP HTTP clients", () => {
       throw err;
     });
 
-    const result = await client.callTool("search", { q: "G-SAP" });
+    const result = await client.callTool("search", { q: "Codia" });
     await client.stop();
 
     expect(result).toEqual({ content: [{ type: "text", text: "ok" }] });

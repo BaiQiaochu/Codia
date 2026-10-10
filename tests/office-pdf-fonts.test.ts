@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
   FONTS_CSS_FILENAME,
-  GSAP_PDF_FONT_FAMILIES,
+  CODIA_PDF_FONT_FAMILIES,
   buildFontInjectionCss,
   locateThemesDir,
 } from "../desktop/src/office-pdf-fonts.cjs";
@@ -46,7 +46,7 @@ describe("office pdf font injection css", () => {
   let themesDir: string;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-pdf-fonts-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-pdf-fonts-"));
     themesDir = path.join(tempDir, "themes");
     fs.mkdirSync(path.join(themesDir, "fonts"), { recursive: true });
     fs.writeFileSync(path.join(themesDir, FONTS_CSS_FILENAME), SAMPLE_CSS, "utf-8");
@@ -56,13 +56,13 @@ describe("office pdf font injection css", () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it("keeps only the G-SAP PDF font families and rewrites relative urls", async () => {
+  it("keeps only the Codia PDF font families and rewrites relative urls", async () => {
     const fontModule = await import("../desktop/src/office-pdf-fonts.cjs");
     const css = buildFontInjectionCss({ themesDir });
     const fontsDirUrl = pathToFileURL(path.join(themesDir, "fonts")).href;
 
-    expect(GSAP_PDF_FONT_FAMILIES).toEqual(["EB Garamond", "Noto Serif SC", "JetBrains Mono"]);
-    expect(fontModule).not.toHaveProperty("HANA_PDF_FONT_FAMILIES");
+    expect(CODIA_PDF_FONT_FAMILIES).toEqual(["EB Garamond", "Noto Serif SC", "JetBrains Mono"]);
+    expect(fontModule).toHaveProperty("CODIA_PDF_FONT_FAMILIES");
     expect(css).toContain("'EB Garamond'");
     expect(css).toContain("'Noto Serif SC'");
     expect(css).toContain("'JetBrains Mono'");
@@ -93,11 +93,11 @@ describe("office pdf font injection css", () => {
     const realThemesDir = path.join(__dirname, "..", "desktop", "src", "themes");
     const css = buildFontInjectionCss({ themesDir: realThemesDir });
 
-    for (const family of GSAP_PDF_FONT_FAMILIES) {
+    for (const family of CODIA_PDF_FONT_FAMILIES) {
       expect(css).toContain(`'${family}'`);
     }
     expect(css).toContain("file://");
-    expect(css).not.toContain("Hana");
+    expect(css).not.toContain("Codia");
   });
 
   it("ships the font injector with the PDF helper", () => {

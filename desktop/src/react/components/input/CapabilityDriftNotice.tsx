@@ -16,7 +16,7 @@ const REFRESH_TIMEOUT_MS = 45_000;
 
 function showInlineNotice(text: string, type: 'success' | 'error' | 'info' = 'info'): void {
   if (typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent('gsap-inline-notice', {
+  window.dispatchEvent(new CustomEvent('codia-inline-notice', {
     detail: { text, type },
   }));
 }

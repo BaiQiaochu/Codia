@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useSettingsStore } from '../../store';
-import { gsapUrl, yuanFallbackAvatar } from '../../api';
+import { codiaUrl, yuanFallbackAvatar } from '../../api';
 import { SelectWidget, type SelectOption } from '../../widgets/SelectWidget';
 import styles from '../../Settings.module.css';
 
@@ -26,8 +26,8 @@ export function AgentSelect({ value, onChange }: AgentSelectProps) {
       <>
         <img
           className={styles['bridge-agent-avatar']}
-          src={agent?.hasAvatar ? gsapUrl(`/api/agents/${agent.id}/avatar?t=${ts}`, { includeTokenQuery: true }) : yuanFallbackAvatar(agent?.yuan || 'gsap')}
-          onError={(e) => { (e.target as HTMLImageElement).src = yuanFallbackAvatar(agent?.yuan || 'gsap'); }}
+          src={agent?.hasAvatar ? codiaUrl(`/api/agents/${agent.id}/avatar?t=${ts}`, { includeTokenQuery: true }) : yuanFallbackAvatar(agent?.yuan || 'codia')}
+          onError={(e) => { (e.target as HTMLImageElement).src = yuanFallbackAvatar(agent?.yuan || 'codia'); }}
         />
         <span className={styles['bridge-agent-name']}>{agent?.name || '—'}</span>
         <svg className={`${styles['bridge-agent-arrow']}${isOpen ? ` ${styles.open}` : ''}`} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -43,8 +43,8 @@ export function AgentSelect({ value, onChange }: AgentSelectProps) {
       <>
         <img
           className={styles['bridge-agent-avatar']}
-          src={agent?.hasAvatar ? gsapUrl(`/api/agents/${agent.id}/avatar?t=${ts}`, { includeTokenQuery: true }) : yuanFallbackAvatar(agent?.yuan || 'gsap')}
-          onError={(e) => { (e.target as HTMLImageElement).src = yuanFallbackAvatar(agent?.yuan || 'gsap'); }}
+          src={agent?.hasAvatar ? codiaUrl(`/api/agents/${agent.id}/avatar?t=${ts}`, { includeTokenQuery: true }) : yuanFallbackAvatar(agent?.yuan || 'codia')}
+          onError={(e) => { (e.target as HTMLImageElement).src = yuanFallbackAvatar(agent?.yuan || 'codia'); }}
         />
         <span className={styles['bridge-agent-name']}>{option.label}</span>
         {isSelected && (

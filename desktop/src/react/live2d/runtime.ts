@@ -46,12 +46,14 @@ async function fetchBuffer(url: string, signal: AbortSignal): Promise<ArrayBuffe
 export async function createCodiaLive2D(canvas: HTMLCanvasElement, options: CodiaLive2DOptions): Promise<CodiaLive2DHandle> {
   const { signal } = options;
   signal.throwIfAborted();
-  // Safe/software renderers may reject this request. Do not retry WebGL 1 or
-  // override Electron's GPU recovery policy: 5.3 offscreen groups require WebGL 2.
+  // Keep WebGL2 as the rendering API, but allow software WebGL (for example
+  // Windows WARP) to initialize. Electron's GPU recovery policy may disable
+  // hardware acceleration while WebGL2 remains usable; rejecting major
+  // performance caveats here incorrectly forced the welcome page's old sprite.
   const gl = canvas.getContext('webgl2', {
-    alpha: true, premultipliedAlpha: true, antialias: true, failIfMajorPerformanceCaveat: true,
+    alpha: true, premultipliedAlpha: true, antialias: true, failIfMajorPerformanceCaveat: false,
   });
-  if (!gl) throw new Error('WebGL 2 unavailable; using the mascot fallback');
+  if (!gl) throw new Error('WebGL 2 unavailable; Live2D could not initialize');
   const releaseFramework = retainFramework();
   let userModel: CubismUserModel | null = null;
   let setting: CubismModelSettingJson | null = null;

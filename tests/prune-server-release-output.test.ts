@@ -7,7 +7,7 @@ import { pruneServerReleaseOutput } from "../scripts/prune-server-release-output
 const tempDirs: string[] = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-server-prune-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-server-prune-"));
   tempDirs.push(dir);
   return dir;
 }

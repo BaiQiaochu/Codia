@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import React from 'react';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MediaViewer } from '../../../components/shared/MediaViewer/MediaViewer';
 
@@ -31,7 +31,11 @@ vi.mock('../../../stores', () => ({
 }));
 
 vi.mock('../../../components/shared/MediaViewer/ImageStage', () => ({
-  ImageStage: () => <div data-testid="image-stage" />,
+  ImageStage: ({ onError }: { onError?: (error: Error) => void }) => (
+    <button type="button" data-testid="image-stage" onClick={() => onError?.(new Error('decode failed'))}>
+      image
+    </button>
+  ),
 }));
 
 vi.mock('../../../components/shared/MediaViewer/VideoStage', () => ({
@@ -83,6 +87,17 @@ describe('MediaViewer original chrome parity', () => {
     expect(caption).toContainElement(screen.getByTestId('media-viewer-name'));
     expect(caption.textContent).toContain('receipt.png');
     expect(screen.getByTestId('media-viewer-save')).toBeTruthy();
-    expect(screen.getByTestId('media-viewer-ocr')).toBeTruthy();
+    expect(screen.queryByText('OCR')).toBeNull();
+  });
+
+  it('shows a recoverable error when every image source fails', () => {
+    render(<MediaViewer />);
+
+    fireEvent.click(screen.getByTestId('image-stage'));
+    expect(screen.getByTestId('media-viewer-error')).toHaveTextContent('decode failed');
+
+    fireEvent.click(screen.getByRole('button', { name: '重试' }));
+    expect(screen.queryByTestId('media-viewer-error')).toBeNull();
+    expect(screen.getByTestId('image-stage')).toBeTruthy();
   });
 });

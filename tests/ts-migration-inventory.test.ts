@@ -10,7 +10,7 @@ const SCRIPT = path.join(ROOT, "scripts", "ts-migration-inventory.mjs");
 
 function latestUpstreamDir() {
   return fs.readdirSync(ROOT, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && /^openhanako-\d+\.\d+\.\d+$/.test(entry.name))
+    .filter((entry) => entry.isDirectory() && /^codia-\d+\.\d+\.\d+$/.test(entry.name))
     .map((entry) => entry.name)
     .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))[0];
 }
@@ -25,7 +25,7 @@ describe("TypeScript migration inventory", () => {
 
   it("excludes generated, VCS, and upstream snapshot paths", () => {
     const text = fs.readFileSync(SCRIPT, "utf8");
-    expect(text).toContain("openhanako-");
+    expect(text).toContain("codia-");
     expect(text).toContain("dist-server");
     expect(text).toContain("desktop/dist-renderer");
     expect(text).toContain("node_modules");

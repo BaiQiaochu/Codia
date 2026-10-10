@@ -29,7 +29,7 @@ type Options = {
   agentDir: string;
   workspace?: string | null;
   workspaceFolders?: string[];
-  gsapHome?: string;
+  codiaHome?: string;
   getAuthorizedFolders?: () => string[];
   getSandboxEnabled?: () => boolean;
   getExternalReadPaths?: () => string[];
@@ -40,7 +40,7 @@ export class ResourceAccessPolicy {
   declare agentDir: string;
   declare workspace: string | null;
   declare workspaceFolders: string[];
-  declare gsapHome: string;
+  declare codiaHome: string;
   declare getAuthorizedFolders: () => string[];
   declare getSandboxEnabled: () => boolean;
   declare getExternalReadPaths?: () => string[];
@@ -51,7 +51,7 @@ export class ResourceAccessPolicy {
     agentDir,
     workspace = null,
     workspaceFolders = [],
-    gsapHome,
+    codiaHome,
     getAuthorizedFolders = () => [],
     getSandboxEnabled = () => false,
     getExternalReadPaths,
@@ -60,11 +60,11 @@ export class ResourceAccessPolicy {
     this.agentDir = agentDir;
     this.workspace = workspace;
     this.workspaceFolders = Array.isArray(workspaceFolders) ? workspaceFolders : [];
-    this.gsapHome = gsapHome || "";
+    this.codiaHome = codiaHome || "";
     this.getAuthorizedFolders = getAuthorizedFolders;
     this.getSandboxEnabled = getSandboxEnabled;
     this.getExternalReadPaths = getExternalReadPaths;
-    this.checkManagedConfigWrite = createManagedConfigWriteGuard({ gsapHome: this.gsapHome });
+    this.checkManagedConfigWrite = createManagedConfigWriteGuard({ codiaHome: this.codiaHome });
   }
 
   check(absolutePath: string, operation: Operation): ResourceAccessDecision {
@@ -94,7 +94,7 @@ export class ResourceAccessPolicy {
         ...this.workspaceFolders,
         ...this.resolveAuthorizedFolders(),
       ],
-      gsapHome: this.gsapHome,
+      codiaHome: this.codiaHome,
       mode: "standard",
     });
   }

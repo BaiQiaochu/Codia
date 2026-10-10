@@ -42,7 +42,7 @@ const electronStub = {
     isPackaged: true,
     getVersion: () => "1.0.0",
     getPath: (name) => {
-      if (name === "exe") return "/Applications/G-SAP.app/Contents/MacOS/G-SAP";
+      if (name === "exe") return "/Applications/Codia.app/Contents/MacOS/Codia";
       if (name === "userData") return "/tmp/test-userdata";
       return "/tmp";
     },

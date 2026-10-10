@@ -35,7 +35,7 @@ describe('app-file-drag', () => {
       }],
     });
 
-    expect(payload.dragId).toMatch(/^gsap-drag-/);
+    expect(payload.dragId).toMatch(/^codia-drag-/);
     expect(readAppFileDragPayload(dataTransfer)).toEqual(payload);
     expect(getActiveAppFileDragPayload()).toEqual(payload);
 

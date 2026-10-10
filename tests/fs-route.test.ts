@@ -6,13 +6,13 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createFsRoute } from "../server/routes/fs.js";
 
 let tempRoot;
-let gsapHome;
+let codiaHome;
 let workspace;
 let app;
 
 function makeApp() {
   const engine = {
-    gsapHome,
+    codiaHome,
     defaultDeskCwd: workspace,
     homeCwd: workspace,
     deskCwd: workspace,
@@ -30,10 +30,10 @@ function fsUrl(route, filePath, key = "path") {
 }
 
 beforeEach(() => {
-  tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-fs-route-"));
-  gsapHome = path.join(tempRoot, "home");
+  tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-fs-route-"));
+  codiaHome = path.join(tempRoot, "home");
   workspace = path.join(tempRoot, "workspace");
-  fs.mkdirSync(gsapHome, { recursive: true });
+  fs.mkdirSync(codiaHome, { recursive: true });
   fs.mkdirSync(workspace, { recursive: true });
   app = makeApp();
 });

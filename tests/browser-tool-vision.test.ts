@@ -34,7 +34,7 @@ describe("browser screenshot vision adaptation", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-browser-shot-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-browser-shot-"));
     screenshotMock.mockResolvedValue({ base64: "SCREENSHOT_BASE64", mimeType: "image/png" });
     isRunningMock.mockReturnValue(true);
     currentUrlMock.mockReturnValue("https://example.test/page");
@@ -116,7 +116,7 @@ describe("browser screenshot vision adaptation", () => {
     const tool = createBrowserTool(() => "/tmp/session.jsonl", {
       getSessionModel: () => ({ id: "gpt-4o", provider: "openai", input: ["text", "image"] }),
       getVisionBridge: () => ({ prepare }),
-      getHanakoHome: () => tmpDir,
+      getCodiaHome: () => tmpDir,
       registerSessionFile,
     });
 

@@ -11,17 +11,17 @@ import {
 } from '../../utils/screenshot-segments';
 import styles from '../Settings.module.css';
 
-import gsapMobile from '../../../assets/screenshot-previews/gsap-mobile.png';
-import gsapDesktop from '../../../assets/screenshot-previews/gsap-desktop.png';
+import codiaMobile from '../../../assets/screenshot-previews/codia-mobile.png';
+import codiaDesktop from '../../../assets/screenshot-previews/codia-desktop.png';
 
 const PREVIEW_IMAGES: Record<string, string> = {
-  'gsap-mobile': gsapMobile,
-  'gsap-desktop': gsapDesktop,
+  'codia-mobile': codiaMobile,
+  'codia-desktop': codiaDesktop,
 };
 
 function readScreenshotColor() {
-  const stored = localStorage.getItem('gsap-screenshot-color');
-  return stored === 'gsap' ? stored : 'gsap';
+  const stored = localStorage.getItem('codia-screenshot-color');
+  return stored === 'codia' ? stored : 'codia';
 }
 
 export function SharingTab() {
@@ -30,7 +30,7 @@ export function SharingTab() {
     () => readScreenshotColor()
   );
   const [screenshotWidth, setScreenshotWidth] = useState(
-    () => localStorage.getItem('gsap-screenshot-width') || 'mobile'
+    () => localStorage.getItem('codia-screenshot-width') || 'mobile'
   );
   const [segmentLimit, setSegmentLimit] = useState(() => readScreenshotSegmentVisibleCharLimit());
 
@@ -68,13 +68,13 @@ export function SharingTab() {
 
         <div className={styles['theme-options']}>
           {([
-            { key: 'gsap' as const, labelKey: 'settings.screenshot.gsap' },
+            { key: 'codia' as const, labelKey: 'settings.screenshot.codia' },
           ]).map(({ key, labelKey }) => (
             <button type="button"
               key={key}
               className={`${styles['theme-card']}${screenshotColor === key ? ' ' + styles['active'] : ''}`}
               data-theme={`screenshot-${key}`}
-              onClick={() => { setScreenshotColor(key); localStorage.setItem('gsap-screenshot-color', key); }}
+              onClick={() => { setScreenshotColor(key); localStorage.setItem('codia-screenshot-color', key); }}
             >
               <div className={styles['theme-card-name']}>{t(labelKey)}</div>
               <div className={styles['theme-card-mode']}>{t('settings.screenshot.title')}</div>
@@ -93,7 +93,7 @@ export function SharingTab() {
               <button type="button"
                 key={width}
                 className={`${styles['ss-layout-card']}${screenshotWidth === width ? ' ' + styles['active'] : ''}`}
-                onClick={() => { setScreenshotWidth(width); localStorage.setItem('gsap-screenshot-width', width); }}
+                onClick={() => { setScreenshotWidth(width); localStorage.setItem('codia-screenshot-width', width); }}
               >
                 <div className={styles['ss-layout-preview']}>
                   {src ? (

@@ -36,7 +36,7 @@ describe("ChannelRouter channel reply tool boundary", () => {
       marker: "engine",
       channelsDir: "/fake/channels",
       agentsDir: "/fake/agents",
-      getAgent: () => ({ config: { agent: { yuan: "gsap" } } }),
+      getAgent: () => ({ config: { agent: { yuan: "codia" } } }),
     };
     const router = new ChannelRouter({
       hub: {
@@ -46,9 +46,9 @@ describe("ChannelRouter channel reply tool boundary", () => {
     });
 
     const result = await router._executeReply(
-      "gsap",
+      "codia",
       "ch_crew",
-      "user: @G-SAP please reply OK",
+      "user: @Codia please reply OK",
     );
 
     expect(result).toMatchObject({ replied: false, missingDecision: true });
@@ -71,7 +71,7 @@ describe("ChannelRouter channel reply tool boundary", () => {
     runAgentPhoneSessionMock.mockClear();
     loadLocale("en");
 
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-router-company-assign-guidance-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-router-company-assign-guidance-"));
     const channelsDir = path.join(root, "channels");
     const agentsDir = path.join(root, "agents");
     fs.mkdirSync(channelsDir, { recursive: true });
@@ -99,7 +99,7 @@ describe("ChannelRouter channel reply tool boundary", () => {
           pluginManager: {
             getPluginTool: vi.fn(() => assignTool),
           },
-          getAgent: () => ({ config: { agent: { yuan: "gsap" } } }),
+          getAgent: () => ({ config: { agent: { yuan: "codia" } } }),
         },
         eventBus: { emit: vi.fn() },
       },
@@ -124,14 +124,14 @@ describe("ChannelRouter channel reply tool boundary", () => {
 
   it("posts only the channel_reply tool content and ignores raw model text", async () => {
     runAgentPhoneSessionMock.mockClear();
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-router-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-router-"));
     const channelsDir = path.join(root, "channels");
     const agentsDir = path.join(root, "agents");
     const userDir = path.join(root, "user");
     const productDir = path.join(root, "product");
     const generatedFile = path.join(root, "result.png");
     const generatedAudio = path.join(root, "voice.mp3");
-    const phoneSessionPath = path.join(agentsDir, "gsap", "phone", "sessions", "ch_crew", "phone.jsonl");
+    const phoneSessionPath = path.join(agentsDir, "codia", "phone", "sessions", "ch_crew", "phone.jsonl");
     runAgentPhoneSessionMock.mockImplementationOnce(async (_agentId, _rounds, options) => {
       options.onEvent?.({
         type: "tool_execution_end",
@@ -154,12 +154,12 @@ describe("ChannelRouter channel reply tool boundary", () => {
       return "RAW MODEL TEXT SHOULD NOT BE POSTED";
     });
 
-    fs.mkdirSync(path.join(agentsDir, "gsap"), { recursive: true });
+    fs.mkdirSync(path.join(agentsDir, "codia"), { recursive: true });
     fs.mkdirSync(channelsDir, { recursive: true });
     fs.mkdirSync(userDir, { recursive: true });
     fs.mkdirSync(path.join(productDir, "yuan"), { recursive: true });
-    fs.writeFileSync(path.join(agentsDir, "gsap", "config.yaml"), "agent:\n  name: G-SAP\n", "utf-8");
-    fs.writeFileSync(path.join(channelsDir, "ch_crew.md"), "---\nid: ch_crew\nmembers: [gsap]\n---\n", "utf-8");
+    fs.writeFileSync(path.join(agentsDir, "codia", "config.yaml"), "agent:\n  name: Codia\n", "utf-8");
+    fs.writeFileSync(path.join(channelsDir, "ch_crew.md"), "---\nid: ch_crew\nmembers: [codia]\n---\n", "utf-8");
 
     const emit = vi.fn();
     const router = new ChannelRouter({
@@ -170,16 +170,16 @@ describe("ChannelRouter channel reply tool boundary", () => {
           userDir,
           productDir,
           isChannelsEnabled: () => true,
-          getAgent: () => ({ config: { agent: { yuan: "gsap" } } }),
+          getAgent: () => ({ config: { agent: { yuan: "codia" } } }),
         },
         eventBus: { emit },
       },
     });
 
     const result = await router._executeCheck(
-      "gsap",
+      "codia",
       "ch_crew",
-      [{ sender: "user", timestamp: "2026-05-07 17:00:00", body: "@G-SAP ping" }],
+      [{ sender: "user", timestamp: "2026-05-07 17:00:00", body: "@Codia ping" }],
       [],
     );
 
@@ -188,9 +188,9 @@ describe("ChannelRouter channel reply tool boundary", () => {
     expect(emit).toHaveBeenCalledWith(expect.objectContaining({
       type: "channel_new_message",
       channelName: "ch_crew",
-      sender: "gsap",
+      sender: "codia",
         message: expect.objectContaining({
-          sender: "gsap",
+          sender: "codia",
           body: "工具发送的 OK",
           blocks: [expect.objectContaining({
             type: "file",
@@ -233,12 +233,12 @@ describe("ChannelRouter channel reply tool boundary", () => {
 
   it("routes completed image generation results into the channel reply blocks", async () => {
     runAgentPhoneSessionMock.mockClear();
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-router-image-result-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-router-image-result-"));
     const channelsDir = path.join(root, "channels");
     const agentsDir = path.join(root, "agents");
     const userDir = path.join(root, "user");
     const generatedFile = path.join(root, "generated.png");
-    const phoneSessionPath = path.join(agentsDir, "gsap", "phone", "sessions", "ch_crew", "phone.jsonl");
+    const phoneSessionPath = path.join(agentsDir, "codia", "phone", "sessions", "ch_crew", "phone.jsonl");
 
     runAgentPhoneSessionMock.mockImplementationOnce(async (_agentId, _rounds, options) => {
       options.onEvent?.({
@@ -262,11 +262,11 @@ describe("ChannelRouter channel reply tool boundary", () => {
       return "";
     });
 
-    fs.mkdirSync(path.join(agentsDir, "gsap"), { recursive: true });
+    fs.mkdirSync(path.join(agentsDir, "codia"), { recursive: true });
     fs.mkdirSync(channelsDir, { recursive: true });
     fs.mkdirSync(userDir, { recursive: true });
-    fs.writeFileSync(path.join(agentsDir, "gsap", "config.yaml"), "agent:\n  name: G-SAP\n", "utf-8");
-    fs.writeFileSync(path.join(channelsDir, "ch_crew.md"), "---\nid: ch_crew\nmembers: [gsap]\n---\n", "utf-8");
+    fs.writeFileSync(path.join(agentsDir, "codia", "config.yaml"), "agent:\n  name: Codia\n", "utf-8");
+    fs.writeFileSync(path.join(channelsDir, "ch_crew.md"), "---\nid: ch_crew\nmembers: [codia]\n---\n", "utf-8");
 
     const emit = vi.fn();
     const deferredResults = {
@@ -295,16 +295,16 @@ describe("ChannelRouter channel reply tool boundary", () => {
           userDir,
           deferredResults,
           isChannelsEnabled: () => true,
-          getAgent: () => ({ config: { agent: { yuan: "gsap" } } }),
+          getAgent: () => ({ config: { agent: { yuan: "codia" } } }),
         },
         eventBus: { emit },
       },
     });
 
     const result = await router._executeCheck(
-      "gsap",
+      "codia",
       "ch_crew",
-      [{ sender: "user", timestamp: "2026-06-03 17:00:00", body: "@G-SAP 生成图片" }],
+      [{ sender: "user", timestamp: "2026-06-03 17:00:00", body: "@Codia 生成图片" }],
       [],
     );
 
@@ -338,7 +338,7 @@ describe("ChannelRouter channel reply tool boundary", () => {
     runAgentPhoneSessionMock.mockClear();
     loadLocale("en");
 
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-router-roles-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-router-roles-"));
     const channelsDir = path.join(root, "channels");
     const agentsDir = path.join(root, "agents");
     const userDir = path.join(root, "user");
@@ -360,7 +360,7 @@ describe("ChannelRouter channel reply tool boundary", () => {
           channelsDir,
           agentsDir,
           userDir,
-          getAgent: () => ({ config: { agent: { yuan: "gsap" } } }),
+          getAgent: () => ({ config: { agent: { yuan: "codia" } } }),
         },
         eventBus: { emit: vi.fn() },
       },
@@ -385,7 +385,7 @@ describe("ChannelRouter channel reply tool boundary", () => {
     runAgentPhoneSessionMock.mockClear();
     loadLocale("en");
 
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-router-company-task-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-router-company-task-"));
     const channelsDir = path.join(root, "channels");
     const agentsDir = path.join(root, "agents");
     const userDir = path.join(root, "user");
@@ -407,7 +407,7 @@ describe("ChannelRouter channel reply tool boundary", () => {
           channelsDir,
           agentsDir,
           userDir,
-          getAgent: () => ({ config: { agent: { yuan: "gsap" } } }),
+          getAgent: () => ({ config: { agent: { yuan: "codia" } } }),
         },
         eventBus: { emit: vi.fn() },
       },
@@ -436,7 +436,7 @@ describe("ChannelRouter channel reply tool boundary", () => {
     runAgentPhoneSessionMock.mockClear();
     loadLocale("en");
 
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-router-worker-role-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-router-worker-role-"));
     const channelsDir = path.join(root, "channels");
     const agentsDir = path.join(root, "agents");
     const userDir = path.join(root, "user");
@@ -477,7 +477,7 @@ describe("ChannelRouter channel reply tool boundary", () => {
               return null;
             }),
           },
-          getAgent: () => ({ config: { agent: { yuan: "gsap" } } }),
+          getAgent: () => ({ config: { agent: { yuan: "codia" } } }),
         },
         eventBus: { emit: vi.fn() },
       },

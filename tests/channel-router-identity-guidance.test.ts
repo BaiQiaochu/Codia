@@ -19,7 +19,7 @@ describe("ChannelRouter channel identity guidance", () => {
   let channelsDir;
 
   beforeEach(() => {
-    root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-identity-"));
+    root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-identity-"));
     channelsDir = path.join(root, "channels");
     fs.mkdirSync(channelsDir, { recursive: true });
     fs.writeFileSync(

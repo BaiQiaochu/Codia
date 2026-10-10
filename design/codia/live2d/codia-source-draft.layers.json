@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "layout": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-layout.json",
-  "output": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-source-draft.psd",
-  "preview": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-source-draft.preview.png",
+  "layout": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-layout.json",
+  "output": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-source-draft.psd",
+  "preview": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-source-draft.preview.png",
   "canvas": {
     "width": 2048,
     "height": 2048
@@ -16,14 +16,14 @@
   "cubismImport": "Not verified in Cubism Editor by this script.",
   "atlases": [
     {
-      "filename": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "filename": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "sha256": "ca78f5e9c844610d83630ff1278dfb4e9cc7d2c4498337f38c5840219baf9109"
     }
   ],
   "layers": [
     {
       "path": "/HandLeft/HandLeft_GripAndSleeve",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 670,
         "y": 978,
@@ -44,7 +44,7 @@
     },
     {
       "path": "/HandRight/HandRight_GripAndSleeve",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 371,
         "y": 977,
@@ -65,7 +65,7 @@
     },
     {
       "path": "/Head/Ahoge",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 1007,
         "y": 109,
@@ -86,7 +86,7 @@
     },
     {
       "path": "/Head/HairFront_GClip",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 309,
         "y": 65,
@@ -107,7 +107,7 @@
     },
     {
       "path": "/Head/HairSideRight",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 651,
         "y": 384,
@@ -128,7 +128,7 @@
     },
     {
       "path": "/Head/HairSideLeft",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 972,
         "y": 386,
@@ -149,7 +149,7 @@
     },
     {
       "path": "/Head/EyeLeft/EyeLeft_Iris",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 1006,
         "y": 739,
@@ -170,7 +170,7 @@
     },
     {
       "path": "/Head/EyeLeft/EyeLeft_WhiteAndLash",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 378,
         "y": 743,
@@ -191,7 +191,7 @@
     },
     {
       "path": "/Head/EyeRight/EyeRight_Iris",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 701,
         "y": 739,
@@ -212,7 +212,7 @@
     },
     {
       "path": "/Head/EyeRight/EyeRight_WhiteAndLash",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 34,
         "y": 742,
@@ -233,7 +233,7 @@
     },
     {
       "path": "/Head/BrowLeft",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 1125,
         "y": 1047,
@@ -254,7 +254,7 @@
     },
     {
       "path": "/Head/BrowRight",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 933,
         "y": 1047,
@@ -275,7 +275,7 @@
     },
     {
       "path": "/Head/FaceBase",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 24,
         "y": 65,
@@ -296,7 +296,7 @@
     },
     {
       "path": "/Head/HeadphoneRight",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 75,
         "y": 369,
@@ -317,7 +317,7 @@
     },
     {
       "path": "/Head/HeadphoneLeft",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 386,
         "y": 369,
@@ -338,7 +338,7 @@
     },
     {
       "path": "/Head/HairBack",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 629,
         "y": 65,
@@ -359,7 +359,7 @@
     },
     {
       "path": "/Body/Body_HoodieAndNeck",
-      "atlas": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
+      "atlas": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-parts-atlas.png",
       "crop": {
         "x": 1,
         "y": 930,

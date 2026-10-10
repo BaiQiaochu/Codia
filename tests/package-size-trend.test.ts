@@ -13,10 +13,9 @@ describe("package size trend", () => {
   });
 
   function makeRoot() {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-size-trend-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-size-trend-"));
     fs.mkdirSync(path.join(tempRoot, "desktop", "dist-renderer", "assets"), { recursive: true });
     fs.mkdirSync(path.join(tempRoot, "dist-server"), { recursive: true });
-    fs.mkdirSync(path.join(tempRoot, "vendor", "ocr-runtime"), { recursive: true });
     return tempRoot;
   }
 
@@ -76,7 +75,6 @@ describe("package size trend", () => {
       "surface-package",
       "renderer-assets",
       "server-bundle",
-      "ocr-runtime",
       "wasm-assets",
     ]);
   });

@@ -27,8 +27,8 @@ describe("buildCardDocument", () => {
   it("contains the resize/ping protocol needed by the iframe host", () => {
     const html = buildCardDocument({ code: "<div>x</div>" });
 
-    expect(html).toContain("gsap.card-resize");
-    expect(html).toContain("gsap.card-ping");
+    expect(html).toContain("codia.card-resize");
+    expect(html).toContain("codia.card-ping");
     expect(html).toContain("ResizeObserver");
   });
 

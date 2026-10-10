@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { createMediaDetails, defineTool } from "@g-sap/plugin-runtime";
+import { createMediaDetails, defineTool } from "@codia/plugin-runtime";
 
 const tool = defineTool({
   name: "sdk_showcase_create_note",
@@ -23,7 +23,7 @@ const tool = defineTool({
     const title = typeof input.title === "string" && input.title.trim()
       ? input.title.trim()
       : "SDK Showcase Note";
-    const body = typeof input.body === "string" ? input.body : "Generated from the G-SAP plugin runtime SDK.";
+    const body = typeof input.body === "string" ? input.body : "Generated from the Codia plugin runtime SDK.";
     const safeName = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "note";
     const outputDir = path.join(toolCtx.dataDir, "notes");
     const filePath = path.join(outputDir, `${safeName}.md`);

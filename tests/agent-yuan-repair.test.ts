@@ -28,13 +28,13 @@ describe("Agent yuan repair state", () => {
   let userDir;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-yuan-repair-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-yuan-repair-"));
     agentsDir = path.join(tmpDir, "agents");
     productDir = path.join(tmpDir, "product");
     userDir = path.join(tmpDir, "user");
     fs.mkdirSync(path.join(productDir, "yuan"), { recursive: true });
     fs.mkdirSync(userDir, { recursive: true });
-    fs.writeFileSync(path.join(productDir, "yuan", "gsap.md"), "valid yuan\n", "utf-8");
+    fs.writeFileSync(path.join(productDir, "yuan", "codia.md"), "valid yuan\n", "utf-8");
   });
 
   afterEach(() => {
@@ -62,7 +62,7 @@ describe("Agent yuan repair state", () => {
   });
 
   it("leaves a valid persisted yuan healthy", () => {
-    writeAgentConfig(path.join(agentsDir, "healthy"), "gsap");
+    writeAgentConfig(path.join(agentsDir, "healthy"), "codia");
     const agent = new Agent({
       id: "healthy",
       agentsDir,

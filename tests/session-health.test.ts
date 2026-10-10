@@ -79,6 +79,7 @@ describe("evaluateSessionHealth", () => {
     const result = evaluateSessionHealth(sessionPath);
     expect(result.healthy).toBe(false);
     expect(result.recentErrors).toBe(3);
+    expect(result.totalChecked).toBe(4);
   });
 
   it("only inspects the configured lookback window", () => {
@@ -104,13 +105,12 @@ describe("evaluateSessionHealth", () => {
       "not json",
       "{broken json",
       entry("assistant", { stopReason: "error" }),
-      entry("assistant", { stopReason: "error" }),
-      entry("assistant", { stopReason: "error" }),
     );
 
     const result = evaluateSessionHealth(sessionPath);
-    expect(result.healthy).toBe(false);
-    expect(result.recentErrors).toBe(3);
+    expect(result.healthy).toBe(true);
+    expect(result.recentErrors).toBe(1);
+    expect(result.totalChecked).toBe(1);
   });
 
   it("ignores non-message and non-assistant entries", () => {

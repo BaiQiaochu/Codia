@@ -25,7 +25,7 @@ describe('feature completion UI contracts', () => {
     const agentCardStack = read('settings/tabs/agent/AgentCardStack.tsx');
 
     expect(actions).toContain('export async function setPrimaryAgent');
-    expect(actions).toContain("gsapFetch('/api/agents/primary'");
+    expect(actions).toContain("codiaFetch('/api/agents/primary'");
     expect(agentTab).toContain('setPrimaryAgent');
     expect(agentTab).toContain('onSetPrimary=');
     expect(agentCardStack).toContain('onSetPrimary');
@@ -42,7 +42,7 @@ describe('feature completion UI contracts', () => {
     expect(library).toContain("attachToInput(file, 'channel')");
     expect(library).toContain("target: 'workflow'");
     expect(library).toContain('setPendingChannelResourceAction');
-    expect(workflow).toContain('gsap-channel-workflow-add-resource');
+    expect(workflow).toContain('codia-channel-workflow-add-resource');
   });
 
   it('keeps workflow replay UI contracts without backend diagnostic workspace tabs', () => {
@@ -79,7 +79,7 @@ describe('feature completion UI contracts', () => {
     expect(rightWorkspace).not.toMatch(/MigrationAudit|LinkSafetyPreview|migration-audit|link-preview/);
     expect(rightWorkspaceCss).not.toMatch(/auditPanel|linkPreview/);
     expect(uiSlice).not.toMatch(/LinkSafetyPreview|linkSafetyPreview|setLinkSafetyPreview/);
-    expect(linkOpen).not.toMatch(/previewInternalLink|gsap-link-safety-preview|setLinkSafetyPreview/);
+    expect(linkOpen).not.toMatch(/previewInternalLink|codia-link-safety-preview|setLinkSafetyPreview/);
     expect(systemHealthRoute).not.toContain('/system/migration-audit');
     expect(packageJson.scripts).not.toHaveProperty('audit:cli-migration');
     expect(packageJson.scripts['test:core']).not.toContain('tests/cli-migration-map.test.js');
@@ -92,6 +92,6 @@ describe('feature completion UI contracts', () => {
     expect(plugins).toContain('capabilityMatrix');
     expect(diagnostics).toContain('/api/system/diagnostic-package');
     expect(diagnostics).toContain('captureUiSnapshot');
-    expect(diagnostics).toContain('downloadJson(`gsap-diagnostic-package-');
+    expect(diagnostics).toContain('downloadJson(`codia-diagnostic-package-');
   });
 });

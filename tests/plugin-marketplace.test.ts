@@ -11,7 +11,7 @@ import {
 
 describe("PluginMarketplace", () => {
   it("loads local marketplace entries and resolves source/readme paths", async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-marketplace-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-marketplace-"));
     try {
       fs.mkdirSync(path.join(dir, "plugins", "demo"), { recursive: true });
       fs.writeFileSync(path.join(dir, "plugins", "demo", "manifest.json"), "{}", "utf8");
@@ -23,7 +23,7 @@ describe("PluginMarketplace", () => {
           schemaVersion: 1,
           id: "demo",
           name: "Demo",
-          publisher: "G-SAP",
+          publisher: "Codia",
           version: "1.0.0",
           description: "Demo plugin",
           repository: "https://example.com/demo",
@@ -64,7 +64,7 @@ describe("PluginMarketplace", () => {
     });
   });
 
-  it("does not use an upstream marketplace by default without a configured G-SAP source", async () => {
+  it("does not use an upstream marketplace by default without a configured Codia source", async () => {
     const marketplace = createDefaultPluginMarketplace({
       env: {},
       fetchImpl: async () => {
@@ -79,12 +79,12 @@ describe("PluginMarketplace", () => {
       },
       plugins: [],
     });
-    expect(DEFAULT_OFFICIAL_PLUGIN_MARKETPLACE_URL).not.toMatch(/openhanako|hanako|OH-Plugins|liliMozi/i);
+    expect(DEFAULT_OFFICIAL_PLUGIN_MARKETPLACE_URL).not.toMatch(/codia|codia|OH-Plugins|liliMozi/i);
   });
 
   it("resolves readmePath relative to URL marketplaces", async () => {
     const marketplace = new PluginMarketplace({
-      indexUrl: "https://plugins.g-sap.example/marketplace.json",
+      indexUrl: "https://plugins.codia.example/marketplace.json",
       fetchImpl: async (url) => {
         if (url.endsWith("/marketplace.json")) {
           return Response.json({
@@ -93,7 +93,7 @@ describe("PluginMarketplace", () => {
               schemaVersion: 1,
               id: "demo",
               name: "Demo",
-              publisher: "G-SAP",
+              publisher: "Codia",
               version: "1.0.0",
               description: "Demo plugin",
               repository: "https://example.com/demo",
@@ -106,14 +106,14 @@ describe("PluginMarketplace", () => {
             }],
           });
         }
-        expect(url).toBe("https://plugins.g-sap.example/plugins/demo/README.md");
+        expect(url).toBe("https://plugins.codia.example/plugins/demo/README.md");
         return new Response("# Demo from URL");
       },
     });
 
     const data = await marketplace.load();
     expect(data.plugins[0].readmePath).toBeNull();
-    expect(data.plugins[0].readmeUrl).toBe("https://plugins.g-sap.example/plugins/demo/README.md");
+    expect(data.plugins[0].readmeUrl).toBe("https://plugins.codia.example/plugins/demo/README.md");
     await expect(marketplace.getReadme("demo")).resolves.toBe("# Demo from URL");
   });
 });

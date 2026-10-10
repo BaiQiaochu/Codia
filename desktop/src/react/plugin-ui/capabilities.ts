@@ -1,4 +1,4 @@
-import { PLUGIN_UI_CAPABILITY } from '@g-sap/plugin-protocol';
+import { PLUGIN_UI_CAPABILITY } from '@codia/plugin-protocol';
 import { useStore } from '../stores';
 import type { Toast } from '../stores/toast-slice';
 import type {

@@ -46,14 +46,14 @@ describe("SessionCoordinator deferred custom delivery", () => {
     coord.steerSession = vi.fn();
 
     const result = await coord.deliverCustomMessage(sessionPath, {
-      customType: "hana-background-result",
-      content: "<hana-background-result />",
+      customType: "codia-background-result",
+      content: "<codia-background-result />",
       display: false,
     });
 
     expect(result).toMatchObject({ ok: true, mode: "triggerTurn" });
     expect(session.sendCustomMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ customType: "hana-background-result", display: false }),
+      expect.objectContaining({ customType: "codia-background-result", display: false }),
       { triggerTurn: true },
     );
     expect(coord.steerSession).not.toHaveBeenCalled();
@@ -70,14 +70,14 @@ describe("SessionCoordinator deferred custom delivery", () => {
     });
 
     const result = await coord.deliverCustomMessage(sessionPath, {
-      customType: "hana-background-result",
-      content: "<hana-background-result />",
+      customType: "codia-background-result",
+      content: "<codia-background-result />",
       display: false,
     });
 
     expect(result).toMatchObject({ ok: true, mode: "followUp" });
     expect(session.sendCustomMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ customType: "hana-background-result", display: false }),
+      expect.objectContaining({ customType: "codia-background-result", display: false }),
       { deliverAs: "followUp" },
     );
   });
@@ -96,15 +96,15 @@ describe("SessionCoordinator deferred custom delivery", () => {
     });
 
     const result = await coord.deliverCustomMessage(sessionPath, {
-      customType: "hana-background-result",
-      content: "<hana-background-result />",
+      customType: "codia-background-result",
+      content: "<codia-background-result />",
       display: false,
     });
 
     expect(result).toMatchObject({ ok: true, mode: "triggerTurn" });
     expect(coord.ensureSessionLoaded).toHaveBeenCalledWith(sessionPath);
     expect(session.sendCustomMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ customType: "hana-background-result", display: false }),
+      expect.objectContaining({ customType: "codia-background-result", display: false }),
       { triggerTurn: true },
     );
   });
@@ -116,8 +116,8 @@ describe("SessionCoordinator deferred custom delivery", () => {
 
     await expect(
       coord.deliverCustomMessage(archivedPath, {
-        customType: "hana-background-result",
-        content: "<hana-background-result />",
+        customType: "codia-background-result",
+        content: "<codia-background-result />",
         display: false,
       }),
     ).rejects.toThrow(/active desktop session/);
@@ -138,8 +138,8 @@ describe("SessionCoordinator deferred custom delivery", () => {
     const result = await coord.deliverCustomMessage(
       sessionPath,
       {
-        customType: "hana-background-result",
-        content: "<hana-background-result />",
+        customType: "codia-background-result",
+        content: "<codia-background-result />",
         display: false,
       },
       { triggerTurn: false },
@@ -147,7 +147,7 @@ describe("SessionCoordinator deferred custom delivery", () => {
 
     expect(result).toMatchObject({ ok: true, mode: "notifyOnly" });
     expect(session.sendCustomMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ customType: "hana-background-result", display: false }),
+      expect.objectContaining({ customType: "codia-background-result", display: false }),
       { triggerTurn: false },
     );
   });
@@ -165,13 +165,13 @@ describe("SessionCoordinator deferred custom delivery", () => {
       lastTouchedAt: 0,
     });
 
-    const result = coord.recordCustomEntry(sessionPath, "hana-deferred-result", {
+    const result = coord.recordCustomEntry(sessionPath, "codia-deferred-result", {
       taskId: "task-img",
     });
 
     expect(result).toMatchObject({ ok: true, mode: "live" });
     expect((session as any).sessionManager.appendCustomEntry).toHaveBeenCalledWith(
-      "hana-deferred-result",
+      "codia-deferred-result",
       { taskId: "task-img" },
     );
     expect(session.sendCustomMessage).not.toHaveBeenCalled();

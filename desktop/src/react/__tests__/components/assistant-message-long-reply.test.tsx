@@ -31,6 +31,7 @@ type TestPlatform = {
 
 let storeState: MockStoreState;
 const pluginCardMockState = vi.hoisted(() => ({ shouldThrow: false }));
+const mediaViewerMockState = vi.hoisted(() => ({ open: vi.fn() }));
 
 const useStoreMock = Object.assign(
   <T,>(selector: (state: MockStoreState) => T): T => selector(storeState),
@@ -43,9 +44,9 @@ vi.mock('../../stores', () => ({
   useStore: useStoreMock,
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: vi.fn(),
-  gsapUrl: (path: string) => path,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: vi.fn(),
+  codiaUrl: (path: string) => path,
 }));
 
 vi.mock('../../stores/session-selectors', () => ({
@@ -56,6 +57,10 @@ vi.mock('../../stores/session-selectors', () => ({
 vi.mock('../../utils/file-preview', () => ({
   openFilePreview: vi.fn(),
   openSkillPreview: vi.fn(),
+}));
+
+vi.mock('../../utils/open-media-viewer', () => ({
+  openMediaViewerForRef: mediaViewerMockState.open,
 }));
 
 vi.mock('../../stores/preview-actions', () => ({
@@ -121,8 +126,8 @@ describe('AssistantMessage long reply rendering', () => {
     pluginCardMockState.shouldThrow = false;
     storeState = {
       agents: [],
-      agentName: 'G-SAP',
-      agentYuan: 'gsap',
+      agentName: 'Codia',
+      agentYuan: 'codia',
       voiceSpeakingMessageId: null,
       chatSessions: {},
       sessionRegistryFilesByPath: {},
@@ -355,6 +360,16 @@ describe('AssistantMessage long reply rendering', () => {
     expect(screen.getByRole('button', { name: '放大' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '适配宽度' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '展开查看' })).toBeTruthy();
+
+    fireEvent.click(image as HTMLImageElement);
+    expect(mediaViewerMockState.open).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileId: 'file-diagram-1',
+        path: 'C:/workspace/output/diagram.png',
+        previewUrl: 'file://C:/workspace/output/diagram.png',
+      }),
+      expect.objectContaining({ origin: 'session', sessionPath: 'session://generated-diagram' }),
+    );
 
     fireEvent.click(screen.getByRole('button', { name: '放大' }));
     expect(image?.style.width).toBe('120%');

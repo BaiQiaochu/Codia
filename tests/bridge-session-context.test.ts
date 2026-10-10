@@ -13,7 +13,7 @@ describe("BridgeSessionManager bridge context lookup", () => {
   });
 
   function makeManager() {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-bridge-context-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bridge-context-"));
     const agent = {
       id: "agent-a",
       sessionDir: path.join(tempRoot, "sessions"),

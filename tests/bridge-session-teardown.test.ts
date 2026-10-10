@@ -1,5 +1,5 @@
 // @ts-nocheck
-// Upstream reference test migrated and debranded; skipped until the matching G-SAP source contract is migrated.
+// Upstream reference test migrated and debranded; skipped until the matching Codia source contract is migrated.
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -69,7 +69,7 @@ function makeAgent(rootDir, id = "agent-a") {
 
 function makeDeps(agent) {
   return {
-    getHanakoHome: () => rootDir,
+    getCodiaHome: () => rootDir,
     getAgent: () => agent,
     getAgentById: (id) => (id === agent.id ? agent : null),
     getAgents: () => new Map([[agent.id, agent]]),
@@ -665,14 +665,14 @@ describe.skip("BridgeSessionManager teardown", () => {
 
     const result = manager.recordCustomEntryForSessionPath(
       sessionFile,
-      "hana-deferred-result",
+      "codia-deferred-result",
       { taskId: "task-img" },
       { agentId: "agent-a" },
     );
 
     expect(result).toMatchObject({ ok: true, mode: "bridge-file" });
     expect(sessionManagerOpenMock).toHaveBeenCalledWith(sessionFile, path.dirname(sessionFile));
-    expect(appendCustomEntry).toHaveBeenCalledWith("hana-deferred-result", { taskId: "task-img" });
+    expect(appendCustomEntry).toHaveBeenCalledWith("codia-deferred-result", { taskId: "task-img" });
   });
 
   it.skip("records non-context custom entries through the live bridge session manager when loaded", () => {
@@ -695,14 +695,14 @@ describe.skip("BridgeSessionManager teardown", () => {
 
     const result = manager.recordCustomEntryForSessionPath(
       sessionFile,
-      "hana-deferred-result",
+      "codia-deferred-result",
       { taskId: "task-img" },
       { agentId: "agent-a" },
     );
 
     expect(result).toMatchObject({ ok: true, mode: "bridge-live" });
     expect(sessionManagerOpenMock).not.toHaveBeenCalled();
-    expect(appendCustomEntry).toHaveBeenCalledWith("hana-deferred-result", { taskId: "task-img" });
+    expect(appendCustomEntry).toHaveBeenCalledWith("codia-deferred-result", { taskId: "task-img" });
   });
 
   it.skip("registers bridge inbound image files after the bridge session path exists", async () => {
@@ -1360,7 +1360,7 @@ describe.skip("BridgeSessionManager teardown", () => {
     expect(session.prompt).toHaveBeenCalledWith("hello", undefined);
   });
 
-  it.skip("bridge vision context injection uses captured G-SAP refs when Pi context is stale", async () => {
+  it.skip("bridge vision context injection uses captured Codia refs when Pi context is stale", async () => {
     const agent = makeAgent(rootDir);
     const sessionFile = path.join(agent.sessionDir, "bridge", "owner", "s-vision-restore.jsonl");
     const imagePath = path.join(rootDir, "bridge-upload.png");
@@ -1407,7 +1407,7 @@ describe.skip("BridgeSessionManager teardown", () => {
       prompt: vi.fn(async () => {
         const resourceLoader = createAgentSessionMock.mock.calls.at(-1)[0].resourceLoader;
         const extension = resourceLoader.getExtensions().extensions
-          .find((entry) => entry.path === "hana-vision-context-injection");
+          .find((entry) => entry.path === "codia-vision-context-injection");
         const handler = extension.handlers.get("context")[0];
         const staleCtx = {
           get sessionManager() {

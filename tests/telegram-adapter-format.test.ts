@@ -15,7 +15,7 @@ vi.mock("../lib/bridge/telegram-client.js", () => {
       this.sendAudio = vi.fn(async () => {});
       this.sendDocument = vi.fn(async () => {});
       this._request = vi.fn(async () => {});
-      this.getMe = vi.fn(async () => ({ username: "hana" }));
+      this.getMe = vi.fn(async () => ({ username: "codia" }));
       botInstances.push(this);
     }
   }
@@ -37,7 +37,7 @@ describe("createTelegramAdapter Telegram formatting", () => {
   function makeAdapter() {
     const adapter = createTelegramAdapter({
       token: "tg-token",
-      agentId: "hana",
+      agentId: "codia",
       onMessage: vi.fn(),
     });
     return { adapter, bot: botInstances[0] };

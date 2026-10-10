@@ -7,9 +7,15 @@ import styles from './Chat.module.css';
 
 interface FileOutputActionsProps {
   filePath: string;
+  localFilePath?: string | null;
   displayName: string;
   downloadUrl?: string | null;
   downloadName?: string;
+}
+
+function isNativeAbsolutePath(value: string): boolean {
+  if (!value || /^(?:https?:|data:|blob:|file:)/i.test(value)) return false;
+  return /^(?:[a-z]:[\\/]|\\\\[^\\/]+[\\/][^\\/]+|\/\/[^/]+\/[^/]+|\/)/i.test(value);
 }
 
 function textWithFallback(key: string, fallback: string) {
@@ -77,8 +83,9 @@ function ScreenshotIcon() {
   );
 }
 
-export function FileOutputActions({ filePath, displayName, downloadUrl, downloadName }: FileOutputActionsProps) {
+export function FileOutputActions({ filePath, localFilePath, displayName, downloadUrl, downloadName }: FileOutputActionsProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [actionError, setActionError] = useState('');
   const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -90,26 +97,35 @@ export function FileOutputActions({ filePath, displayName, downloadUrl, download
   const downloadLabel = textWithFallback('chat.fileActions.downloadToDevice', 'Download to device');
   const screenshotLabel = textWithFallback('common.screenshotShare', 'Screenshot share');
   const isWebRuntime = document.documentElement.getAttribute('data-platform') === 'web';
-  const canOpenLocalFile = !isWebRuntime && typeof window.platform?.openFile === 'function';
-  const canRevealLocalFile = !isWebRuntime && typeof window.platform?.showInFinder === 'function';
+  const nativePath = localFilePath || (isNativeAbsolutePath(filePath) ? filePath : null);
+  const canOpenLocalFile = !isWebRuntime && !!nativePath && typeof window.platform?.openFile === 'function';
+  const canRevealLocalFile = !isWebRuntime && !!nativePath && typeof window.platform?.showInFinder === 'function';
   const canScreenshotShare = isMarkdownFileName(displayName) || isMarkdownFileName(filePath);
   const resolvedDownloadName = downloadName || displayName;
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
-  const handleOpen = useCallback((event: ReactMouseEvent) => {
+  const handleOpen = useCallback(async (event: ReactMouseEvent) => {
     event.stopPropagation();
-    window.platform?.openFile?.(filePath);
-  }, [filePath]);
+    if (!nativePath) return;
+    const result = await window.platform?.openFile?.(nativePath);
+    setActionError(result && !result.success ? (result.message || textWithFallback('common.operationFailed', 'Operation failed')) : '');
+  }, [nativePath]);
 
   const handleToggleMenu = useCallback((event: ReactMouseEvent) => {
     event.stopPropagation();
     setMenuOpen(open => !open);
   }, []);
 
-  const revealFile = useCallback(() => {
-    window.platform?.showInFinder?.(filePath);
-  }, [filePath]);
+  const revealFile = useCallback(async () => {
+    if (!nativePath) return;
+    try {
+      const result = await window.platform?.showInFinder?.(nativePath);
+      setActionError(result && !result.success ? (result.message || textWithFallback('common.operationFailed', 'Operation failed')) : '');
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : String(error));
+    }
+  }, [nativePath]);
 
   const copyPath = useCallback(() => {
     void writeClipboardText(filePath);
@@ -175,6 +191,7 @@ export function FileOutputActions({ filePath, displayName, downloadUrl, download
 
   return (
     <div className={styles.fileOutputActions} data-file-output-actions="">
+      {actionError && <span className={styles.fileOutputActionError} role="status" title={actionError}>!</span>}
       {canOpenLocalFile ? (
         <button
           type="button"

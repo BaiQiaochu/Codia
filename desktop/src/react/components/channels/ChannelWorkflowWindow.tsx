@@ -12,7 +12,7 @@ import { createPortal } from 'react-dom';
 import { useStore } from '../../stores';
 import { normalizeAgentActivityList, type AgentActivityEntry } from '../../stores/agent-activity-slice';
 import type { AgentPhoneActivity, ChannelMessage } from '../../types';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { createChannel, openChannel, toggleChannelsEnabled } from '../../stores/channel-actions';
 import {
   validateWorkflowTemplateDraft,
@@ -189,7 +189,7 @@ const WORKFLOW_CANVAS_EXPAND_MARGIN = 1400;
 const WORKFLOW_ZOOM_MIN = 0.5;
 const WORKFLOW_ZOOM_MAX = 1.5;
 const WORKFLOW_ZOOM_STEP = 0.1;
-const WORKFLOW_STORAGE_PREFIX = 'gsap.channel.workflow.';
+const WORKFLOW_STORAGE_PREFIX = 'codia.channel.workflow.';
 const EMPTY_ACTIVITY_ENTRIES: AgentActivityEntry[] = [];
 const EMPTY_CHANNEL_MESSAGES: ChannelMessage[] = [];
 
@@ -636,7 +636,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
   const selectedFolder = useStore(s => s.selectedFolder);
   const selectedWorkspaceMountId = useStore(s => s.selectedWorkspaceMountId);
   const workflowWorkspaceKey = selectedWorkspaceMountId || selectedFolder || 'default';
-  const executionBindingKey = `gsap.workflow.execution-channel.${encodeURIComponent(workflowWorkspaceKey)}`;
+  const executionBindingKey = `codia.workflow.execution-channel.${encodeURIComponent(workflowWorkspaceKey)}`;
   const [executionChannelId, setExecutionChannelId] = useState(() => standalone ? localStorage.getItem(executionBindingKey) || '' : '');
   const [executionSetupOpen, setExecutionSetupOpen] = useState(false);
   const [executionChannelName, setExecutionChannelName] = useState('');
@@ -747,7 +747,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     setCompanyError('');
     setCompanyStatus(null);
     try {
-      const res = await gsapFetch('/api/plugins/company/companies/default/status');
+      const res = await codiaFetch('/api/plugins/company/companies/default/status');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setCompanyStatus({
@@ -978,7 +978,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     setTemplateGenerating(true);
     setTemplateError('');
     try {
-      const response = await gsapFetch('/api/workspace-tools/resolve', {
+      const response = await codiaFetch('/api/workspace-tools/resolve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: abortController.signal,
@@ -1178,8 +1178,8 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     const handleResource = (event: Event) => {
       addWorkflowResourceNode((event as CustomEvent<WorkflowResourceEventDetail>).detail || {});
     };
-    window.addEventListener('gsap-channel-workflow-add-resource', handleResource);
-    return () => window.removeEventListener('gsap-channel-workflow-add-resource', handleResource);
+    window.addEventListener('codia-channel-workflow-add-resource', handleResource);
+    return () => window.removeEventListener('codia-channel-workflow-add-resource', handleResource);
   }, [addWorkflowResourceNode]);
 
   useEffect(() => {
@@ -1254,7 +1254,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     }
     setSelectedNodeId(node.id);
     if (node.taskId) {
-      window.dispatchEvent(new CustomEvent('gsap-channel-workflow-focus-task', {
+      window.dispatchEvent(new CustomEvent('codia-channel-workflow-focus-task', {
         detail: { taskId: node.taskId, nodeId: node.id, channelId: workflowChannelId },
       }));
     }
@@ -1334,7 +1334,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     setTriggering(true);
     try {
       if (workflowPlan.nodes.length > 0) {
-        const assignRes = await gsapFetch('/api/plugins/company/tasks/assign-from-workflow', {
+        const assignRes = await codiaFetch('/api/plugins/company/tasks/assign-from-workflow', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1345,7 +1345,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
         });
         if (!assignRes.ok) throw new Error(`HTTP ${assignRes.status}`);
       }
-      const res = await gsapFetch(`/api/channels/${encodeURIComponent(workflowChannelId)}/trigger`, {
+      const res = await codiaFetch(`/api/channels/${encodeURIComponent(workflowChannelId)}/trigger`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ source: 'workflow_window', workflowPlan, mentionedAgents }),
@@ -1916,8 +1916,8 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
       setSelectedNodeId(nodeId);
       scrollWorkflowNodeIntoView(nodeId);
     };
-    window.addEventListener('gsap-channel-task-focus-workflow', handleTaskFocus);
-    return () => window.removeEventListener('gsap-channel-task-focus-workflow', handleTaskFocus);
+    window.addEventListener('codia-channel-task-focus-workflow', handleTaskFocus);
+    return () => window.removeEventListener('codia-channel-task-focus-workflow', handleTaskFocus);
   }, [nodeById, open, scrollWorkflowNodeIntoView, workflowChannelId]);
 
   const timelineItems = useMemo<WorkflowTimelineItem[]>(() => {
@@ -2048,7 +2048,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     setSelectedNodeId(item.nodeId);
     scrollWorkflowNodeIntoView(item.nodeId);
     if (item.nodeId.startsWith('task:')) {
-      window.dispatchEvent(new CustomEvent('gsap-channel-workflow-focus-task', {
+      window.dispatchEvent(new CustomEvent('codia-channel-workflow-focus-task', {
         detail: { taskId: item.nodeId.slice(5), nodeId: item.nodeId, channelId: workflowChannelId },
       }));
     }
@@ -2081,7 +2081,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     };
     setWorkflowReplayRerunning(true);
     try {
-      const assignRes = await gsapFetch('/api/plugins/company/tasks/assign-from-workflow', {
+      const assignRes = await codiaFetch('/api/plugins/company/tasks/assign-from-workflow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2091,7 +2091,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
         }),
       });
       if (!assignRes.ok) throw new Error(`HTTP ${assignRes.status}`);
-      const res = await gsapFetch(`/api/channels/${encodeURIComponent(workflowChannelId)}/trigger`, {
+      const res = await codiaFetch(`/api/channels/${encodeURIComponent(workflowChannelId)}/trigger`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -5,16 +5,16 @@ import path from "path";
 import { COMPUTER_USE_ERRORS, computerUseError } from "../errors.ts";
 import { createCommandRunner } from "./command-runner.ts";
 
-const GSAP_CURSOR_BLOOM_COLOR = "#537D96";
-const GSAP_CURSOR_GRADIENT_COLORS = Object.freeze(["#FFFDF8", "#8FAABD", "#2F4A56"]);
-const GSAP_CUA_CURSOR_STYLE = Object.freeze({
-  gradient_colors: GSAP_CURSOR_GRADIENT_COLORS,
-  bloom_color: GSAP_CURSOR_BLOOM_COLOR,
+const CODIA_CURSOR_BLOOM_COLOR = "#537D96";
+const CODIA_CURSOR_GRADIENT_COLORS = Object.freeze(["#FFFDF8", "#8FAABD", "#2F4A56"]);
+const CODIA_CUA_CURSOR_STYLE = Object.freeze({
+  gradient_colors: CODIA_CURSOR_GRADIENT_COLORS,
+  bloom_color: CODIA_CURSOR_BLOOM_COLOR,
   image_path: "",
 });
-const GSAP_AGENT_CURSOR_CONFIG_ENV = "GSAP_AGENT_CURSOR_CONFIG_JSON";
-const GSAP_AGENT_SOCKET_PATH_ENV = "GSAP_COMPUTER_USE_SOCKET_PATH";
-const GSAP_CURSOR_MOTION = Object.freeze({
+const CODIA_AGENT_CURSOR_CONFIG_ENV = "CODIA_AGENT_CURSOR_CONFIG_JSON";
+const CODIA_AGENT_SOCKET_PATH_ENV = "CODIA_COMPUTER_USE_SOCKET_PATH";
+const CODIA_CURSOR_MOTION = Object.freeze({
   start_handle: 0.38,
   end_handle: 0.28,
   arc_size: 0.08,
@@ -40,25 +40,25 @@ function expandHome(filePath, homeDir = os.homedir()) {
 }
 
 function helperPath(root) {
-  return path.posix.join(root, "gsap-computer-use-helper");
+  return path.posix.join(root, "codia-computer-use-helper");
 }
 
-function defaultGsapComputerUseSocketPath(homeDir = os.homedir()) {
-  return path.posix.join(homeDir, "Library", "Caches", "gsap-computer-use", "gsap-computer-use-helper.sock");
+function defaultCodiaComputerUseSocketPath(homeDir = os.homedir()) {
+  return path.posix.join(homeDir, "Library", "Caches", "codia-computer-use", "codia-computer-use-helper.sock");
 }
 
-function commandIsBundledGsapHelper(command) {
-  return path.basename(String(command || "")) === "gsap-computer-use-helper";
+function commandIsBundledCodiaHelper(command) {
+  return path.basename(String(command || "")) === "codia-computer-use-helper";
 }
 
-function bundledHelperCandidates({ env, gsapRoot, cwd, arch }) {
+function bundledHelperCandidates({ env, codiaRoot, cwd, arch }) {
   const roots = [];
-  if (env.GSAP_COMPUTER_USE_RUNTIME_ROOT) {
-    roots.push(env.GSAP_COMPUTER_USE_RUNTIME_ROOT);
+  if (env.CODIA_COMPUTER_USE_RUNTIME_ROOT) {
+    roots.push(env.CODIA_COMPUTER_USE_RUNTIME_ROOT);
   }
-  if (gsapRoot) {
-    roots.push(path.posix.resolve(gsapRoot, "..", "computer-use", "macos"));
-    roots.push(path.posix.resolve(gsapRoot, "dist-computer-use", `mac-${arch}`));
+  if (codiaRoot) {
+    roots.push(path.posix.resolve(codiaRoot, "..", "computer-use", "macos"));
+    roots.push(path.posix.resolve(codiaRoot, "dist-computer-use", `mac-${arch}`));
   }
   if (cwd) {
     roots.push(path.posix.resolve(cwd, "dist-computer-use", `mac-${arch}`));
@@ -70,16 +70,14 @@ export function resolveCuaDriverCommand({
   env = process.env,
   homeDir = os.homedir(),
   existsSync = fs.existsSync,
-  gsapRoot = env.GSAP_ROOT,
+  codiaRoot = env.CODIA_ROOT,
   cwd = process.cwd(),
   arch = process.arch,
 } = {}) {
   const candidates = [
-    env.GSAP_COMPUTER_USE_HELPER_PATH,
-    env.GSAP_COMPUTER_USE_HELPER_PATH,
-    ...bundledHelperCandidates({ env, gsapRoot, cwd, arch }),
-    env.GSAP_CUA_DRIVER_PATH,
-    env.GSAP_CUA_DRIVER_PATH,
+    env.CODIA_COMPUTER_USE_HELPER_PATH,
+    ...bundledHelperCandidates({ env, codiaRoot, cwd, arch }),
+    env.CODIA_CUA_DRIVER_PATH,
     "~/.local/bin/cua-driver",
     "/usr/local/bin/cua-driver",
     "/Applications/CuaDriver.app/Contents/MacOS/cua-driver",
@@ -485,26 +483,26 @@ export function createMacosCuaProvider({
   providerId = "macos:cua",
   platform = process.platform,
   command = resolveCuaDriverCommand(),
-  cursorStyle = GSAP_CUA_CURSOR_STYLE,
+  cursorStyle = CODIA_CUA_CURSOR_STYLE,
   cursorImagePath = null,
-  cursorBloomColor = GSAP_CURSOR_BLOOM_COLOR,
+  cursorBloomColor = CODIA_CURSOR_BLOOM_COLOR,
   cursorEnabled = true,
-  cursorMotion = GSAP_CURSOR_MOTION,
+  cursorMotion = CODIA_CURSOR_MOTION,
   runner = createCommandRunner(),
   timeoutMs = 30000,
   launchRetryAttempts = 3,
   launchRetryDelayMs = 350,
-  socketPath = process.env[GSAP_AGENT_SOCKET_PATH_ENV] || defaultGsapComputerUseSocketPath(),
+  socketPath = process.env[CODIA_AGENT_SOCKET_PATH_ENV] || defaultCodiaComputerUseSocketPath(),
   autoStartDaemon = null,
   daemonStartupTimeoutMs = 5000,
 } = {}) {
   let nativeCursorConfigPromise = null;
   let daemonStartPromise = null;
-  const bundledGsapHelper = commandIsBundledGsapHelper(command);
-  const shouldAutoStartDaemon = autoStartDaemon ?? bundledGsapHelper;
+  const bundledCodiaHelper = commandIsBundledCodiaHelper(command);
+  const shouldAutoStartDaemon = autoStartDaemon ?? bundledCodiaHelper;
   const resolvedCursorStyle = normalizeCursorStyle({ cursorStyle, cursorImagePath, cursorBloomColor });
-  const nativeCursorEnabled = bundledGsapHelper && cursorEnabled !== false && Boolean(resolvedCursorStyle);
-  const gsapCursorRuntimeConfig = resolvedCursorStyle && bundledGsapHelper
+  const nativeCursorEnabled = bundledCodiaHelper && cursorEnabled !== false && Boolean(resolvedCursorStyle);
+  const codiaCursorRuntimeConfig = resolvedCursorStyle && bundledCodiaHelper
     ? {
         enabled: cursorEnabled !== false,
         style: { ...resolvedCursorStyle },
@@ -515,10 +513,10 @@ export function createMacosCuaProvider({
   function runEnv(baseEnv) {
     return {
       ...(baseEnv || process.env),
-      [GSAP_AGENT_SOCKET_PATH_ENV]: socketPath,
-      ...(gsapCursorRuntimeConfig
+      [CODIA_AGENT_SOCKET_PATH_ENV]: socketPath,
+      ...(codiaCursorRuntimeConfig
         ? {
-            [GSAP_AGENT_CURSOR_CONFIG_ENV]: JSON.stringify(gsapCursorRuntimeConfig),
+            [CODIA_AGENT_CURSOR_CONFIG_ENV]: JSON.stringify(codiaCursorRuntimeConfig),
           }
         : {}),
     };
@@ -602,7 +600,7 @@ export function createMacosCuaProvider({
   }
 
   async function ensureNativeCursorConfigured() {
-    if (!resolvedCursorStyle || !bundledGsapHelper) return;
+    if (!resolvedCursorStyle || !bundledCodiaHelper) return;
     await ensureDaemonRunning();
     if (!nativeCursorConfigPromise) {
       nativeCursorConfigPromise = (async () => {
@@ -822,7 +820,7 @@ export function createMacosCuaProvider({
     async stop() {
       nativeCursorConfigPromise = null;
       daemonStartPromise = null;
-      if (bundledGsapHelper) {
+      if (bundledCodiaHelper) {
         try {
           await runner.run(command, ["stop", "--socket", socketPath], {
             timeoutMs: 5000,

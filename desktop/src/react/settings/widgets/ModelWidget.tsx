@@ -3,7 +3,7 @@
  * -/api/models 读取唯一信源，按 provider 分组、支持搜索和自定义输- */
 import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import type { ModelMetaPayload } from '../shared-types';
 import styles from '../Settings.module.css';
 import { addFixedDropdownPositionListeners, computeFixedDropdownStyle } from './dropdown-position';
@@ -62,7 +62,7 @@ export function ModelWidget({
  //
   useEffect(() => {
     let cancelled = false;
-    gsapFetch(modelsPath).then(r => r.json()).then(data => {
+    codiaFetch(modelsPath).then(r => r.json()).then(data => {
       if (!cancelled) setModels(data.models || []);
     }).catch(() => {});
     return () => { cancelled = true; };

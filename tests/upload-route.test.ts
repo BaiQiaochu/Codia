@@ -10,14 +10,14 @@ import { SessionFileRegistry } from "../lib/session-files/session-file-registry.
 let tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-upload-route-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-upload-route-"));
   tempDirs.push(dir);
   return dir;
 }
 
 function makeEngine({ taskManager } = {}) {
   const rootDir = makeTempDir();
-  const gsapHome = path.join(rootDir, "gsap-home");
+  const codiaHome = path.join(rootDir, "codia-home");
   const agentsDir = path.join(rootDir, "agents");
   const sessionFiles = new SessionFileRegistry();
   const pluginManager = {
@@ -35,7 +35,7 @@ function makeEngine({ taskManager } = {}) {
 
   return {
     rootDir,
-    gsapHome,
+    codiaHome,
     agentsDir,
     pluginManager,
     sessionFiles,

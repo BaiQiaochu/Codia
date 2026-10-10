@@ -24,7 +24,7 @@ describe("active-agent roster provider", () => {
   let agentsDir;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-roster-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-roster-"));
     agentsDir = path.join(tempDir, "agents");
     fs.mkdirSync(agentsDir);
   });
@@ -36,7 +36,7 @@ describe("active-agent roster provider", () => {
   function createAgentDir(id, { name = id, chatModel = null, description = null, tombstone = false } = {}) {
     const dir = path.join(agentsDir, id);
     fs.mkdirSync(dir, { recursive: true });
-    const cfg = { agent: { name, yuan: "gsap" } };
+    const cfg = { agent: { name, yuan: "codia" } };
     if (chatModel) cfg.models = { chat: chatModel };
     fs.writeFileSync(path.join(dir, "config.yaml"), YAML.dump(cfg));
     if (description) fs.writeFileSync(path.join(dir, "description.md"), description, "utf-8");
@@ -113,28 +113,28 @@ describe("active-agent roster provider", () => {
   });
 
   it("builds the team roster from the injected provider instead of scanning the disk", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-roster-agent-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-roster-agent-"));
     const localAgentsDir = path.join(root, "agents");
     const productDir = path.join(root, "product");
     const userDir = path.join(root, "user");
-    fs.mkdirSync(path.join(localAgentsDir, "gsap"), { recursive: true });
+    fs.mkdirSync(path.join(localAgentsDir, "codia"), { recursive: true });
     fs.mkdirSync(path.join(localAgentsDir, "deleted"), { recursive: true });
     fs.writeFileSync(path.join(localAgentsDir, "deleted", "config.yaml"), "agent:\n  name: Deleted\n", "utf-8");
     fs.mkdirSync(path.join(productDir, "yuan"), { recursive: true });
     fs.mkdirSync(userDir, { recursive: true });
-    fs.writeFileSync(path.join(productDir, "yuan", "gsap.md"), "Yuan prompt", "utf-8");
+    fs.writeFileSync(path.join(productDir, "yuan", "codia.md"), "Yuan prompt", "utf-8");
 
     const agent = new Agent({
-      id: "gsap",
+      id: "codia",
       agentsDir: localAgentsDir,
       productDir,
       userDir,
       channelsDir: path.join(root, "channels"),
     });
-    agent._config = { locale: "en", agent: { yuan: "gsap" } };
+    agent._config = { locale: "en", agent: { yuan: "codia" } };
     agent._cb = {
       listActiveAgents: () => [
-        { id: "gsap", name: "G-SAP", summary: "", model: "" },
+        { id: "codia", name: "Codia", summary: "", model: "" },
         { id: "butter", name: "Butter", summary: "Bread specialist", model: "qwen-max" },
       ],
     };

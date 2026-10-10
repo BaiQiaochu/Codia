@@ -104,7 +104,7 @@ function assertAgentPhoneEnabled(engine) {
  * @param {string} agentId
   *
  * @param {object} opts
- * @param {import('../core/engine.ts').GsapEngine} opts.engine
+ * @param {import('../core/engine.ts').CodiaEngine} opts.engine
  * @param {AbortSignal} [opts.signal]
  * @param {string} [opts.sessionSuffix="temp"]
  * @param {string} [opts.systemAppend] text appended to the system prompt

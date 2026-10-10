@@ -4,6 +4,7 @@ export const DEFAULT_SESSION_THINKING_LEVEL = "medium";
 const VALID_THINKING_LEVELS = new Set(["off", "low", "medium", "high", "xhigh", "max"]);
 const DEFAULT_VISIBLE_THINKING_LEVELS = ["off", "medium", "high"];
 const OPENAI_XHIGH_MODEL_MARKERS = [
+  "gpt-6",
   "gpt-5",
   "gpt-5.2",
   "gpt-5.3",
@@ -13,6 +14,10 @@ const OPENAI_XHIGH_MODEL_MARKERS = [
 const ANTHROPIC_MAX_EFFORT_MODEL_MARKERS = [
   "fable-5",
   "mythos-5",
+  "opus-5-5",
+  "opus-5.5",
+  "sonnet-5-5",
+  "sonnet-5.5",
   "opus-4-6",
   "opus-4.6",
   "opus-4-7",
@@ -23,6 +28,8 @@ const ANTHROPIC_MAX_EFFORT_MODEL_MARKERS = [
 const ANTHROPIC_ADAPTIVE_ONLY_MODEL_MARKERS = [
   "fable-5",
   "mythos-5",
+  "opus-5-5",
+  "opus-5.5",
 ];
 
 function lower(value) {
@@ -64,8 +71,7 @@ export function normalizeRequestThinkingLevel(level, fallback = "off") {
 }
 
 export function normalizePiSdkThinkingLevel(level) {
-  const normalized = normalizeRequestThinkingLevel(level, "off");
-  return normalized === "max" ? "xhigh" : normalized;
+  return normalizeRequestThinkingLevel(level, "off");
 }
 
 function idIncludesAny(id, markers) {

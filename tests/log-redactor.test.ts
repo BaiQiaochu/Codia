@@ -35,9 +35,9 @@ describe("log redaction", () => {
     const raw = [
       "/Users/alice/Desktop/private.txt",
       "file:///Users/alice/Desktop/private.txt",
-      "/home/bob/.gsap/auth.json",
-      "C:\\Users\\carol\\AppData\\Roaming\\G-SAP\\crash.log",
-      "C:/Users/dave/AppData/Roaming/G-SAP/crash.log",
+      "/home/bob/.codia/auth.json",
+      "C:\\Users\\carol\\AppData\\Roaming\\Codia\\crash.log",
+      "C:/Users/dave/AppData/Roaming/Codia/crash.log",
     ].join("\n");
 
     const cleaned = redactLogText(raw, { homeDir: "/Users/alice" });
@@ -70,7 +70,7 @@ describe("log redaction", () => {
     const raw = {
       userId: "u-123456",
       chatId: "chat-789",
-      sessionPath: "/Users/alice/.gsap/agents/a/sessions/s.md",
+      sessionPath: "/Users/alice/.codia/agents/a/sessions/s.md",
       nested: {
         password: "secret-password",
         safe: "hello",
@@ -82,7 +82,7 @@ describe("log redaction", () => {
     expect(cleaned).toEqual({
       userId: "[redacted]",
       chatId: "[redacted]",
-      sessionPath: "~/.gsap/agents/a/sessions/s.md",
+      sessionPath: "~/.codia/agents/a/sessions/s.md",
       nested: {
         password: "[redacted]",
         safe: "hello",

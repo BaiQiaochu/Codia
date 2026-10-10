@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSettingsStore } from '../store';
-import { gsapFetch, gsapUrl, yuanFallbackAvatar } from '../api';
+import { codiaFetch, codiaUrl, yuanFallbackAvatar } from '../api';
 import { t, autoSaveConfig } from '../helpers';
 import { SelectWidget, selectWidgetStyles } from '../widgets/SelectWidget';
 import { browseAgent, setPrimaryAgent, loadSettingsConfig, loadAgents } from '../actions';
@@ -9,6 +9,7 @@ import { AgentCardStack } from './agent/AgentCardStack';
 import { YuanSelector } from './agent/YuanSelector';
 import { MemorySection } from './agent/AgentMemory';
 import { AgentToolsSection } from './agent/AgentToolsSection';
+import { FormalAgentFeatures } from './agent/FormalAgentFeatures';
 import { SettingsSection } from '../components/SettingsSection';
 import { SettingsRow } from '../components/SettingsRow';
 import { Toggle } from '../widgets/Toggle';
@@ -75,9 +76,9 @@ export function AgentTab() {
     || null;
   const selectedSettingsAgent = agents.find(agent => agent.id === selectedSettingsAgentId) || null;
   const selectedAgentAvatarUrl = useMemo(() => {
-    if (!selectedSettingsAgent) return yuanFallbackAvatar('gsap');
+    if (!selectedSettingsAgent) return yuanFallbackAvatar('codia');
     return selectedSettingsAgent.hasAvatar
-      ? gsapUrl(`/api/agents/${selectedSettingsAgent.id}/avatar?t=${Date.now()}`, { includeTokenQuery: true })
+      ? codiaUrl(`/api/agents/${selectedSettingsAgent.id}/avatar?t=${Date.now()}`, { includeTokenQuery: true })
       : yuanFallbackAvatar(selectedSettingsAgent.yuan);
   }, [selectedSettingsAgent]);
 
@@ -128,7 +129,7 @@ export function AgentTab() {
   // Load model options from the same /api/models source used by chat.
   const [availableModels, setAvailableModels] = useState<Array<{ id: string; name: string; provider: string }>>([]);
   useEffect(() => {
-    gsapFetch('/api/models').then(r => r.json()).then(data => {
+    codiaFetch('/api/models').then(r => r.json()).then(data => {
       setAvailableModels(data.models || []);
     }).catch(() => {});
   }, [settingsConfig]);
@@ -163,7 +164,7 @@ export function AgentTab() {
         return;
       }
 
-      const res = await gsapFetch(`/api/agents/${agentId}/config`, {
+      const res = await codiaFetch(`/api/agents/${agentId}/config`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ agent: { name: agentName } }),
@@ -209,21 +210,21 @@ export function AgentTab() {
 
       const requests: Promise<Response>[] = [];
       if (Object.keys(configPartial).length) {
-        requests.push(gsapFetch(`${agentBase}/config`, {
+        requests.push(codiaFetch(`${agentBase}/config`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(configPartial),
         }));
       }
       if (identityChanged) {
-        requests.push(gsapFetch(`${agentBase}/identity`, {
+        requests.push(codiaFetch(`${agentBase}/identity`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content: identity }),
         }));
       }
       if (ishikiChanged) {
-        requests.push(gsapFetch(`${agentBase}/ishiki`, {
+        requests.push(codiaFetch(`${agentBase}/ishiki`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content: ishiki }),
@@ -261,7 +262,7 @@ export function AgentTab() {
     setPromptTemplateMode(mode);
     setPromptTemplateLoading(true);
     try {
-      const res = await gsapFetch(`/api/agents/${agentId}/prompt-templates`, { signal: controller.signal });
+      const res = await codiaFetch(`/api/agents/${agentId}/prompt-templates`, { signal: controller.signal });
       const data = await res.json() as PromptTemplatesResponse;
       if (!isCurrentRequest()) return;
       if (data.error) throw new Error(data.error);
@@ -287,7 +288,7 @@ export function AgentTab() {
     const isCurrentRequest = () => promptTemplateRequestRef.current === controller && !controller.signal.aborted;
     setPromptTemplateLoading(true);
     try {
-      const res = await gsapFetch(`/api/agents/${agentId}/prompt-templates/${promptTemplateKind}/reset`, {
+      const res = await codiaFetch(`/api/agents/${agentId}/prompt-templates/${promptTemplateKind}/reset`, {
         method: 'POST',
         signal: controller.signal,
       });
@@ -329,7 +330,7 @@ export function AgentTab() {
             input.accept = 'image/png,image/jpeg,image/webp';
             input.addEventListener('change', () => {
               if (input.files?.[0]) {
-                window.dispatchEvent(new CustomEvent('gsap-open-cropper', {
+                window.dispatchEvent(new CustomEvent('codia-open-cropper', {
                   detail: { role: 'agent', file: input.files[0] },
                 }));
               }
@@ -337,10 +338,10 @@ export function AgentTab() {
             input.click();
           }}
           onSetPrimary={(id) => { void setPrimaryAgent(id); }}
-          onDelete={(id) => window.dispatchEvent(new CustomEvent('gsap-show-agent-delete', {
+          onDelete={(id) => window.dispatchEvent(new CustomEvent('codia-show-agent-delete', {
             detail: { agentId: id },
           }))}
-          onAdd={() => window.dispatchEvent(new Event('gsap-show-agent-create'))}
+          onAdd={() => window.dispatchEvent(new Event('codia-show-agent-create'))}
         />
       </section>
 
@@ -356,7 +357,7 @@ export function AgentTab() {
               onError={(event) => {
                 const image = event.currentTarget;
                 image.onerror = null;
-                image.src = yuanFallbackAvatar(selectedSettingsAgent?.yuan || 'gsap');
+                image.src = yuanFallbackAvatar(selectedSettingsAgent?.yuan || 'codia');
               }}
             />
             <div className={styles['agent-identity-controls']}>
@@ -413,7 +414,7 @@ export function AgentTab() {
                 const agentId = selectedSettingsAgentId;
                 if (!agentId) return;
                 try {
-                  await gsapFetch(`/api/agents/${agentId}/config`, {
+                  await codiaFetch(`/api/agents/${agentId}/config`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ agent: { yuan: key } }),
@@ -533,6 +534,7 @@ export function AgentTab() {
         memoryEnabled={memoryEnabled !== false}
         currentPins={currentPins}
       />
+      <FormalAgentFeatures />
 
       {/* 缁忛獙 */}
       <SettingsSection title={t('settings.experience.title')}>

@@ -1,4 +1,4 @@
-// Upstream reference test migrated and debranded; skipped until the matching G-SAP source contract is migrated.
+// Upstream reference test migrated and debranded; skipped until the matching Codia source contract is migrated.
 /**
  * Regression test for issue #402: keep browser tool schema small.
  * Current en description + actionDesc ≈ 631 chars, threshold 700 leaves ~69 char buffer.

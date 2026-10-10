@@ -19,7 +19,7 @@ describe("server runtime assets", () => {
   let outDir;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-server-assets-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-server-assets-"));
     rootDir = path.join(tempDir, "root");
     outDir = path.join(tempDir, "dist-server", "win-x64");
     const assetsDir = path.join(rootDir, "desktop", "src", "assets");
@@ -30,9 +30,9 @@ describe("server runtime assets", () => {
     for (const dirName of SERVER_RUNTIME_ASSET_DIRS) {
       const dir = path.join(assetsDir, dirName);
       fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(path.join(dir, "gsap-default-avatar.png"), "default-avatar\n");
-      fs.writeFileSync(path.join(dir, "gsap-card-back.png"), "card-back\n");
-      fs.writeFileSync(path.join(dir, "gsap-emblem.png"), "emblem\n");
+      fs.writeFileSync(path.join(dir, "codia-default-avatar.png"), "default-avatar\n");
+      fs.writeFileSync(path.join(dir, "codia-card-back.png"), "card-back\n");
+      fs.writeFileSync(path.join(dir, "codia-emblem.png"), "emblem\n");
       if (dirName === "cover-gallery") {
         for (const preset of COVER_GALLERY_PRESETS) {
           fs.writeFileSync(path.join(dir, preset.fileName), `${preset.fileName}\n`);
@@ -84,7 +84,7 @@ describe("server runtime assets", () => {
     fs.writeFileSync(path.join(rendererDir, "themes", "studio-light.css"), ":root{}", "utf-8");
     fs.writeFileSync(path.join(rendererDir, "locales", "zh.json"), "{}", "utf-8");
     fs.writeFileSync(path.join(rendererDir, "lib", "i18n.js"), "window.t = () => {}", "utf-8");
-    fs.writeFileSync(path.join(rendererDir, "lib", "theme.js"), "window.GSAPTheme = {}", "utf-8");
+    fs.writeFileSync(path.join(rendererDir, "lib", "theme.js"), "window.CODIATheme = {}", "utf-8");
     fs.writeFileSync(path.join(rendererDir, "settings.html"), "<!doctype html><title>Settings</title>", "utf-8");
     fs.mkdirSync(path.join(rendererDir, "modules"), { recursive: true });
     fs.writeFileSync(path.join(rendererDir, "modules", "legacy.js"), "console.log('legacy')", "utf-8");
@@ -103,19 +103,19 @@ describe("server runtime assets", () => {
         .toBe(`${fileName}\n`);
     }
     expect(fs.readFileSync(
-      path.join(outDir, "desktop", "src", "assets", "character-cards", "gsap-default-avatar.png"),
+      path.join(outDir, "desktop", "src", "assets", "character-cards", "codia-default-avatar.png"),
       "utf-8",
     )).toBe("default-avatar\n");
     expect(fs.readFileSync(
-      path.join(outDir, "desktop", "src", "assets", "character-cards", "gsap-card-back.png"),
+      path.join(outDir, "desktop", "src", "assets", "character-cards", "codia-card-back.png"),
       "utf-8",
     )).toBe("card-back\n");
     expect(fs.readFileSync(
-      path.join(outDir, "desktop", "src", "assets", "character-cards", "gsap-emblem.png"),
+      path.join(outDir, "desktop", "src", "assets", "character-cards", "codia-emblem.png"),
       "utf-8",
     )).toBe("emblem\n");
     expect(fs.readFileSync(
-      path.join(outDir, "desktop", "src", "assets", "cover-gallery", "gsap-default-avatar.png"),
+      path.join(outDir, "desktop", "src", "assets", "cover-gallery", "codia-default-avatar.png"),
       "utf-8",
     )).toBe("default-avatar\n");
     for (const preset of COVER_GALLERY_PRESETS) {
@@ -125,18 +125,18 @@ describe("server runtime assets", () => {
       )).toBe(`${preset.fileName}\n`);
     }
     expect(copied).toEqual(expect.arrayContaining([
-      path.join("desktop", "src", "assets", "G-SAP.png"),
-      path.join("desktop", "src", "assets", "G-SAP-Rational.jpg"),
+      path.join("desktop", "src", "assets", "codia.png"),
+      path.join("desktop", "src", "assets", "codia-rational.jpg"),
       path.join("desktop", "src", "assets", "character-cards") + path.sep,
       path.join("desktop", "src", "assets", "cover-gallery") + path.sep,
     ]));
   });
 
   it("fails the build when a required fallback asset is missing", () => {
-    fs.unlinkSync(path.join(rootDir, "desktop", "src", "assets", "G-SAP-Rational.jpg"));
+    fs.unlinkSync(path.join(rootDir, "desktop", "src", "assets", "codia-rational.jpg"));
 
     expect(() => copyServerRuntimeAssets({ rootDir, outDir }))
-      .toThrow(/required runtime asset missing: .*G-SAP-Rational\.jpg/);
+      .toThrow(/required runtime asset missing: .*codia-rational\.jpg/);
   });
 
   it("copies the renderer PWA into the bundled server root", () => {

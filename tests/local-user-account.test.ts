@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-local-user-account-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-local-user-account-"));
 }
 
 function writeJson(filePath, data) {
@@ -44,28 +44,28 @@ describe("local user account store", () => {
     const { updateLocalAccountProfile, getLocalAccountSummary } = await import("../core/local-user-account.js");
 
     const profile = updateLocalAccountProfile(tmpDir, {
-      username: "gsap-owner",
-      displayName: "G-SAP Owner",
+      username: "codia-owner",
+      displayName: "Codia Owner",
       now: "2026-05-16T01:00:00.000Z",
     });
 
     expect(profile).toMatchObject({
       userId: "user_owner",
-      username: "gsap-owner",
-      displayName: "G-SAP Owner",
+      username: "codia-owner",
+      displayName: "Codia Owner",
     });
     expect(getLocalAccountSummary(tmpDir)).toMatchObject({
       userId: "user_owner",
-      username: "gsap-owner",
-      displayName: "G-SAP Owner",
+      username: "codia-owner",
+      displayName: "Codia Owner",
       passwordSet: false,
     });
     const stored = JSON.parse(fs.readFileSync(path.join(tmpDir, "users.json"), "utf-8"));
     expect(stored.users[0]).toMatchObject({
       kind: "legacy_owner",
       profileSource: "legacy_user_profile",
-      username: "gsap-owner",
-      displayName: "G-SAP Owner",
+      username: "codia-owner",
+      displayName: "Codia Owner",
       updatedAt: "2026-05-16T01:00:00.000Z",
     });
   });

@@ -18,10 +18,10 @@ describe("resource ticket service", () => {
       verifyResourceTicket,
       resourceTicketKeyPath,
     } = await import("../core/resource-ticket-service.ts");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-resource-ticket-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-ticket-"));
 
     const issued = issueResourceTicket({
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       resourceId: "res_sf_1",
       studioId: "studio_1",
       principalId: "principal_device_1",
@@ -39,7 +39,7 @@ describe("resource ticket service", () => {
     expect(fs.existsSync(resourceTicketKeyPath(tmpDir))).toBe(true);
 
     expect(verifyResourceTicket({
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       ticket: issued.ticket,
       resourceId: "res_sf_1",
       now: "2026-05-17T00:00:30.000Z",
@@ -51,21 +51,21 @@ describe("resource ticket service", () => {
     });
 
     expect(() => verifyResourceTicket({
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       ticket: issued.ticket,
       resourceId: "res_other",
       now: "2026-05-17T00:00:30.000Z",
     })).toThrow("resource ticket resource mismatch");
 
     expect(() => verifyResourceTicket({
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       ticket: issued.ticket,
       resourceId: "res_sf_1",
       now: "2026-05-17T00:02:00.000Z",
     })).toThrow("resource ticket expired");
 
     expect(() => verifyResourceTicket({
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       ticket: "not-a-valid-ticket",
       resourceId: "res_sf_1",
       now: "2026-05-17T00:00:30.000Z",
@@ -73,14 +73,14 @@ describe("resource ticket service", () => {
 
     const [body] = issued.ticket.split(".");
     expect(() => verifyResourceTicket({
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       ticket: `${body}.bad-signature`,
       resourceId: "res_sf_1",
       now: "2026-05-17T00:00:30.000Z",
     })).toThrow("resource ticket signature invalid");
 
     expect(() => verifyResourceTicket({
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       ticket: issued.ticket,
       resourceId: "res_sf_1",
       now: "not-a-date",

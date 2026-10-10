@@ -22,7 +22,7 @@ describe("AgentManager.listAgents cache", () => {
   let agentsDir;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-test-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-test-"));
     agentsDir = path.join(tempDir, "agents");
     fs.mkdirSync(agentsDir);
   });
@@ -36,7 +36,7 @@ describe("AgentManager.listAgents cache", () => {
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(
       path.join(dir, "config.yaml"),
-      YAML.dump({ agent: { name, yuan: "gsap" } }),
+      YAML.dump({ agent: { name, yuan: "codia" } }),
     );
     fs.writeFileSync(path.join(dir, "identity.md"), `# ${name}\nProfile for ${name}`);
   }

@@ -18,31 +18,31 @@ function tool(name) {
 }
 
 function makeAgent({ experienceEnabled = false } = {}) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-agent-exp-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-agent-exp-"));
   const agentsDir = path.join(root, "agents");
   const productDir = path.join(root, "product");
   const userDir = path.join(root, "user");
-  const agentDir = path.join(agentsDir, "gsap");
+  const agentDir = path.join(agentsDir, "codia");
   fs.mkdirSync(path.join(productDir, "yuan"), { recursive: true });
   fs.mkdirSync(path.join(productDir, "identity-templates"), { recursive: true });
   fs.mkdirSync(path.join(productDir, "ishiki-templates"), { recursive: true });
   fs.mkdirSync(path.join(agentDir, "memory"), { recursive: true });
   fs.mkdirSync(userDir, { recursive: true });
-  fs.writeFileSync(path.join(productDir, "yuan", "gsap.md"), "yuan", "utf-8");
+  fs.writeFileSync(path.join(productDir, "yuan", "codia.md"), "yuan", "utf-8");
   fs.writeFileSync(path.join(productDir, "identity.example.md"), "identity {{agentName}}", "utf-8");
   fs.writeFileSync(path.join(productDir, "ishiki.example.md"), "ishiki {{userName}}", "utf-8");
   fs.writeFileSync(path.join(agentDir, "config.yaml"), "", "utf-8");
 
   return import("../core/agent.js").then(({ Agent }) => {
-    const agent = new Agent({ id: "gsap", agentsDir, productDir, userDir });
+    const agent = new Agent({ id: "codia", agentsDir, productDir, userDir });
     agent._config = {
       locale: "en",
-      agent: { name: "G-SAP", yuan: "gsap" },
+      agent: { name: "Codia", yuan: "codia" },
       user: { name: "User" },
       memory: { enabled: true },
       experience: { enabled: experienceEnabled },
     };
-    agent.agentName = "G-SAP";
+    agent.agentName = "Codia";
     agent.userName = "User";
     agent._memoryMasterEnabled = true;
     agent._memorySessionEnabled = true;
@@ -122,7 +122,7 @@ describe("agent experience toggle", () => {
     agent.setCallbacks({
       getEngine: () => ({
         getComputerUseSettings: () => ({ enabled: true }),
-        getPrimaryAgentId: () => "gsap",
+        getPrimaryAgentId: () => "codia",
         isComputerUseSupported: () => false,
         isVisionAuxiliaryEnabled: () => false,
       }),

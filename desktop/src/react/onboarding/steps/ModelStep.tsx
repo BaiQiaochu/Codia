@@ -4,12 +4,12 @@ import type { SelectOption } from '../../settings/widgets/SelectWidget';
 import { Toggle } from '../../settings/widgets/Toggle';
 import { lookupModelMeta } from '../../settings/helpers';
 import { loadModels as loadModelsAction, saveModel as saveModelAction } from '../onboarding-actions';
-import type { AddedModelEntry, AddedModelObject, DiscoveredModel, gsapFetch } from '../onboarding-actions';
+import type { AddedModelEntry, AddedModelObject, DiscoveredModel, codiaFetch } from '../onboarding-actions';
 import { StepContainer } from '../onboarding-ui';
 
 interface ModelStepProps {
   preview: boolean;
-  gsapFetch: gsapFetch;
+  codiaFetch: codiaFetch;
   providerName: string;
   providerUrl: string;
   providerApi: string;
@@ -56,7 +56,7 @@ function boolFromMeta(value: unknown): boolean | undefined {
 }
 
 export function ModelStep({
-  preview, gsapFetch, providerName, providerUrl, providerApi, apiKey,
+  preview, codiaFetch, providerName, providerUrl, providerApi, apiKey,
   goToStep, showError,
 }: ModelStepProps) {
   const [fetchedModels, setFetchedModels] = useState<DiscoveredModel[]>([]);
@@ -89,7 +89,7 @@ export function ModelStep({
 
       setModelLoading(t('onboarding.model.loading'));
       try {
-        const result = await loadModelsAction({ gsapFetch, providerName, providerUrl, providerApi, apiKey });
+        const result = await loadModelsAction({ codiaFetch, providerName, providerUrl, providerApi, apiKey });
         if (result.error) {
           setModelLoading(result.error);
           return;
@@ -107,7 +107,7 @@ export function ModelStep({
       }
     };
     doLoad();
-  }, [preview, gsapFetch, providerName, providerUrl, providerApi, apiKey]);
+  }, [preview, codiaFetch, providerName, providerUrl, providerApi, apiKey]);
 
   const addedModelIds = new Set(addedModels.map(model => model.id));
   const availableModels = fetchedModels.filter(model => !addedModelIds.has(model.id));
@@ -238,7 +238,7 @@ export function ModelStep({
     if (!canContinue) return;
     try {
       await saveModelAction({
-        gsapFetch, selectedModel, providerName,
+        codiaFetch, selectedModel, providerName,
         addedModels: addedModels.map(toSavedModelEntry),
         selectedUtility, selectedUtilityLarge,
       });
@@ -247,7 +247,7 @@ export function ModelStep({
       console.error('[onboarding] save model failed:', err);
       showError(t('onboarding.error'));
     }
-  }, [preview, canContinue, gsapFetch, selectedModel, providerName, addedModels, selectedUtility, selectedUtilityLarge, goToStep, showError]);
+  }, [preview, canContinue, codiaFetch, selectedModel, providerName, addedModels, selectedUtility, selectedUtilityLarge, goToStep, showError]);
 
   return (
     <StepContainer>

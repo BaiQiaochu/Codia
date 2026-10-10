@@ -9,7 +9,7 @@ type StoreState = {
 };
 
 let storeState: StoreState;
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
 const useSettingsStoreMock = Object.assign(
   () => storeState,
@@ -23,7 +23,7 @@ vi.mock('../../settings/store', () => ({
 }));
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 describe('DiagnosticsTab', () => {
@@ -68,7 +68,7 @@ describe('DiagnosticsTab', () => {
       t: vi.fn((key: string) => key),
     };
 
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/models') {
         return {
           json: async () => ({
@@ -338,7 +338,7 @@ describe('DiagnosticsTab', () => {
     expect(screen.getByText((content) => content.includes('不自动打包'))).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: '测试当前模型' }));
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith('/api/providers/test', expect.objectContaining({
+      expect(codiaFetchMock).toHaveBeenCalledWith('/api/providers/test', expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ name: 'openai', modelId: 'chat' }),
       }));

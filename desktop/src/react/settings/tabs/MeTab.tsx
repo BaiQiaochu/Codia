@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSettingsStore } from '../store';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { invalidateConfigCache } from '../../hooks/use-config';
 import { t } from '../helpers';
 import { loadSettingsConfig } from '../actions';
@@ -35,14 +35,14 @@ export function MeTab() {
 
       const requests: Promise<Response>[] = [];
       if (Object.keys(partial).length) {
-        requests.push(gsapFetch('/api/config', {
+        requests.push(codiaFetch('/api/config', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(partial),
         }));
       }
       if (profileChanged) {
-        requests.push(gsapFetch('/api/user-profile', {
+        requests.push(codiaFetch('/api/user-profile', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content: userProfile }),
@@ -73,7 +73,7 @@ export function MeTab() {
     input.addEventListener('change', () => {
       if (input.files?.[0]) {
         // Dispatch to CropOverlay
-        window.dispatchEvent(new CustomEvent('gsap-open-cropper', {
+        window.dispatchEvent(new CustomEvent('codia-open-cropper', {
           detail: { role: 'user', file: input.files[0] },
         }));
       }

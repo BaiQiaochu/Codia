@@ -48,7 +48,7 @@ describe("wrapBashTool Windows PathGuard preflight", () => {
       getTraceContext: () => ({
         traceId: "trace-sandbox",
         toolTraceId: "tooltrace-bash",
-        agentId: "gsap",
+        agentId: "codia",
         executionBoundary: { boundaryId: "execb_server_studio" },
       }),
       getSandboxEnabled: () => true,
@@ -62,7 +62,7 @@ describe("wrapBashTool Windows PathGuard preflight", () => {
       traceId: "trace-sandbox",
       toolTraceId: "tooltrace-bash",
       toolName: "bash",
-      agentId: "gsap",
+      agentId: "codia",
       sandbox: expect.objectContaining({
         enabled: true,
         networkEnabled: true,
@@ -148,10 +148,10 @@ describe("wrapBashTool Windows PathGuard preflight", () => {
 
     const wrapped = wrapBashTool(tool, guard, "D:\\workspace", { checkManagedConfigWrite });
     const result = await wrapped.execute("call-4", {
-      command: 'printf secret > "/c/Users/alice/.gsap/config.yaml"',
+      command: 'printf secret > "/c/Users/alice/.codia/config.yaml"',
     });
 
-    expect(checkManagedConfigWrite).toHaveBeenCalledWith("C:\\Users\\alice\\.gsap\\config.yaml", "write");
+    expect(checkManagedConfigWrite).toHaveBeenCalledWith("C:\\Users\\alice\\.codia\\config.yaml", "write");
     expect(tool.execute).not.toHaveBeenCalled();
     expect(result.content[0].text).toBeTruthy();
   });

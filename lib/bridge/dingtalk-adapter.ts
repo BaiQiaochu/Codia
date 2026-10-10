@@ -140,7 +140,7 @@ function splitTextByUtf8Bytes(text: string, maxBytes = MAX_OUTBOUND_TEXT_BYTES) 
 }
 
 function markdownPayload(text: string, index: number, total: number) {
-  const title = total > 1 ? `BYOUNG ${index + 1}/${total}` : "BYOUNG";
+  const title = total > 1 ? `CODIA ${index + 1}/${total}` : "CODIA";
   return JSON.stringify({ title, text });
 }
 
@@ -287,7 +287,7 @@ export function createDingTalkAdapter({
         subscriptions: [
           { topic: DINGTALK_BOT_CALLBACK_TOPIC, type: "CALLBACK" },
         ],
-        ua: "gsap-bridge-dingtalk/1.0.0",
+        ua: "codia-bridge-dingtalk/1.0.0",
       }),
       idempotent: true,
     });

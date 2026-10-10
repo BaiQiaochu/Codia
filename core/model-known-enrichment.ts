@@ -1,6 +1,7 @@
 import { getPiModel } from "../lib/pi-sdk/index.ts";
 import { lookupKnown } from "../shared/known-models.ts";
 import { normalizeVisionCapabilities, withThinkingFormatCompat } from "../shared/model-capabilities.ts";
+import { normalizeThinkingLevelChoices, normalizeThinkingLevelForModel } from "./session-thinking-level.ts";
 
 const RUNTIME_ENRICHED_PROVIDERS = new Set(["kimi-coding"]);
 const REQUIRED_PROVIDER_HEADERS = {
@@ -33,13 +34,12 @@ function mergeCompat(model) {
 
 export function enrichModelFromKnownMetadata(model) {
   if (!isPlainObject(model)) return model;
-  if (!RUNTIME_ENRICHED_PROVIDERS.has(model.provider)) return model;
 
   const known = lookupKnown(model.provider, model.id);
   const piBuiltin = getPiBuiltinModel(model.provider, model.id);
   const patch: Record<string, any> = {};
 
-  if (!model.headers) {
+  if (RUNTIME_ENRICHED_PROVIDERS.has(model.provider) && !model.headers) {
     const requiredHeaders = REQUIRED_PROVIDER_HEADERS[model.provider];
     const headers = piBuiltin?.headers || requiredHeaders;
     if (headers) patch.headers = { ...headers };
@@ -53,8 +53,23 @@ export function enrichModelFromKnownMetadata(model) {
     patch.visionCapabilities = visionCapabilities;
   }
 
+  const thinkingLevels = normalizeThinkingLevelChoices(known?.thinkingLevels);
+  if (!model.thinkingLevels && thinkingLevels) patch.thinkingLevels = thinkingLevels;
+  if (model.xhigh === undefined && (known?.xhigh === true || thinkingLevels?.includes("max"))) {
+    patch.xhigh = true;
+  }
+  if (!model.toolUse && known?.toolUse) patch.toolUse = structuredClone(known.toolUse);
+  if (!model.defaultThinkingLevel && typeof known?.defaultThinkingLevel === "string") {
+    patch.defaultThinkingLevel = normalizeThinkingLevelForModel(known.defaultThinkingLevel, {
+      ...model,
+      ...patch,
+    });
+  }
+
   const withPatch = Object.keys(patch).length > 0 ? { ...model, ...patch } : model;
-  const withCompat = mergeCompat(withPatch);
+  const withCompat = RUNTIME_ENRICHED_PROVIDERS.has(model.provider)
+    ? mergeCompat(withPatch)
+    : withPatch;
   return withThinkingFormatCompat(withCompat, {
     provider: withCompat.provider,
     api: withCompat.api,

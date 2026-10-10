@@ -115,7 +115,7 @@ export function ChannelTabBar() {
 
   // Restore saved tab on mount
   useEffect(() => {
-    const savedTab = localStorage.getItem('gsap-tab');
+    const savedTab = localStorage.getItem('codia-tab');
     if (savedTab && savedTab !== 'chat') {
       switchTab(savedTab as TabType);
     }

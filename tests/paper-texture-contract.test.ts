@@ -36,7 +36,7 @@ describe('paper texture contract', () => {
   });
 
   it('turns off card texture brightness compensation in both dark themes', () => {
-    const styles = fs.readFileSync(path.join(ROOT, 'desktop/src/styles.css'), 'utf8');
+    const styles = fs.readFileSync(path.join(ROOT, 'desktop/src/styles.css'), 'utf8').replace(/\r\n/g, '\n');
 
     expect(styles).toContain('--paper-texture-card-blend-mode: lighten;');
     expect(styles).toContain('html[data-theme="midnight"],\nhtml[data-theme="midnight-contrast"]');

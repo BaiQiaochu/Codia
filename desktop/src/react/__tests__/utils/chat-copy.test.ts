@@ -61,7 +61,7 @@ describe('serializeChatMessageForCopy', () => {
       id: 'a1',
       role: 'assistant',
       blocks: [
-        { type: 'mood', yuan: 'gsap', text: 'mood line' },
+        { type: 'mood', yuan: 'codia', text: 'mood line' },
         { type: 'tool_group', collapsed: false, tools: [{ name: 'read', done: true, success: true, args: { path: '/tmp/a.txt' } }] },
         { type: 'artifact', artifactId: 'art-1', artifactType: 'markdown', title: 'Artifact Title', content: 'body' },
         { type: 'skill', skillName: 'Installed Skill', skillFilePath: '/tmp/test.skill' },

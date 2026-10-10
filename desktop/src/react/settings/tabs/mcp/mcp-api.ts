@@ -1,4 +1,4 @@
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { getApiErrorMessage } from '../../../utils/api-error';
 import type { McpConnectorInput, McpState } from './types';
 
@@ -15,7 +15,7 @@ async function jsonOrError<T>(res: Response): Promise<T> {
 }
 
 export async function loadMcpState(agentId: string): Promise<McpState> {
-  const res = await gsapFetch(`/api/plugins/mcp/state?agentId=${encodeURIComponent(agentId)}`);
+  const res = await codiaFetch(`/api/plugins/mcp/state?agentId=${encodeURIComponent(agentId)}`);
   const data = await jsonOrError<McpState>(res);
   return {
     enabled: data.enabled === true,
@@ -26,7 +26,7 @@ export async function loadMcpState(agentId: string): Promise<McpState> {
 }
 
 export async function setMcpEnabled(enabled: boolean): Promise<void> {
-  const res = await gsapFetch('/api/plugins/mcp/settings/enabled', {
+  const res = await codiaFetch('/api/plugins/mcp/settings/enabled', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ enabled }),
@@ -41,7 +41,7 @@ export async function setMcpEnabled(enabled: boolean): Promise<void> {
 }
 
 export async function addMcpConnector(input: McpConnectorInput): Promise<void> {
-  const res = await gsapFetch('/api/plugins/mcp/connectors', {
+  const res = await codiaFetch('/api/plugins/mcp/connectors', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
@@ -50,7 +50,7 @@ export async function addMcpConnector(input: McpConnectorInput): Promise<void> {
 }
 
 export async function updateMcpConnector(connectorId: string, input: McpConnectorInput): Promise<void> {
-  const res = await gsapFetch(`/api/plugins/mcp/connectors/${encodeURIComponent(connectorId)}`, {
+  const res = await codiaFetch(`/api/plugins/mcp/connectors/${encodeURIComponent(connectorId)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
@@ -59,7 +59,7 @@ export async function updateMcpConnector(connectorId: string, input: McpConnecto
 }
 
 export async function removeMcpConnector(connectorId: string): Promise<void> {
-  const res = await gsapFetch(`/api/plugins/mcp/connectors/${encodeURIComponent(connectorId)}`, {
+  const res = await codiaFetch(`/api/plugins/mcp/connectors/${encodeURIComponent(connectorId)}`, {
     method: 'DELETE',
   });
   await jsonOrError(res);
@@ -69,7 +69,7 @@ export async function runMcpConnectorAction(
   connectorId: string,
   action: 'start' | 'stop' | 'refresh-tools',
 ): Promise<void> {
-  const res = await gsapFetch(`/api/plugins/mcp/connectors/${encodeURIComponent(connectorId)}/${action}`, {
+  const res = await codiaFetch(`/api/plugins/mcp/connectors/${encodeURIComponent(connectorId)}/${action}`, {
     method: 'POST',
   });
   await jsonOrError(res);
@@ -80,7 +80,7 @@ export async function setAgentMcpConnector(
   connectorId: string,
   enabled: boolean,
 ): Promise<void> {
-  const res = await gsapFetch(`/api/plugins/mcp/agents/${encodeURIComponent(agentId)}/connectors/${encodeURIComponent(connectorId)}`, {
+  const res = await codiaFetch(`/api/plugins/mcp/agents/${encodeURIComponent(agentId)}/connectors/${encodeURIComponent(connectorId)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ enabled }),
@@ -94,7 +94,7 @@ export async function setAgentMcpTool(
   toolName: string,
   enabled: boolean,
 ): Promise<void> {
-  const res = await gsapFetch(`/api/plugins/mcp/agents/${encodeURIComponent(agentId)}/connectors/${encodeURIComponent(connectorId)}`, {
+  const res = await codiaFetch(`/api/plugins/mcp/agents/${encodeURIComponent(agentId)}/connectors/${encodeURIComponent(connectorId)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tools: { [toolName]: enabled } }),
@@ -103,19 +103,19 @@ export async function setAgentMcpTool(
 }
 
 export async function startMcpOAuth(connectorId: string): Promise<{ sessionId: string; url: string }> {
-  const res = await gsapFetch(`/api/plugins/mcp/connectors/${encodeURIComponent(connectorId)}/oauth/start`, {
+  const res = await codiaFetch(`/api/plugins/mcp/connectors/${encodeURIComponent(connectorId)}/oauth/start`, {
     method: 'POST',
   });
   return jsonOrError<{ sessionId: string; url: string }>(res);
 }
 
 export async function pollMcpOAuth(sessionId: string): Promise<{ status: string; error?: string }> {
-  const res = await gsapFetch(`/api/plugins/mcp/oauth/poll/${encodeURIComponent(sessionId)}`);
+  const res = await codiaFetch(`/api/plugins/mcp/oauth/poll/${encodeURIComponent(sessionId)}`);
   return jsonOrError<{ status: string; error?: string }>(res);
 }
 
 export async function logoutMcpOAuth(connectorId: string): Promise<void> {
-  const res = await gsapFetch(`/api/plugins/mcp/connectors/${encodeURIComponent(connectorId)}/oauth/logout`, {
+  const res = await codiaFetch(`/api/plugins/mcp/connectors/${encodeURIComponent(connectorId)}/oauth/logout`, {
     method: 'POST',
   });
   await jsonOrError(res);

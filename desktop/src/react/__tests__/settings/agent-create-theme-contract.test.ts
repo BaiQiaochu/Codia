@@ -17,7 +17,7 @@ function extractRule(css: string, selector: string): string {
 }
 
 describe('Agent create overlay theme contract', () => {
-  it('uses a G-SAP themed modal layout without cloning the original theme surface', () => {
+  it('uses a Codia themed modal layout without cloning the original theme surface', () => {
     const css = read('settings/Settings.module.css');
     const source = read('settings/overlays/AgentCreateOverlay.tsx');
     const overlayRule = extractRule(css, '.agent-create-overlay');
@@ -37,6 +37,6 @@ describe('Agent create overlay theme contract', () => {
     expect(source).toContain('entries.map(([key, meta])');
     expect(source).not.toContain("entries.filter(([key]) => key === 'kong')");
     expect(source).not.toContain("entries.filter(([key]) => key !== 'kong')");
-    expect(source).not.toMatch(/hana|hanako|openhanako/i);
+    expect(source).toMatch(/codia/i);
   });
 });

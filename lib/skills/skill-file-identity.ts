@@ -2,7 +2,7 @@
 import path from "path";
 
 export const SKILL_SOURCE_IDENTITY_VERSION = 1;
-export const SKILL_SNAPSHOT_SOURCE_SIDECAR = ".gsap-skill-source.json";
+export const SKILL_SNAPSHOT_SOURCE_SIDECAR = ".codia-skill-source.json";
 
 const EDITABLE_SOURCE_OWNERS = new Set(["user", "learned", "workspace"]);
 

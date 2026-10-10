@@ -32,11 +32,11 @@ function isInside(targetPath, rootPath) {
   return rel === "" || (!!rel && !rel.startsWith("..") && !path.isAbsolute(rel));
 }
 
-export function isManagedAgentConfigPath(filePath, { gsapHome } = {}) {
-  if (!filePath || !gsapHome) return false;
+export function isManagedAgentConfigPath(filePath, { codiaHome } = {}) {
+  if (!filePath || !codiaHome) return false;
 
   const target = resolveExistingOrNearest(filePath);
-  const home = resolveExistingOrNearest(gsapHome);
+  const home = resolveExistingOrNearest(codiaHome);
   const agentsRoot = path.join(home, "agents");
   if (!isInside(target, agentsRoot)) return false;
 
@@ -45,10 +45,10 @@ export function isManagedAgentConfigPath(filePath, { gsapHome } = {}) {
   return parts.length === 2 && parts[1].toLowerCase() === "config.yaml";
 }
 
-export function createManagedConfigWriteGuard({ gsapHome } = {}) {
+export function createManagedConfigWriteGuard({ codiaHome } = {}) {
   return (absolutePath, operation) => {
     if (operation !== "write" && operation !== "delete") return { allowed: true };
-    if (!isManagedAgentConfigPath(absolutePath, { gsapHome })) return { allowed: true };
+    if (!isManagedAgentConfigPath(absolutePath, { codiaHome })) return { allowed: true };
     return {
       allowed: false,
       reason: "Managed agent config files must be changed through settings APIs; do not edit agents/*/config.yaml directly.",

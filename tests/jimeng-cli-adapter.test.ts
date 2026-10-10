@@ -10,7 +10,7 @@ import {
 } from "../plugins/jimeng-cli/adapters/dreamina.ts";
 
 function makeTempDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-jimeng-cli-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-jimeng-cli-"));
 }
 
 describe("Jimeng CLI command resolution", () => {
@@ -21,7 +21,7 @@ describe("Jimeng CLI command resolution", () => {
       env: { DREAMINA_CLI_PATH: "/opt/dreamina", PATH: "/usr/bin" },
       exists,
       which: () => null,
-      homeDir: "/home/gsap",
+      homeDir: "/home/codia",
       platform: "linux",
     })).toBe("/opt/dreamina");
     expect(exists).toHaveBeenCalledWith("/opt/dreamina");
@@ -32,7 +32,7 @@ describe("Jimeng CLI command resolution", () => {
       env: { PATH: "/usr/bin" },
       exists: () => false,
       which: () => null,
-      homeDir: "/home/gsap",
+      homeDir: "/home/codia",
       platform: "linux",
     })).toBeNull();
   });

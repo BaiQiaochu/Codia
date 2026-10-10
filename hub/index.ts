@@ -2,7 +2,7 @@
 /**
  * Hub message dispatch center.
  *
- * Hub and GsapEngine run in the same Node process. hub.send() forwards to
+ * Hub and CodiaEngine run in the same Node process. hub.send() forwards to
  * engine methods directly, while EventBus provides shared event broadcasting.
  *
  * Modules:
@@ -41,7 +41,7 @@ import {
 export class Hub {
   /**
    * @param {object} opts
-   * @param {import('../core/engine.ts').GsapEngine} opts.engine
+   * @param {import('../core/engine.ts').CodiaEngine} opts.engine
    */
   constructor({ engine }) {
     this._engine = engine;
@@ -78,7 +78,7 @@ export class Hub {
     this._setupDmHandler();
   }
 
-  /** @returns {import('../core/engine.ts').GsapEngine} */
+  /** @returns {import('../core/engine.ts').CodiaEngine} */
   get engine() { return this._engine; }
 
   /** @returns {EventBus} */
@@ -123,7 +123,6 @@ export class Hub {
   // ──────────── 订阅 ────────────
 
   /**
-  *
   *
    * @returns {Function} unsubscribe
    */
@@ -178,11 +177,11 @@ export class Hub {
     // Persist image uploads before routing.
     if (
       o.images?.length
-      && this._engine.gsapHome
+      && this._engine.codiaHome
       && !o.inboundFiles?.length
       && !hasDisplayImageAttachments(o.displayMessage)
     ) {
-      const attachDir = path.join(this._engine.gsapHome, "attachments");
+      const attachDir = path.join(this._engine.codiaHome, "attachments");
       await fs.promises.mkdir(attachDir, { recursive: true });
       const savedPaths = [];
       for (const img of o.images) {
@@ -202,11 +201,11 @@ export class Hub {
     }
     if (
       o.videos?.length
-      && this._engine.gsapHome
+      && this._engine.codiaHome
       && !o.inboundFiles?.length
       && !hasDisplayVideoAttachments(o.displayMessage)
     ) {
-      const attachDir = path.join(this._engine.gsapHome, "attachments");
+      const attachDir = path.join(this._engine.codiaHome, "attachments");
       await fs.promises.mkdir(attachDir, { recursive: true });
       const savedPaths = [];
       for (const video of o.videos) {
@@ -1168,7 +1167,7 @@ function publicAgentProfile(agent) {
   return {
     id: agent?.id || null,
     name: agent?.agentName || config.agent?.name || agent?.name || agent?.id || null,
-    yuan: config.agent?.yuan || "gsap",
+    yuan: config.agent?.yuan || "codia",
     ownerPluginId: plugin.ownerPluginId || null,
     visibility: plugin.visibility || "public",
     identity: agent?.personality || agent?.identity || "",

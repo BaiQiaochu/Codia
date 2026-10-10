@@ -11,7 +11,7 @@ import { resolveModelInputModalities } from "../../shared/model-capabilities.ts"
 import { DEFAULT_TIMEOUT_MS, parseGlobalArgs } from "./args.ts";
 import { readBridgeStatusSafe, formatBridgeCliSummary } from "./bridge-status.ts";
 import { dispatchCliCommand, normalizeCommandName } from "./commands.ts";
-import { GsapClient, parseOptionalJson, wsConnect } from "./client.ts";
+import { CodiaClient, parseOptionalJson, wsConnect } from "./client.ts";
 import { CliError } from "./errors.ts";
 import { parseJson } from "./json.ts";
 import { readImages } from "./media.ts";
@@ -369,7 +369,7 @@ function printContentBlockSummary(block) {
 
 async function createClient(opts) {
   const info = await ensureServerInfo(opts);
-  return new GsapClient(info, opts);
+  return new CodiaClient(info, opts);
 }
 
 async function getCurrentAgentId(client) {
@@ -498,11 +498,11 @@ async function commandServe(_client, args, opts) {
     child.on("error", reject);
     child.on("exit", (code, signal) => {
       if (code && code !== 0) {
-        reject(new CliError(`G-SAP server 异常退出，退出码 ${code}`, { code }));
+        reject(new CliError(`Codia server 异常退出，退出码 ${code}`, { code }));
         return;
       }
       if (signal) {
-        reject(new CliError(`G-SAP server 被 ${signal} 终止`, { code: 1 }));
+        reject(new CliError(`Codia server 被 ${signal} 终止`, { code: 1 }));
         return;
       }
       resolve();
@@ -748,7 +748,7 @@ async function commandConfig(client, args, opts) {
 
   if (sub === "get") {
     const key = args.shift();
-    if (!key) throw new CliError("用法: gsap config get <key>");
+    if (!key) throw new CliError("用法: codia config get <key>");
     const data = redactConfigSecrets(await client.get("/config"));
     const value = getPathValue(data, key);
     if (value === undefined) throw new CliError(`配置不存在: ${key}`, { code: 4 });
@@ -759,7 +759,7 @@ async function commandConfig(client, args, opts) {
 
   if (sub === "set") {
     const key = args.shift();
-    if (!key || !args.length) throw new CliError("用法: gsap config set <key> <value>");
+    if (!key || !args.length) throw new CliError("用法: codia config set <key> <value>");
     const value = parseConfigValue(args.join(" "));
     const patch = objectFromPath(key, value);
     const result = await client.put("/config", patch);
@@ -788,14 +788,14 @@ async function commandPermissions(client, args, opts) {
 
   if (action === "set") {
     const mode = args.shift();
-    if (!mode) throw new CliError("用法: gsapctl permissions set <read_only|ask|operate>");
+    if (!mode) throw new CliError("用法: codiactl permissions set <read_only|ask|operate>");
     const data = await setPermissionMode(client, mode, { sessionPath });
     if (opts.json) return printJson({ ok: true, ...data });
     output.write(`${paint("green", "权限模式已更新")} ${formatPermissionMode(data.permissionMode || data.mode)}\n`);
     return data;
   }
 
-  throw new CliError("用法: gsapctl permissions get|set <read_only|ask|operate>");
+  throw new CliError("用法: codiactl permissions get|set <read_only|ask|operate>");
 }
 
 async function commandResume(client, args, opts) {
@@ -982,7 +982,7 @@ async function showInteractiveHelp() {
 }
 
 async function showMainMenu(client, rl, state, runner) {
-  output.write(`\n${paint("bold", "G-SAP 菜单")}\n`);
+  output.write(`\n${paint("bold", "Codia 菜单")}\n`);
   output.write(`  1. 新建会话\n`);
   output.write(`  2. 切换会话\n`);
   output.write(`  3. 切换模型\n`);
@@ -1011,8 +1011,8 @@ async function showMainMenu(client, rl, state, runner) {
 }
 
 function _introCard(client, state) {
-  output.write(`${paint("bold", "G-SAP CLI")}\n`);
-  output.write(`${paint("dim", "Interactive terminal that talks directly to the G-SAP server")}\n`);
+  output.write(`${paint("bold", "Codia CLI")}\n`);
+  output.write(`${paint("dim", "Interactive terminal that talks directly to the Codia server")}\n`);
   output.write(`后端: ${client.baseUrl}\n`);
   output.write(`目录: ${process.cwd()}\n`);
   output.write(`会话: ${state.sessionPath || "自动选择"}\n`);
@@ -1020,36 +1020,36 @@ function _introCard(client, state) {
 }
 
 function zhHelpText() {
-  return `G-SAP 中文 CLI
+  return `Codia 中文 CLI
 
 用法:
-  gsap --help
-  gsap --version
-  gsap serve [--port <port>]
-  gsap chat [--new] [--session <path>]
-  gsap run [--new] [--stdin] [--image <path>] <文本>
-  gsap run [--output <file>] [--no-stream] [--dry-run] [--no-tools] <文本>
-  gsap resume <session-id|path>
-  gsap resume --last
-  gsap permissions get|set <read_only|ask|operate>
-  gsap config list
-  gsap config get <key>
-  gsap config set <key> <value>
-  gsap doctor [--json]
-  gsap health [--json]
-  gsap session list|new|switch|messages|export
-  gsap models list|set|switch
-  gsap agents list|switch|create
-  gsap skills [--agent-id <id>]
-  gsap commands
-  gsap fs read <path>
-  gsap raw <METHOD> <api-path> [--body JSON|--stdin]
+  codia --help
+  codia --version
+  codia serve [--port <port>]
+  codia chat [--new] [--session <path>]
+  codia run [--new] [--stdin] [--image <path>] <文本>
+  codia run [--output <file>] [--no-stream] [--dry-run] [--no-tools] <文本>
+  codia resume <session-id|path>
+  codia resume --last
+  codia permissions get|set <read_only|ask|operate>
+  codia config list
+  codia config get <key>
+  codia config set <key> <value>
+  codia doctor [--json]
+  codia health [--json]
+  codia session list|new|switch|messages|export
+  codia models list|set|switch
+  codia agents list|switch|create
+  codia skills [--agent-id <id>]
+  codia commands
+  codia fs read <path>
+  codia raw <METHOD> <api-path> [--body JSON|--stdin]
 
 命令别名:
-  gsapctl、g-sap、gsap-cli 与 gsap 使用同一套 CLI runtime。
+  codiactl、codia、codia-cli 与 codia 使用同一套 CLI runtime。
 
 连接参数:
-  --home <dir>          指定 GSAP_HOME
+  --home <dir>          指定 CODIA_HOME
   --server-info <file>  指定 server-info 文件，默认 server-info.cli.json
   --api-base <url>      连接外部后端，例如 http://127.0.0.1:50150
   --host <host>         默认 127.0.0.1
@@ -1063,7 +1063,7 @@ function zhHelpText() {
 }
 
 function zhPrompt(state) {
-  const status = `g-sap · ${displayPath(process.cwd(), 48)} · ${sessionName(state.sessionPath)}`;
+  const status = `codia · ${displayPath(process.cwd(), 48)} · ${sessionName(state.sessionPath)}`;
   return `${paint("dim", status)}\n${paint("cyan", "")} `;
 }
 
@@ -1078,7 +1078,7 @@ async function readHealthSafe(client) {
 async function showZhIntro(client, state) {
   const health = await readHealthSafe(client);
   drawCliCard([
-    `>_ G-SAP CLI (v${packageVersion()})`,
+    `>_ Codia CLI (v${packageVersion()})`,
     "",
     `模型:     ${health.model || "未设置"}    /model 切换`,
     `助手:     ${health.agent || "-"}    /agent 切换`,
@@ -1337,7 +1337,7 @@ async function showZhInteractiveHelp() {
 }
 
 async function showZhMainMenu(client, rl, state, runner) {
-  output.write(`\n${paint("bold", "G-SAP 菜单")}\n`);
+  output.write(`\n${paint("bold", "Codia 菜单")}\n`);
   output.write(`  1. 新建会话\n`);
   output.write(`  2. 切换会话\n`);
   output.write(`  3. 切换模型\n`);

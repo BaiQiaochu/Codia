@@ -50,7 +50,7 @@ describe("Pi SDK provider runtime compat", () => {
     const streamFn = vi.fn(async function* (_model, _context, _options) {});
     const session = {
       sessionManager: {
-        getSessionFile: () => "C:\\Users\\ghost\\Desktop\\G-SAP-WorkSpace\\secret-session.jsonl",
+        getSessionFile: () => "C:\\Users\\ghost\\Desktop\\Codia-WorkSpace\\secret-session.jsonl",
       },
       agent: { streamFn },
     };
@@ -65,7 +65,7 @@ describe("Pi SDK provider runtime compat", () => {
 
     const sentOptions = streamFn.mock.calls[0][2];
     expect(sentOptions.cacheRetention).toBe("long");
-    expect(sentOptions.sessionId).toMatch(/^gsap-cache-[a-f0-9]{32}$/);
+    expect(sentOptions.sessionId).toMatch(/^codia-cache-[a-f0-9]{32}$/);
     expect(sentOptions.sessionId).not.toContain("Users");
     expect(sentOptions.sessionId).not.toContain("secret-session");
   });

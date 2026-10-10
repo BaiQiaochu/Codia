@@ -16,7 +16,7 @@ afterEach(() => {
 
 const wfEntry = (over = {}) => ({
   id: "workflow-1", kind: "workflow", status: "running",
-  sessionPath: "/s/a.jsonl", agentId: "hana", summary: "demo",
+  sessionPath: "/s/a.jsonl", agentId: "codia", summary: "demo",
   startedAt: 1000, finishedAt: null, ...over,
 });
 

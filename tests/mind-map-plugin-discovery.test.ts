@@ -22,7 +22,7 @@ afterEach(() => {
 
 describe("chat visual plugin discovery", () => {
   it("keeps knowledge graph and mind map as chat tools without standalone pages", async () => {
-    const dataDir = makeTempDir("gsap-mm-plugin-data-");
+    const dataDir = makeTempDir("codia-mm-plugin-data-");
     const pm = new PluginManager({
       pluginsDirs: [path.join(process.cwd(), "plugins")],
       dataDir,

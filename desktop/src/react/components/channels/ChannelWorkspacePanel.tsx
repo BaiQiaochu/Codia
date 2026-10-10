@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../../stores';
 import type { AgentPhoneActivity, ChannelMemberRole } from '../../types';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import {
   createChannelAgent,
   loadChannels,
@@ -20,10 +20,10 @@ import {
 import { ChannelAutomationSection } from './ChannelAutomationSection';
 import styles from './Channels.module.css';
 
-const YUAN_OPTIONS = ['gsap', 'butter', 'ming', 'kong'] as const;
+const YUAN_OPTIONS = ['codia', 'butter', 'ming', 'kong'] as const;
 
 const YUAN_NAME_FALLBACKS: Record<(typeof YUAN_OPTIONS)[number], string> = {
-  gsap: '均衡',
+  codia: '均衡',
   butter: '情感',
   ming: '理性',
   kong: '原始',
@@ -263,7 +263,7 @@ export function ChannelWorkspacePanel() {
   const [formOpen, setFormOpen] = useState(false);
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const [agentName, setAgentName] = useState('');
-  const [agentYuan, setAgentYuan] = useState<(typeof YUAN_OPTIONS)[number]>('gsap');
+  const [agentYuan, setAgentYuan] = useState<(typeof YUAN_OPTIONS)[number]>('codia');
   const [agentRole, setAgentRole] = useState<ChannelMemberRole>('worker');
   const [creatingAgent, setCreatingAgent] = useState(false);
   const [agentNameEdited, setAgentNameEdited] = useState(false);
@@ -295,7 +295,7 @@ export function ChannelWorkspacePanel() {
     setCompanyLoading(true);
     setCompanyError('');
     try {
-      const res = await gsapFetch('/api/plugins/company/companies/default/status');
+      const res = await codiaFetch('/api/plugins/company/companies/default/status');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setCompanyStatus({
@@ -410,7 +410,7 @@ export function ChannelWorkspacePanel() {
 
   const focusTaskAndWorkflowNode = useCallback((taskId: string) => {
     setFocusedTaskId(taskId);
-    window.dispatchEvent(new CustomEvent('gsap-channel-task-focus-workflow', {
+    window.dispatchEvent(new CustomEvent('codia-channel-task-focus-workflow', {
       detail: { taskId, channelId: currentChannel },
     }));
   }, [currentChannel]);
@@ -423,8 +423,8 @@ export function ChannelWorkspacePanel() {
       setFocusedTaskId(detail.taskId);
       scrollTaskNodeIntoView(detail.taskId);
     };
-    window.addEventListener('gsap-channel-workflow-focus-task', handleWorkflowFocus);
-    return () => window.removeEventListener('gsap-channel-workflow-focus-task', handleWorkflowFocus);
+    window.addEventListener('codia-channel-workflow-focus-task', handleWorkflowFocus);
+    return () => window.removeEventListener('codia-channel-workflow-focus-task', handleWorkflowFocus);
   }, [currentChannel, scrollTaskNodeIntoView]);
 
   useEffect(() => {
@@ -434,8 +434,8 @@ export function ChannelWorkspacePanel() {
         setFormOpen(true);
       }
     };
-    window.addEventListener('gsap-channel-open-agent-create', handleOpen);
-    return () => window.removeEventListener('gsap-channel-open-agent-create', handleOpen);
+    window.addEventListener('codia-channel-open-agent-create', handleOpen);
+    return () => window.removeEventListener('codia-channel-open-agent-create', handleOpen);
   }, [currentChannel]);
 
   useEffect(() => {
@@ -455,17 +455,17 @@ export function ChannelWorkspacePanel() {
       if (detail.channelId && detail.channelId !== currentChannel) return;
       focusSection(membersSectionRef.current);
     };
-    window.addEventListener('gsap-channel-focus-info', handleInfoFocus);
-    window.addEventListener('gsap-channel-focus-members', handleMembersFocus);
+    window.addEventListener('codia-channel-focus-info', handleInfoFocus);
+    window.addEventListener('codia-channel-focus-members', handleMembersFocus);
     return () => {
-      window.removeEventListener('gsap-channel-focus-info', handleInfoFocus);
-      window.removeEventListener('gsap-channel-focus-members', handleMembersFocus);
+      window.removeEventListener('codia-channel-focus-info', handleInfoFocus);
+      window.removeEventListener('codia-channel-focus-members', handleMembersFocus);
     };
   }, [currentChannel]);
 
   useEffect(() => {
     setAgentName('');
-    setAgentYuan('gsap');
+    setAgentYuan('codia');
     setAgentRole('worker');
     setCreatingAgent(false);
     setAgentNameEdited(false);
@@ -536,7 +536,7 @@ export function ChannelWorkspacePanel() {
       });
       addToast(window.t?.('channel.agentCreated', { name: created.name }) || `${created.name} 已创建`, 'success', 2600);
       setAgentName('');
-      setAgentYuan('gsap');
+      setAgentYuan('codia');
       setAgentRole('worker');
       setAgentNameEdited(false);
       setFormOpen(false);
@@ -555,7 +555,7 @@ export function ChannelWorkspacePanel() {
     if (!currentChannel || !command || dispatchingCluster) return;
     setDispatchingCluster(true);
     try {
-      const res = await gsapFetch('/api/plugins/company/tasks/assign', {
+      const res = await codiaFetch('/api/plugins/company/tasks/assign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -581,7 +581,7 @@ export function ChannelWorkspacePanel() {
     if (!currentChannel || clearingTaskTrees) return;
     setClearingTaskTrees(true);
     try {
-      const res = await gsapFetch('/api/plugins/company/tasks/clear', {
+      const res = await codiaFetch('/api/plugins/company/tasks/clear', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

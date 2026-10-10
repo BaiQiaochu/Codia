@@ -9,7 +9,7 @@ describe("dm tool phone gate", () => {
   let tempRoot;
 
   beforeEach(() => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-dm-tool-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-dm-tool-"));
   });
 
   afterEach(() => {

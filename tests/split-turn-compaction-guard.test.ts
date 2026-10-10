@@ -324,7 +324,7 @@ describe("split-turn compaction guard", () => {
       reasoning: true,
       contextWindow: 128000,
     })).toMatchObject({
-      reasoning_effort: "high",
+      reasoning_effort: "low",
     });
   });
 

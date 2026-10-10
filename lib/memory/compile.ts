@@ -2,8 +2,6 @@
 /**
  * compile.js -记忆编译器（v3 四块独立编译 + assemble- *
   *
-  *
-  *
  *
   * */
 
@@ -93,7 +91,7 @@ Principles:
 
 May record:
 - The user's identity, personality traits, aesthetics, interests, likes, and dislikes
-- Broad themes the user is currently focused on, such as "memory systems", "G-SAP", or "AI Agent"
+- Broad themes the user is currently focused on, such as "memory systems", "Codia", or "AI Agent"
 - Changes in the user's life, creative work, relationships, or long-term areas of attention
 
 Do NOT record:
@@ -567,7 +565,7 @@ function _compilePromptSpecForOperation(operation, systemPrompt) {
 }
 
 function buildCompiledMemoryScopeOverride() {
-  return `\n\n## Compiled Memory Scope Override\nMemory is not a work log or collaboration manual. Keep only stable user-profile information and coarse current-state themes.\n\nMay keep:\n- User identity, personality traits, aesthetics, interests, likes/dislikes, long-term relationships, values, and long-term focus directions.\n- Broad themes the user is currently focused on, such as "memory systems", "G-SAP", or "AI Agent".\n- Important changes in life, creative work, relationships, or long-term areas of attention.\n\nDo not keep:\n- Execution steps, filenames, tools, commands, validation order, collaboration preferences, or work details.\n- Specific subproblems, concrete solutions, concrete code changes, tests, packaging, release flows, commits, or pushes.\n- Task-level methodology choices, tool preferences, temporary decisions, retries, interruptions, and resumptions.\n\n中文边界契约：工作相关内容只允许保留到大主题层级，例如领域/项目/主题。不要记录执行步骤、文件名、工具、命令、检查顺序、协作偏好、工作细节。最多 300 字。不要输出 Markdown 标题。\n\nFor work/project content, keep only the broad domain/project/theme. Skip details inside that theme.`;
+  return `\n\n## Compiled Memory Scope Override\nMemory is not a work log or collaboration manual. Keep only stable user-profile information and coarse current-state themes.\n\nMay keep:\n- User identity, personality traits, aesthetics, interests, likes/dislikes, long-term relationships, values, and long-term focus directions.\n- Broad themes the user is currently focused on, such as "memory systems", "Codia", or "AI Agent".\n- Important changes in life, creative work, relationships, or long-term areas of attention.\n\nDo not keep:\n- Execution steps, filenames, tools, commands, validation order, collaboration preferences, or work details.\n- Specific subproblems, concrete solutions, concrete code changes, tests, packaging, release flows, commits, or pushes.\n- Task-level methodology choices, tool preferences, temporary decisions, retries, interruptions, and resumptions.\n\n中文边界契约：工作相关内容只允许保留到大主题层级，例如领域/项目/主题。不要记录执行步骤、文件名、工具、命令、检查顺序、协作偏好、工作细节。最多 300 字。不要输出 Markdown 标题。\n\nFor work/project content, keep only the broad domain/project/theme. Skip details inside that theme.`;
 }
 
 // ════════════════════════════

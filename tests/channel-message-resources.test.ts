@@ -13,7 +13,7 @@ describe("channel message resource metadata", () => {
   });
 
   function makeChannelFile() {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-resource-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-resource-"));
     const filePath = path.join(tempDir, "ch_resources.md");
     fs.writeFileSync(filePath, "---\nid: ch_resources\nmembers: [agent-a, agent-b]\n---\n", "utf-8");
     return filePath;

@@ -86,7 +86,7 @@ describe("_doDaily step orchestration", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-test-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-test-"));
     ticker = makeTicker(tmpDir);
   });
 

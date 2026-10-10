@@ -28,7 +28,7 @@ export default function (app, ctx) {
     const pluginId = ctx.pluginId;
     const mediaBase = `/api/plugins/${pluginId}`;
     const tokenParam = token ? `?token=${encodeURIComponent(token)}` : "";
-    const gsapCss = c.req.query("gsap-css") || "";
+    const codiaCss = c.req.query("codia-css") || "";
 
     const hasPending = tasks.some((t) => t.status === "pending");
     const ratio = tasks[0]?.params?.ratio || "1:1";
@@ -49,7 +49,7 @@ export default function (app, ctx) {
 
     const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
-${gsapCss ? `<link rel="stylesheet" href="${escAttr(gsapCss)}">` : ""}
+${codiaCss ? `<link rel="stylesheet" href="${escAttr(codiaCss)}">` : ""}
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{color-scheme:light}

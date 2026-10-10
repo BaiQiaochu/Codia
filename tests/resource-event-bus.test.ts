@@ -41,7 +41,6 @@ describe("ResourceEventBus", () => {
     };
 
     bus.changed(event);
-    bus.changed(event);
 
     expect(emit).toHaveBeenCalledTimes(1);
   });

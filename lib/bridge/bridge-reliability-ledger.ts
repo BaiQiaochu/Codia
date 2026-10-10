@@ -5,6 +5,7 @@ import crypto from "node:crypto";
 
 const MAX_MESSAGES = 2_000;
 const MAX_DEAD_LETTERS = 500;
+const MAX_MESSAGE_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 export class BridgeReliabilityLedger {
   constructor({ dataDir, now = () => Date.now() } = {}) {
@@ -26,7 +27,9 @@ export class BridgeReliabilityLedger {
       agentId: textOrNull(entry.agentId),
       isGroup: entry.isGroup === true,
       textLength: String(entry.text || "").length,
+      textPreview: previewText(entry.text || entry.textPreview),
       status: textOrNull(entry.status) || "ok",
+      statusVersion: numberOr(entry.statusVersion, 1),
     };
     this._state.messages.push(item);
     this._state.messages.splice(0, Math.max(0, this._state.messages.length - MAX_MESSAGES));
@@ -71,6 +74,43 @@ export class BridgeReliabilityLedger {
       .filter((item) => includeResolved || item.status === "pending")
       .slice(0, max)
       .map((item) => ({ ...item }));
+  }
+
+  listMessages({ limit = 100, agentId = null, platform = null, status = null, since = null } = {}) {
+    const max = Math.max(1, Math.min(MAX_MESSAGES, Number(limit) || 100));
+    const cutoff = Number.isFinite(Number(since)) ? Number(since) : this._now() - MAX_MESSAGE_AGE_MS;
+    return this._state.messages
+      .filter((item) => (item.ts || 0) >= cutoff)
+      .filter((item) => !agentId || item.agentId === agentId)
+      .filter((item) => !platform || item.platform === platform)
+      .filter((item) => !status || item.status === status)
+      .slice(-max)
+      .reverse()
+      .map((item) => ({ ...item }));
+  }
+
+  listDeliveries(options = {}) {
+    const messages = this.listMessages(options).map((item) => ({
+      ...item,
+      kind: item.kind || (item.direction === "out" ? "message" : "incoming"),
+      deliveryStatus: item.status || "unknown",
+      summary: item.textPreview || null,
+    }));
+    const max = Math.max(1, Math.min(MAX_MESSAGES, Number(options.limit) || 100));
+    const deadLetters = this._state.deadLetters
+      .filter((item) => !options.agentId || item.agentId === options.agentId)
+      .filter((item) => !options.platform || item.platform === options.platform)
+      .map((item) => ({
+        ...item,
+        ts: item.updatedAt || item.createdAt,
+        kind: item.kind || "message",
+        deliveryStatus: item.status || "failed",
+        summary: previewText(item.payload?.text),
+        status: item.status || "failed",
+      }));
+    return [...messages, ...deadLetters]
+      .sort((a, b) => (b.ts || 0) - (a.ts || 0))
+      .slice(0, max);
   }
 
   listDueDeadLetters() {
@@ -137,6 +177,12 @@ function sanitizePayload(payload) {
 
 function textOrNull(value) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function previewText(value) {
+  if (typeof value !== "string") return null;
+  const normalized = value.replace(/\s+/g, " ").trim();
+  return normalized ? normalized.slice(0, 120) : null;
 }
 
 function numberOr(value, fallback) {

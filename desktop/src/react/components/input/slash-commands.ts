@@ -4,7 +4,7 @@
   *
  */
 
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { getWebSocket } from '../../services/websocket';
 import { useStore } from '../../stores';
 import { ensureSession } from '../../stores/session-actions';
@@ -133,7 +133,7 @@ export function executeDiary(
     setInput('');
     setMenuOpen(false);
     try {
-      const res = await gsapFetch('/api/diary/write', { method: 'POST' });
+      const res = await codiaFetch('/api/diary/write', { method: 'POST' });
       const data = await res.json();
       if (!res.ok || data.error) {
         showResult(data.error || t('slash.diaryFailed'), 'error');

@@ -11,7 +11,7 @@ describe("search_memory channel scope", () => {
   let factStore;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-memory-scope-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-memory-scope-"));
     factStore = new FactStore(path.join(tmpDir, "facts.db"));
     factStore.add({
       fact: "User likes pineapple pizza",

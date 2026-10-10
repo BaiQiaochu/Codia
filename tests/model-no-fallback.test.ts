@@ -96,7 +96,7 @@ describe("model selection without fallback", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-model-nofallback-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-model-nofallback-"));
   });
 
   afterEach(() => {
@@ -257,13 +257,13 @@ describe("model selection without fallback", () => {
     }
 
     it("throws when utility is not configured", () => {
-      const mm = new ModelManager({ gsapHome: tempDir });
+      const mm = new ModelManager({ codiaHome: tempDir });
       setupRouter(mm);
       expect(() => mm.resolveUtilityConfig({}, {}, {})).toThrow(t("error.noUtilityModel"));
     });
 
     it("throws when utility_large is not configured", () => {
-      const mm = new ModelManager({ gsapHome: tempDir });
+      const mm = new ModelManager({ codiaHome: tempDir });
       setupRouter(mm);
       mm._availableModels = [{ id: "some-model", provider: "x" }];
       expect(() => mm.resolveUtilityConfig({}, { utility: { id: "some-model", provider: "x" } }, {}))
@@ -271,7 +271,7 @@ describe("model selection without fallback", () => {
     });
 
     it("returns both utility and utility_large when both are configured", () => {
-      const mm = new ModelManager({ gsapHome: tempDir });
+      const mm = new ModelManager({ codiaHome: tempDir });
       mm._availableModels = [
         { id: "util-model", provider: "test-provider", _cred: { api: "openai-completions", apiKey: "sk-test", baseUrl: "https://test.example.com/v1" } },
         { id: "large-model", provider: "test-provider", _cred: { api: "openai-completions", apiKey: "sk-test", baseUrl: "https://test.example.com/v1" } },
@@ -292,7 +292,7 @@ describe("model selection without fallback", () => {
     });
 
     it("throws when utility_api provider does not match the model provider", () => {
-      const mm = new ModelManager({ gsapHome: tempDir });
+      const mm = new ModelManager({ codiaHome: tempDir });
       mm._availableModels = [
         { id: "util-model", provider: "test-provider", _cred: { api: "openai-completions", apiKey: "sk-test", baseUrl: "https://test.example.com/v1" } },
         { id: "large-model", provider: "test-provider", _cred: { api: "openai-completions", apiKey: "sk-test", baseUrl: "https://test.example.com/v1" } },

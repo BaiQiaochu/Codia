@@ -17,7 +17,7 @@ describe("search verify route", () => {
     const engine = {
       config: {},
       configPath: "/tmp/test-config.yaml",
-      currentAgentId: "gsap",
+      currentAgentId: "codia",
       getSearchConfig: () => ({
         provider: "auto",
         api_key: null,
@@ -68,7 +68,7 @@ describe("search verify route", () => {
     const engine = {
       config: {},
       configPath: "/tmp/test-config.yaml",
-      currentAgentId: "gsap",
+      currentAgentId: "codia",
       getSearchConfig: () => ({
         provider: "auto",
         api_key: null,

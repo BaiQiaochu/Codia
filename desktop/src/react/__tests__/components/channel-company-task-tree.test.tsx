@@ -5,10 +5,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useStore } from '../../stores';
 
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 describe('ChannelWorkspacePanel company task tree', () => {
@@ -19,8 +19,8 @@ describe('ChannelWorkspacePanel company task tree', () => {
       if (vars?.name) return `${key}:${vars.name}`;
       return key;
     }) as typeof window.t;
-    gsapFetchMock.mockReset();
-    gsapFetchMock.mockResolvedValue({
+    codiaFetchMock.mockReset();
+    codiaFetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
         ok: true,
@@ -65,8 +65,8 @@ describe('ChannelWorkspacePanel company task tree', () => {
       channelInfoName: '工作群',
       channelInfoDescription: '项目协作频道',
       agents: [
-        { id: 'pm-1', name: '管理A', yuan: 'gsap', isPrimary: false },
-        { id: 'worker-1', name: '工人A', yuan: 'gsap', isPrimary: false },
+        { id: 'pm-1', name: '管理A', yuan: 'codia', isPrimary: false },
+        { id: 'worker-1', name: '工人A', yuan: 'codia', isPrimary: false },
       ],
       userName: 'Boss',
       userAvatarUrl: '',
@@ -95,7 +95,7 @@ describe('ChannelWorkspacePanel company task tree', () => {
     const { ChannelWorkspacePanel } = await import('../../components/channels/ChannelWorkspacePanel');
     render(<ChannelWorkspacePanel />);
 
-    await waitFor(() => expect(gsapFetchMock).toHaveBeenCalledWith('/api/plugins/company/companies/default/status'));
+    await waitFor(() => expect(codiaFetchMock).toHaveBeenCalledWith('/api/plugins/company/companies/default/status'));
 
     expect(await screen.findByText('任务树')).toBeInTheDocument();
     expect(screen.getByText('项目拆解')).toBeInTheDocument();
@@ -143,7 +143,7 @@ describe('ChannelWorkspacePanel company task tree', () => {
         status: 'assigned',
       },
     ];
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/plugins/company/tasks/assign') {
         return {
           ok: true,
@@ -172,14 +172,14 @@ describe('ChannelWorkspacePanel company task tree', () => {
     });
     fireEvent.click(screen.getByText('拆解并派发'));
 
-    await waitFor(() => expect(gsapFetchMock).toHaveBeenCalledWith(
+    await waitFor(() => expect(codiaFetchMock).toHaveBeenCalledWith(
       '/api/plugins/company/tasks/assign',
       expect.objectContaining({
         method: 'POST',
         body: expect.stringContaining('完成阅读器模式修复'),
       }),
     ));
-    const assignCall = gsapFetchMock.mock.calls.find(([url]) => url === '/api/plugins/company/tasks/assign');
+    const assignCall = codiaFetchMock.mock.calls.find(([url]) => url === '/api/plugins/company/tasks/assign');
     expect(JSON.parse(String(assignCall?.[1]?.body))).toMatchObject({
       channelId: 'ch_crew',
       command: '完成阅读器模式修复',

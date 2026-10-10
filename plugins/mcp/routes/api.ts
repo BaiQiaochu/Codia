@@ -166,7 +166,7 @@ export default function registerMcpRoutes(app, ctx) {
         code: url.searchParams.get("code") || "",
         error: url.searchParams.get("error") || "",
       });
-      return c.html(htmlPage("Connector connected", "You can close this window and return to G-SAP."));
+      return c.html(htmlPage("Connector connected", "You can close this window and return to Codia."));
     } catch (err) {
       return c.html(htmlPage("Connector OAuth failed", err.message), 400);
     }

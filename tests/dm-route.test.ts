@@ -24,7 +24,7 @@ describe("dm route phone gate", () => {
   let channelsEnabled;
 
   beforeEach(async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-dm-route-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-dm-route-"));
     channelsEnabled = true;
     agents = new Map([
       ["alice", makeAgent(tmpDir, "alice", "Alice")],

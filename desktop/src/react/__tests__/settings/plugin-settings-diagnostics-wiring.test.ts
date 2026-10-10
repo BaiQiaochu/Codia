@@ -16,7 +16,7 @@ describe('plugin settings diagnostics wiring', () => {
     expect(pluginsTab).toContain('settings.plugins.manageEntryDesc');
     expect(pluginsTab).not.toContain('const openMarketplace = useCallback');
     expect(pluginsTab).not.toContain("openSettingsModal('plugin-marketplace')");
-    expect(pluginsTab).toContain("gsapFetch('/api/plugins')");
+    expect(pluginsTab).toContain("codiaFetch('/api/plugins')");
     expect(pluginsTab).toContain("plugin.source === 'builtin'");
     expect(pluginsTab).toContain("settings.skills.builtinBadge");
     expect(pluginsTab).toContain('/api/plugins/diagnostics');
@@ -26,7 +26,7 @@ describe('plugin settings diagnostics wiring', () => {
     expect(pluginsTab).toContain('settings.plugins.configure');
   });
 
-  it('keeps only G-SAP plugin marketplace controls in settings', () => {
+  it('keeps only Codia plugin marketplace controls in settings', () => {
     const marketplaceTab = read('settings/tabs/PluginMarketplaceTab.tsx');
     const preload = fs.readFileSync(path.join(process.cwd(), 'desktop/preload.cjs'), 'utf8');
 

@@ -52,7 +52,7 @@
     border-radius: 50%;
 }
 
-.gsapAvatar {
+.codiaAvatar {
     object-fit: cover;
     pointer-events: none;
     user-select: none;
@@ -382,7 +382,7 @@
 
 /* 助手消息 */
 .messageAssistant {
-    color: var(--gsap-text);
+    color: var(--codia-text);
     font-size: var(--chat-message-font-size);
     line-height: 1.75;
     word-break: break-word;
@@ -425,7 +425,7 @@
     gap: 7px;
     min-height: 26px;
     padding: 0 8px;
-    border: 1px solid var(--gsap-border);
+    border: 1px solid var(--codia-border);
     border-radius: 7px;
     background: var(--overlay-subtle);
     color: var(--text-muted);
@@ -486,7 +486,7 @@
     margin: 6px 0 0 8px;
     padding: 0 0 0 12px;
     list-style: none;
-    border-left: 1px solid var(--gsap-border);
+    border-left: 1px solid var(--codia-border);
 }
 
 .runtimeTimelineItem {
@@ -584,7 +584,7 @@
     font-size: 0.8rem;
 }
 
-.moodWrapper[data-yuan="gsap"] { --mood-accent: var(--accent); }
+.moodWrapper[data-yuan="codia"] { --mood-accent: var(--accent); }
 .moodWrapper[data-yuan="butter"]  { --mood-accent: #5BA88C; }
 .moodWrapper[data-yuan="ming"]    { --mood-accent: #8BA4B4; }
 .moodWrapper[data-yuan="hermes"]  { --mood-accent: var(--accent); }
@@ -801,7 +801,7 @@
     cursor: pointer;
     font-size: 0.85rem;
     font-family: inherit;
-    color: var(--gsap-text);
+    color: var(--codia-text);
     background: transparent;
     border: none;
     border-bottom: 1px solid var(--overlay-light, rgba(0,0,0,0.06));
@@ -827,10 +827,10 @@
 .settingsConfirmInput {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid var(--gsap-border);
+    border: 1px solid var(--codia-border);
     border-radius: var(--radius-sm);
-    background: var(--gsap-bg);
-    color: var(--gsap-text);
+    background: var(--codia-bg);
+    color: var(--codia-text);
     font-size: 0.85rem;
     font-family: inherit;
     box-sizing: border-box;
@@ -1376,7 +1376,7 @@
     border: 1px solid var(--overlay-light, rgba(0,0,0,0.08));
     border-radius: var(--radius-chat-card);
     box-shadow: 0 6px 24px var(--shadow), 0 2px 6px var(--shadow);
-    animation: gsap-fade-up 0.15s var(--ease-out, ease-out);
+    animation: codia-fade-up 0.15s var(--ease-out, ease-out);
 }
 
 .fileOutputActionMenuItem {
@@ -1458,7 +1458,7 @@
 
 .mediaGenerationDots::after {
     content: '';
-    animation: hana-cycling-dots 1.4s steps(1, end) infinite;
+    animation: codia-cycling-dots 1.4s steps(1, end) infinite;
 }
 
 .mediaGenerationPrompt {
@@ -1471,7 +1471,7 @@
     text-overflow: ellipsis;
 }
 
-@keyframes hana-cycling-dots {
+@keyframes codia-cycling-dots {
     0%, 100% { content: '.'; }
     33% { content: '..'; }
     66% { content: '...'; }
@@ -1626,6 +1626,7 @@
 }
 
 .imageOutputPreviewWrap {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1658,6 +1659,49 @@
     max-width: none;
     max-height: none;
     object-fit: contain;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+
+.imageOutputPreview.loaded { opacity: 1; }
+
+.imageOutputLoading {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    pointer-events: none;
+}
+
+.imageOutputFailure {
+    gap: 10px;
+    align-items: center;
+}
+
+.imageOutputRetryButton {
+    flex: 0 0 auto;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--accent-light);
+    color: var(--accent);
+    font: inherit;
+    font-size: 0.74rem;
+    cursor: pointer;
+}
+
+.fileOutputActionError {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    color: var(--danger);
+    font-size: 0.7rem;
+    font-weight: 700;
 }
 
 .videoOutputPreview {
@@ -2134,10 +2178,10 @@
     justify-content: center;
     min-height: 30px;
     padding: 6px 10px;
-    border: 1px solid var(--gsap-border, var(--border));
+    border: 1px solid var(--codia-border, var(--border));
     border-radius: var(--radius-sm);
     background: var(--surface-raised);
-    color: var(--gsap-text-muted);
+    color: var(--codia-text-muted);
     font: inherit;
     font-size: 0.78rem;
     cursor: pointer;
@@ -2147,7 +2191,7 @@
 .processFoldSummary:hover {
     background: var(--tool-bg);
     color: var(--tool-text);
-    border-color: var(--gsap-accent, var(--accent));
+    border-color: var(--codia-accent, var(--accent));
 }
 
 .processFoldSummaryOpen {
@@ -2173,7 +2217,7 @@
 
 .processFoldArrow {
     flex: 0 0 auto;
-    color: var(--gsap-text-muted);
+    color: var(--codia-text-muted);
     font-size: 0.72rem;
     transition: transform 0.15s ease;
 }
@@ -2187,7 +2231,7 @@
     box-sizing: border-box;
     margin: 0 0 var(--space-xs);
     padding: var(--space-sm);
-    border: 1px solid var(--gsap-border, var(--border));
+    border: 1px solid var(--codia-border, var(--border));
     border-top: 0;
     border-radius: 0 0 var(--radius-sm) var(--radius-sm);
     background: color-mix(in srgb, var(--surface-raised) 70%, transparent);

@@ -1,5 +1,5 @@
 import { EditorView, WidgetType, Decoration } from '@codemirror/view';
-import type { DecoRange } from '../md-decorations';
+import type { DecoRange } from './types';
 
 export class CheckboxWidget extends WidgetType {
   constructor(readonly checked: boolean) { super(); }

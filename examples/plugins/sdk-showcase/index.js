@@ -1,14 +1,14 @@
 import {
   defineBusHandler,
   definePlugin,
-  GSAP_BUS_SKIP,
+  CODIA_BUS_SKIP,
   requestBus,
-} from "@g-sap/plugin-runtime";
+} from "@codia/plugin-runtime";
 
 const previewHandler = defineBusHandler({
   type: "sdk-showcase:preview",
   async handle(payload, ctx) {
-    if (!payload || payload.pluginId !== ctx.pluginId) return GSAP_BUS_SKIP;
+    if (!payload || payload.pluginId !== ctx.pluginId) return CODIA_BUS_SKIP;
     return {
       title: "SDK Showcase",
       text: "Runtime handler is alive.",

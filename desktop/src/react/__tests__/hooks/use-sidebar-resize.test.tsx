@@ -77,7 +77,7 @@ describe('useSidebarResize', () => {
     expect(removeDocumentSpy).toHaveBeenCalledWith('mouseup', expect.any(Function));
   });
 
-  it('uses a dedicated channel inspector width and G-SAP persistence key', () => {
+  it('uses a dedicated channel inspector width and Codia persistence key', () => {
     const handle = document.getElementById('channelInspectorResizeHandle') as HTMLElement;
     const storage = window.localStorage as unknown as { setItem: ReturnType<typeof vi.fn> };
 
@@ -88,7 +88,7 @@ describe('useSidebarResize', () => {
 
     expect(document.documentElement.style.getPropertyValue('--channel-inspector-width')).toBe('360px');
     expect(document.documentElement.style.getPropertyValue('--jian-sidebar-width')).not.toBe('360px');
-    expect(storage.setItem).toHaveBeenCalledWith('gsap-channel-inspector-width', '360');
+    expect(storage.setItem).toHaveBeenCalledWith('codia-channel-inspector-width', '360');
   });
 
   it('allows the preview panel to use available widescreen space instead of an 800px cap', () => {
@@ -102,6 +102,6 @@ describe('useSidebarResize', () => {
     fireEvent.mouseUp(document);
 
     expect(document.documentElement.style.getPropertyValue('--preview-panel-width')).toBe('1080px');
-    expect(storage.setItem).toHaveBeenCalledWith('gsap-preview-width', '1080');
+    expect(storage.setItem).toHaveBeenCalledWith('codia-preview-width', '1080');
   });
 });

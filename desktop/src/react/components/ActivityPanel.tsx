@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '../stores';
 import { usePanel } from '../hooks/use-panel';
-import { gsapFetch, gsapUrl } from '../hooks/use-gsap-fetch';
+import { codiaFetch, codiaUrl } from '../hooks/use-codia-fetch';
 import { fetchConfig, invalidateConfigCache } from '../hooks/use-config';
 import { loadSessions, switchSession } from '../stores/session-actions';
 import { formatSessionDate, injectCopyButtons, parseMoodFromContent } from '../utils/format';
@@ -57,13 +57,13 @@ export function ActivityPanel() {
   const [detail, setDetail] = useState<DetailState | null>(null);
   const [hbEnabled, setHbEnabled] = useState(true);
   const loadData = useCallback(() => {
-    gsapFetch('/api/desk/activities')
+    codiaFetch('/api/desk/activities')
       .then(r => r.json())
       .then(data => setActivities(data.activities || []))
-      .catch(err => console.warn('[activity] fetch activities failed:', err));
+      .catch(err => console.warn('[automation-records] fetch activities failed:', err));
     fetchConfig()
       .then(data => setHbEnabled(data.desk?.heartbeat_master !== false))
-      .catch(err => console.warn('[activity] fetch config failed:', err));
+      .catch(err => console.warn('[automation-records] fetch config failed:', err));
     setDetail(null);
   }, [setActivities]);
 
@@ -74,7 +74,7 @@ export function ActivityPanel() {
     const next = !hbEnabled;
     setHbEnabled(next);
     try {
-      await gsapFetch('/api/config', {
+      await codiaFetch('/api/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ desk: { heartbeat_master: next } }),
@@ -87,7 +87,7 @@ export function ActivityPanel() {
 
   const openSession = useCallback(async (activityId: string) => {
     try {
-      const res = await gsapFetch(`/api/desk/activities/${activityId}/session`);
+      const res = await codiaFetch(`/api/desk/activities/${activityId}/session`);
       const data = await res.json();
       if (data.error) {
         console.warn('[activity] open session failed:', getApiErrorMessage(data));
@@ -117,7 +117,7 @@ export function ActivityPanel() {
 
   const promoteActivity = useCallback(async (activityId: string) => {
     try {
-      const res = await gsapFetch(`/api/desk/activities/${activityId}/promote`, { method: 'POST' });
+      const res = await codiaFetch(`/api/desk/activities/${activityId}/promote`, { method: 'POST' });
       const data = await res.json();
       if (data.error || !data.sessionPath) {
         if (data.error) console.warn('[activity] promote failed:', getApiErrorMessage(data));
@@ -139,7 +139,7 @@ export function ActivityPanel() {
  // 详情视图
           <div id="activityDetailView" style={FLEX_COLUMN_STYLE}>
             <div className={fp.floatingPanelHeader}>
-              <button type="button" className={fp.floatingPanelBack} onClick={closeDetail}>
+              <button type="button" className={fp.floatingPanelBack} onClick={closeDetail} aria-label={t('activity.back')}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
@@ -156,7 +156,7 @@ export function ActivityPanel() {
                 </svg>
                 <span>{t('activity.promote')}</span>
               </button>
-              <button type="button" className={fp.floatingPanelClose} onClick={close}>
+              <button type="button" className={fp.floatingPanelClose} onClick={close} aria-label={t('common.close')}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
@@ -171,13 +171,15 @@ export function ActivityPanel() {
             <div className={fp.floatingPanelHeader}>
               <h2 className={fp.floatingPanelTitle}>{t('activity.title')}</h2>
               <div className={fp.activityHbToggle}>
-                <span className="gsap-toggle-label">{t('activity.heartbeat')}</span>
+                <span className="codia-toggle-label">{t('activity.heartbeat')}</span>
                 <button type="button"
-                  className={'gsap-toggle' + (hbEnabled ? ' on' : '')}
+                  className={'codia-toggle' + (hbEnabled ? ' on' : '')}
                   onClick={toggleHeartbeat}
+                  aria-label={t('activity.heartbeat')}
+                  aria-pressed={hbEnabled}
                 />
               </div>
-              <button type="button" className={fp.floatingPanelClose} onClick={close}>
+              <button type="button" className={fp.floatingPanelClose} onClick={close} aria-label={t('common.close')}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
@@ -225,7 +227,7 @@ function ActivityCard({
   const agentId = a.agentId || currentAgentId;
   const ag = agents.find(x => x.id === agentId);
   const avatarSrc = ag?.hasAvatar
-    ? gsapUrl(`/api/agents/${agentId}/avatar?t=${_avatarTs}`, { includeTokenQuery: true })
+    ? codiaUrl(`/api/agents/${agentId}/avatar?t=${_avatarTs}`, { includeTokenQuery: true })
     : yuanFallbackAvatar(ag?.yuan);
 
   const t = window.t ?? ((p: string) => p);
@@ -277,7 +279,7 @@ function DetailHeader({ detail }: { detail: DetailState }) {
   const agents = useStore(s => s.agents);
   const ag = agents.find(x => x.id === detail.agentId);
   const avatarSrc = ag?.hasAvatar
-    ? gsapUrl(`/api/agents/${detail.agentId}/avatar?t=${_avatarTs}`, { includeTokenQuery: true })
+    ? codiaUrl(`/api/agents/${detail.agentId}/avatar?t=${_avatarTs}`, { includeTokenQuery: true })
     : yuanFallbackAvatar(ag?.yuan);
 
   return (

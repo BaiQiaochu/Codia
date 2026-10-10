@@ -13,7 +13,7 @@ describe("auxiliary vision shared preference", () => {
       setMemoryModel: vi.fn(),
     };
     const coord = new ConfigCoordinator({
-      hanakoHome: "/tmp/test",
+      codiaHome: "/tmp/test",
       agentsDir: "/tmp/test/agents",
       getAgent: () => focusAgent,
       getAgentById: () => null,

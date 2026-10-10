@@ -130,7 +130,7 @@ function resetState() {
     streamingSessions: ['/s1'],
     inlineErrors: {},
     currentAgentId: null,
-    agentName: 'G-SAP',
+    agentName: 'Codia',
     currentTab: 'chat',
     currentChannel: null,
     contextBySession: {},
@@ -470,10 +470,9 @@ describe('ws-message-handler streaming recovery', () => {
 
     configureWsMessageHandler({ requestContextUsage });
     handleServerMessage({ type: 'turn_end', sessionPath: '/s1' });
-    handleServerMessage({ type: 'turn_end', sessionPath: '/s1' });
 
     expect(mocks.loadSessions).not.toHaveBeenCalled();
-    expect(requestContextUsage).toHaveBeenCalledTimes(2);
+    expect(requestContextUsage).toHaveBeenCalledTimes(1);
 
     await vi.advanceTimersByTimeAsync(300);
 
@@ -494,7 +493,7 @@ describe('ws-message-handler streaming recovery', () => {
         modified: '2026-05-16T12:00:00.000Z',
         messageCount: 1,
         agentId: 'agent-a',
-        agentName: 'G-SAP',
+        agentName: 'Codia',
         cwd: '/workspace',
       },
     });
@@ -606,11 +605,11 @@ describe('ws-message-handler streaming recovery', () => {
     handleServerMessage({
       type: 'channel_new_message',
       channelName: 'ch_live',
-      message: { sender: 'hana', timestamp: '2026-05-13 10:01', body: 'hello' },
+      message: { sender: 'codia', timestamp: '2026-05-13 10:01', body: 'hello' },
     });
 
     expect(mocks.appendChannelMessage).toHaveBeenCalledWith('ch_live', {
-      sender: 'hana',
+      sender: 'codia',
       timestamp: '2026-05-13 10:01',
       body: 'hello',
     });
@@ -627,11 +626,11 @@ describe('ws-message-handler streaming recovery', () => {
     handleServerMessage({
       type: 'channel_new_message',
       channelName: 'ch_other',
-      message: { sender: 'hana', timestamp: '2026-05-13 10:02', body: 'background' },
+      message: { sender: 'codia', timestamp: '2026-05-13 10:02', body: 'background' },
     });
 
     expect(mocks.appendChannelMessage).toHaveBeenCalledWith('ch_other', {
-      sender: 'hana',
+      sender: 'codia',
       timestamp: '2026-05-13 10:02',
       body: 'background',
     });

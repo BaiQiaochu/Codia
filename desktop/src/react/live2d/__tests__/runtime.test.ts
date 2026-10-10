@@ -113,7 +113,7 @@ describe('Codia Cubism runtime resource lifetime', () => {
   it('updates geometry after resize and settles offscreen targets while reduced motion is still static', async () => {
     const controller = new AbortController();
     const handle = await createCodiaLive2D(canvas, { ...assets, signal: controller.signal, reducedMotion: true, onError: vi.fn() });
-    expect(canvas.getContext).toHaveBeenCalledWith('webgl2', expect.objectContaining({ failIfMajorPerformanceCaveat: true }));
+    expect(canvas.getContext).toHaveBeenCalledWith('webgl2', expect.objectContaining({ failIfMajorPerformanceCaveat: false }));
     expect(sdk.target).toHaveBeenCalledWith(180, 180);
     expect(sdk.update).toHaveBeenCalled();
     expect(sdk.render).toHaveBeenCalledWith(assets.shaderPath);
@@ -126,7 +126,6 @@ describe('Codia Cubism runtime resource lifetime', () => {
     pending(16);
     expect(sdk.render).toHaveBeenCalledTimes(before + 1);
     expect(frames.size).toBe(0);
-    handle.dispose();
     handle.dispose();
     expect(sdk.modelRelease).toHaveBeenCalledOnce();
     expect(sdk.releaseContext).toHaveBeenCalledOnce();

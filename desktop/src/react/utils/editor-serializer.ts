@@ -45,6 +45,10 @@ export function serializeEditor(json: JSONContent): { text: string; skills: stri
       skills.push(node.attrs.name as string);
       return;
     }
+    if (node.type === 'pluginBadge' && node.attrs?.id) {
+      textParts.push(`$${String(node.attrs.id)}`);
+      return;
+    }
     if (node.type === 'fileBadge' && node.attrs) {
       const name = typeof node.attrs.name === 'string' ? node.attrs.name : '';
       const path = typeof node.attrs.path === 'string' ? node.attrs.path : '';

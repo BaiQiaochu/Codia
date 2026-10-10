@@ -1,4 +1,4 @@
-export const WORKSPACE_TOOL_SELECT_EVENT = 'gsap-workspace-tool-select';
+export const WORKSPACE_TOOL_SELECT_EVENT = 'codia-workspace-tool-select';
 
 export type {
   WorkspaceToolId,

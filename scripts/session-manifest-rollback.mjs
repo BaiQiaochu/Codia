@@ -6,8 +6,8 @@ function parseArgs(argv) {
   const positional = [];
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === "--gsap-home" || arg === "--hanako-home") {
-      options.gsapHome = argv[++i];
+    if (arg === "--codia-home") {
+      options.codiaHome = argv[++i];
       continue;
     }
     if (arg === "--restored-at") {
@@ -25,14 +25,14 @@ function parseArgs(argv) {
 
 function helpText() {
   return [
-    "session-manifest-rollback: restore a pre-migration G-SAP data checkpoint",
+    "session-manifest-rollback: restore a pre-migration Codia data checkpoint",
     "",
     "Usage:",
-    "  node scripts/session-manifest-rollback.mjs <checkpoint-directory> [--gsap-home <path>]",
+    "  node scripts/session-manifest-rollback.mjs <checkpoint-directory> [--codia-home <path>]",
     "",
     "Notes:",
     "  The current session-manifest.db is moved aside before checkpoint data is restored.",
-    "  --hanako-home is accepted as a legacy alias for old checkpoint tooling.",
+    "  --codia-home selects the isolated Codia data directory.",
   ].join("\n");
 }
 
@@ -46,7 +46,7 @@ if (options.help || positional.length !== 1) {
 try {
   const result = restoreSessionManifestCheckpoint({
     checkpointDirectory: positional[0],
-    gsapHome: options.gsapHome,
+    codiaHome: options.codiaHome,
     restoredAt: options.restoredAt,
   });
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

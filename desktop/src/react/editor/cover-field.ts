@@ -22,7 +22,7 @@ function clamp(value: number | undefined, min: number, max: number, fallback: nu
 }
 
 interface MarkdownCoverElement extends HTMLElement {
-  __gsapMarkdownCoverCleanup?: () => void;
+  __codiaMarkdownCoverCleanup?: () => void;
 }
 
 function resolveCoverImageUrl(cover: MarkdownCover, markdownFilePath?: string, getFileUrl?: (path: string) => string | undefined): string | null {
@@ -214,7 +214,7 @@ class MarkdownCoverWidget extends WidgetType {
     img.addEventListener('pointerdown', (event) => beginDrag('position', event));
     resize.addEventListener('pointerdown', (event) => beginDrag('height', event));
     wrapper.addEventListener('contextmenu', openMenu);
-    wrapper.__gsapMarkdownCoverCleanup = () => {
+    wrapper.__codiaMarkdownCoverCleanup = () => {
       closeMenu();
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', finishDrag);
@@ -225,7 +225,7 @@ class MarkdownCoverWidget extends WidgetType {
   }
 
   destroy(dom: HTMLElement): void {
-    (dom as MarkdownCoverElement).__gsapMarkdownCoverCleanup?.();
+    (dom as MarkdownCoverElement).__codiaMarkdownCoverCleanup?.();
   }
 }
 

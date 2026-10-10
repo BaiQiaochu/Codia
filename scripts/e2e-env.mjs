@@ -37,13 +37,13 @@ function writeYaml(filePath, data) {
 }
 
 function patchDefaultAgentConfig(homeDir) {
-  const configPath = path.join(homeDir, "agents", "gsap", "config.yaml");
+  const configPath = path.join(homeDir, "agents", "codia", "config.yaml");
   const raw = fs.existsSync(configPath)
     ? YAML.load(fs.readFileSync(configPath, "utf-8")) || {}
     : {};
   const textRef = { id: E2E_TEXT_MODEL, provider: E2E_PROVIDER };
 
-  raw.agent = { ...(raw.agent || {}), name: raw.agent?.name || "G-SAP", yuan: raw.agent?.yuan || "gsap" };
+  raw.agent = { ...(raw.agent || {}), name: raw.agent?.name || "Codia", yuan: raw.agent?.yuan || "codia" };
   raw.user = { ...(raw.user || {}), name: raw.user?.name || "" };
   raw.api = { ...(raw.api || {}), provider: E2E_PROVIDER };
   raw.models = {
@@ -73,11 +73,11 @@ function writeProfessionalE2EEditionMarker(homeDir) {
 }
 
 export function createIsolatedE2EHome({ mockBaseUrl }) {
-  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-e2e-home-"));
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-e2e-home-"));
   ensureFirstRun(homeDir, path.join(process.cwd(), "lib"), { defaultWorkspaceHome: homeDir });
 
   writeJson(path.join(homeDir, "user", "preferences.json"), {
-    primaryAgent: "gsap",
+    primaryAgent: "codia",
     setupComplete: true,
     locale: "zh-CN",
     sandbox: false,

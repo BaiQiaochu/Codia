@@ -44,7 +44,7 @@ function writeSession(sessionPath) {
 }
 
 function makeTicker(tmpDir, mode, summaryManager, memoryReflectionRunner) {
-  const agentDir = path.join(tmpDir, "agents", "gsap-agent");
+  const agentDir = path.join(tmpDir, "agents", "codia-agent");
   const sessionDir = path.join(agentDir, "sessions");
   const memoryDir = path.join(agentDir, "memory");
   fs.mkdirSync(sessionDir, { recursive: true });
@@ -52,7 +52,7 @@ function makeTicker(tmpDir, mode, summaryManager, memoryReflectionRunner) {
   fs.writeFileSync(path.join(memoryDir, "memory.md"), "# Memory\n\nExisting official memory.\n", "utf-8");
 
   const ticker = createMemoryTicker({
-    agentId: "gsap-agent",
+    agentId: "codia-agent",
     agentDir,
     summaryManager,
     configPath: path.join(agentDir, "config.yaml"),
@@ -102,7 +102,7 @@ describe("cache snapshot reflection runtime", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-cache-snapshot-runtime-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-cache-snapshot-runtime-"));
   });
 
   afterEach(() => {
@@ -150,7 +150,7 @@ describe("cache snapshot reflection runtime", () => {
   it("passes persisted memory reflection snapshots into the official rolling summary", async () => {
     const snapshot = {
       version: 1,
-      agentName: "G-SAP",
+      agentName: "Codia",
       userName: "Test User",
       existingMemory: "Stable memory before this session.",
     };

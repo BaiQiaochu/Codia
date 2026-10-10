@@ -12,7 +12,7 @@ describe("desktop launch bootstrap contract", () => {
     expect(packageJson.main).toBe("desktop/bootstrap.cjs");
     expect(packageJson.build?.extraMetadata?.main).toBe("desktop/bootstrap.cjs");
     expect(packageJson.build?.files).toContain("desktop/bootstrap.cjs");
-    expect(packageJson.build?.files).toContain("desktop/gsap-home.cjs");
+    expect(packageJson.build?.files).toContain("desktop/codia-home.cjs");
     expect(packageJson.build?.files).toContain("desktop/src/shared/launch-integrity.cjs");
     expect(packageJson.build?.files).toContain("desktop/main.bundle.cjs");
   });
@@ -36,7 +36,7 @@ describe("desktop launch bootstrap contract", () => {
     expect(markerIndex).toBeLessThan(loadIndex);
     expect(source).toContain("main.bundle.cjs");
     expect(source).toContain("main.cjs");
-    expect(source).not.toMatch(/Hanako|Hana Launch|HANA_HOME|hana-runtime/);
+    expect(source).toMatch(/Codia Launch|CODIA_HOME|codia-home/);
   });
 
   it("suppresses Electron's default English menu on the main window", () => {

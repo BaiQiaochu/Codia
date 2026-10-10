@@ -12,7 +12,7 @@ const DEFAULT_DEVICE_SCOPES = Object.freeze(["chat", "resources.read", "files.re
 
 export function createDevicesRoute(engine) {
   const route = new Hono();
-  const deviceHome = () => engine.gsapHome || engine.hanakoHome;
+  const deviceHome = () => engine.codiaHome || engine.codiaHome;
 
   route.get("/devices", (c) => {
     const denied = requireLocalOwner(c);

@@ -17,7 +17,7 @@ describe("bridge media item normalizer", () => {
   });
 
   it("normalizes absolute legacy local paths into legacy_local_path items", () => {
-    const filePath = path.resolve("/tmp/gsap-media/a.png");
+    const filePath = path.resolve("/tmp/codia-media/a.png");
 
     expect(normalizeMediaItems([filePath])).toEqual([
       { type: "legacy_local_path", filePath },

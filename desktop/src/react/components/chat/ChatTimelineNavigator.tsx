@@ -7,6 +7,20 @@ interface MarkerLayout {
   targetTop: number;
 }
 
+function markerLayoutsEqual(
+  current: Record<string, MarkerLayout>,
+  next: Record<string, MarkerLayout>,
+): boolean {
+  const currentIds = Object.keys(current);
+  const nextIds = Object.keys(next);
+  if (currentIds.length !== nextIds.length) return false;
+  return nextIds.every(id => current[id]?.targetTop === next[id]?.targetTop);
+}
+
+function stablePixel(value: number): number {
+  return Math.round(value * 2) / 2;
+}
+
 interface Props {
   anchors: TimelineAnchor[];
   scrollRef: RefObject<HTMLDivElement | null>;
@@ -42,13 +56,14 @@ export const ChatTimelineNavigator = memo(function ChatTimelineNavigator({
   const [layouts, setLayouts] = useState<Record<string, MarkerLayout>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
   const rafRef = useRef<number | null>(null);
+  const measureRafRef = useRef<number | null>(null);
   const shouldMeasure = active && anchors.length > 0;
 
   const measure = useCallback(() => {
     const panel = scrollRef.current;
     if (!panel || anchors.length === 0) {
-      setLayouts({});
-      setActiveId(null);
+      setLayouts(current => Object.keys(current).length === 0 ? current : {});
+      setActiveId(current => current === null ? current : null);
       return;
     }
 
@@ -62,17 +77,17 @@ export const ChatTimelineNavigator = memo(function ChatTimelineNavigator({
       const element = messageElementsRef.current?.get(anchor.messageId);
       if (!element) continue;
       const rect = element.getBoundingClientRect();
-      const targetTop = clamp(panelScrollTop + finiteNumber(rect.top) - panelTop - 16, 0, maxScroll);
+      const targetTop = stablePixel(clamp(panelScrollTop + finiteNumber(rect.top) - panelTop - 16, 0, maxScroll));
       next[anchor.messageId] = { targetTop };
     }
 
-    setLayouts(next);
+    setLayouts(current => markerLayoutsEqual(current, next) ? current : next);
   }, [anchors, messageElementsRef, scrollRef]);
 
   const updateActive = useCallback(() => {
     const panel = scrollRef.current;
     if (!panel || anchors.length === 0) {
-      setActiveId(null);
+      setActiveId(current => current === null ? current : null);
       return;
     }
 
@@ -87,13 +102,13 @@ export const ChatTimelineNavigator = memo(function ChatTimelineNavigator({
         break;
       }
     }
-    setActiveId(nextId);
+    setActiveId(current => current === nextId ? current : nextId);
   }, [anchors, layouts, scrollRef]);
 
   useLayoutEffect(() => {
     if (!shouldMeasure) {
-      setLayouts({});
-      setActiveId(null);
+      setLayouts(current => Object.keys(current).length === 0 ? current : {});
+      setActiveId(current => current === null ? current : null);
       return;
     }
     measure();
@@ -108,10 +123,23 @@ export const ChatTimelineNavigator = memo(function ChatTimelineNavigator({
       measure();
       return;
     }
-    const observer = new ResizeObserverCtor(() => measure());
+    const scheduleMeasure = () => {
+      if (measureRafRef.current != null) return;
+      measureRafRef.current = window.requestAnimationFrame(() => {
+        measureRafRef.current = null;
+        measure();
+      });
+    };
+    const observer = new ResizeObserverCtor(scheduleMeasure);
     observer.observe(panel);
     if (content) observer.observe(content);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (measureRafRef.current != null) {
+        window.cancelAnimationFrame(measureRafRef.current);
+        measureRafRef.current = null;
+      }
+    };
   }, [contentRef, measure, scrollRef, shouldMeasure]);
 
   useEffect(() => {

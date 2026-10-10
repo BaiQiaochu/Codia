@@ -97,7 +97,7 @@ export function parseChannel(content) {
   return { meta, messages };
 }
 
-const MESSAGE_META_RE = /\n?\s*<!--\s*gsap-channel-message-meta:([A-Za-z0-9+/=]+)\s*-->\s*$/;
+const MESSAGE_META_RE = /\n?\s*<!--\s*codia-channel-message-meta:([A-Za-z0-9+/=]+)\s*-->\s*$/;
 
 function parseMessageBodyMetadata(body) {
   const rawBody = String(body || "");
@@ -128,7 +128,7 @@ function serializeMessageMetadata(meta = {}) {
     : [];
   if (blocks.length === 0 && resources.length === 0) return "";
   const encoded = Buffer.from(JSON.stringify({ blocks, resources }), "utf-8").toString("base64");
-  return `<!-- gsap-channel-message-meta:${encoded} -->`;
+  return `<!-- codia-channel-message-meta:${encoded} -->`;
 }
 
 /**
@@ -518,7 +518,7 @@ export function deleteChannel(filePath) {
  * # 频道
  *
  * - crew (last: 2026-02-27 14:30)
- * - gsap-butter (last: 2026-02-27 13:00)
+ * - codia-butter (last: 2026-02-27 13:00)
  */
 
 const BOOKMARK_RE = /^- (.+?) \(last: (.+?)\)$/;

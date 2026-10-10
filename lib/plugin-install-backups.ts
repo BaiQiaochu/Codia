@@ -32,14 +32,14 @@ function cleanupBackups(pluginBackupRoot, maxBackups) {
 }
 
 export function createPluginInstallBackup({
-  gsapHome,
+  codiaHome,
   pluginId,
   pluginDir,
   version,
   maxBackups = DEFAULT_MAX_BACKUPS_PER_PLUGIN,
 } = {}) {
-  if (!gsapHome || !pluginId || !pluginDir || !fs.existsSync(pluginDir)) return null;
-  const backupRoot = path.join(gsapHome, "plugin-backups", safeSegment(pluginId));
+  if (!codiaHome || !pluginId || !pluginDir || !fs.existsSync(pluginDir)) return null;
+  const backupRoot = path.join(codiaHome, "plugin-backups", safeSegment(pluginId));
   fs.mkdirSync(backupRoot, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const backupDir = path.join(backupRoot, `${stamp}-v${safeSegment(version, "0.0.0")}`);

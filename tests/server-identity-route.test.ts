@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-server-identity-route-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-server-identity-route-"));
 }
 
 function writeJson(filePath, data) {
@@ -43,7 +43,7 @@ function writeValidIdentity(root) {
       ownerUserId: "user_route",
       label: "Route Space",
       kind: "personal",
-      storage: { provider: "legacy_gsap_home", legacyRoot: true },
+      storage: { provider: "legacy_codia_home", legacyRoot: true },
       membershipModel: "single_user_implicit",
       createdAt: "2026-05-09T00:00:00.000Z",
       updatedAt: "2026-05-09T00:00:00.000Z",
@@ -61,12 +61,12 @@ describe("server identity route", () => {
     tmpDir = null;
   });
 
-  it("returns local G-SAP server identity metadata for the active legacy Space", async () => {
+  it("returns local Codia server identity metadata for the active legacy Space", async () => {
     tmpDir = makeTmpDir();
     writeValidIdentity(tmpDir);
     const { createServerIdentityRoute } = await import("../server/routes/server-identity.js");
     const app = new Hono();
-    app.route("/api", createServerIdentityRoute({ gsapHome: tmpDir, appVersion: "1.2.3" }));
+    app.route("/api", createServerIdentityRoute({ codiaHome: tmpDir, appVersion: "1.2.3" }));
 
     const res = await app.request("/api/server/identity");
 
@@ -121,7 +121,7 @@ describe("server identity route", () => {
     fs.writeFileSync(path.join(tmpDir, "spaces.json"), "{ bad json", "utf-8");
     const { createServerIdentityRoute } = await import("../server/routes/server-identity.js");
     const app = new Hono();
-    app.route("/api", createServerIdentityRoute({ gsapHome: tmpDir, appVersion: "1.2.3" }));
+    app.route("/api", createServerIdentityRoute({ codiaHome: tmpDir, appVersion: "1.2.3" }));
 
     const res = await app.request("/api/server/identity");
 

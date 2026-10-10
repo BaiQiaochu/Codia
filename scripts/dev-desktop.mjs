@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { createServer } from 'vite';
 import { resolveDesktopDevPort } from './dev-desktop-runtime.mjs';
-import { DEFAULT_GSAP_DEV_HOME, applyGsapHomeEnv } from '../shared/gsap-home.ts';
+import { DEFAULT_CODIA_DEV_HOME, applyCodiaHomeEnv } from '../shared/codia-home.ts';
 
 const require = createRequire(import.meta.url);
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -47,7 +47,7 @@ async function close(code = 0) {
 try {
   const [major, minor] = process.versions.node.split('.').map(Number);
   if (major !== 24 || minor < 12) throw new Error('Codia source mode requires Node.js >=24.12.0 <25.');
-  const port = await resolveDesktopDevPort(process.env.GSAP_DEV_DESKTOP_PORT ?? (process.env.GSAP_E2E === '1' ? 0 : 5173));
+  const port = await resolveDesktopDevPort(process.env.CODIA_DEV_DESKTOP_PORT ?? (process.env.CODIA_E2E === '1' ? 0 : 5173));
 
   temporaryDir = await mkdtemp(path.join(os.tmpdir(), 'codia-source-preload-'));
   const preloadPath = path.join(temporaryDir, 'preload.cjs');
@@ -75,13 +75,13 @@ try {
   if (!address || typeof address === 'string') throw new Error('Vite did not open a TCP listener.');
   const rendererUrl = `http://127.0.0.1:${address.port}`;
   const env = { ...process.env };
-  applyGsapHomeEnv(env.GSAP_HOME || DEFAULT_GSAP_DEV_HOME, env);
+  applyCodiaHomeEnv(env.CODIA_HOME || DEFAULT_CODIA_DEV_HOME, env);
   Object.assign(env, {
-    GSAP_LAUNCH_NODE: process.execPath,
-    GSAP_LAUNCH_NODE_VERSION: process.versions.node,
-    GSAP_DESKTOP_SERVER_MODE: 'source',
-    GSAP_DEV_PRELOAD_PATH: preloadPath,
-    GSAP_PORT: env.GSAP_PORT || '0',
+    CODIA_LAUNCH_NODE: process.execPath,
+    CODIA_LAUNCH_NODE_VERSION: process.versions.node,
+    CODIA_DESKTOP_SERVER_MODE: 'source',
+    CODIA_DEV_PRELOAD_PATH: preloadPath,
+    CODIA_PORT: env.CODIA_PORT || '0',
     VITE_DEV_URL: rendererUrl,
   });
   delete env.ELECTRON_RUN_AS_NODE;

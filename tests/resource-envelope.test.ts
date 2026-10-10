@@ -6,7 +6,7 @@ describe("ResourceEnvelope", () => {
 
     const resource = createSessionFileResourceEnvelope({
       id: "sf_abc123",
-      sessionPath: "/Users/example/.gsap/agents/hana/sessions/main.jsonl",
+      sessionPath: "/Users/example/.codia/agents/codia/sessions/main.jsonl",
       filePath: "/Users/example/workspace/image.png",
       realPath: "/private/var/example/workspace/image.png",
       displayName: "Sketch",

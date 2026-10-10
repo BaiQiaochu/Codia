@@ -14,7 +14,7 @@ function makeCoordinator(initialPrefs = {}) {
     prefs = { ...next };
   });
   const coord = new ConfigCoordinator({
-    gsapHome: "/tmp/test",
+    codiaHome: "/tmp/test",
     agentsDir: "/tmp/test/agents",
     getAgent: () => null,
     getAgentById: () => null,

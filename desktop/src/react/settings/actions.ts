@@ -2,7 +2,7 @@
   *
  */
 import { useSettingsStore, type Agent as SettingsAgent, type SettingsSnapshot } from './store';
-import { gsapFetch, gsapUrl } from './api';
+import { codiaFetch, codiaUrl } from './api';
 import { t } from './helpers';
 import {
   createRemoteResource,
@@ -74,7 +74,7 @@ async function readOptionalText(res: Response, fallback = ''): Promise<string> {
 export async function loadAgents() {
   const store = useSettingsStore.getState();
   try {
-    const res = await gsapFetch('/api/agents');
+    const res = await codiaFetch('/api/agents');
     const data = await res.json() as AgentsPayload;
     if (data.error) throw new Error(data.error);
     const agents = data.agents || [];
@@ -96,12 +96,12 @@ export async function loadAvatars() {
   const ts = Date.now();
   const store = useSettingsStore.getState();
   try {
-    const res = await gsapFetch('/api/health');
+    const res = await codiaFetch('/api/health');
     const data = await res.json() as HealthPayload;
     const avatars = data.avatars || {};
     for (const role of ['agent', 'user'] as const) {
       if (avatars[role]) {
-        const url = gsapUrl(`/api/avatar/${role}?t=${ts}`, { includeTokenQuery: true });
+        const url = codiaUrl(`/api/avatar/${role}?t=${ts}`, { includeTokenQuery: true });
         if (role === 'agent') store.set({ agentAvatarUrl: url });
         else store.set({ userAvatarUrl: url });
       } else {
@@ -141,14 +141,14 @@ export async function loadSettingsConfig() {
     const agentBase = `/api/agents/${agentId}`;
     const [configRes, identityRes, ishikiRes, publicIshikiRes, userProfileRes, pinnedRes, globalModelsRes, experienceRes] =
       await Promise.all([
-        gsapFetch(`${agentBase}/config`, { signal: controller.signal }),
-        gsapFetch(`${agentBase}/identity`, { signal: controller.signal }),
-        gsapFetch(`${agentBase}/ishiki`, { signal: controller.signal }),
-        gsapFetch(`${agentBase}/public-ishiki`, { signal: controller.signal }),
-        gsapFetch('/api/user-profile', { signal: controller.signal }),
-        gsapFetch(`${agentBase}/pinned`, { signal: controller.signal }),
-        gsapFetch('/api/preferences/models', { signal: controller.signal }),
-        gsapFetch(`${agentBase}/experience`, { signal: controller.signal }).catch((err) => {
+        codiaFetch(`${agentBase}/config`, { signal: controller.signal }),
+        codiaFetch(`${agentBase}/identity`, { signal: controller.signal }),
+        codiaFetch(`${agentBase}/ishiki`, { signal: controller.signal }),
+        codiaFetch(`${agentBase}/public-ishiki`, { signal: controller.signal }),
+        codiaFetch('/api/user-profile', { signal: controller.signal }),
+        codiaFetch(`${agentBase}/pinned`, { signal: controller.signal }),
+        codiaFetch('/api/preferences/models', { signal: controller.signal }),
+        codiaFetch(`${agentBase}/experience`, { signal: controller.signal }).catch((err) => {
           if (isAbortError(err)) throw err;
           return null;
         }),
@@ -305,7 +305,7 @@ export async function loadSettingsSnapshot(options: { retainSameKeyData?: boolea
   }
 
   try {
-    const res = await gsapFetch(`/api/settings/snapshot?agentId=${encodeURIComponent(agentId)}`, {
+    const res = await codiaFetch(`/api/settings/snapshot?agentId=${encodeURIComponent(agentId)}`, {
       signal: controller.signal,
     });
     const snapshot = await res.json() as SettingsSnapshot & { error?: string };
@@ -343,8 +343,8 @@ export async function loadPluginSettings() {
   });
   try {
     const [settingsRes, tabsRes] = await Promise.all([
-      gsapFetch('/api/plugins/settings'),
-      gsapFetch('/api/plugins/settings-tabs'),
+      codiaFetch('/api/plugins/settings'),
+      codiaFetch('/api/plugins/settings-tabs'),
     ]);
     const data = await settingsRes.json() as PluginSettingsPayload;
     const tabs = await tabsRes.json();
@@ -374,7 +374,7 @@ export async function browseAgent(agentId: string) {
 export async function switchToAgent(agentId: string) {
   const store = useSettingsStore.getState();
   try {
-    const res = await gsapFetch('/api/agents/switch', {
+    const res = await codiaFetch('/api/agents/switch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: agentId }),
@@ -403,7 +403,7 @@ export async function switchToAgent(agentId: string) {
 export async function setPrimaryAgent(agentId: string) {
   const store = useSettingsStore.getState();
   try {
-    const res = await gsapFetch('/api/agents/primary', {
+    const res = await codiaFetch('/api/agents/primary', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: agentId }),

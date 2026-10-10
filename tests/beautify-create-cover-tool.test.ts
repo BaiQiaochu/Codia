@@ -8,7 +8,7 @@ describe("beautify create-cover tool", () => {
   let tmpDir;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-beautify-tool-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-beautify-tool-"));
   });
 
   afterEach(() => {

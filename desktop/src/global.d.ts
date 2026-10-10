@@ -1,6 +1,6 @@
 import type { DesktopNotificationOptions, PlatformApi } from './react/types';
 
-interface GsapE2EStateSnapshot {
+interface CodiaE2EStateSnapshot {
   currentSessionPath: string | null;
   pendingNewSession: boolean;
   attachedFiles: Array<{
@@ -33,7 +33,7 @@ interface GsapE2EStateSnapshot {
   welcomeVisible: boolean;
 }
 
-interface GsapRuntimeDiagnosticsSnapshot {
+interface CodiaRuntimeDiagnosticsSnapshot {
   currentSessionPath: string | null;
   pendingNewSession: boolean;
   modelSwitching: boolean;
@@ -47,7 +47,7 @@ interface GsapRuntimeDiagnosticsSnapshot {
   } | null;
 }
 
-interface GsapE2EApi {
+interface CodiaE2EApi {
   appReady: boolean;
   seedCopySession(payload: { sessionPath?: string; items: Array<{ type: 'message'; data: unknown }> }): string;
   selectMessages(sessionPath: string, ids: string[]): boolean;
@@ -55,7 +55,7 @@ interface GsapE2EApi {
   serializeMessages(sessionPath: string): string[];
   copySelection(sessionPath: string, messageId?: string): Promise<boolean>;
   readClipboardText(): Promise<string>;
-  getStateSnapshot(): GsapE2EStateSnapshot;
+  getStateSnapshot(): CodiaE2EStateSnapshot;
   getDeskSnapshot(): {
     currentSessionPath: string | null;
     homeFolder: string | null;
@@ -79,11 +79,11 @@ interface GsapE2EApi {
   createSession(payload?: { cwd?: string | null; selectedFolder?: string | null }): Promise<{ ok: boolean; currentSessionPath: string | null; selectedFolder: string | null }>;
   switchSession(path: string): boolean;
   clearAttachedFiles(): boolean;
-  attachFilesFromPaths(paths: string[]): Promise<GsapE2EStateSnapshot['attachedFiles']>;
-  addImageAttachment(payload: { name: string; path?: string; base64Data: string; mimeType: string }): Promise<GsapE2EStateSnapshot['attachedFiles'][number]>;
+  attachFilesFromPaths(paths: string[]): Promise<CodiaE2EStateSnapshot['attachedFiles']>;
+  addImageAttachment(payload: { name: string; path?: string; base64Data: string; mimeType: string }): Promise<CodiaE2EStateSnapshot['attachedFiles'][number]>;
   ensureSession(): Promise<boolean>;
   switchModel(modelId: string, provider?: string, sessionPath?: string | null): Promise<unknown>;
-  refreshModels(): Promise<GsapE2EStateSnapshot>;
+  refreshModels(): Promise<CodiaE2EStateSnapshot>;
   callApi(path: string, opts?: RequestInit): Promise<unknown>;
   openSettings(tab?: string): boolean;
   getSessionMessages(sessionPath?: string | null): unknown[];
@@ -99,14 +99,13 @@ declare global {
   interface Window {
     t: (path: string, vars?: Record<string, string | number>) => string;
     platform: PlatformApi;
-    gsap: PlatformApi;
-    hana: PlatformApi;
-    __GSAP_DEV_WEB__?: {
+    codia: PlatformApi;
+    __CODIA_DEV_WEB__?: {
       serverPort?: string;
       apiBaseUrl?: string;
     };
-    __gsapMobileUpdateAvailable?: boolean;
-    __gsapLog: (level: string, module: string, message: string) => void;
+    __codiaMobileUpdateAvailable?: boolean;
+    __codiaLog: (level: string, module: string, message: string) => void;
     setTheme: (theme: string) => void;
     applyTheme?: (theme: string) => void;
     loadSavedTheme: () => void;
@@ -117,9 +116,9 @@ declare global {
     __loadDeskSkills?: () => void;
     showNotification?: (title: string, body: string, agentId?: string | null, options?: DesktopNotificationOptions) => void;
     updateBrowserViewer?: (data: { url: string; thumbnail?: string }) => void;
-    __GSAP_E2E__?: GsapE2EApi;
-    __GSAP_RUNTIME_DIAGNOSTICS__?: {
-      getStateSnapshot(): GsapRuntimeDiagnosticsSnapshot;
+    __CODIA_E2E__?: CodiaE2EApi;
+    __CODIA_RUNTIME_DIAGNOSTICS__?: {
+      getStateSnapshot(): CodiaRuntimeDiagnosticsSnapshot;
     };
     i18n: {
       locale: string;

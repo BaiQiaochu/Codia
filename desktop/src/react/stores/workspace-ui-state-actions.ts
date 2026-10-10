@@ -1,6 +1,6 @@
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import type { Artifact, RightWorkspaceTab } from '../types';
-import { readFileForPreviewType } from '../utils/file-preview';
+import { readFileForPreviewType } from '../utils/preview-file-reader';
 import { useStore } from './index';
 import { normalizeWorkspacePath } from '../../../../shared/workspace-history.ts';
 import {
@@ -86,7 +86,7 @@ function previewTabFromArtifact(
 function hasServerConnection(state: ReturnType<typeof useStore.getState>): boolean {
   if (state.serverPort) return true;
   return typeof window !== 'undefined'
-    && typeof (window as typeof window & { __GSAP_PWA__?: { serverUrl?: unknown } }).__GSAP_PWA__?.serverUrl === 'function';
+    && typeof (window as typeof window & { __CODIA_PWA__?: { serverUrl?: unknown } }).__CODIA_PWA__?.serverUrl === 'function';
 }
 
 export function resolveWorkspaceUiSurface(): WorkspaceUiSurface {
@@ -144,7 +144,7 @@ export async function loadPersistedWorkspaceUiState(root: string): Promise<Persi
   const state = useStore.getState();
   if (!normalized || !hasServerConnection(state)) return null;
   try {
-    const res = await gsapFetch(workspaceUiStateUrl(normalized));
+    const res = await codiaFetch(workspaceUiStateUrl(normalized));
     const data = await res.json().catch(() => null);
     return data?.state && typeof data.state === 'object' ? data.state as PersistedWorkspaceUiState : null;
   } catch (err) {
@@ -217,7 +217,7 @@ export async function persistCurrentWorkspaceUiStateNow(root?: string | null): P
   const state = buildPersistedWorkspaceUiState(normalized);
   const surface = resolveWorkspaceUiSurface();
   try {
-    await gsapFetch('/api/preferences/workspace-ui-state', {
+    await codiaFetch('/api/preferences/workspace-ui-state', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ workspace: normalized, surface, state }),

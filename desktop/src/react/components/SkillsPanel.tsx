@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../stores';
 import { usePanel } from '../hooks/use-panel';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import { AgentAvatar, resolveAgentDisplayInfo } from '../utils/agent-display';
 import { SkillBundleTree, type SkillBundleInfo } from '../settings/tabs/skills/SkillBundleTree';
 import type { SkillInfo } from '../settings/store';
@@ -191,8 +191,8 @@ export function SkillsPanel() {
     if (showLoading) setLoading(true);
     try {
       const [skillsRes, bundlesRes] = await Promise.all([
-        gsapFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}`),
-        gsapFetch(`/api/skills/bundles?agentId=${encodeURIComponent(agentId)}`),
+        codiaFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}`),
+        codiaFetch(`/api/skills/bundles?agentId=${encodeURIComponent(agentId)}`),
       ]);
       const data = await readJsonObject(skillsRes);
       const bundleData = await readJsonObject(bundlesRes);
@@ -273,7 +273,7 @@ export function SkillsPanel() {
       return;
     }
     try {
-      const res = await gsapFetch(`/api/skills/install?agentId=${encodeURIComponent(targetAgentId)}`, {
+      const res = await codiaFetch(`/api/skills/install?agentId=${encodeURIComponent(targetAgentId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: filePath }),
@@ -306,7 +306,7 @@ export function SkillsPanel() {
     }
     try {
       const contentBase64 = await fileToBase64(file);
-      const res = await gsapFetch(`/api/skills/install?agentId=${encodeURIComponent(targetAgentId)}`, {
+      const res = await codiaFetch(`/api/skills/install?agentId=${encodeURIComponent(targetAgentId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -364,7 +364,7 @@ export function SkillsPanel() {
     }
     if (!confirm(t('settings.skills.deleteConfirm', { name }))) return;
     try {
-      const res = await gsapFetch(`/api/skills/${encodeURIComponent(name)}?agentId=${encodeURIComponent(agentId)}`, {
+      const res = await codiaFetch(`/api/skills/${encodeURIComponent(name)}?agentId=${encodeURIComponent(agentId)}`, {
         method: 'DELETE',
       });
       const data = await readJsonObject(res);
@@ -383,7 +383,7 @@ export function SkillsPanel() {
     const snapshotSkills = skillsList;
     setSkillsList(skillsList.map(skill => skill.name === name ? { ...skill, enabled } : skill));
     try {
-      const res = await gsapFetch(`/api/agents/${encodeURIComponent(agentId)}/skills/${encodeURIComponent(name)}`, {
+      const res = await codiaFetch(`/api/agents/${encodeURIComponent(agentId)}/skills/${encodeURIComponent(name)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled }),
@@ -421,7 +421,7 @@ export function SkillsPanel() {
         }
       : item));
     try {
-      const res = await gsapFetch(`/api/agents/${encodeURIComponent(agentId)}/skill-bundles/${encodeURIComponent(bundle.id)}`, {
+      const res = await codiaFetch(`/api/agents/${encodeURIComponent(agentId)}/skill-bundles/${encodeURIComponent(bundle.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled }),
@@ -452,7 +452,7 @@ export function SkillsPanel() {
     const agentId = selectedAgentId;
     if (!agentId) return;
     try {
-      const res = await gsapFetch(`/api/skills/bundles?agentId=${encodeURIComponent(agentId)}`, {
+      const res = await codiaFetch(`/api/skills/bundles?agentId=${encodeURIComponent(agentId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, skillNames: [] }),
@@ -476,7 +476,7 @@ export function SkillsPanel() {
     const agentId = selectedAgentId;
     if (!agentId || !name || name === bundle.name) return;
     try {
-      const res = await gsapFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}?agentId=${encodeURIComponent(agentId)}`, {
+      const res = await codiaFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}?agentId=${encodeURIComponent(agentId)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
@@ -503,7 +503,7 @@ export function SkillsPanel() {
       return;
     }
     try {
-      const res = await gsapFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}/export?agentId=${encodeURIComponent(agentId)}`, {
+      const res = await codiaFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}/export?agentId=${encodeURIComponent(agentId)}`, {
         method: 'POST',
       });
       const data = await readJsonObject(res);
@@ -525,7 +525,7 @@ export function SkillsPanel() {
   const submitDeleteBundle = useCallback(async (bundle: SkillBundleInfo) => {
     const agentId = selectedAgentId;
     try {
-      const res = await gsapFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}`, {
+      const res = await codiaFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}`, {
         method: 'DELETE',
       });
       const data = await readJsonObject(res);
@@ -554,7 +554,7 @@ export function SkillsPanel() {
   const updateBundleSkillNames = useCallback(async (bundle: SkillBundleInfo, skillNames: string[]) => {
     const agentId = selectedAgentId;
     if (!agentId) return;
-    const res = await gsapFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}?agentId=${encodeURIComponent(agentId)}`, {
+    const res = await codiaFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}?agentId=${encodeURIComponent(agentId)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ skillNames }),
@@ -568,7 +568,7 @@ export function SkillsPanel() {
     const agentId = selectedAgentId;
     if (!agentId) return;
     try {
-      const res = await gsapFetch(`/api/skills/bundles/order?agentId=${encodeURIComponent(agentId)}`, {
+      const res = await codiaFetch(`/api/skills/bundles/order?agentId=${encodeURIComponent(agentId)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bundleIds }),

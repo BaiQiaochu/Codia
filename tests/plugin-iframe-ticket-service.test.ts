@@ -17,14 +17,14 @@ describe("plugin iframe ticket service", () => {
   });
 
   function home() {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-plugin-iframe-ticket-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-iframe-ticket-"));
     return tmpDir;
   }
 
   it("issues short-lived surface scoped tickets", () => {
-    const gsapHome = home();
+    const codiaHome = home();
     const issued = issuePluginIframeTicket({
-      gsapHome,
+      codiaHome,
       pluginId: "calendar",
       surfacePath: "/panel?view=week",
       principalId: "user-1",
@@ -35,7 +35,7 @@ describe("plugin iframe ticket service", () => {
     expect(issued.pluginId).toBe("calendar");
 
     const verified = verifyPluginIframeTicket({
-      gsapHome,
+      codiaHome,
       ticket: issued.ticket,
       pluginId: "calendar",
       surfacePath: "/panel?view=week",
@@ -46,9 +46,9 @@ describe("plugin iframe ticket service", () => {
   });
 
   it("rejects tickets replayed against a different plugin surface", () => {
-    const gsapHome = home();
+    const codiaHome = home();
     const issued = issuePluginIframeTicket({
-      gsapHome,
+      codiaHome,
       pluginId: "calendar",
       surfacePath: "/panel",
       principalId: "user-1",
@@ -56,7 +56,7 @@ describe("plugin iframe ticket service", () => {
     });
 
     expect(() => verifyPluginIframeTicket({
-      gsapHome,
+      codiaHome,
       ticket: issued.ticket,
       pluginId: "calendar",
       surfacePath: "/settings",

@@ -10,7 +10,7 @@ describe("config workspace routes", () => {
   const apiPath = (filePath) => filePath.replace(/\\/g, "/");
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-workspaces-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-workspaces-"));
   });
 
   afterEach(() => {
@@ -137,7 +137,7 @@ describe("config workspace routes", () => {
     const app = new Hono();
     app.route("/api", createConfigRoute(engine));
 
-    const expected = path.join(homeDir, "Desktop", "BYOUNG-Workspace");
+    const expected = path.join(homeDir, "Desktop", "Codia-Workspace");
 
     const getRes = await app.request("/api/config/default-workspace");
     expect(getRes.status).toBe(200);

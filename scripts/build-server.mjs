@@ -3,11 +3,7 @@
   *
  * 策略：Vite bundle + 外部依赖 npm install + Node.js runtime
   *
-  *
-  *
- * gsap-server -shell wrapper（设-GSAP_ROOT 并启动）
-  *
-  *
+ * codia-server -shell wrapper（设-CODIA_ROOT 并启动）
   *
  *         shared-XXXX.js
  *         core-XXXX.js
@@ -23,7 +19,6 @@
  *       ishiki-templates/
  *       public-ishiki-templates/
  *       yuan/
-  *
   *
  * package.json -external deps + version（node_modules 解析 + 运行时版本读取）
   *
@@ -171,7 +166,7 @@ if (!fs.existsSync(cachedNodeBin)) {
 }
 
 // 复制 node 二进制到 dist
-const destNode = path.join(outDir, isWin ? "gsap-server.exe" : "node");
+const destNode = path.join(outDir, isWin ? "codia-server.exe" : "node");
 fs.copyFileSync(cachedNodeBin, destNode);
 if (!isWin) fs.chmodSync(destNode, 0o755);
 console.log("[build-server] Node.js runtime ready");
@@ -260,7 +255,6 @@ if (fs.existsSync(bootstrapTs)) {
   console.log("[build-server] bootstrap.js copied");
 }
 
-//
 //
 
 const LIB_DATA_GLOBS = [
@@ -445,7 +439,7 @@ const rootLock = JSON.parse(fs.readFileSync(path.join(ROOT, "package-lock.json")
 const externalPkg = buildExternalPackage(rootPkg, externalDeps, {
   rootLock,
   pinnedTransitiveDeps: ["lru-cache"],
-  packageName: "gsap-server",
+  packageName: "codia-server",
 });
 const pinnedDeps = Object.entries(externalPkg.dependencies)
   .map(([name, version]) => `${name}@${version}`)
@@ -457,9 +451,6 @@ fs.writeFileSync(
   JSON.stringify(externalPkg, null, 2) + "\n",
 );
 
-//
-//
-//
 //
 // （prebuild-install 下载正确 ABI 的预编译二进制）
 //
@@ -521,7 +512,6 @@ removeBinDirs(path.join(outDir, "node_modules"));
 console.log("[build-server] dependencies installed");
 
 //
-//
 console.log("[build-server] skipping nft prune on this build");
 const nmDir = path.join(outDir, "node_modules");
 
@@ -555,16 +545,16 @@ fs.writeFileSync(
 //
 if (isWin) {
   fs.writeFileSync(
-    path.join(outDir, "gsap-server.cmd"),
-    '@echo off\r\nset "GSAP_ROOT=%~dp0"\r\nset "GSAP_SERVER_ENTRY=%~dp0bundle\\index.js"\r\n"%~dp0gsap-server.exe" "%~dp0bootstrap.js" %*\r\n',
+    path.join(outDir, "codia-server.cmd"),
+    '@echo off\r\nset "CODIA_ROOT=%~dp0"\r\nset "CODIA_SERVER_ENTRY=%~dp0bundle\\index.js"\r\n"%~dp0codia-server.exe" "%~dp0bootstrap.js" %*\r\n',
   );
 } else {
-  const wrapper = path.join(outDir, "gsap-server");
+  const wrapper = path.join(outDir, "codia-server");
   fs.writeFileSync(wrapper, [
     "#!/bin/sh",
     'DIR="$(cd "$(dirname "$0")" && pwd)"',
-    'export GSAP_ROOT="$DIR"',
-    'export GSAP_SERVER_ENTRY="$DIR/bundle/index.js"',
+    'export CODIA_ROOT="$DIR"',
+    'export CODIA_SERVER_ENTRY="$DIR/bundle/index.js"',
     'exec "$DIR/node" "$DIR/bootstrap.js" "$@"',
     "",
   ].join("\n"));

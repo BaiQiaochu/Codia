@@ -7,17 +7,17 @@ import { createRuntimeTraceStore } from "../core/runtime-trace-store.js";
 describe("runtime diagnostics route", () => {
   it("returns recent redacted diagnostics and records", async () => {
     const app = new Hono();
-    const service = createRuntimeDiagnosticsService({ appName: "G-SAP" });
+    const service = createRuntimeDiagnosticsService({ appName: "Codia" });
     const diagnosticId = service.recordDiagnostic({
       traceId: "trace-route",
       sessionPath: "E:/sessions/a.jsonl",
       severity: "error",
       category: "model",
       userMessage: "Model call failed. Diagnostics were saved.",
-      technicalMessage: "provider rejected sk-secret-token at C:/Users/ghost/.gsap/config.json",
+      technicalMessage: "provider rejected sk-secret-token at C:/Users/ghost/.codia/config.json",
       sanitizedDetails: {
         authorization: "Bearer sk-secret-token",
-        filePath: "C:/Users/ghost/.gsap/config.json",
+        filePath: "C:/Users/ghost/.codia/config.json",
       },
     });
     service.recordRuntimeRecord({
@@ -38,7 +38,7 @@ describe("runtime diagnostics route", () => {
     expect(res.status).toBe(200);
     expect(data).toMatchObject({
       ok: true,
-      app: "G-SAP",
+      app: "Codia",
       diagnostics: [expect.objectContaining({ id: diagnosticId, traceId: "trace-route" })],
       records: [expect.objectContaining({ id: "record-route", diagnosticId })],
     });
@@ -54,14 +54,14 @@ describe("runtime diagnostics route", () => {
     const trace = traceStore.startTrace({
       traceId: "trace-runtime",
       sessionPath: "E:/sessions/main.jsonl",
-      agentId: "gsap",
+      agentId: "codia",
     });
     traceStore.recordPhase(trace.traceId, "input.received", {
       summary: "prompt accepted",
       details: { filePath: "C:/Users/ghost/.codex/auth.json", authorization: "Bearer sk-secret-token" },
     });
     traceStore.endTrace(trace.traceId, { status: "completed" });
-    const service = createRuntimeDiagnosticsService({ appName: "G-SAP", traceStore });
+    const service = createRuntimeDiagnosticsService({ appName: "Codia", traceStore });
 
     app.route("/api", createRuntimeDiagnosticsRoute(service));
 

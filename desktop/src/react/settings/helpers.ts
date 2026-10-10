@@ -1,5 +1,5 @@
 import { useSettingsStore } from './store';
-import { gsapFetch } from './api';
+import { codiaFetch } from './api';
 import knownModelFallbacks from '../../../../lib/known-model-fallbacks.json';
 import knownModels from '../../../../lib/known-models.json';
 import registry from '../../shared/theme-registry';
@@ -154,7 +154,7 @@ export async function autoSaveConfig(
     const configPath = globalOnly
       ? '/api/config'
       : `/api/agents/${store.getSettingsAgentId()}/config`;
-    const res = await gsapFetch(configPath, {
+    const res = await codiaFetch(configPath, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(partial),
@@ -162,7 +162,7 @@ export async function autoSaveConfig(
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     if (!opts.silent) store.showToast(t('settings.autoSaved'), 'success');
-    const cfgRes = await gsapFetch(configPath);
+    const cfgRes = await codiaFetch(configPath);
     const newConfig = await cfgRes.json() as SettingsConfigPayload;
     const prev = (useSettingsStore.getState().settingsConfig || {}) as SettingsConfigPayload;
     for (const k of ['_identity', '_ishiki', '_userProfile']) {
@@ -183,7 +183,7 @@ export async function autoSaveGlobalModels(
 ) {
   const store = useSettingsStore.getState();
   try {
-    const res = await gsapFetch('/api/preferences/models', {
+    const res = await codiaFetch('/api/preferences/models', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(partial),
@@ -191,7 +191,7 @@ export async function autoSaveGlobalModels(
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     if (!opts.silent) store.showToast(t('settings.autoSaved'), 'success');
-    const refreshRes = await gsapFetch('/api/preferences/models');
+    const refreshRes = await codiaFetch('/api/preferences/models');
     const newGlobal = await refreshRes.json() as GlobalModelsPayload;
     useSettingsStore.setState({ globalModelsConfig: newGlobal });
   } catch (err: unknown) {
@@ -206,7 +206,7 @@ export function savePins() {
     const store = useSettingsStore.getState();
     try {
       const agentId = store.getSettingsAgentId();
-      const res = await gsapFetch(`/api/agents/${agentId}/pinned`, {
+      const res = await codiaFetch(`/api/agents/${agentId}/pinned`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pins: store.currentPins }),

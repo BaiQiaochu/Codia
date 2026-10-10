@@ -32,7 +32,7 @@ export function createMobileWorkbenchRoute(engine) {
       agentName: engine.agentName || "助手",
       userName: engine.userName || fallbackUserName(engine.getLocale?.() || engine.config?.locale),
       currentAgentId: engine.currentAgentId || null,
-      agentYuan: engine.agent?.config?.agent?.yuan || "gsap",
+      agentYuan: engine.agent?.config?.agent?.yuan || "codia",
       homeFolder: engine.homeCwd || null,
       cwdHistory: Array.isArray(engine.config?.cwd_history) ? engine.config.cwd_history : [],
       memoryEnabled: engine.config?.memory?.enabled !== false,
@@ -255,7 +255,7 @@ async function writeActionResponse(c, engine, action, auth, rootId, operation) {
   let lease = null;
   try {
     lease = issueRemoteWriteLease({
-      gsapHome: engine?.gsapHome,
+      codiaHome: engine?.codiaHome,
       requestContext: auth?.requestContext,
       decision: auth?.decision,
       agentId: engine?.currentAgentId || "mobile_workbench",
@@ -264,10 +264,10 @@ async function writeActionResponse(c, engine, action, auth, rootId, operation) {
       mountId: rootId && rootId !== "default" ? rootId : null,
     });
     const result = await operation();
-    if (lease) consumeRemoteWriteLease(engine?.gsapHome, lease);
+    if (lease) consumeRemoteWriteLease(engine?.codiaHome, lease);
     return auditActionResult(c, engine, action, result, auth, lease);
   } catch (err) {
-    if (lease) revokeRemoteWriteLease(engine?.gsapHome, lease);
+    if (lease) revokeRemoteWriteLease(engine?.codiaHome, lease);
     throw err;
   }
 }
@@ -292,7 +292,7 @@ function routeError(message, code, status) {
 
 function fileService(engine, requestContext) {
   return new MountAwareFileService({
-    gsapHome: engine.gsapHome,
+    codiaHome: engine.codiaHome,
     defaultRoot: engine.defaultDeskCwd || engine.homeCwd || engine.deskCwd,
     studioId: requestContext?.studioId || engine.getRuntimeContext?.()?.studioId || null,
     createCheckpoint: typeof engine.createUserEditCheckpoint === "function"

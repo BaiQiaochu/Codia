@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 const CACHE_DIR = "win32-sandbox-runtime";
-const MARKER_FILE = ".gsap-sandbox-runtime.json";
+const MARKER_FILE = ".codia-sandbox-runtime.json";
 
 function isWin32PathLike(filePath) {
   return /^[a-z]:[\\/]|^\\\\/i.test(String(filePath || ""));
@@ -118,9 +118,9 @@ function copyRuntimeTree({ sourceRoot, targetRoot, markerPath, manifest }) {
   }
 }
 
-function ensureCachedRuntimeRoot({ sourceRoot, primaryPath, gsapHome, kind }) {
-  if (!gsapHome) {
-    throw new Error("[win32-sandbox] GSAP_HOME is required to prepare sandbox runtime cache.");
+function ensureCachedRuntimeRoot({ sourceRoot, primaryPath, codiaHome, kind }) {
+  if (!codiaHome) {
+    throw new Error("[win32-sandbox] CODIA_HOME is required to prepare sandbox runtime cache.");
   }
   if (!sourceRoot || !fs.existsSync(sourceRoot)) {
     throw new Error(`[win32-sandbox] Runtime source root does not exist: ${sourceRoot || "(missing)"}`);
@@ -129,7 +129,7 @@ function ensureCachedRuntimeRoot({ sourceRoot, primaryPath, gsapHome, kind }) {
     throw new Error(`[win32-sandbox] Runtime executable does not exist: ${primaryPath || "(missing)"}`);
   }
 
-  const cacheRoot = sandboxRuntimeCacheRoot(gsapHome);
+  const cacheRoot = sandboxRuntimeCacheRoot(codiaHome);
   if (isInsideRuntimeRoot(sourceRoot, cacheRoot)) return sourceRoot;
 
   const manifest = runtimeManifest({ sourceRoot, primaryPath, kind });
@@ -142,17 +142,17 @@ function ensureCachedRuntimeRoot({ sourceRoot, primaryPath, gsapHome, kind }) {
   return targetRoot;
 }
 
-export function sandboxRuntimeCacheRoot(gsapHome) {
-  if (!gsapHome) throw new Error("[win32-sandbox] GSAP_HOME is required for sandbox runtime cache.");
-  return joinRuntimePath(gsapHome, ".ephemeral", CACHE_DIR);
+export function sandboxRuntimeCacheRoot(codiaHome) {
+  if (!codiaHome) throw new Error("[win32-sandbox] CODIA_HOME is required for sandbox runtime cache.");
+  return joinRuntimePath(codiaHome, ".ephemeral", CACHE_DIR);
 }
 
-export function prepareSandboxRuntime(runtimeInfo, { gsapHome, hanakoHome, kind }) {
-  const home = gsapHome || hanakoHome;
+export function prepareSandboxRuntime(runtimeInfo, { codiaHome, kind }) {
+  const home = codiaHome;
   if (!runtimeInfo) return runtimeInfo;
   const sourceRoot = runtimeSourceRoot(runtimeInfo);
   const primaryPath = runtimePrimaryPath(runtimeInfo);
-  const targetRoot = ensureCachedRuntimeRoot({ sourceRoot, primaryPath, gsapHome: home, kind });
+  const targetRoot = ensureCachedRuntimeRoot({ sourceRoot, primaryPath, codiaHome: home, kind });
   if (targetRoot === sourceRoot) return runtimeInfo;
 
   return {

@@ -23,7 +23,7 @@ vi.mock('../../stores', () => ({
 }));
 
 function dispatchConsoleAction(detail: Record<string, unknown>) {
-  fireEvent(window, new CustomEvent('gsap-console-action', { detail }));
+  fireEvent(window, new CustomEvent('codia-console-action', { detail }));
 }
 
 function openTerminal() {
@@ -78,7 +78,7 @@ describe('BottomConsole', () => {
     fireEvent.click(screen.getByRole('button', { name: '运行' }));
 
     await waitFor(() => expect(window.platform.runConsoleCommand).toHaveBeenCalledWith({
-      kind: 'gsapctl',
+      kind: 'codiactl',
       command: 'health',
       cwd: '/workspace',
     }));

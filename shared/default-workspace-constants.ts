@@ -1,2 +1,2 @@
-export const DEFAULT_WORKSPACE_DIRNAME = "BYOUNG-Workspace";
+export const DEFAULT_WORKSPACE_DIRNAME = "Codia-Workspace";
 export const DEFAULT_HEARTBEAT_INTERVAL_MINUTES = 31;

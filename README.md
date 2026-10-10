@@ -11,8 +11,8 @@
 需要 **Node.js >=24.12.0 <25** 和 npm。建议使用 Node 24.15.0。
 
 ```bash
-git clone https://github.com/BaiQiaochu/g-sap-ggow.git
-cd g-sap-ggow
+git clone https://github.com/BaiQiaochu/Codia.git
+cd codia-ggow
 npm ci
 npm start
 ```
@@ -21,15 +21,15 @@ npm start
 
 - 前端从 `desktop/src` 按需加载，支持 Vite 热更新；修改主进程、preload 或服务端后重启。
 - 前端默认使用 `127.0.0.1:5173`，后端默认自动分配空闲端口。
-- 默认数据目录沿用 `~/.gsap-dev`，可通过 `GSAP_HOME` 指定。
+- 默认数据目录沿用 `~/.codia-dev`，可通过 `CODIA_HOME` 指定。
 - React/TypeScript 仍需开发服务器即时转换。Electron 沙盒 preload 在系统临时目录生成，退出后清理；启动不会生成 `desktop/dist-renderer` 或 `dist-server`。
 - 仓库不包含安装包、依赖目录、模型密钥或个人会话。图片、字体及测试夹具属于源码所需资源。
 
 Windows PowerShell 自定义数据目录和前端端口：
 
 ```powershell
-$env:GSAP_HOME = "$env:USERPROFILE\.codia-source"
-$env:GSAP_DEV_DESKTOP_PORT = "5174"
+$env:CODIA_HOME = "$env:USERPROFILE\.codia-source"
+$env:CODIA_DEV_DESKTOP_PORT = "5174"
 npm start
 ```
 
@@ -55,7 +55,7 @@ npm start                  # 完整桌面源码模式
 npm run start:local         # 重新构建客户端，然后启动本地编译界面
 npm run start:built         # 启动已有客户端构建（修改前端后先重新构建）
 npm run build               # 构建客户端和独立服务端
-npm run dev:web            # 浏览器开发模式（GSAP_DEV_HOME 指定数据目录）
+npm run dev:web            # 浏览器开发模式（CODIA_DEV_HOME 指定数据目录）
 npm run dev:renderer       # 单独启动 Vite，仅前端
 npm run server             # 单独启动服务端源码
 npm run cli                # 命令行入口
@@ -87,18 +87,18 @@ Git 只忽略本地依赖、编译输出和缓存，不会删除它们。已安�
 `start:local` 每次重新生成客户端；本地编译界面默认仍由当前 Node 执行服务端源码。验证独立服务端构建时，先运行 `npm run build`，再在 PowerShell 中执行：
 
 ```powershell
-$env:GSAP_DESKTOP_SERVER_MODE = "dist"
+$env:CODIA_DESKTOP_SERVER_MODE = "dist"
 npm run start:built
-Remove-Item Env:GSAP_DESKTOP_SERVER_MODE
+Remove-Item Env:CODIA_DESKTOP_SERVER_MODE
 ```
 
 桌面冒烟脚本自动创建临时配置、分配空闲端口并使用本机模拟模型，不需要配置付费模型。脚本结束后测试窗口自动关闭。
 
 ```powershell
 npm run e2e:desktop-smoke
-$env:GSAP_E2E_DESKTOP_MODE = "built"
+$env:CODIA_E2E_DESKTOP_MODE = "built"
 npm run e2e:desktop-smoke
-Remove-Item Env:GSAP_E2E_DESKTOP_MODE
+Remove-Item Env:CODIA_E2E_DESKTOP_MODE
 ```
 
 第二组命令需要先完成 `npm run build`。窗口异常退出时，保留终端报错，并查看数据目录中的 `diagnostics/desktop-launch/renderer.log` 和 `crash.log`。

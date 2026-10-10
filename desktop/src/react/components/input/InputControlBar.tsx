@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, type RefObject } from 'react';
 import { InputUtilityButtons } from './InputUtilityButtons';
 import { PlanModeButton, type PermissionMode } from './PlanModeButton';
 import { DocContextButton } from './DocContextButton';
@@ -13,8 +13,7 @@ import styles from './InputArea.module.css';
 
 interface Props {
   t: (key: string) => string;
-  onAttach: () => void;
-  onBeforeOpenSkills?: () => void;
+  addMenu: { open: boolean; buttonRef: RefObject<HTMLButtonElement | null>; onToggle: () => void };
   permissionMode: PermissionMode;
   onPermissionModeChange: (v: PermissionMode) => void;
   planModeLocked: boolean;
@@ -36,7 +35,7 @@ interface Props {
 
 export const InputControlBar = memo(function InputControlBar(props: Props) {
   const {
-    t, onAttach, onBeforeOpenSkills,
+    t, addMenu,
     permissionMode, onPermissionModeChange, planModeLocked, hasDoc, docContextAttached, onToggleDocContext,
     showThinking, thinkingLevel, onThinkingChange, availableThinkingLevels,
     models, sessionModel, isStreaming, hasInput, canSend, onSend, onStop,
@@ -45,7 +44,7 @@ export const InputControlBar = memo(function InputControlBar(props: Props) {
   return (
     <div className={styles['input-bottom-bar']}>
       <div className={styles['input-actions']}>
-        <InputUtilityButtons t={t} onAttach={onAttach} onBeforeOpenSkills={onBeforeOpenSkills} />
+        <InputUtilityButtons t={t} addMenu={addMenu} />
         <PlanModeButton mode={permissionMode} onChange={onPermissionModeChange} locked={planModeLocked} />
         {hasDoc && <DocContextButton active={docContextAttached} disabled={false} onToggle={onToggleDocContext} />}
         <ContextRing />

@@ -18,7 +18,7 @@ describe("desktop notification focus policy", () => {
     });
   });
 
-  it("suppresses when_unfocused notifications while a G-SAP window is focused", () => {
+  it("suppresses when_unfocused notifications while a Codia window is focused", () => {
     const getFocusedWindow = vi.fn(() => ({ isDestroyed: () => false }));
 
     expect(shouldSuppressDesktopNotification(
@@ -27,7 +27,7 @@ describe("desktop notification focus policy", () => {
     )).toBe(true);
   });
 
-  it("allows when_unfocused notifications when no G-SAP window is focused", () => {
+  it("allows when_unfocused notifications when no Codia window is focused", () => {
     expect(shouldSuppressDesktopNotification(
       { desktopFocusPolicy: "when_unfocused" },
       { getFocusedWindow: () => null },

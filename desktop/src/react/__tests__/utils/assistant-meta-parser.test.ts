@@ -16,7 +16,7 @@ describe('splitAssistantMeta', () => {
 
     expect(result.thinking).toContain('The user is asking me');
     expect(result.mood).toBe('The gears are turning, but there is no subject yet.');
-    expect(result.moodYuan).toBe('gsap');
+    expect(result.moodYuan).toBe('codia');
     expect(result.text).toBe('Tell me what topic you want me to think about.');
   });
 
@@ -36,7 +36,7 @@ describe('splitAssistantMeta', () => {
       '`office-documents` skill... wait, did the system prompt say only use specific tools?',
       'Actually, many environments handle `.docx` through a backend reader.',
       'Current files:',
-      '1. C:\\Users\\root\\.gsap\\uploads\\test.xlsx',
+      '1. C:\\Users\\root\\.codia\\uploads\\test.xlsx',
       'I will attempt to read both now using their verified paths.',
     ].join('\n');
 
@@ -103,7 +103,7 @@ describe('splitAssistantMeta', () => {
     const result = splitAssistantMeta('MOD. hidden mod line\n\nvisible answer');
 
     expect(result.mood).toBe('hidden mod line');
-    expect(result.moodYuan).toBe('gsap');
+    expect(result.moodYuan).toBe('codia');
     expect(result.text).toBe('visible answer');
   });
 
@@ -135,7 +135,7 @@ describe('splitAssistantMeta', () => {
     const result = splitAssistantMeta(input);
 
     expect(result.mood).toBe('核心材料齐全，门禁通过。开始执行完整工作流。');
-    expect(result.moodYuan).toBe('gsap');
+    expect(result.moodYuan).toBe('codia');
     expect(result.text).toBe('这里是正式回答。');
   });
 
@@ -151,7 +151,7 @@ describe('splitAssistantMeta', () => {
     const result = splitAssistantMeta(input);
 
     expect(result.mood).toBe('先把环境探一遍，再动手。');
-    expect(result.moodYuan).toBe('gsap');
+    expect(result.moodYuan).toBe('codia');
     expect(result.text).toBe('这是外显回复。');
   });
 

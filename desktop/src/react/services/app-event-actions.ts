@@ -1,5 +1,5 @@
 ﻿import { useStore } from '../stores';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import { applyAgentIdentity, loadAgents } from '../stores/agent-actions';
 import { loadSessions } from '../stores/session-actions';
 import { loadModels } from '../utils/ui-helpers';
@@ -120,7 +120,7 @@ export function handleAppEvent(type: string, data: any = {}, options: AppEventOp
       loadModels();
       useStore.setState({ thinkingLevel: 'auto' });
 
-      gsapFetch('/api/config').then((response) => response.json()).then((config: any) => {
+      codiaFetch('/api/config').then((response) => response.json()).then((config: any) => {
         if (myVersion !== agentSwitchVersion) return;
         const homeFolder = readConfigHomeFolder(config);
         const memoryPatch = config?.memory && typeof config.memory === 'object'
@@ -136,7 +136,7 @@ export function handleAppEvent(type: string, data: any = {}, options: AppEventOp
         void activateWorkspaceDesk(homeFolder);
       }).catch(() => {});
 
-      gsapFetch('/api/desk/cron').then((response) => response.json()).then((payload: any) => {
+      codiaFetch('/api/desk/cron').then((response) => response.json()).then((payload: any) => {
         if (myVersion !== agentSwitchVersion) return;
         useStore.setState({ automationCount: payload.jobs?.length || 0 });
       }).catch(() => {});
@@ -145,7 +145,7 @@ export function handleAppEvent(type: string, data: any = {}, options: AppEventOp
     }
     case 'skills-changed':
       window.__loadDeskSkills?.();
-      window.dispatchEvent(new CustomEvent('gsap-skills-changed', {
+      window.dispatchEvent(new CustomEvent('codia-skills-changed', {
         detail: { agentId: data?.agentId || null },
       }));
       break;
@@ -244,7 +244,7 @@ export function handleAppEvent(type: string, data: any = {}, options: AppEventOp
       window.setPaperTexture(data.enabled);
       break;
     case 'leaves-overlay-changed':
-      window.dispatchEvent(new CustomEvent('gsap-settings', {
+      window.dispatchEvent(new CustomEvent('codia-settings', {
         detail: { type: 'leaves-overlay-changed', enabled: data.enabled },
       }));
       break;

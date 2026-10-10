@@ -23,7 +23,7 @@ describe('reader mode removal wiring', () => {
     expect(app).not.toContain("t('appMode.coding')");
     expect(app).not.toContain('codingMode');
     expect(app).not.toContain('titlebar-ide-mode');
-    expect(app).not.toContain('data-gsap-ide-status-entry');
+    expect(app).not.toContain('data-codia-ide-status-entry');
   });
 
   it('keeps files in the persistent right workspace without a duplicate sidebar destination', () => {
@@ -35,7 +35,7 @@ describe('reader mode removal wiring', () => {
     expect(workspace).toContain('rightWorkspaceLayout openFilesOnSingleClick');
     expect(fs.existsSync(path.join(ROOT, 'components/ReaderSurface.tsx'))).toBe(false);
     expect(fs.existsSync(path.join(ROOT, 'components/ObsidianSessionHistory.tsx'))).toBe(false);
-    expect(fs.existsSync(path.join(ROOT, 'components/GsapIdeSurface.tsx'))).toBe(false);
+    expect(fs.existsSync(path.join(ROOT, 'components/CodiaIdeSurface.tsx'))).toBe(false);
     expect(fs.existsSync(path.join(ROOT, 'components/coding'))).toBe(false);
   });
 

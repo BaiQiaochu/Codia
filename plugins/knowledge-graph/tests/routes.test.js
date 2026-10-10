@@ -32,7 +32,7 @@ function parseNodeTranslate(element) {
 }
 
 function makeApp() {
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-kg-routes-"));
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-kg-routes-"));
   tempDirs.push(dataDir);
 
   const store = new GraphStore(dataDir);

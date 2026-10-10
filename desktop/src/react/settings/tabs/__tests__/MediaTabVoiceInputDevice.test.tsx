@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
 }));
 
 vi.mock('../../helpers', () => ({
@@ -15,7 +15,7 @@ vi.mock('../../helpers', () => ({
 }));
 
 vi.mock('../../api', () => ({
-  gsapFetch: (...args: unknown[]) => mocks.gsapFetch(...args),
+  codiaFetch: (...args: unknown[]) => mocks.codiaFetch(...args),
 }));
 
 import { MediaTab } from '../MediaTab';
@@ -27,11 +27,11 @@ describe('MediaTab voice input device selection', () => {
     vi.clearAllMocks();
     useSettingsStore.setState({
       ready: true,
-      currentAgentId: 'gsap',
+      currentAgentId: 'codia',
       settingsAgentId: null,
       serverPort: 52022,
     });
-    mocks.gsapFetch.mockResolvedValue({
+    mocks.codiaFetch.mockResolvedValue({
       json: async () => ({
         providers: {},
         config: {},
@@ -79,7 +79,7 @@ describe('MediaTab voice input device selection', () => {
     expect([...deviceSelect.options].map(option => option.textContent)).toContain('USB Mic');
 
     fireEvent.change(deviceSelect, { target: { value: 'mic-usb' } });
-    expect(JSON.parse(localStorage.getItem('gsap-voice-settings') || '{}').recognitionInputDeviceId).toBe('mic-usb');
+    expect(JSON.parse(localStorage.getItem('codia-voice-settings') || '{}').recognitionInputDeviceId).toBe('mic-usb');
 
     fireEvent.click(screen.getByTestId('voice-input-refresh'));
     await waitFor(() => {

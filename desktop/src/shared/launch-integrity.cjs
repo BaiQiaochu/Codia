@@ -177,7 +177,7 @@ function buildWindowsInstallSurfaceChecks(opts = {}) {
 
   return [
     {
-      id: "gsap-exe",
+      id: "codia-exe",
       label: "desktop application executable",
       relativePath: "desktop application executable",
       paths: [executablePath],
@@ -186,9 +186,9 @@ function buildWindowsInstallSurfaceChecks(opts = {}) {
     buildDesktopAppPayloadCheck({ resourcesRoot, appPath }),
     {
       id: "server-exe",
-      label: "resources/server/gsap-server.exe",
-      relativePath: "resources/server/gsap-server.exe or resources/server/hana-server.exe",
-      paths: [path.join(serverRoot, "gsap-server.exe"), path.join(serverRoot, "hana-server.exe")],
+      label: "resources/server/codia-server.exe",
+      relativePath: "resources/server/codia-server.exe or resources/server/codia-server.exe",
+      paths: [path.join(serverRoot, "codia-server.exe"), path.join(serverRoot, "codia-server.exe")],
     },
     {
       id: "server-bootstrap",

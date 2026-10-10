@@ -60,7 +60,7 @@ function baseOpts( overrides: any = {}) {
       api_key: "test-key",
       base_url: "http://localhost:1234",
     },
-    agentPersonality: "你是 G-SAP。",
+    agentPersonality: "你是 Codia。",
     memory: "",
     userName: "测试用户",
     agentName: "小花",
@@ -80,7 +80,7 @@ describe("writeDiary hybrid material collection", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-05-07T12:00:00+08:00"));
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "hana-diary-test-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-diary-test-"));
     (callText as any).mockResolvedValue("# 2026-05-07 测试日记\n\n今天把日记写好了。");
   });
 
@@ -112,19 +112,19 @@ describe("writeDiary hybrid material collection", () => {
     expect(diaryPrompt()).toContain("补齐缺失摘要");
   });
 
-  it("writes new diary files under BYOUNG-Works and ignores legacy diary folders", async () => {
+  it("writes new diary files under Codia-Works and ignores legacy diary folders", async () => {
     const opts = baseOpts();
     fs.mkdirSync(path.join(tempRoot, "日记"), { recursive: true });
     makeSession(opts.sessionDir, "workspace-output-session", [
       { role: "user", content: "今天要把工作区产物统一到一个目录。", timestamp: "2026-05-07T04:10:00.000Z" },
-      { role: "assistant", content: "我会把新日记写进 BYOUNG-Works。", timestamp: "2026-05-07T04:12:00.000Z" },
+      { role: "assistant", content: "我会把新日记写进 Codia-Works。", timestamp: "2026-05-07T04:12:00.000Z" },
     ]);
-    opts.summaryManager.rollingSummary.mockResolvedValue("## 事情经过\n[12:10] 工作区产物统一到 BYOUNG-Works。");
+    opts.summaryManager.rollingSummary.mockResolvedValue("## 事情经过\n[12:10] 工作区产物统一到 Codia-Works。");
 
     const result = await writeDiary(opts);
 
     expect(result.error).toBeUndefined();
-    expect(result.filePath).toContain(path.join("BYOUNG-Works", "日记"));
+    expect(result.filePath).toContain(path.join("Codia-Works", "日记"));
     expect(result.filePath).not.toContain(path.join(tempRoot, "日记"));
     expect(fs.readdirSync(path.join(tempRoot, "日记"))).toEqual([]);
     expect(fs.existsSync(result.filePath)).toBe(true);

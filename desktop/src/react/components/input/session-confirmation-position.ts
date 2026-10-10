@@ -62,7 +62,7 @@ export function calculateSessionConfirmationMenuPosition({
 }
 
 export function getSessionConfirmationBoundsRect(anchor: HTMLElement): DOMRect | null {
-  const boundary = anchor.closest('.gsap-reader-chat, .input-area, .main-content, .channel-view');
+  const boundary = anchor.closest('.codia-reader-chat, .input-area, .main-content, .channel-view');
   if (!(boundary instanceof HTMLElement)) return null;
   const rect = boundary.getBoundingClientRect();
   return rect.width > 0 && rect.height > 0 ? rect : null;

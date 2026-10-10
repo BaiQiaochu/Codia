@@ -130,7 +130,7 @@ const SAFE_URL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:']);
 const SAFE_IMAGE_URL_PROTOCOLS = new Set(['http:', 'https:', 'file:']);
 const EXPLICIT_PROTOCOL_RE = /^[a-zA-Z][a-zA-Z0-9+.-]*:/;
 const HTML_DIMENSION_RE = /^[1-9]\d{0,4}$/;
-const FOOTNOTE_ID_RE = /^(?:fn|fnref)-gsap-fn-[a-z0-9]+-\d+(?:-\d+)?$/;
+const FOOTNOTE_ID_RE = /^(?:fn|fnref)-codia-fn-[a-z0-9]+-\d+(?:-\d+)?$/;
 const MATHML_ATTRS = new Set([
   'xmlns',
   'display',

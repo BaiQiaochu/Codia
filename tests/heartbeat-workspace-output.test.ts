@@ -10,14 +10,14 @@ let tempRoot;
 
 describe("heartbeat workspace output directories", () => {
   beforeEach(() => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-heartbeat-output-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-heartbeat-output-"));
   });
 
   afterEach(() => {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   });
 
-  it("tells the agent to use visible BYOUNG-Works patrol and activity folders", async () => {
+  it("tells the agent to use visible Codia-Works patrol and activity folders", async () => {
     const onBeat = vi.fn().mockResolvedValue(undefined);
     const heartbeat = createHeartbeat({
       getDeskFiles: async () => [],
@@ -33,8 +33,8 @@ describe("heartbeat workspace output directories", () => {
 
     expect(onBeat).toHaveBeenCalledOnce();
     const prompt = onBeat.mock.calls[0][0];
-    expect(prompt).toContain("BYOUNG-Works/小花的巡检/patrol-log.md");
-    expect(prompt).toContain("BYOUNG-Works/小花-activity/");
+    expect(prompt).toContain("Codia-Works/小花的巡检/patrol-log.md");
+    expect(prompt).toContain("Codia-Works/小花-activity/");
     expect(prompt).not.toContain("HeartBeat");
   });
 });

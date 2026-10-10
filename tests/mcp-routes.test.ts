@@ -46,7 +46,7 @@ describe("mcp plugin routes", () => {
   it("persists the global connector switch through the settings endpoint", async () => {
     const { app, runtime, ctx } = createApp();
 
-    const res = await app.request("/api/plugins/mcp/settings/enabled?agentId=gsap", {
+    const res = await app.request("/api/plugins/mcp/settings/enabled?agentId=codia", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ enabled: true }),
@@ -55,7 +55,7 @@ describe("mcp plugin routes", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ enabled: true });
     expect(runtime.setEnabled).toHaveBeenCalledWith(true);
-    expect(ctx.bus.request).toHaveBeenCalledWith("agent:config", { agentId: "gsap" });
+    expect(ctx.bus.request).toHaveBeenCalledWith("agent:config", { agentId: "codia" });
   });
 
   it("keeps the legacy global enabled route working", async () => {
@@ -75,7 +75,7 @@ describe("mcp plugin routes", () => {
   it("updates an agent connector switch through the backend", async () => {
     const { app, runtime } = createApp();
 
-    const res = await app.request("/api/plugins/mcp/agents/gsap/connectors/github", {
+    const res = await app.request("/api/plugins/mcp/agents/codia/connectors/github", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ enabled: true }),
@@ -85,6 +85,6 @@ describe("mcp plugin routes", () => {
     expect(await res.json()).toMatchObject({
       config: { mcp: { connectors: { github: { enabled: true } } } },
     });
-    expect(runtime.updateAgentMcpConnector).toHaveBeenCalledWith("gsap", "github", { enabled: true });
+    expect(runtime.updateAgentMcpConnector).toHaveBeenCalledWith("codia", "github", { enabled: true });
   });
 });

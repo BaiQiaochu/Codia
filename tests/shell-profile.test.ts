@@ -50,11 +50,11 @@ describe("resolveShellProfile", () => {
 
   it("resolves explicit Git Bash through the Windows runtime resolver", () => {
     const shellInfo = {
-      shell: "C:\\G-SAP\\resources\\git\\bin\\bash.exe",
+      shell: "C:\\Codia\\resources\\git\\bin\\bash.exe",
       args: ["-lc"],
-      bundledRoot: "C:\\G-SAP\\resources\\git",
+      bundledRoot: "C:\\Codia\\resources\\git",
     };
-    const shellEnv = { Path: "C:\\G-SAP\\resources\\git\\bin;C:\\Windows\\System32" };
+    const shellEnv = { Path: "C:\\Codia\\resources\\git\\bin;C:\\Windows\\System32" };
     const resolveWin32ShellRuntime = vi.fn(() => shellInfo);
     const getWin32ShellEnvForRuntime = vi.fn(() => shellEnv);
 

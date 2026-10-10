@@ -30,7 +30,7 @@ describe("session-coordinator: archived helpers", () => {
   let tmpDir;
 
   beforeEach(() => {
-    tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), "hana-coord-arch-"));
+    tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), "codia-coord-arch-"));
   });
 
   afterEach(() => {
@@ -156,7 +156,7 @@ describe("session-coordinator: archived helpers", () => {
   it("continues a deleted-agent session into the primary agent and keeps it when fresh compaction fails", async () => {
     const agentsDir = path.join(tmpDir, "agents");
     const deletedSessionDir = path.join(agentsDir, "deleted", "sessions");
-    const targetSessionDir = path.join(agentsDir, "gsap", "sessions");
+    const targetSessionDir = path.join(agentsDir, "codia", "sessions");
     const sourcePath = path.join(deletedSessionDir, "old.jsonl");
     const targetPath = path.join(targetSessionDir, "continued.jsonl");
     const normalizedDeletedCwd = path.resolve("/tmp/deleted");
@@ -182,13 +182,13 @@ describe("session-coordinator: archived helpers", () => {
     const { SessionCoordinator } = await import("../core/session-coordinator.ts");
     const coord = new SessionCoordinator({
       agentsDir,
-      getPrefs: () => ({ getPrimaryAgent: () => "gsap" }),
+      getPrefs: () => ({ getPrimaryAgent: () => "codia" }),
       getActiveAgentId: () => "fallback",
       getAgent: () => ({ id: "fallback", agentName: "Fallback" }),
-      getAgentById: (id) => id === "gsap"
-        ? { id: "gsap", agentName: "G-SAP", agentDir: path.join(agentsDir, "gsap"), sessionDir: targetSessionDir }
+      getAgentById: (id) => id === "codia"
+        ? { id: "codia", agentName: "Codia", agentDir: path.join(agentsDir, "codia"), sessionDir: targetSessionDir }
         : null,
-      getHomeCwd: () => "/tmp/gsap-home",
+      getHomeCwd: () => "/tmp/codia-home",
       agentIdFromSessionPath: (p) => path.relative(agentsDir, p).split(path.sep)[0],
       isAgentDeleted: (id) => id === "deleted",
       listAgents: () => [],
@@ -198,7 +198,7 @@ describe("session-coordinator: archived helpers", () => {
 
     coord.createSession = vi.fn(async () => ({
       sessionPath: targetPath,
-      agentId: "gsap",
+      agentId: "codia",
       session: {
         model: { provider: "openai", id: "gpt-test" },
         sessionManager: manager,
@@ -212,7 +212,7 @@ describe("session-coordinator: archived helpers", () => {
     const result = await coord.continueDeletedAgentSession(sourcePath);
 
     expect(coord.createSession).toHaveBeenCalledWith(null, normalizedDeletedCwd, true, null, expect.objectContaining({
-      agentId: "gsap",
+      agentId: "codia",
       visibleInSessionList: true,
     }));
     expect(appendedMessages).toEqual([
@@ -222,8 +222,8 @@ describe("session-coordinator: archived helpers", () => {
     expect(manager.appendModelChange).toHaveBeenCalledWith("openai", "gpt-test");
     expect(result).toMatchObject({
       sessionPath: targetPath,
-      agentId: "gsap",
-      agentName: "G-SAP",
+      agentId: "codia",
+      agentName: "Codia",
       cwd: "/tmp/deleted",
       compacted: false,
       compactionError: "summary model unavailable",

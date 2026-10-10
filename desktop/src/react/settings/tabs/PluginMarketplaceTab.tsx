@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSettingsStore } from '../store';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { t } from '../helpers';
 import { SettingsSection } from '../components/SettingsSection';
 import { renderMarkdownPreview } from '../../utils/markdown';
@@ -17,7 +17,7 @@ interface MarketplacePlugin {
   permissions?: string[];
   contributions?: string[];
   repository?: string | null;
-  compatibility?: { minAppVersion?: string; gsapApi?: string };
+  compatibility?: { minAppVersion?: string; codiaApi?: string };
   distribution?: { kind?: 'source' | 'release'; path?: string; packageUrl?: string; sha256?: string } | null;
   installed?: boolean;
   installedVersion?: string | null;
@@ -62,7 +62,7 @@ function renderPluginTrustPanel(selectedPlugin: MarketplacePlugin) {
           min app: {metadataValue(selectedPlugin.compatibility?.minAppVersion)}
         </span>
         <span className={styles['skills-source-badge']} style={{ marginRight: 0 }}>
-          api: {metadataValue(selectedPlugin.compatibility?.gsapApi)}
+          api: {metadataValue(selectedPlugin.compatibility?.codiaApi)}
         </span>
       </div>
       <div>
@@ -92,7 +92,7 @@ export function PluginMarketplaceTab() {
     setReadme('');
     setReadmeLoading(true);
     try {
-      const res = await gsapFetch(`/api/plugins/marketplace/${encodeURIComponent(plugin.id)}/readme`);
+      const res = await codiaFetch(`/api/plugins/marketplace/${encodeURIComponent(plugin.id)}/readme`);
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setReadme(data.markdown || '');
@@ -106,7 +106,7 @@ export function PluginMarketplaceTab() {
   const loadMarketplace = useCallback(async () => {
     setMarketplaceLoading(true);
     try {
-      const res = await gsapFetch('/api/plugins/marketplace');
+      const res = await codiaFetch('/api/plugins/marketplace');
       const data = await res.json() as {
         error?: string;
         source?: MarketplaceResponse['source'];
@@ -143,7 +143,7 @@ export function PluginMarketplaceTab() {
   const installPlugin = async (plugin: MarketplacePlugin) => {
     setInstallingPluginId(plugin.id);
     try {
-      const res = await gsapFetch(`/api/plugins/marketplace/${encodeURIComponent(plugin.id)}/install`, {
+      const res = await codiaFetch(`/api/plugins/marketplace/${encodeURIComponent(plugin.id)}/install`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),

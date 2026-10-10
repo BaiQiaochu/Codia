@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSettingsStore, type SkillInfo } from '../store';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { t } from '../helpers';
 import { SkillBundleTree, type SkillBundleInfo } from './skills/SkillBundleTree';
 import { SkillCapabilities } from './skills/SkillCapabilities';
@@ -61,8 +61,8 @@ export function SkillsTab() {
     try {
       const snapshotAgentId = agentId;
       const [skillsRes, bundlesRes] = await Promise.all([
-        gsapFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}`),
-        gsapFetch(`/api/skills/bundles?agentId=${encodeURIComponent(agentId)}`),
+        codiaFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}`),
+        codiaFetch(`/api/skills/bundles?agentId=${encodeURIComponent(agentId)}`),
       ]);
       const data = await skillsRes.json();
       const bundleData = await bundlesRes.json();
@@ -78,7 +78,7 @@ export function SkillsTab() {
 
   const loadExternalPaths = useCallback(async () => {
     try {
-      const res = await gsapFetch('/api/skills/external-paths');
+      const res = await codiaFetch('/api/skills/external-paths');
       const data = await res.json();
       setExternalPathsData({
         configured: data.configured || [],
@@ -113,7 +113,7 @@ export function SkillsTab() {
     if (!agentId) return;
     const names = visible.map(s => s.name).filter(n => !nameHints[n]);
     if (names.length === 0) return;
-    gsapFetch('/api/skills/translate', {
+    codiaFetch('/api/skills/translate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ agentId, names, lang: locale }),
@@ -125,7 +125,7 @@ export function SkillsTab() {
 
   const installSkillFromPath = async (filePath: string) => {
     try {
-      const res = await gsapFetch('/api/skills/install', {
+      const res = await codiaFetch('/api/skills/install', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: filePath }),
@@ -141,7 +141,7 @@ export function SkillsTab() {
 
   const installSkillFromFile = async (file: File) => {
     try {
-      const res = await gsapFetch('/api/skills/install', {
+      const res = await codiaFetch('/api/skills/install', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -175,7 +175,7 @@ export function SkillsTab() {
     const msg = t('settings.skills.deleteConfirm', { name });
     if (!confirm(msg)) return;
     try {
-      const res = await gsapFetch(
+      const res = await codiaFetch(
         `/api/skills/${encodeURIComponent(name)}?agentId=${encodeURIComponent(agentId)}`,
         { method: 'DELETE' },
       );
@@ -196,7 +196,7 @@ export function SkillsTab() {
     const agentId = skillsViewAgentIdRef.current;
     if (!agentId) return;
     try {
-      const res = await gsapFetch(`/api/skills/bundles?agentId=${encodeURIComponent(agentId)}`, {
+      const res = await codiaFetch(`/api/skills/bundles?agentId=${encodeURIComponent(agentId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, skillNames: [] }),
@@ -219,7 +219,7 @@ export function SkillsTab() {
     const agentId = skillsViewAgentIdRef.current;
     if (!agentId || !name || name === bundle.name) return;
     try {
-      const res = await gsapFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}?agentId=${encodeURIComponent(agentId)}`, {
+      const res = await codiaFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}?agentId=${encodeURIComponent(agentId)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
@@ -251,7 +251,7 @@ export function SkillsTab() {
       return;
     }
     try {
-      const res = await gsapFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}/export?agentId=${encodeURIComponent(agentId)}`, {
+      const res = await codiaFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}/export?agentId=${encodeURIComponent(agentId)}`, {
         method: 'POST',
       });
       const data = await res.json();
@@ -269,7 +269,7 @@ export function SkillsTab() {
 
   const submitDeleteBundle = async (bundle: SkillBundleInfo) => {
     try {
-      const res = await gsapFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}`, {
+      const res = await codiaFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}`, {
         method: 'DELETE',
       });
       const data = await res.json();
@@ -285,7 +285,7 @@ export function SkillsTab() {
   const updateBundleSkillNames = async (bundle: SkillBundleInfo, skillNames: string[]) => {
     const agentId = skillsViewAgentIdRef.current;
     if (!agentId) return;
-    const res = await gsapFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}?agentId=${encodeURIComponent(agentId)}`, {
+    const res = await codiaFetch(`/api/skills/bundles/${encodeURIComponent(bundle.id)}?agentId=${encodeURIComponent(agentId)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ skillNames }),
@@ -298,7 +298,7 @@ export function SkillsTab() {
     const agentId = skillsViewAgentIdRef.current;
     if (!agentId) return;
     try {
-      const res = await gsapFetch(`/api/skills/bundles/order?agentId=${encodeURIComponent(agentId)}`, {
+      const res = await codiaFetch(`/api/skills/bundles/order?agentId=${encodeURIComponent(agentId)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bundleIds }),
@@ -383,7 +383,7 @@ export function SkillsTab() {
     setSkillsList(updated);
 
     try {
-      const freshRes = await gsapFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}`);
+      const freshRes = await codiaFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}`);
       const freshData = await freshRes.json();
       if (freshData.error) throw new Error(freshData.error);
       if (skillsViewAgentIdRef.current !== snapshotAgentId) return;
@@ -393,7 +393,7 @@ export function SkillsTab() {
         .filter(s => s.enabled)
         .map(s => s.name);
 
-      const res = await gsapFetch(`/api/agents/${agentId}/skills`, {
+      const res = await codiaFetch(`/api/agents/${agentId}/skills`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: enabledList }),
@@ -421,7 +421,7 @@ export function SkillsTab() {
     setSkillsList(skillsList.map(s => bundleSkillNames.has(s.name) ? { ...s, enabled: enable } : s));
 
     try {
-      const freshRes = await gsapFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}`);
+      const freshRes = await codiaFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}`);
       const freshData = await freshRes.json();
       if (freshData.error) throw new Error(freshData.error);
       if (skillsViewAgentIdRef.current !== snapshotAgentId) return;
@@ -430,7 +430,7 @@ export function SkillsTab() {
         .filter(s => s.enabled)
         .map(s => s.name);
 
-      const res = await gsapFetch(`/api/agents/${agentId}/skills`, {
+      const res = await codiaFetch(`/api/agents/${agentId}/skills`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: enabledList }),
@@ -466,7 +466,7 @@ export function SkillsTab() {
     if (!folder) return;
     const newPaths = [...externalPathsData.configured, folder];
     try {
-      await gsapFetch('/api/skills/external-paths', {
+      await codiaFetch('/api/skills/external-paths', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paths: newPaths }),
@@ -483,7 +483,7 @@ export function SkillsTab() {
   const removeExternalPath = async (pathToRemove: string) => {
     const newPaths = externalPathsData.configured.filter(p => p !== pathToRemove);
     try {
-      await gsapFetch('/api/skills/external-paths', {
+      await codiaFetch('/api/skills/external-paths', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paths: newPaths }),

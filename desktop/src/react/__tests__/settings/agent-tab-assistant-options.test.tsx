@@ -10,13 +10,13 @@ import { useSettingsStore } from '../../settings/store';
 
 type MockResponse = { json: () => Promise<unknown> };
 
-const gsapFetchMock = vi.fn(async (_url?: string, _opts?: RequestInit): Promise<MockResponse> => ({
+const codiaFetchMock = vi.fn(async (_url?: string, _opts?: RequestInit): Promise<MockResponse> => ({
   json: async () => ({ models: [] }),
 }));
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: (url: string, opts?: RequestInit) => gsapFetchMock(url, opts),
-  gsapUrl: (path: string) => path,
+  codiaFetch: (url: string, opts?: RequestInit) => codiaFetchMock(url, opts),
+  codiaUrl: (path: string) => path,
   yuanFallbackAvatar: (yuan: string) => `/fallback-${yuan}.png`,
 }));
 
@@ -79,20 +79,20 @@ vi.mock('../../settings/tabs/agent/AgentExperience', () => ({
 
 describe('AgentTab assistant options', () => {
   beforeEach(() => {
-    gsapFetchMock.mockImplementation(async (url: string): Promise<MockResponse> => {
+    codiaFetchMock.mockImplementation(async (url: string): Promise<MockResponse> => {
       if (url === '/api/models') return { json: async () => ({ models: [] }) };
       return { json: async () => ({ ok: true }) };
     });
     (window as unknown as { platform?: unknown }).platform = {};
     useSettingsStore.setState({
       agents: [
-        { id: 'agent-a', name: 'G-SAP Writer', yuan: 'gsap', isPrimary: true },
+        { id: 'agent-a', name: 'Codia Writer', yuan: 'codia', isPrimary: true },
         { id: 'agent-b', name: 'Review Partner', yuan: 'logic', isPrimary: false },
       ],
       currentAgentId: null,
       settingsAgentId: null,
       settingsConfig: {
-        agent: { name: 'G-SAP Writer', yuan: 'gsap' },
+        agent: { name: 'Codia Writer', yuan: 'codia' },
         models: { chat: { provider: 'legacy', id: 'writer-chat' } },
         memory: { enabled: true },
       },
@@ -113,13 +113,13 @@ describe('AgentTab assistant options', () => {
     const { AgentTab } = await import('../../settings/tabs/AgentTab');
     const { container } = render(<AgentTab />);
 
-    expect(screen.getByText('G-SAP Writer')).toBeInTheDocument();
+    expect(screen.getByText('Codia Writer')).toBeInTheDocument();
     expect(screen.getByText('Review Partner')).toBeInTheDocument();
     expect(container.querySelector('[data-add-btn="1"]')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '导出助手' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '删除助手' })).not.toBeInTheDocument();
 
-    await waitFor(() => expect(gsapFetchMock.mock.calls.some(([url]) => url === '/api/models')).toBe(true));
+    await waitFor(() => expect(codiaFetchMock.mock.calls.some(([url]) => url === '/api/models')).toBe(true));
     expect(screen.getByText('不可用模型：legacy/writer-chat')).toBeInTheDocument();
     expect(screen.getByText('当前模型不在可用模型列表中，请重新选择。')).toBeInTheDocument();
   });

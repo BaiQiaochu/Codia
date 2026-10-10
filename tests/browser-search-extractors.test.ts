@@ -1,4 +1,4 @@
-// Upstream reference test migrated and debranded; skipped until the matching G-SAP source contract is migrated.
+// Upstream reference test migrated and debranded; skipped until the matching Codia source contract is migrated.
 import { describe, expect, it } from "vitest";
 import { JSDOM } from "jsdom";
 import browserSearch from "../lib/browser/browser-search-extractors.cjs";
@@ -25,14 +25,14 @@ describe.skip("browser search extractors", () => {
   });
 
   it.skip("builds browser search URLs without API keys", () => {
-    expect(buildBrowserSearchUrl("bing_browser", "hana search", 3)).toBe(
-      "https://www.bing.com/search?q=hana+search&count=3",
+    expect(buildBrowserSearchUrl("bing_browser", "codia search", 3)).toBe(
+      "https://www.bing.com/search?q=codia+search&count=3",
     );
-    expect(buildBrowserSearchUrl("google_browser", "hana search", 3)).toBe(
-      "https://www.google.com/search?q=hana+search&num=3",
+    expect(buildBrowserSearchUrl("google_browser", "codia search", 3)).toBe(
+      "https://www.google.com/search?q=codia+search&num=3",
     );
-    expect(buildBrowserSearchUrl("duckduckgo_browser", "hana search", 3)).toBe(
-      "https://duckduckgo.com/?q=hana+search&kl=wt-wt",
+    expect(buildBrowserSearchUrl("duckduckgo_browser", "codia search", 3)).toBe(
+      "https://duckduckgo.com/?q=codia+search&kl=wt-wt",
     );
   });
 
@@ -58,7 +58,7 @@ describe.skip("browser search extractors", () => {
           </li>
         </ol>
       </main>
-    `, "https://www.bing.com/search?q=hana");
+    `, "https://www.bing.com/search?q=codia");
 
     expect(result.blocked).toBe(false);
     expect(result.results).toEqual([
@@ -84,7 +84,7 @@ describe.skip("browser search extractors", () => {
         </a>
         <div class="VwiC3b">Google snippet for the model.</div>
       </div>
-    `, "https://www.google.com/search?q=hana");
+    `, "https://www.google.com/search?q=codia");
 
     expect(result.results[0]).toMatchObject({
       title: "Google Result",
@@ -105,7 +105,7 @@ describe.skip("browser search extractors", () => {
         </a>
         <div data-result="snippet">Duck snippet for the model.</div>
       </article>
-    `, "https://duckduckgo.com/?q=hana");
+    `, "https://duckduckgo.com/?q=codia");
 
     expect(result.results[0]).toMatchObject({
       title: "Duck Result",
@@ -141,7 +141,7 @@ describe.skip("browser search extractors", () => {
           </article>
         </section>
       </main>
-    `, "https://www.bing.com/search?q=hana");
+    `, "https://www.bing.com/search?q=codia");
 
     expect(drift.status).toBe("extraction_failed");
     expect(drift.blocked).toBe(false);

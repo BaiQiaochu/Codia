@@ -52,7 +52,7 @@ describe('websocket PWA auth', () => {
 
     vi.stubGlobal('WebSocket', FakeWebSocket as unknown as typeof WebSocket);
     vi.stubGlobal('window', {
-      __GSAP_PWA__: {},
+      __CODIA_PWA__: {},
       location: { protocol: 'https:', host: 'example.com' },
       localStorage: { getItem: () => 'pwa.locked-token' },
     });
@@ -60,7 +60,7 @@ describe('websocket PWA auth', () => {
     const mod = await import('../../services/websocket');
     mod.connectWebSocket();
 
-    expect(sockets[0]).toBe('wss://example.com/__gsap_backend__/ws?token=pwa.locked-token');
+    expect(sockets[0]).toBe('wss://example.com/__codia_backend__/ws?token=pwa.locked-token');
   });
 
   it('uses the PWA bridge websocket URL override when mobile is hosted by the backend itself', async () => {
@@ -81,7 +81,7 @@ describe('websocket PWA auth', () => {
 
     vi.stubGlobal('WebSocket', FakeWebSocket as unknown as typeof WebSocket);
     vi.stubGlobal('window', {
-      __GSAP_PWA__: {
+      __CODIA_PWA__: {
         wsUrl: (token?: string | null) => token
           ? `wss://example.com/ws?token=${encodeURIComponent(token)}`
           : 'wss://example.com/ws',

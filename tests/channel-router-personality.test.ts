@@ -40,8 +40,8 @@ describe("ChannelRouter._executeCheck phone delivery", () => {
     runAgentPhoneSessionMock.mockClear();
     callTextMock.mockClear();
     const mockAgent = {
-      agentDir: "/tmp/gsap-agent-phone-delivery",
-      config: { agent: { name: "G-SAP", yuan: "gsap" } },
+      agentDir: "/tmp/codia-agent-phone-delivery",
+      config: { agent: { name: "Codia", yuan: "codia" } },
       personality: "in-memory personality",
     };
     const resolveUtilityConfig = vi.fn(() => ({
@@ -57,8 +57,8 @@ describe("ChannelRouter._executeCheck phone delivery", () => {
           agentsDir: "/fake/agents",
           channelsDir: "/fake/channels",
           userDir: "/fake/user",
-          agents: new Map([["gsap", mockAgent]]),
-          getAgent: (id) => (id === "gsap" ? mockAgent : null),
+          agents: new Map([["codia", mockAgent]]),
+          getAgent: (id) => (id === "codia" ? mockAgent : null),
           resolveUtilityConfig,
         },
         eventBus: { emit: vi.fn() },
@@ -67,7 +67,7 @@ describe("ChannelRouter._executeCheck phone delivery", () => {
     });
 
     const result = await router._executeCheck(
-      "gsap",
+      "codia",
       "general",
       [{ sender: "user", timestamp: "2026-05-07 17:00:00", body: "hello" }],
       [],

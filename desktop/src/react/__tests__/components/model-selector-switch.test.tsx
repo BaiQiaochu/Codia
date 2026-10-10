@@ -15,7 +15,7 @@ type StoreState = {
 };
 
 let storeState: StoreState;
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
 const useStoreMock = Object.assign(
   (selector?: (state: StoreState) => unknown) => selector ? selector(storeState) : storeState,
@@ -29,8 +29,8 @@ vi.mock('../../stores', () => ({
   useStore: useStoreMock,
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 vi.mock('../../hooks/use-i18n', () => ({
@@ -52,7 +52,7 @@ describe('ModelSelector existing-session switching', () => {
       addToast: vi.fn(),
     };
 
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/models/switch') {
         return {
           ok: true,
@@ -98,7 +98,7 @@ describe('ModelSelector existing-session switching', () => {
     fireEvent.click(await screen.findByRole('option', { name: /New Model/ }));
 
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith('/api/models/switch', expect.objectContaining({
+      expect(codiaFetchMock).toHaveBeenCalledWith('/api/models/switch', expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
           sessionPath: 'E:/sessions/session-1.jsonl',
@@ -108,7 +108,7 @@ describe('ModelSelector existing-session switching', () => {
       }));
     });
 
-    expect(gsapFetchMock).not.toHaveBeenCalledWith('/api/models/set', expect.anything());
+    expect(codiaFetchMock).not.toHaveBeenCalledWith('/api/models/set', expect.anything());
     expect(storeState.updateSessionModel).toHaveBeenCalledWith('E:/sessions/session-1.jsonl', {
       id: 'new-model',
       name: 'New Model',
@@ -129,14 +129,14 @@ describe('ModelSelector existing-session switching', () => {
     fireEvent.click(screen.getByRole('button', { name: /Old Model/ }));
 
     expect(screen.queryByText('视觉')).toBeNull();
-    expect(gsapFetchMock).not.toHaveBeenCalled();
+    expect(codiaFetchMock).not.toHaveBeenCalled();
     expect(storeState.addToast).toHaveBeenCalledWith('model.switchWhileStreaming', 'warning', 4000, {
       dedupeKey: 'model-switch-streaming',
     });
   });
 
   it('maps backend streaming switch rejection to a stable warning toast', async () => {
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/models/switch') {
         return {
           ok: false,
@@ -196,7 +196,7 @@ describe('ModelSelector existing-session switching', () => {
     fireEvent.click(await screen.findByRole('option', { name: /New Model/ }));
 
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith('/api/models/switch', expect.objectContaining({
+      expect(codiaFetchMock).toHaveBeenCalledWith('/api/models/switch', expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
           sessionPath: 'E:/sessions/session-1.jsonl',
@@ -206,13 +206,13 @@ describe('ModelSelector existing-session switching', () => {
       }));
     });
 
-    expect(gsapFetchMock).not.toHaveBeenCalledWith('/api/models/set', expect.anything());
+    expect(codiaFetchMock).not.toHaveBeenCalledWith('/api/models/set', expect.anything());
     expect(storeState.pendingNewSession).toBe(false);
   });
 
   it('does not let a stale post-switch model refresh overwrite a newly focused session', async () => {
     let resolveModelsFetch: (value: unknown) => void = () => {};
-    gsapFetchMock.mockImplementation((url: string) => {
+    codiaFetchMock.mockImplementation((url: string) => {
       if (url === '/api/models/switch') {
         return Promise.resolve({
           ok: true,
@@ -285,8 +285,8 @@ describe('ModelSelector existing-session switching', () => {
 
     expect(screen.queryByText('ToAPIs / Seedance 2')).toBeNull();
     expect(onChatVideoModeChange).not.toHaveBeenCalled();
-    expect(gsapFetchMock).not.toHaveBeenCalledWith('/api/models/switch', expect.anything());
-    expect(gsapFetchMock).not.toHaveBeenCalledWith('/api/models/set', expect.anything());
+    expect(codiaFetchMock).not.toHaveBeenCalledWith('/api/models/switch', expect.anything());
+    expect(codiaFetchMock).not.toHaveBeenCalledWith('/api/models/set', expect.anything());
   });
 
   it('selects the configured video provider without switching the chat model', async () => {
@@ -312,13 +312,13 @@ describe('ModelSelector existing-session switching', () => {
       model: 'seedance-2',
       mediaType: 'video',
     }));
-    expect(gsapFetchMock).not.toHaveBeenCalledWith('/api/models/switch', expect.anything());
-    expect(gsapFetchMock).not.toHaveBeenCalledWith('/api/models/set', expect.anything());
+    expect(codiaFetchMock).not.toHaveBeenCalledWith('/api/models/switch', expect.anything());
+    expect(codiaFetchMock).not.toHaveBeenCalledWith('/api/models/set', expect.anything());
   });
 
   it('renders the current model as read-only in PWA mode', async () => {
     vi.stubGlobal('window', {
-      __GSAP_PWA__: {},
+      __CODIA_PWA__: {},
       localStorage: {
         getItem: () => 'pwa.locked-token',
       },
@@ -335,6 +335,6 @@ describe('ModelSelector existing-session switching', () => {
     expect(trigger).toHaveProperty('disabled', true);
     fireEvent.click(trigger);
     expect(screen.queryByRole('option', { name: /视觉/ })).toBeNull();
-    expect(gsapFetchMock).not.toHaveBeenCalled();
+    expect(codiaFetchMock).not.toHaveBeenCalled();
   });
 });

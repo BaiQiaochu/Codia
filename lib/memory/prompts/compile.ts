@@ -8,7 +8,7 @@ Principles:
 
 May record:
 - User identity, personality traits, aesthetics, interests, likes, and dislikes.
-- Broad themes the user is focused on, such as memory systems, G-SAP, or AI agents.
+- Broad themes the user is focused on, such as memory systems, Codia, or AI agents.
 - Changes in the user's life, creative work, relationships, or long-term attention.
 
 Do not record:

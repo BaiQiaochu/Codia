@@ -78,11 +78,11 @@ interface SkillBundleTreeProps {
 }
 
 function skillDragType() {
-  return 'application/x-gsap-skill-name';
+  return 'application/x-codia-skill-name';
 }
 
 function bundleDragType() {
-  return 'application/x-gsap-skill-bundle-id';
+  return 'application/x-codia-skill-bundle-id';
 }
 
 function startSkillDrag(event: React.DragEvent<HTMLDivElement>, skillName: string) {
@@ -293,7 +293,7 @@ export function SkillBundleTree({
                   {mode === 'agent' && onToggleBundle ? (
                     <button
                       data-testid={`skill-bundle-toggle-${bundle.id}`}
-                      className={`gsap-toggle mini${state.all ? ' on' : ''}${state.partial ? ' bundle-mixed' : ''}`}
+                      className={`codia-toggle mini${state.all ? ' on' : ''}${state.partial ? ' bundle-mixed' : ''}`}
                       type="button"
                       title={state.next ? tr('settings.skills.enableBundleTitle') : tr('settings.skills.disableBundleTitle')}
                       aria-label={state.next

@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 type MockState = Record<string, any>;
 
 const mockState: MockState = {};
-const mockGsapFetch = vi.fn();
+const mockCodiaFetch = vi.fn();
 
 vi.mock('../../settings/store', () => {
   const hook: any = (selector?: (s: MockState) => unknown) =>
@@ -20,7 +20,7 @@ vi.mock('../../settings/store', () => {
 });
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: (...args: unknown[]) => mockGsapFetch(...args),
+  codiaFetch: (...args: unknown[]) => mockCodiaFetch(...args),
 }));
 
 vi.mock('../../settings/helpers', () => ({
@@ -46,8 +46,8 @@ describe('WorkTab workspace context injection toggles', () => {
       currentAgentId: 'agent-a',
       showToast: vi.fn(),
     });
-    mockGsapFetch.mockReset();
-    mockGsapFetch.mockImplementation((url: string, options?: RequestInit) => {
+    mockCodiaFetch.mockReset();
+    mockCodiaFetch.mockImplementation((url: string, options?: RequestInit) => {
       if (url === '/api/agents/agent-a/config' && !options?.method) {
         return Promise.resolve(jsonResponse({
           desk: {
@@ -95,7 +95,7 @@ describe('WorkTab workspace context injection toggles', () => {
     fireEvent.click(await screen.findByRole('switch', { name: 'settings.work.injectAgentsMd' }));
 
     await waitFor(() => {
-      expect(mockGsapFetch).toHaveBeenCalledWith('/api/agents/agent-a/config', expect.objectContaining({
+      expect(mockCodiaFetch).toHaveBeenCalledWith('/api/agents/agent-a/config', expect.objectContaining({
         method: 'PUT',
         body: JSON.stringify({ workspace_context: { inject_agents_md: true } }),
       }));
@@ -122,7 +122,7 @@ describe('WorkTab workspace context injection toggles', () => {
     fireEvent.click(await screen.findByRole('switch', { name: 'settings.work.injectClaudeMd' }));
 
     await waitFor(() => {
-      expect(mockGsapFetch).toHaveBeenCalledWith('/api/agents/agent-a/config', expect.objectContaining({
+      expect(mockCodiaFetch).toHaveBeenCalledWith('/api/agents/agent-a/config', expect.objectContaining({
         method: 'PUT',
         body: JSON.stringify({ workspace_context: { inject_claude_md: false } }),
       }));

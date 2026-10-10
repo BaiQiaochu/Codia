@@ -11,7 +11,7 @@ import leavesSrc from '../../assets/textures/leaves-overlay.mp4';
 export const LeavesOverlay = memo(function LeavesOverlay() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [enabled, setEnabled] = useState(
-    () => localStorage.getItem('gsap-leaves-overlay') === '1',
+    () => localStorage.getItem('codia-leaves-overlay') === '1',
   );
 
   // Listen for cross-window settings updates.
@@ -22,8 +22,8 @@ export const LeavesOverlay = memo(function LeavesOverlay() {
         setEnabled(detail.enabled);
       }
     };
-    window.addEventListener('gsap-settings', handler);
-    return () => window.removeEventListener('gsap-settings', handler);
+    window.addEventListener('codia-settings', handler);
+    return () => window.removeEventListener('codia-settings', handler);
   }, []);
 
  // 确保视频播放

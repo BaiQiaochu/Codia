@@ -17,7 +17,7 @@ import { DeskCwdSkillsButton, DeskCwdSkillsPanel } from './desk/DeskCwdSkills';
 import s from './desk/Desk.module.css';
 import { workspaceDisplayName } from '../../../../shared/workspace-history.ts';
 
-const DESK_FILTER_KEY = 'gsap-desk-type-filters';
+const DESK_FILTER_KEY = 'codia-desk-type-filters';
 const VALID_TYPE_FILTERS = new Set<FileTypeFilter>(['image', 'text', 'video']);
 
 function normalizeSubdir(value: string): string {

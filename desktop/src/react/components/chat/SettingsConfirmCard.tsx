@@ -6,7 +6,7 @@
 
 import { memo, useState, useCallback, useMemo } from 'react';
 import styles from './Chat.module.css';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { useI18n } from '../../hooks/use-i18n';
 import registry from '../../../shared/theme-registry';
 
@@ -86,7 +86,7 @@ export const SettingsConfirmCard = memo(function SettingsConfirmCard(props: Prop
 
   const handleConfirm = useCallback(async () => {
     try {
-      await gsapFetch(`/api/confirm/${confirmId}`, {
+      await codiaFetch(`/api/confirm/${confirmId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'confirmed', value: editValue }),
@@ -97,7 +97,7 @@ export const SettingsConfirmCard = memo(function SettingsConfirmCard(props: Prop
 
   const handleReject = useCallback(async () => {
     try {
-      await gsapFetch(`/api/confirm/${confirmId}`, {
+      await codiaFetch(`/api/confirm/${confirmId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'rejected' }),
@@ -113,8 +113,8 @@ export const SettingsConfirmCard = memo(function SettingsConfirmCard(props: Prop
         <div className={`${styles.settingsConfirmCard} ${styles.settingsConfirmCardDone}`}>
           <div className={styles.settingsConfirmHeader}>
             <span className={styles.settingsConfirmLabel}>{displayLabel}</span>
-            <div className={`gsap-toggle${editValue === 'true' ? ' on' : ''}`} style={{ pointerEvents: 'none' }}>
-              <div className="gsap-toggle-thumb" />
+            <div className={`codia-toggle${editValue === 'true' ? ' on' : ''}`} style={{ pointerEvents: 'none' }}>
+              <div className="codia-toggle-thumb" />
             </div>
           </div>
           <div className={styles.settingsConfirmNote}>{toggleLabel(currentValue, editValue, t)}</div>
@@ -154,8 +154,8 @@ export const SettingsConfirmCard = memo(function SettingsConfirmCard(props: Prop
               <div className={styles.settingsConfirmLabel}>{displayLabel}</div>
               {description && <div className={styles.settingsConfirmDesc}>{description}</div>}
             </div>
-            <div className={`gsap-toggle${editValue === 'true' ? ' on' : ''}`}>
-              <div className="gsap-toggle-thumb" />
+            <div className={`codia-toggle${editValue === 'true' ? ' on' : ''}`}>
+              <div className="codia-toggle-thumb" />
             </div>
           </div>
           <div className={styles.settingsConfirmNote}>{toggleLabel(currentValue, editValue, t)}</div>

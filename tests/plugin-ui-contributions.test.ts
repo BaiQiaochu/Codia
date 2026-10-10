@@ -8,7 +8,7 @@ import { PluginManager } from '../core/plugin-manager.js';
 import { ensureVsCodeCompatibilityManifest, VSCODE_COMPAT_PAGE_ROUTE } from '../shared/vscode-extension-compat.ts';
 
 function tmpPluginDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'gsap-plugin-test-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'codia-plugin-test-'));
 }
 
 function createPluginWithPage(dir, id = 'test-page-plugin') {
@@ -34,8 +34,8 @@ function createPluginWithPage(dir, id = 'test-page-plugin') {
 }
 
 function makePM(communityDir) {
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gsap-data-'));
-  const builtinDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gsap-builtin-'));
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codia-data-'));
+  const builtinDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codia-builtin-'));
   return new PluginManager({
     pluginsDirs: [builtinDir, communityDir],
     dataDir,

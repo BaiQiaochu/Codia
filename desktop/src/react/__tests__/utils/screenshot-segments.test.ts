@@ -22,9 +22,9 @@ describe('splitScreenshotMessages', () => {
     } as unknown as Storage)).toBe(10_000);
   });
 
-  it('uses the G-SAP storage key and clamps custom limits', () => {
+  it('uses the Codia storage key and clamps custom limits', () => {
     const storage = {
-      getItem: (key: string) => key === 'gsap-screenshot-segment-char-limit' ? '500' : null,
+      getItem: (key: string) => key === 'codia-screenshot-segment-char-limit' ? '500' : null,
     } as unknown as Storage;
 
     expect(readScreenshotSegmentVisibleCharLimit(storage)).toBe(1_000);

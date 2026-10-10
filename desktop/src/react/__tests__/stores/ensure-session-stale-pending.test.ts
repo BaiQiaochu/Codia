@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const state: Record<string, unknown> = {};
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
 vi.mock('../../stores/index', () => ({
   useStore: {
@@ -13,9 +13,9 @@ vi.mock('../../stores/index', () => ({
   },
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
-  gsapUrl: (path: string) => path,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
+  codiaUrl: (path: string) => path,
 }));
 
 vi.mock('../../utils/ui-helpers', () => ({
@@ -46,7 +46,7 @@ vi.mock('../../utils/todo-compat', () => ({
 describe('ensureSession stale pending state', () => {
   beforeEach(() => {
     for (const key of Object.keys(state)) delete state[key];
-    gsapFetchMock.mockReset();
+    codiaFetchMock.mockReset();
   });
 
   it('heals a stale pendingNewSession flag when a current session path already exists', async () => {
@@ -66,7 +66,7 @@ describe('ensureSession stale pending state', () => {
     expect(ok).toBe(true);
     expect(state.pendingNewSession).toBe(false);
     expect(state.welcomeVisible).toBe(false);
-    expect(gsapFetchMock).not.toHaveBeenCalledWith('/api/sessions/new', expect.anything());
+    expect(codiaFetchMock).not.toHaveBeenCalledWith('/api/sessions/new', expect.anything());
   });
 
   it('creates a session when the focused chat path is missing even if the pending flag was lost', async () => {
@@ -89,7 +89,7 @@ describe('ensureSession stale pending state', () => {
       restoreDeskStateForOwner,
       getDeskStateForOwner: vi.fn(() => null),
     });
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/sessions/new') {
         return {
           json: async () => ({
@@ -109,7 +109,7 @@ describe('ensureSession stale pending state', () => {
     const ok = await ensureSession();
 
     expect(ok).toBe(true);
-    expect(gsapFetchMock).toHaveBeenCalledWith('/api/sessions/new', expect.objectContaining({
+    expect(codiaFetchMock).toHaveBeenCalledWith('/api/sessions/new', expect.objectContaining({
       method: 'POST',
       body: expect.stringContaining('"cwd":"D:/xshell/0601/04/chain"'),
     }));
@@ -142,7 +142,7 @@ describe('ensureSession stale pending state', () => {
       restoreDeskStateForOwner: vi.fn(),
       getDeskStateForOwner: vi.fn(() => null),
     });
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/sessions/new') {
         return {
           json: async () => ({
@@ -188,7 +188,7 @@ describe('ensureSession stale pending state', () => {
       pendingProjectId: null,
       addToast,
     });
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/sessions/new') {
         return {
           json: async () => ({ error: 'workspace unavailable' }),
@@ -226,7 +226,7 @@ describe('ensureSession stale pending state', () => {
       pendingProjectId: null,
       addToast,
     });
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/sessions/new') {
         return {
           json: async () => ({ ok: true }),
@@ -283,7 +283,7 @@ describe('ensureSession stale pending state', () => {
       updateSessionModel: vi.fn(),
       requestInputFocus: vi.fn(),
     });
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/sessions/switch') return switchResponse;
       if (url === '/api/session-permission-mode') return { json: async () => ({ mode: 'ask' }) };
       if (url === '/api/session-thinking-level') return { json: async () => ({}) };
@@ -359,7 +359,7 @@ describe('ensureSession stale pending state', () => {
       requestInputFocus: vi.fn(),
       setSessionCapabilityDrift: vi.fn(),
     });
-    gsapFetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+    codiaFetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
       if (url === '/api/sessions/switch') {
         expect(JSON.parse(String(init?.body))).toMatchObject({
           path: 'E:/sessions/stale-pinned.jsonl',
@@ -434,7 +434,7 @@ describe('ensureSession stale pending state', () => {
       requestInputFocus: vi.fn(),
       setSessionCapabilityDrift: vi.fn(),
     });
-    gsapFetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+    codiaFetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
       if (url === '/api/sessions') {
         return {
           json: async () => ([

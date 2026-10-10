@@ -9,7 +9,7 @@ let tempDirs = [];
 let stores = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-kg-task-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-kg-task-"));
   tempDirs.push(dir);
   return dir;
 }

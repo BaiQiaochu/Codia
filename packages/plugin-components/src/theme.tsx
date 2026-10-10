@@ -1,9 +1,9 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 import { cx } from './classnames';
 
-export type GsapThemeMode = 'inherit' | 'gsap' | 'custom';
+export type CodiaThemeMode = 'inherit' | 'codia' | 'custom';
 
-export const GSAP_THEME_IDS = [
+export const CODIA_THEME_IDS = [
   'codia-lilac',
   'warm-paper',
   'contemplation',
@@ -17,9 +17,9 @@ export const GSAP_THEME_IDS = [
   'new-warm-paper',
 ] as const;
 
-export type GsapThemeId = (typeof GSAP_THEME_IDS)[number];
+export type CodiaThemeId = (typeof CODIA_THEME_IDS)[number];
 
-export interface GsapThemeTokens {
+export interface CodiaThemeTokens {
   bg?: string;
   bgCard?: string;
   accent?: string;
@@ -37,7 +37,7 @@ export interface GsapThemeTokens {
   fontMono?: string;
 }
 
-export const GSAP_BUILT_IN_THEMES: Record<GsapThemeId, GsapThemeTokens> = {
+export const CODIA_BUILT_IN_THEMES: Record<CodiaThemeId, CodiaThemeTokens> = {
   'codia-lilac': {
     bg: '#F8F4FF',
     bgCard: '#FFFFFF',
@@ -172,42 +172,42 @@ export const GSAP_BUILT_IN_THEMES: Record<GsapThemeId, GsapThemeTokens> = {
   },
 };
 
-const TOKEN_TO_CSS_VAR: Record<keyof GsapThemeTokens, string> = {
-  bg: '--gsap-plugin-bg',
-  bgCard: '--gsap-plugin-bg-card',
-  accent: '--gsap-plugin-accent',
-  accentHover: '--gsap-plugin-accent-hover',
-  accentLight: '--gsap-plugin-accent-light',
-  text: '--gsap-plugin-text',
-  textLight: '--gsap-plugin-text-light',
-  textMuted: '--gsap-plugin-text-muted',
-  border: '--gsap-plugin-border',
-  danger: '--gsap-plugin-danger',
-  radiusInput: '--gsap-plugin-radius-input',
-  radiusCard: '--gsap-plugin-radius-card',
-  fontUi: '--gsap-plugin-font-ui',
-  fontSerif: '--gsap-plugin-font-serif',
-  fontMono: '--gsap-plugin-font-mono',
+const TOKEN_TO_CSS_VAR: Record<keyof CodiaThemeTokens, string> = {
+  bg: '--codia-plugin-bg',
+  bgCard: '--codia-plugin-bg-card',
+  accent: '--codia-plugin-accent',
+  accentHover: '--codia-plugin-accent-hover',
+  accentLight: '--codia-plugin-accent-light',
+  text: '--codia-plugin-text',
+  textLight: '--codia-plugin-text-light',
+  textMuted: '--codia-plugin-text-muted',
+  border: '--codia-plugin-border',
+  danger: '--codia-plugin-danger',
+  radiusInput: '--codia-plugin-radius-input',
+  radiusCard: '--codia-plugin-radius-card',
+  fontUi: '--codia-plugin-font-ui',
+  fontSerif: '--codia-plugin-font-serif',
+  fontMono: '--codia-plugin-font-mono',
 };
 
 type ThemeStyle = CSSProperties & Record<string, string>;
 
-export interface GsapThemeProviderProps extends HTMLAttributes<HTMLDivElement> {
-  mode?: GsapThemeMode;
-  theme?: GsapThemeId | GsapThemeTokens;
+export interface CodiaThemeProviderProps extends HTMLAttributes<HTMLDivElement> {
+  mode?: CodiaThemeMode;
+  theme?: CodiaThemeId | CodiaThemeTokens;
   children?: ReactNode;
   'data-testid'?: string;
 }
 
-export function GsapThemeProvider({
+export function CodiaThemeProvider({
   mode = 'inherit',
   theme,
   className,
   style,
   children,
-  'data-testid': dataTestId = 'gsap-plugin-theme',
+  'data-testid': dataTestId = 'codia-plugin-theme',
   ...rootProps
-}: GsapThemeProviderProps) {
+}: CodiaThemeProviderProps) {
   const themeId = typeof theme === 'string' ? theme : undefined;
   const tokenStyle = themeStyleFor(mode, theme);
 
@@ -215,9 +215,9 @@ export function GsapThemeProvider({
     <div
       {...rootProps}
       data-testid={dataTestId}
-      className={cx('gsap-plugin-theme', className)}
-      data-gsap-theme-mode={mode}
-      data-gsap-theme={mode === 'gsap' ? themeId : undefined}
+      className={cx('codia-plugin-theme', className)}
+      data-codia-theme-mode={mode}
+      data-codia-theme={mode === 'codia' ? themeId : undefined}
       style={{ ...tokenStyle, ...style }}
     >
       {children}
@@ -225,12 +225,12 @@ export function GsapThemeProvider({
   );
 }
 
-export function themeStyleFor(mode: GsapThemeMode, theme?: GsapThemeId | GsapThemeTokens): ThemeStyle {
+export function themeStyleFor(mode: CodiaThemeMode, theme?: CodiaThemeId | CodiaThemeTokens): ThemeStyle {
   if (mode === 'inherit') return {};
   const tokens = resolveThemeTokens(mode, theme);
   const css: ThemeStyle = {};
 
-  for (const [key, cssVar] of Object.entries(TOKEN_TO_CSS_VAR) as Array<[keyof GsapThemeTokens, string]>) {
+  for (const [key, cssVar] of Object.entries(TOKEN_TO_CSS_VAR) as Array<[keyof CodiaThemeTokens, string]>) {
     const value = tokens?.[key];
     if (value) css[cssVar] = value;
   }
@@ -239,11 +239,11 @@ export function themeStyleFor(mode: GsapThemeMode, theme?: GsapThemeId | GsapThe
 }
 
 function resolveThemeTokens(
-  mode: GsapThemeMode,
-  theme?: GsapThemeId | GsapThemeTokens,
-): GsapThemeTokens | undefined {
-  if (typeof theme === 'string') return GSAP_BUILT_IN_THEMES[theme];
+  mode: CodiaThemeMode,
+  theme?: CodiaThemeId | CodiaThemeTokens,
+): CodiaThemeTokens | undefined {
+  if (typeof theme === 'string') return CODIA_BUILT_IN_THEMES[theme];
   if (theme) return theme;
-  if (mode === 'gsap') return GSAP_BUILT_IN_THEMES['codia-lilac'];
+  if (mode === 'codia') return CODIA_BUILT_IN_THEMES['codia-lilac'];
   return undefined;
 }

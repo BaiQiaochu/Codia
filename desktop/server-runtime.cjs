@@ -18,8 +18,8 @@ function getDistServerRoot({
 function resolveServerBinary(serverRoot, platform = process.platform) {
   if (!serverRoot) return "";
   const binaryNames = platform === "win32"
-    ? ["gsap-server.exe", "hana-server.exe"]
-    : ["gsap-server", "hana-server"];
+    ? ["codia-server.exe", "codia-server.exe"]
+    : ["codia-server", "codia-server"];
   for (const name of binaryNames) {
     const binary = path.join(serverRoot, name);
     if (fs.existsSync(binary)) return binary;
@@ -42,7 +42,7 @@ function parseNodeMajor(nodeVersion = process.versions.node) {
 }
 
 function supportsRawTypeScript(env = process.env) {
-  return parseNodeMajor(env.GSAP_LAUNCH_NODE_VERSION || process.versions.node) >= 24;
+  return parseNodeMajor(env.CODIA_LAUNCH_NODE_VERSION || process.versions.node) >= 24;
 }
 
 function buildSourceBootstrap(sourceRoot) {
@@ -56,8 +56,7 @@ function buildSourceBootstrap(sourceRoot) {
 function withServerEntryEnv(baseEnv, entry) {
   return {
     ...baseEnv,
-    GSAP_SERVER_ENTRY: entry,
-    HANA_SERVER_ENTRY: entry,
+    CODIA_SERVER_ENTRY: entry,
   };
 }
 
@@ -97,7 +96,7 @@ function withServerBinaryPaths(baseEnv, serverRoot, platform = process.platform)
 
 function resolveNodePath(env = process.env) {
   const candidates = [
-    env.GSAP_LAUNCH_NODE,
+    env.CODIA_LAUNCH_NODE,
     env.npm_node_execpath,
     env.NODE,
     env.NODE_EXE_PATH,
@@ -123,7 +122,7 @@ function resolveServerLaunchConfig({
   arch = process.arch,
   electronExecPath = process.execPath,
 } = {}) {
-  const mode = String(env.GSAP_DESKTOP_SERVER_MODE || "auto").trim().toLowerCase();
+  const mode = String(env.CODIA_DESKTOP_SERVER_MODE || "auto").trim().toLowerCase();
   const sourceRoot = projectRoot;
   const sourceEntryJs = path.join(sourceRoot, "server", "index.js");
   const sourceEntryTs = path.join(sourceRoot, "server", "index.ts");
@@ -144,8 +143,7 @@ function resolveServerLaunchConfig({
       serverRoot: packagedRoot,
       serverEnv: withServerBinaryPaths(withServerEntryEnv({
         ...env,
-        GSAP_ROOT: packagedRoot,
-        HANA_ROOT: packagedRoot,
+        CODIA_ROOT: packagedRoot,
       }, buildBundledServerEntry(packagedRoot)), packagedRoot, platform),
     };
   }
@@ -167,8 +165,7 @@ function resolveServerLaunchConfig({
       serverArgs: [buildSourceBootstrap(sourceRoot)],
       serverRoot: sourceRoot,
       serverEnv: withServerEntryEnv({
-        GSAP_ROOT: sourceRoot,
-        HANA_ROOT: sourceRoot,
+        CODIA_ROOT: sourceRoot,
       }, safeSourceEntry),
     };
   }
@@ -181,8 +178,7 @@ function resolveServerLaunchConfig({
       serverRoot: distRoot,
       serverEnv: withServerBinaryPaths(withServerEntryEnv({
         ...env,
-        GSAP_ROOT: distRoot,
-        HANA_ROOT: distRoot,
+        CODIA_ROOT: distRoot,
       }, buildBundledServerEntry(distRoot)), distRoot, platform),
     };
   }
@@ -194,8 +190,7 @@ function resolveServerLaunchConfig({
       serverArgs: [buildSourceBootstrap(sourceRoot)],
       serverRoot: sourceRoot,
       serverEnv: withServerEntryEnv({
-        GSAP_ROOT: sourceRoot,
-        HANA_ROOT: sourceRoot,
+        CODIA_ROOT: sourceRoot,
       }, safeSourceEntry),
     };
   }
@@ -207,8 +202,7 @@ function resolveServerLaunchConfig({
     serverRoot: sourceRoot,
     serverEnv: withServerEntryEnv({
       ELECTRON_RUN_AS_NODE: "1",
-      GSAP_ROOT: sourceRoot,
-      HANA_ROOT: sourceRoot,
+      CODIA_ROOT: sourceRoot,
     }, safeSourceEntry),
   };
 }

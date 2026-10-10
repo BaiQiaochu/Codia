@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useSettingsStore } from './store';
 import { useShallow } from 'zustand/react/shallow';
-import { gsapFetch } from './api';
+import { codiaFetch } from './api';
 import {
   createLocalServerConnection,
   readPersistedServerConnectionState,
@@ -19,6 +19,7 @@ import {
   normalizeSettingsModuleId,
   type SettingsCategory,
 } from './settings-navigation';
+import { normalizeSettingsRouteId } from './settings-route';
 import { Toast } from './Toast';
 import { GeneralTab } from './tabs/GeneralTab';
 import { AgentTab } from './tabs/AgentTab';
@@ -31,7 +32,8 @@ import { McpTab } from './tabs/McpTab';
 import { BridgeTab } from './tabs/BridgeTab';
 import { ProvidersTab } from './tabs/ProvidersTab';
 import { MediaTab } from './tabs/MediaTab';
-import { ExperimentsTab } from './tabs/ExperimentsTab';
+import { ContextTab } from './tabs/ContextTab';
+import { ComputerUseSection } from './tabs/ComputerUseSection';
 import { AboutTab } from './tabs/AboutTab';
 import { PluginsTab } from './tabs/PluginsTab';
 import { PluginMarketplaceTab } from './tabs/PluginMarketplaceTab';
@@ -63,7 +65,8 @@ const TAB_COMPONENTS: Record<string, React.ComponentType> = {
   bridge: BridgeTab,
   providers: ProvidersTab,
   media: MediaTab,
-  experiments: ExperimentsTab,
+  context: ContextTab,
+  computer: ComputerUseSection,
   sharing: SharingTab,
   access: AccessTab,
   plugins: PluginsTab,
@@ -81,20 +84,6 @@ interface SettingsContentProps {
   onActiveTabChange?: (tab: string) => void;
   listenToWindowTabSwitch?: boolean;
   activeTabOverride?: string;
-}
-
-function normalizeNativeTabForPlatform(tab: string, _platformName: string | null | undefined): string {
-  if (tab === 'license') return 'diagnostics';
-  if (tab === 'computer') return 'experiments';
-  if (tab === 'search') return 'providers';
-  return tab;
-}
-
-function normalizeSettingsTab(tab: string, platformName: string | null | undefined): string {
-  const normalized = normalizeNativeTabForPlatform(tab, platformName);
-  // Keep old deep links and persisted selections usable after the General and
-  // Interface pages were merged into the single General settings page.
-  return normalized === 'general' || normalized === 'interface' ? 'about' : normalized;
 }
 
 function connectionState(connection: ServerConnection | null) {
@@ -188,16 +177,19 @@ export function SettingsContent({
   listenToWindowTabSwitch = false,
   activeTabOverride,
 }: SettingsContentProps) {
-  const { activeTab, platformName, pluginSettingsTabs, set, ready } = useSettingsStore(
+  const { activeTab, pluginSettingsTabs, set, ready } = useSettingsStore(
     useShallow((state) => ({
       activeTab: state.activeTab,
-      platformName: state.platformName,
       pluginSettingsTabs: state.pluginSettingsTabs,
       set: state.set,
       ready: state.ready,
     })),
   );
   const requestedActiveTab = activeTabOverride || activeTab;
+  const normalizedRequestedTab = normalizeSettingsRouteId(requestedActiveTab);
+  const requestedDynamicTab = (pluginSettingsTabs || []).find(tab => tab.id === normalizedRequestedTab);
+  const routeExists = !!TAB_COMPONENTS[normalizedRequestedTab] || !!requestedDynamicTab;
+  const effectiveActiveTab = routeExists || !ready ? normalizedRequestedTab : 'agent';
 
   useEffect(() => {
     void initSettings();
@@ -208,23 +200,21 @@ export function SettingsContent({
     const platform = window.platform;
     if (!platform?.onSwitchTab) return;
     const unsubscribe = platform.onSwitchTab((tab: string) => {
-      const state = useSettingsStore.getState();
-      set({ activeTab: normalizeSettingsTab(tab, state.platformName) });
+      set({ activeTab: normalizeSettingsRouteId(tab) });
     });
     return typeof unsubscribe === 'function' ? unsubscribe : undefined;
   }, [listenToWindowTabSwitch, set]);
 
   useEffect(() => {
-    const nextTab = normalizeSettingsTab(requestedActiveTab, platformName);
+    const nextTab = effectiveActiveTab;
     if (nextTab !== activeTab) {
       set({ activeTab: nextTab });
     }
-  }, [activeTab, platformName, requestedActiveTab, set]);
+  }, [activeTab, effectiveActiveTab, set]);
 
   useEffect(() => {
-    const nextTab = normalizeSettingsTab(requestedActiveTab, platformName);
-    onActiveTabChange?.(nextTab);
-  }, [onActiveTabChange, platformName, requestedActiveTab]);
+    onActiveTabChange?.(effectiveActiveTab);
+  }, [effectiveActiveTab, onActiveTabChange]);
 
   useEffect(() => {
     const platform = window.platform;
@@ -251,14 +241,13 @@ export function SettingsContent({
     return typeof unsubscribe === 'function' ? unsubscribe : undefined;
   }, []);
 
-  const effectiveActiveTab = normalizeSettingsTab(requestedActiveTab, platformName);
   const settingsCategories = useMemo(
     () => buildSettingsCategories(pluginSettingsTabs || []),
     [pluginSettingsTabs],
   );
   const activeCategory = findSettingsCategory(settingsCategories, effectiveActiveTab);
   const activeModuleId = normalizeSettingsModuleId(effectiveActiveTab);
-  const dynamicTab = (pluginSettingsTabs || []).find((tab) => tab.id === effectiveActiveTab);
+  const dynamicTab = requestedDynamicTab;
   const ActiveTab = TAB_COMPONENTS[effectiveActiveTab]
     || (dynamicTab ? getNativeSettingsTabComponent(dynamicTab.nativeComponent) : null)
     || AgentTab;
@@ -367,7 +356,7 @@ async function initSettings() {
     });
     const i18n = window.i18n;
     try {
-      const cfgRes = await gsapFetch('/api/config');
+      const cfgRes = await codiaFetch('/api/config');
       const cfg = await cfgRes.json();
       const locale = cfg.locale || 'system';
       await i18n.load(locale);

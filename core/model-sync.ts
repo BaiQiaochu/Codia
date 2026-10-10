@@ -72,16 +72,16 @@ function addCompat(model, patch) {
   };
 }
 
-function withHanaVideoInputCompat(model, enabled) {
+function withCodiaVideoInputCompat(model, enabled) {
   if (!isPlainObject(model) || enabled !== true) return model;
-  if (model.compat?.hanaVideoInput === true) return model;
-  return addCompat(model, { hanaVideoInput: true });
+  if (model.compat?.codiaVideoInput === true) return model;
+  return addCompat(model, { codiaVideoInput: true });
 }
 
-function withHanaAudioInputCompat(model, enabled) {
+function withCodiaAudioInputCompat(model, enabled) {
   if (!isPlainObject(model) || enabled !== true) return model;
-  if (model.compat?.hanaAudioInput === true) return model;
-  return addCompat(model, { hanaAudioInput: true });
+  if (model.compat?.codiaAudioInput === true) return model;
+  return addCompat(model, { codiaAudioInput: true });
 }
 
 function normalizeProviderBaseUrlForRuntime({ provider, baseUrl, api } = {}) {
@@ -133,9 +133,12 @@ function buildModelOverride(modelEntry, modelDefaults = {}) {
     override.input = buildPiInputModalities({ image: image === true });
   }
   if (modelEntry.reasoning !== undefined) override.reasoning = modelEntry.reasoning;
+  if (modelEntry.thinkingLevelMap !== undefined) {
+    override.thinkingLevelMap = { ...modelEntry.thinkingLevelMap };
+  }
 
-  let finalOverride = video === true ? withHanaVideoInputCompat(override, true) : override;
-  finalOverride = audio === true ? withHanaAudioInputCompat(finalOverride, true) : finalOverride;
+  let finalOverride = video === true ? withCodiaVideoInputCompat(override, true) : override;
+  finalOverride = audio === true ? withCodiaAudioInputCompat(finalOverride, true) : finalOverride;
   return Object.keys(finalOverride).length > 0 ? finalOverride : null;
 }
 
@@ -182,12 +185,15 @@ function buildModelEntry(modelEntry, provider, baseUrl = "", api = "openai-compl
   const entry = {
     id,
     name: (isObj && modelEntry.name) || known?.name || humanizeName(id),
+    api: (isObj && modelEntry.api) || known?.api || api,
     input: buildPiInputModalities({ image: image === true }),
     contextWindow: (isObj && modelEntry.context) || known?.context || DEFAULT_CONTEXT_WINDOW,
     reasoning: (isObj && modelEntry.reasoning !== undefined)
       ? modelEntry.reasoning
       : (known?.reasoning === true),
   };
+  const thinkingLevelMap = (isObj && modelEntry.thinkingLevelMap) || known?.thinkingLevelMap;
+  if (isPlainObject(thinkingLevelMap)) entry.thinkingLevelMap = { ...thinkingLevelMap };
 
   const maxOutput = (isObj && modelEntry.maxOutput) || known?.maxOutput;
   if (maxOutput) entry.maxTokens = maxOutput;
@@ -235,9 +241,13 @@ function buildModelEntry(modelEntry, provider, baseUrl = "", api = "openai-compl
     entry.compat = { ...modelEntry.compat };
   }
 
-  let mediaAwareEntry = video === true ? withHanaVideoInputCompat(entry, true) : entry;
-  mediaAwareEntry = audio === true ? withHanaAudioInputCompat(mediaAwareEntry, true) : mediaAwareEntry;
-  return withThinkingFormatCompat(mediaAwareEntry, { provider, api, baseUrl });
+  let mediaAwareEntry = video === true ? withCodiaVideoInputCompat(entry, true) : entry;
+  mediaAwareEntry = audio === true ? withCodiaAudioInputCompat(mediaAwareEntry, true) : mediaAwareEntry;
+  return withThinkingFormatCompat(mediaAwareEntry, {
+    provider,
+    api: mediaAwareEntry.api || api,
+    baseUrl,
+  });
 }
 
 export function syncModels(providers, opts = {}) {

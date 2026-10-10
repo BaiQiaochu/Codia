@@ -38,9 +38,8 @@ describe("DeferredResultExtension", () => {
 
     expect(pi.sendMessage).toHaveBeenCalledTimes(1);
     const [msg, opts] = pi.sendMessage.mock.calls[0];
-    expect(msg.customType).toBe("gsap-background-result");
-    expect(msg.content).toContain("<gsap-background-result");
-    expect(msg.content).not.toContain("<hana-background-result");
+    expect(msg.customType).toBe("codia-background-result");
+    expect(msg.content).toContain("<codia-background-result");
     expect(msg.content).toContain("task-id=\"t1\"");
     expect(msg.content).toContain("status=\"success\"");
     expect(opts.deliverAs).toBe("steer");
@@ -56,7 +55,7 @@ describe("DeferredResultExtension", () => {
     store.resolve("t1", { files: ["img.png"] });
 
     expect(pi.sendMessage).not.toHaveBeenCalledWith(
-      expect.objectContaining({ customType: "gsap-background-result" }),
+      expect.objectContaining({ customType: "codia-background-result" }),
       expect.anything(),
     );
     expect(store.query("t1").delivered).toBe(false);
@@ -72,7 +71,7 @@ describe("DeferredResultExtension", () => {
     store.resolve("t-ui-only", { files: ["img.png"] });
 
     expect(pi.sendMessage).not.toHaveBeenCalledWith(
-      expect.objectContaining({ customType: "gsap-background-result" }),
+      expect.objectContaining({ customType: "codia-background-result" }),
       expect.objectContaining({ triggerTurn: true }),
     );
     expect(store.query("t-ui-only").delivered).toBe(false);

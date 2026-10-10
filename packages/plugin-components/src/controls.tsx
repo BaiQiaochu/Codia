@@ -9,12 +9,12 @@ import {
 } from 'react';
 import { cx } from './classnames';
 
-export type GsapButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-export type GsapButtonSize = 'sm' | 'md' | 'lg';
+export type CodiaButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type CodiaButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'size'> {
-  variant?: GsapButtonVariant;
-  size?: GsapButtonSize;
+  variant?: CodiaButtonVariant;
+  size?: CodiaButtonSize;
   loading?: boolean;
   iconLeft?: ReactNode;
   iconRight?: ReactNode;
@@ -42,15 +42,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       type={type}
       disabled={disabled || loading}
       className={cx(
-        'gsap-plugin-button',
-        `gsap-plugin-button-${variant}`,
-        `gsap-plugin-button-${size}`,
-        loading && 'gsap-plugin-button-loading',
+        'codia-plugin-button',
+        `codia-plugin-button-${variant}`,
+        `codia-plugin-button-${size}`,
+        loading && 'codia-plugin-button-loading',
         className,
       )}
     >
-      {loading ? <span className="gsap-plugin-spinner" aria-hidden /> : iconLeft}
-      {children && <span className="gsap-plugin-button-label">{children}</span>}
+      {loading ? <span className="codia-plugin-spinner" aria-hidden /> : iconLeft}
+      {children && <span className="codia-plugin-button-label">{children}</span>}
       {!loading && iconRight}
     </button>
   );
@@ -58,8 +58,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
 
 export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
   label: string;
-  size?: GsapButtonSize;
-  variant?: Extract<GsapButtonVariant, 'secondary' | 'ghost' | 'danger'>;
+  size?: CodiaButtonSize;
+  variant?: Extract<CodiaButtonVariant, 'secondary' | 'ghost' | 'danger'>;
   children: ReactNode;
 }
 
@@ -75,9 +75,9 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       aria-label={label}
       title={buttonProps.title || label}
       className={cx(
-        'gsap-plugin-icon-button',
-        `gsap-plugin-icon-button-${size}`,
-        `gsap-plugin-icon-button-${variant}`,
+        'codia-plugin-icon-button',
+        `codia-plugin-icon-button-${size}`,
+        `codia-plugin-icon-button-${variant}`,
         className,
       )}
     >
@@ -110,7 +110,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
         ref={ref}
         id={inputId}
         aria-invalid={Boolean(error)}
-        className={cx('gsap-plugin-input', inputClassName)}
+        className={cx('codia-plugin-input', inputClassName)}
       />
     </FieldShell>
   );
@@ -135,7 +135,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         id={textareaId}
         rows={rows}
         aria-invalid={Boolean(error)}
-        className={cx('gsap-plugin-textarea', textareaClassName)}
+        className={cx('codia-plugin-textarea', textareaClassName)}
       />
     </FieldShell>
   );
@@ -154,7 +154,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
   const ariaLabel = typeof label === 'string' ? label : buttonProps['aria-label'];
 
   return (
-    <span className={cx('gsap-plugin-switch-wrap', className)}>
+    <span className={cx('codia-plugin-switch-wrap', className)}>
       <button
         {...buttonProps}
         ref={ref}
@@ -163,15 +163,15 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
         aria-checked={checked}
         aria-label={ariaLabel}
         disabled={disabled}
-        className={cx('gsap-plugin-switch', checked && 'gsap-plugin-switch-on')}
+        className={cx('codia-plugin-switch', checked && 'codia-plugin-switch-on')}
         onClick={(event) => {
           onClick?.(event);
           if (!event.defaultPrevented && !disabled) onChange?.(!checked);
         }}
       >
-        <span className="gsap-plugin-switch-thumb" aria-hidden />
+        <span className="codia-plugin-switch-thumb" aria-hidden />
       </button>
-      {label && <span className="gsap-plugin-switch-label">{label}</span>}
+      {label && <span className="codia-plugin-switch-label">{label}</span>}
     </span>
   );
 });
@@ -211,21 +211,21 @@ export function Select({
 
   return (
     <FieldShell label={label} hint={hint} error={error} className={className}>
-      <div className="gsap-plugin-select">
+      <div className="codia-plugin-select">
         <button
           type="button"
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-label={buttonLabel || undefined}
           disabled={disabled}
-          className={cx('gsap-plugin-select-trigger', !current && 'gsap-plugin-select-placeholder')}
+          className={cx('codia-plugin-select-trigger', !current && 'codia-plugin-select-placeholder')}
           onClick={() => setOpen((next) => !next)}
         >
-          <span className="gsap-plugin-select-value">{displayText}</span>
-          <span className="gsap-plugin-select-arrow" aria-hidden>▾</span>
+          <span className="codia-plugin-select-value">{displayText}</span>
+          <span className="codia-plugin-select-arrow" aria-hidden>▾</span>
         </button>
         {open && (
-          <div className="gsap-plugin-select-popover" role="listbox" aria-label={labelText}>
+          <div className="codia-plugin-select-popover" role="listbox" aria-label={labelText}>
             {options.map((option) => (
               <button
                 type="button"
@@ -234,8 +234,8 @@ export function Select({
                 aria-selected={option.value === value}
                 disabled={option.disabled}
                 className={cx(
-                  'gsap-plugin-select-option',
-                  option.value === value && 'gsap-plugin-select-option-selected',
+                  'codia-plugin-select-option',
+                  option.value === value && 'codia-plugin-select-option-selected',
                 )}
                 onClick={() => {
                   if (option.disabled) return;
@@ -261,15 +261,15 @@ interface FieldShellProps extends FieldBaseProps {
 
 function FieldShell({ label, hint, error, htmlFor, className, children }: FieldShellProps) {
   return (
-    <div className={cx('gsap-plugin-field', className)}>
+    <div className={cx('codia-plugin-field', className)}>
       {label && (
-        <label className="gsap-plugin-field-label" htmlFor={htmlFor}>
+        <label className="codia-plugin-field-label" htmlFor={htmlFor}>
           {label}
         </label>
       )}
-      {hint && <div className="gsap-plugin-field-hint">{hint}</div>}
+      {hint && <div className="codia-plugin-field-hint">{hint}</div>}
       {children}
-      {error && <div className="gsap-plugin-field-error">{error}</div>}
+      {error && <div className="codia-plugin-field-error">{error}</div>}
     </div>
   );
 }

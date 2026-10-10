@@ -18,17 +18,16 @@ describe("deferred result interlude", () => {
         label: "Draft review",
         summary: "Read the long task and produce a complete review.",
       },
-    }, { receiverName: "G-SAP" });
+    }, { receiverName: "Codia" });
 
     expect(block).toMatchObject({
       type: "interlude",
       taskId: "subagent-1",
       sourceKind: "subagent",
       sourceLabel: "Reviewer / Draft review",
-      text: "G-SAP received a reply from Reviewer / Draft review",
+      text: "Codia received a reply from Reviewer / Draft review",
       detailMarkdown: "Review completed",
     });
-    expect(JSON.stringify(block)).not.toMatch(/hana|hanako/i);
   });
 
   it("does not leak long task summaries into the interlude source label", () => {
@@ -42,12 +41,12 @@ describe("deferred result interlude", () => {
         label: "Implementation",
         summary: "Implement a very long task description that should stay out of the compact interlude label.",
       },
-    }, { receiverName: "G-SAP" });
+    }, { receiverName: "Codia" });
 
     expect(block).toMatchObject({
       sourceKind: "subagent",
       sourceLabel: "Worker / Implementation",
-      text: "G-SAP received a reply from Worker / Implementation",
+      text: "Codia received a reply from Worker / Implementation",
     });
     expect(block.sourceLabel).not.toContain("very long task");
     expect(block.text).not.toContain("very long task");

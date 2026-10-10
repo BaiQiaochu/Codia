@@ -25,7 +25,6 @@ import {
   openChannel as openChannelAction,
   upsertConversationAgentActivity as upsertConversationAgentActivityAction,
 } from '../stores/channel-actions';
-import { getWebSocket } from './websocket';
 import { toStringArray } from '../stores/session-selectors';
 import { sessionScopedKey, sessionScopedListIncludes, sessionScopedValue } from '../stores/session-slice';
 import { handleAppEvent } from './app-event-actions';
@@ -43,9 +42,10 @@ import { bumpMessageLiveVersion } from '../stores/message-live-version';
 import { getDesktopApi } from '../utils/desktop-api';
 import type { Session } from '../types';
 import type { SessionMessages } from '../stores/chat-types';
+import { getActiveWebSocket } from './websocket-state';
 
 let requestContextUsage: (sessionPath: string) => void = (sessionPath: string) => {
-  const ws = getWebSocket();
+  const ws = getActiveWebSocket();
   if (ws?.readyState === WebSocket.OPEN) {
     const state = useStore.getState();
     const sessionId = typeof state.currentSessionId === 'string' && state.currentSessionPath === sessionPath
@@ -786,7 +786,7 @@ export function handleServerMessage(msg: any): void {
 
     case 'plan_mode': {
       if (isFocusedSessionMessage(msg)) {
-        window.dispatchEvent(new CustomEvent('gsap-plan-mode', {
+        window.dispatchEvent(new CustomEvent('codia-plan-mode', {
           detail: { enabled: !!msg.enabled, mode: msg.enabled ? 'read_only' : 'operate' },
         }));
       }
@@ -795,7 +795,7 @@ export function handleServerMessage(msg: any): void {
 
     case 'permission_mode': {
       if (isFocusedSessionMessage(msg)) {
-        window.dispatchEvent(new CustomEvent('gsap-plan-mode', {
+        window.dispatchEvent(new CustomEvent('codia-plan-mode', {
           detail: { enabled: msg.mode === 'read_only', mode: msg.mode },
         }));
       }
@@ -804,7 +804,7 @@ export function handleServerMessage(msg: any): void {
 
     case 'access_mode': {
       if (isFocusedSessionMessage(msg)) {
-        window.dispatchEvent(new CustomEvent('gsap-plan-mode', {
+        window.dispatchEvent(new CustomEvent('codia-plan-mode', {
           detail: {
             enabled: msg.readOnly === true,
             mode: msg.permissionMode || msg.mode,

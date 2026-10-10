@@ -18,7 +18,7 @@ export function createShowCardTool() {
     description:
       "Render visual HTML/SVG content inline in the conversation as an interactive card. " +
       "Use for diagrams, dashboards, tables, timelines, small calculators, and structured visual explanations. " +
-      "Do not include DOCTYPE, html, head, or body tags. Call hana_card_guide before the first show_card call.",
+      "Do not include DOCTYPE, html, head, or body tags. Call codia_card_guide before the first show_card call.",
     parameters: Type.Object({
       title: Type.String({
         description:

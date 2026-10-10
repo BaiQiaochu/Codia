@@ -8,7 +8,7 @@ import {
   PLUGIN_SURFACE_SESSION_HEADER,
   PLUGIN_SURFACE_SESSION_QUERY,
   parsePluginUiMessage,
-} from '@g-sap/plugin-protocol';
+} from '@codia/plugin-protocol';
 
 describe('plugin UI protocol', () => {
   it('accepts a versioned event envelope', () => {
@@ -16,16 +16,16 @@ describe('plugin UI protocol', () => {
       protocol: PLUGIN_UI_PROTOCOL,
       version: PLUGIN_UI_PROTOCOL_VERSION,
       kind: 'event',
-      type: 'gsap.ready',
+      type: 'codia.ready',
     });
 
     expect(result).toEqual({
       ok: true,
       value: {
-        protocol: 'gsap.plugin.ui',
+        protocol: 'codia.plugin.ui',
         version: 1,
         kind: 'event',
-        type: 'gsap.ready',
+        type: 'codia.ready',
       },
     });
   });
@@ -53,7 +53,7 @@ describe('plugin UI protocol', () => {
       protocol: PLUGIN_UI_PROTOCOL,
       version: 2,
       kind: 'event',
-      type: 'gsap.ready',
+      type: 'codia.ready',
     });
 
     expect(result).toEqual({
@@ -75,8 +75,8 @@ describe('plugin UI protocol', () => {
     });
   });
 
-  it('exports G-SAP plugin surface session transport constants', () => {
-    expect(PLUGIN_SURFACE_SESSION_HEADER).toBe('X-GSAP-Plugin-Surface-Session');
+  it('exports Codia plugin surface session transport constants', () => {
+    expect(PLUGIN_SURFACE_SESSION_HEADER).toBe('X-CODIA-Plugin-Surface-Session');
     expect(PLUGIN_SURFACE_SESSION_QUERY).toBe('pluginSurfaceSession');
   });
 });

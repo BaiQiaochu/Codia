@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 const ROOT = process.cwd();
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8"));
 const distDir = path.join(ROOT, "dist");
-const productName = pkg.build?.productName || "BYOUNG";
+const productName = pkg.build?.productName || "CODIA";
 const winExecutableName = pkg.build?.win?.executableName || productName;
 const winExecutableFileName = `${winExecutableName}.exe`;
 const steps = [
@@ -28,7 +28,7 @@ function walk(dir, files = []) {
 }
 
 function findPackagedApp() {
-  const explicit = String(process.env.GSAP_E2E_DESKTOP_APP || "").trim();
+  const explicit = String(process.env.CODIA_E2E_DESKTOP_APP || "").trim();
   if (explicit) return path.resolve(explicit);
 
   if (process.platform === "win32") {
@@ -42,7 +42,7 @@ function findPackagedApp() {
 
   const recursive = walk(distDir);
   if (process.platform === "darwin") {
-    return recursive.find((file) => file.endsWith(".app/Contents/MacOS/BYOUNG")) || "";
+    return recursive.find((file) => file.endsWith(".app/Contents/MacOS/CODIA")) || "";
   }
   return recursive.find((file) => file.endsWith(".AppImage")) || "";
 }
@@ -56,7 +56,7 @@ function scoreCandidate(file) {
 
 const appPath = findPackagedApp();
 if (!appPath || !fs.existsSync(appPath)) {
-  console.error("[desktop-e2e-packaged] no packaged desktop app found. Build/package first or set GSAP_E2E_DESKTOP_APP.");
+  console.error("[desktop-e2e-packaged] no packaged desktop app found. Build/package first or set CODIA_E2E_DESKTOP_APP.");
   process.exit(2);
 }
 
@@ -69,7 +69,7 @@ for (const [name, script] of steps) {
     shell: false,
     env: {
       ...process.env,
-      GSAP_E2E_DESKTOP_APP: appPath,
+      CODIA_E2E_DESKTOP_APP: appPath,
     },
   });
   if (result.status !== 0) {

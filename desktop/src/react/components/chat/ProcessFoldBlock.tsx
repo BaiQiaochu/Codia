@@ -31,7 +31,7 @@ export const ProcessFoldBlock = memo(function ProcessFoldBlock({
 }: Props) {
   const agents = useStore(s => s.agents);
   const globalAgentName = useStore(s => s.agentName) || '助手';
-  const globalYuan = useStore(s => s.agentYuan) || 'gsap';
+  const globalYuan = useStore(s => s.agentYuan) || 'codia';
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const t = window.t ?? ((p: string) => p);
@@ -67,7 +67,7 @@ export const ProcessFoldBlock = memo(function ProcessFoldBlock({
         <div className={styles.avatarRow}>
           <AgentAvatar
             info={displayInfo}
-            className={`${styles.avatar} ${styles.gsapAvatar}`}
+            className={`${styles.avatar} ${styles.codiaAvatar}`}
             alt={displayName}
           />
           <span className={styles.avatarName}>{displayName}</span>

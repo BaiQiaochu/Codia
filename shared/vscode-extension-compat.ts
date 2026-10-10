@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 
-export const VSCODE_COMPAT_ROUTE_FILE = "gsap-vscode-compat.cjs";
-export const VSCODE_COMPAT_PAGE_ROUTE = "/gsap-vscode-compat/page";
+export const VSCODE_COMPAT_ROUTE_FILE = "codia-vscode-compat.cjs";
+export const VSCODE_COMPAT_PAGE_ROUTE = "/codia-vscode-compat/page";
 
 export const VSCODE_DECLARATIVE_CONTRIBUTIONS = [
   "commands",
@@ -324,12 +324,12 @@ function renderPage() {
 
 module.exports = function register(app) {
   app.get("${VSCODE_COMPAT_PAGE_ROUTE}", (c) => c.html(renderPage()));
-  app.get("/gsap-vscode-compat/data", (c) => c.json(DATA));
+  app.get("/codia-vscode-compat/data", (c) => c.json(DATA));
 }
 `;
 }
 
-export function createGsapManifestFromVsCodePackage(pkg, currentManifest = null) {
+export function createCodiaManifestFromVsCodePackage(pkg, currentManifest = null) {
   const identity = vscodePackageIdentity(pkg);
   const displayName = pkg?.displayName || pkg?.name || identity.id;
   const contributionKeys = vscodeContributionKeys(pkg);
@@ -380,13 +380,13 @@ export function ensureVsCodeCompatibilityManifest(targetDir) {
   const currentManifest = readJsonFile(manifestPath);
   if (currentManifest && !isVsCodeCompatManifest(currentManifest)) return false;
 
-  const manifest = createGsapManifestFromVsCodePackage(pkg, currentManifest);
+  const manifest = createCodiaManifestFromVsCodePackage(pkg, currentManifest);
   const summary = summarizeVsCodePackage(pkg);
   const routesDir = path.join(targetDir, "routes");
   fs.mkdirSync(routesDir, { recursive: true });
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf-8");
   fs.writeFileSync(path.join(routesDir, VSCODE_COMPAT_ROUTE_FILE), createCompatRouteSource(summary), "utf-8");
-  fs.writeFileSync(path.join(targetDir, ".gsap-vscode-extension.json"), `${JSON.stringify({
+  fs.writeFileSync(path.join(targetDir, ".codia-vscode-extension.json"), `${JSON.stringify({
     source: "vscode-extension",
     generatedAt: new Date().toISOString(),
     package: {

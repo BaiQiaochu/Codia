@@ -16,7 +16,7 @@ describe("Linux bwrap sandbox policy projection", () => {
   let tempRoot;
 
   beforeEach(() => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-bwrap-policy-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bwrap-policy-"));
   });
 
   afterEach(() => {
@@ -25,8 +25,8 @@ describe("Linux bwrap sandbox policy projection", () => {
 
   it("uses a read-all root mount while keeping writes scoped to explicit roots", () => {
     const workspace = path.join(tempRoot, "workspace");
-    const agentSessions = path.join(tempRoot, "gsap", "agents", "gsap", "sessions");
-    const sessionFiles = path.join(tempRoot, "gsap", "session-files");
+    const agentSessions = path.join(tempRoot, "codia", "agents", "codia", "sessions");
+    const sessionFiles = path.join(tempRoot, "codia", "session-files");
     const externalFile = path.join(tempRoot, "outside.md");
     fs.mkdirSync(workspace, { recursive: true });
     fs.mkdirSync(agentSessions, { recursive: true });

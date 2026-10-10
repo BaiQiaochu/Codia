@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useSettingsStore } from '../../store';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { invalidateConfigCache } from '../../../hooks/use-config';
 import { t } from '../../helpers';
 import { getErrorMessage, type ImageGenConfigPayload, type ImageProviderDefaults } from '../../shared-types';
@@ -119,13 +119,13 @@ export function MediaProviderDetail({ providerId, mediaType = 'image', provider,
       const candidate = [...activeModels, ...availableModels]
         .find(model => model.id === modelId) || { id: modelId, type: mediaType };
       if (mediaType === 'image') {
-        await gsapFetch(`/api/plugins/image-gen/providers/${encodeURIComponent(providerId)}/models`, {
+        await codiaFetch(`/api/plugins/image-gen/providers/${encodeURIComponent(providerId)}/models`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ model: candidate }),
         });
       } else {
-        await gsapFetch(`/api/providers/${encodeURIComponent(providerId)}/models/${encodeURIComponent(modelId)}`, {
+        await codiaFetch(`/api/providers/${encodeURIComponent(providerId)}/models/${encodeURIComponent(modelId)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type: mediaType }),
@@ -142,11 +142,11 @@ export function MediaProviderDetail({ providerId, mediaType = 'image', provider,
   const removeModel = async (modelId: string) => {
     try {
       if (mediaType === 'image') {
-        await gsapFetch(`/api/plugins/image-gen/providers/${encodeURIComponent(providerId)}/models/${encodeURIComponent(modelId)}`, {
+        await codiaFetch(`/api/plugins/image-gen/providers/${encodeURIComponent(providerId)}/models/${encodeURIComponent(modelId)}`, {
           method: 'DELETE',
         });
       } else {
-        await gsapFetch(`/api/providers/${encodeURIComponent(providerId)}/models/${encodeURIComponent(modelId)}?type=${mediaType}`, {
+        await codiaFetch(`/api/providers/${encodeURIComponent(providerId)}/models/${encodeURIComponent(modelId)}?type=${mediaType}`, {
           method: 'DELETE',
         });
       }

@@ -18,7 +18,7 @@ export class MountAwareFileError extends Error {
 }
 
 export class MountAwareFileService {
-  declare _gsapHome: string;
+  declare _codiaHome: string;
   declare _defaultRoot: string | null;
   declare _studioId: string | null;
   declare _createCheckpoint: any;
@@ -26,17 +26,16 @@ export class MountAwareFileService {
   declare _resourceIO: any;
 
   constructor({
-    gsapHome,
-    hanakoHome,
+    codiaHome,
     defaultRoot,
     studioId,
     createCheckpoint,
     discloseNativeRoot = false,
     resourceIO = null,
   }: Record<string, any> = {}) {
-    const resolvedGsapHome = gsapHome || hanakoHome;
-    if (!resolvedGsapHome) throw new Error("gsapHome required");
-    this._gsapHome = resolvedGsapHome;
+    const resolvedCodiaHome = codiaHome || codiaHome;
+    if (!resolvedCodiaHome) throw new Error("codiaHome required");
+    this._codiaHome = resolvedCodiaHome;
     this._defaultRoot = defaultRoot || null;
     this._studioId = studioId || null;
     this._createCheckpoint = typeof createCheckpoint === "function" ? createCheckpoint : null;
@@ -44,7 +43,7 @@ export class MountAwareFileService {
     this._resourceIO = isResourceIO(resourceIO)
       ? resourceIO
       : createServiceResourceIO({
-        gsapHome: this._gsapHome,
+        codiaHome: this._codiaHome,
         defaultRoot: this._defaultRoot,
         studioId: this._studioId,
       });
@@ -375,7 +374,7 @@ export class MountAwareFileService {
         provider: "local_fs",
       };
     }
-    const mount = findLocalFsMount(this._gsapHome, this._studioId, id);
+    const mount = findLocalFsMount(this._codiaHome, this._studioId, id);
     if (!mount) throw fileError("unknown root", "unknown_root", 404);
     const rootPath = mount.rootLocator?.path;
     if (typeof rootPath !== "string" || !path.isAbsolute(rootPath)) {
@@ -424,7 +423,7 @@ function workbenchWriteResult<T extends Record<string, any> = Record<string, nev
   } & T;
 }
 
-function createServiceResourceIO({ gsapHome, defaultRoot, studioId }) {
+function createServiceResourceIO({ codiaHome, defaultRoot, studioId }) {
   if (!defaultRoot) throw fileError("resource io unavailable", "resource_io_unavailable", 500);
   return createSandboxResourceIO({
     cwd: defaultRoot,
@@ -432,7 +431,7 @@ function createServiceResourceIO({ gsapHome, defaultRoot, studioId }) {
     workspace: defaultRoot,
     workspaceFolders: [defaultRoot],
     authorizedFolders: [defaultRoot],
-    gsapHome,
+    codiaHome,
     getSandboxEnabled: () => false,
     getSessionPath: () => null,
     emitEvent: () => {},
@@ -524,11 +523,11 @@ function joinResourcePath(...parts) {
     .join("/");
 }
 
-function findLocalFsMount(gsapHome, studioId, rootId) {
+function findLocalFsMount(codiaHome, studioId, rootId) {
   if (!studioId) return null;
   let registry;
   try {
-    registry = loadStudioMountRegistry(gsapHome);
+    registry = loadStudioMountRegistry(codiaHome);
   } catch {
     return null;
   }

@@ -192,8 +192,8 @@ describe('renderMermaidDiagrams', () => {
   it('wraps standalone markdown SVG diagrams with zoom controls', async () => {
     const container = document.createElement('div');
     container.innerHTML = [
-      '<p>好了，我来重新生成 G-SAP 功能结构图。</p>',
-      '<svg viewBox="0 0 640 320"><text>G-SAP 功能结构图</text></svg>',
+      '<p>好了，我来重新生成 Codia 功能结构图。</p>',
+      '<svg viewBox="0 0 640 320"><text>Codia 功能结构图</text></svg>',
     ].join('');
 
     await renderMermaidDiagrams(container);
@@ -201,7 +201,7 @@ describe('renderMermaidDiagrams', () => {
     expect(render).not.toHaveBeenCalled();
     const diagram = container.querySelector<HTMLElement>('.markdown-svg-diagram');
     expect(diagram).toBeInstanceOf(HTMLElement);
-    expect(diagram?.querySelector('.mermaid-rendered svg text')?.textContent).toBe('G-SAP 功能结构图');
+    expect(diagram?.querySelector('.mermaid-rendered svg text')?.textContent).toBe('Codia 功能结构图');
     expect(Array.from(diagram?.querySelectorAll('.mermaid-source-toolbar button:not([hidden])') || []).map((button) => button.textContent)).toEqual([
       '↓',
       '−',

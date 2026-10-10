@@ -1,17 +1,17 @@
 import { useState, useCallback } from 'react';
 import { Toggle } from '../../settings/widgets/Toggle';
 import { saveOnboardingIdentity } from '../onboarding-actions';
-import type { gsapFetch } from '../onboarding-actions';
+import type { codiaFetch } from '../onboarding-actions';
 import { StepContainer } from '../onboarding-ui';
 
 interface NameStepProps {
   preview: boolean;
-  gsapFetch: gsapFetch;
+  codiaFetch: codiaFetch;
   goToStep: (index: number) => void;
   showError: (msg: string) => void;
 }
 
-export function NameStep({ preview, gsapFetch, goToStep, showError }: NameStepProps) {
+export function NameStep({ preview, codiaFetch, goToStep, showError }: NameStepProps) {
   const [userName, setUserName] = useState('');
   const [agentName, setAgentName] = useState('');
   const [memoryEnabled, setMemoryEnabled] = useState(true);
@@ -22,7 +22,7 @@ export function NameStep({ preview, gsapFetch, goToStep, showError }: NameStepPr
     if (!trimmed) return;
     try {
       await saveOnboardingIdentity({
-        gsapFetch,
+        codiaFetch,
         userName: trimmed,
         agentName,
         memoryEnabled,
@@ -32,7 +32,7 @@ export function NameStep({ preview, gsapFetch, goToStep, showError }: NameStepPr
       console.error('[onboarding] save identity failed:', err);
       showError(t('onboarding.error'));
     }
-  }, [preview, gsapFetch, userName, agentName, memoryEnabled, goToStep, showError]);
+  }, [preview, codiaFetch, userName, agentName, memoryEnabled, goToStep, showError]);
 
   return (
     <StepContainer>

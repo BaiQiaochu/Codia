@@ -11,7 +11,7 @@ afterEach(() => {
 });
 
 function tempFile(name) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-model-sync-projection-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-model-sync-projection-"));
   tmpDirs.push(dir);
   return path.join(dir, name);
 }

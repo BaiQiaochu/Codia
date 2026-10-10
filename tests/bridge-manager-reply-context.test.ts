@@ -4,8 +4,8 @@ import { BridgeManager } from "../lib/bridge/bridge-manager.js";
 
 function createManager() {
   const engine = {
-    agentName: "G-SAP",
-    gsapHome: process.cwd(),
+    agentName: "Codia",
+    codiaHome: process.cwd(),
     getAgents: () => [],
     getBridgeMediaPublicBaseUrl: () => "",
   };

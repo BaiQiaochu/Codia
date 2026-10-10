@@ -49,12 +49,12 @@ describe("Computer Use helper build script", () => {
   it("lets CI choose the helper build architecture explicitly", () => {
     expect(resolveComputerUseHelperBuildArch({
       argv: ["node", "scripts/build-computer-use-helper.mjs", "x64"],
-      env: { GSAP_COMPUTER_USE_HELPER_ARCH: "arm64" },
+      env: { CODIA_COMPUTER_USE_HELPER_ARCH: "arm64" },
       arch: "arm64",
     })).toBe("x64");
     expect(resolveComputerUseHelperBuildArch({
       argv: ["node", "scripts/build-computer-use-helper.mjs"],
-      env: { GSAP_COMPUTER_USE_HELPER_ARCH: "x64" },
+      env: { CODIA_COMPUTER_USE_HELPER_ARCH: "x64" },
       arch: "arm64",
     })).toBe("x64");
   });

@@ -108,7 +108,7 @@ export interface Model {
   input?: ('text' | 'image' | 'video' | 'audio')[];
   video?: boolean;
   compat?: ({
-    gsapVideoInput?: boolean;
+    codiaVideoInput?: boolean;
   } & Record<string, unknown>) | null;
   vision?: boolean;
 }
@@ -265,7 +265,7 @@ export interface TodoItem {
 }
 
 // ── 浮动面板类型 ──
-export type ActivePanel = 'activity' | 'automation' | 'skills' | 'bridge' | null;
+export type ActivePanel = 'activity' | 'automation' | 'skills' | 'bridge' | 'social' | null;
 export type IdeActivityPanel =
   | 'explorer'
   | 'search'
@@ -324,28 +324,7 @@ export interface DesignDocumentPreview {
 }
 
 // ── Plugin Card Protocol ──
-
-export interface PluginCardSessionRef {
-  sessionId: string;
-  sessionPath?: string | null;
-  path?: string | null;
-  legacySessionPath?: string | null;
-}
-
-export interface PluginCardDetails {
-  type: string;         // "iframe" | "webview" | "chat.surface" | future types
-  pluginId: string;
-  route?: string;
-  title?: string;
-  description: string;  // IM fallback / degradation text
-  aspectRatio?: string;
-  sessionId?: string | null;
-  sessionRef?: PluginCardSessionRef | null;
-  sessionPath?: string | null;
-  mode?: 'transcript' | 'full' | string;
-  composer?: boolean;
-  unavailableReason?: string;
-}
+export type { PluginCardDetails, PluginCardSessionRef } from './types/plugin-card';
 
 // ── 插件 UI 信息 ──
 
@@ -387,10 +366,18 @@ export interface VsCodeFileIconThemeInfo {
 }
 
 // ── Platform API 类型声明 ──
+export interface PlatformFileActionResult {
+  success: boolean;
+  code?: string;
+  message?: string;
+  path?: string;
+  parentPath?: string;
+}
+
 export interface PlatformApi {
   getServerPort(): Promise<string>;
   getServerToken(): Promise<string>;
-  runConsoleCommand?(payload: { kind: 'powershell' | 'gsapctl'; command: string; cwd?: string }): Promise<{ ok: boolean; code: number; output: string }>;
+  runConsoleCommand?(payload: { kind: 'powershell' | 'codiactl'; command: string; cwd?: string }): Promise<{ ok: boolean; code: number; output: string }>;
   runEditCommand?(command: 'cut' | 'copy' | 'paste' | 'selectAll'): Promise<boolean>;
   restartServer?(): Promise<{ ok?: boolean; port?: number; token?: string; error?: string }>;
   isE2EMode?(): Promise<boolean>;
@@ -408,7 +395,7 @@ export interface PlatformApi {
         input?: ('text' | 'image' | 'video' | 'audio')[];
         video?: boolean;
         compat?: ({
-          gsapVideoInput?: boolean;
+          codiaVideoInput?: boolean;
         } & Record<string, unknown>) | null;
       vision?: boolean;
       reasoning?: boolean;
@@ -437,7 +424,6 @@ export interface PlatformApi {
   onWorkspaceChanged?(callback: (payload: WorkspaceChangePayload) => void): void;
   readFileBase64(path: string): Promise<string | null>;
   getFileUrl?(path: string): string;
-  getOcrAssetRoot?(): string | Promise<string>;
   readDocxHtml(path: string): Promise<string | null>;
   readXlsxHtml(path: string): Promise<string | null>;
   readDesignDocumentPreview?(path: string): Promise<DesignDocumentPreview | null>;
@@ -448,10 +434,10 @@ export interface PlatformApi {
   onViewerLoad?(callback: (data: { filePath: string; title: string; type: string; language?: string | null; windowId: number }) => void): void;
   viewerClose?(): void;
   onViewerClosed?(callback: (windowId: number) => void): void;
-  openFolder(path: string): void;
-  openFile(path: string): void;
+  openFolder(path: string): Promise<PlatformFileActionResult>;
+  openFile(path: string): Promise<PlatformFileActionResult>;
   openExternal(url: string): void;
-  showInFinder(path: string): void;
+  showInFinder(path: string): Promise<PlatformFileActionResult>;
   trashItem?(path: string): Promise<boolean>;
   browserEmergencyStop?(): void;
   openSkillViewer?(opts: { skillPath?: string; name?: string; displayName?: string; baseDir?: string; filePath?: string; installed?: boolean }): void;

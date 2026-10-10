@@ -43,8 +43,8 @@ export class PathGuard {
       return;
     }
     this._fullAccess = false;
-    const gsapHome = policy.gsapHome || policy.hanakoHome;
-    this.gsapHome = this._resolveReal(gsapHome) || path.resolve(gsapHome);
+    const codiaHome = policy.codiaHome || policy.codiaHome;
+    this.codiaHome = this._resolveReal(codiaHome) || path.resolve(codiaHome);
     this.agentDir = this._resolveReal(policy.agentDir) || path.resolve(policy.agentDir);
     const roots = Array.isArray(policy.workspaceRoots) && policy.workspaceRoots.length > 0
       ? policy.workspaceRoots
@@ -96,14 +96,14 @@ export class PathGuard {
     const resolved = this._resolveReal(rawPath);
     if (!resolved) return AccessLevel.BLOCKED;
 
- // 1. BLOCKED 文件（gsapHome 根）
+ // 1. BLOCKED 文件（codiaHome 根）
     for (const f of BLOCKED_FILES) {
-      if (resolved === path.join(this.gsapHome, f)) return AccessLevel.BLOCKED;
+      if (resolved === path.join(this.codiaHome, f)) return AccessLevel.BLOCKED;
     }
 
     //
     for (const d of BLOCKED_DIRS) {
-      if (this._isInside(resolved, path.join(this.gsapHome, d))) {
+      if (this._isInside(resolved, path.join(this.codiaHome, d))) {
         return AccessLevel.BLOCKED;
       }
     }
@@ -122,7 +122,7 @@ export class PathGuard {
 
     //
     for (const d of READ_ONLY_HOME_DIRS) {
-      if (this._isInside(resolved, path.join(this.gsapHome, d))) {
+      if (this._isInside(resolved, path.join(this.codiaHome, d))) {
         return AccessLevel.READ_ONLY;
       }
     }
@@ -141,13 +141,13 @@ export class PathGuard {
 
     //
     for (const d of READ_WRITE_HOME_DIRS) {
-      if (this._isInside(resolved, path.join(this.gsapHome, d))) {
+      if (this._isInside(resolved, path.join(this.codiaHome, d))) {
         return AccessLevel.READ_WRITE;
       }
     }
 
  //
-    if (this._isInside(resolved, this.gsapHome)) return AccessLevel.BLOCKED;
+    if (this._isInside(resolved, this.codiaHome)) return AccessLevel.BLOCKED;
 
  //
     for (const root of this.workspaceRoots) {

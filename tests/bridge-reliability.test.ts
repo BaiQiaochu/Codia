@@ -16,7 +16,7 @@ describe("bridge reliability ledger", () => {
   });
 
   function makeTempRoot() {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-bridge-reliability-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bridge-reliability-"));
     return tempRoot;
   }
 
@@ -62,8 +62,8 @@ describe("bridge reliability ledger", () => {
       capabilities: {},
     };
     const engine = {
-      gsapHome: root,
-      agentName: "G-SAP",
+      codiaHome: root,
+      agentName: "Codia",
       getAgent: vi.fn(() => null),
     };
     const bm = new BridgeManager({ engine, hub: { eventBus: { emit: vi.fn() } } });
@@ -98,8 +98,8 @@ describe("bridge reliability ledger", () => {
       capabilities: {},
     };
     const engine = {
-      gsapHome: root,
-      agentName: "G-SAP",
+      codiaHome: root,
+      agentName: "Codia",
       getAgent: vi.fn(() => ({ agentName: "Worker" })),
     };
     const bm = new BridgeManager({ engine, hub: { eventBus: { emit: vi.fn() } } });
@@ -142,7 +142,7 @@ describe("bridge reliability ledger", () => {
     vi.useFakeTimers();
     const root = makeTempRoot();
     const engine = {
-      gsapHome: root,
+      codiaHome: root,
       getAgent: vi.fn(() => ({
         config: { bridge: { qq: { enabled: true, appID: "app", appSecret: "secret" } } },
       })),

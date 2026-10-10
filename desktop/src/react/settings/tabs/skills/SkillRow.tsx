@@ -134,7 +134,7 @@ export function SkillRow({
         )}
         {onToggle && (
           <button
-            className={`gsap-toggle${skill.enabled ? ' on' : ''}`}
+            className={`codia-toggle${skill.enabled ? ' on' : ''}`}
             type="button"
             title={skill.enabled ? tr('settings.skills.disableSkillTitle') : tr('settings.skills.enableSkillTitle')}
             aria-label={skill.enabled

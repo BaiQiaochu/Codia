@@ -188,8 +188,8 @@ function rewriteSessionManagerFile(sessionManager) {
 }
 
 function cacheContractDebugEnabled() {
-  return process.env.GSAP_CACHE_CONTRACT_DEBUG === "1"
-    || process.env.HANA_CACHE_CONTRACT_DEBUG === "1";
+  return process.env.CODIA_CACHE_CONTRACT_DEBUG === "1"
+    || process.env.CODIA_CACHE_CONTRACT_DEBUG === "1";
 }
 
 function getSteerPrefix() {
@@ -579,14 +579,14 @@ function buildBackgroundTaskPrompt(locale) {
 1. 先继续做手头还没做完的工作，不要立刻停下来等
 2. 手头工作做完后，调 check_pending_tasks 查看后台任务状态
 3. 如果还有任务未完成，根据任务复杂度自行估算等待时间，调 wait 等待后再检查。最多检查 2 次，之后不再轮询，告知用户任务仍在后台运行，完成后会自动通知
-4. 后台任务完成时系统也会通过 <gsap-background-result> 消息自动送达结果，届时处理并告知用户`
+4. 后台任务完成时系统也会通过 <codia-background-result> 消息自动送达结果，届时处理并告知用户`
     : `## Background Tasks
 
 After dispatching a subagent or other background task:
 1. Continue with any remaining work first; do not stop immediately to wait
 2. Once your other work is done, call check_pending_tasks to check status
 3. If tasks are still pending, estimate a reasonable wait time based on task complexity, then call wait and check again. Check at most 2 times; after that, stop polling and inform the user the task is still running and they will be notified when it completes
-4. The system will also automatically deliver results via <gsap-background-result> messages when tasks finish; process and relay them to the user`;
+4. The system will also automatically deliver results via <codia-background-result> messages when tasks finish; process and relay them to the user`;
 }
 export class SessionCoordinator {
   [key: string]: any;
@@ -1373,7 +1373,7 @@ export class SessionCoordinator {
 
     const getEngine = this._d.getEngine;
     const visionContextExtension = createVisionContextInjectionExtension({
-      path: "gsap-vision-context-injection",
+      path: "codia-vision-context-injection",
       sessionPathRef: () => session?.sessionManager?.getSessionFile?.() || sessionPath || null,
       getVisionBridge: () => getEngine?.()?.getVisionBridge?.() || null,
       isVisionAuxiliaryEnabled: () => getEngine?.()?.isVisionAuxiliaryEnabled?.() === true,
@@ -1387,7 +1387,7 @@ export class SessionCoordinator {
       warn: (msg) => log.warn(msg),
     } as unknown as Parameters<typeof createVisionContextInjectionExtension>[0]);
     const turnContextExtension = createSessionTurnContextExtension({
-      path: "gsap-desktop-session-turn-context",
+      path: "codia-desktop-session-turn-context",
       sessionPathRef: () => session?.sessionManager?.getSessionFile?.() || sessionPathForMeta || null,
       getTurnContext: (targetSessionPath) => targetSessionPath
         ? this._turnContextBySession.get(targetSessionPath)
@@ -1567,7 +1567,7 @@ export class SessionCoordinator {
     //   C. restore=false                      -> fresh compute from agent config
     //
     // allToolNames must cover the COMPLETE active set: Pi SDK built-ins
-    // (read/bash/edit/write/grep/find/ls) from sessionTools + G-SAP
+    // (read/bash/edit/write/grep/find/ls) from sessionTools + Codia
     // customs + plugin tools from sessionCustomTools. Using only agent.tools
     // would silently drop SDK built-ins and plugin tools when
     // setActiveToolsByName is applied.
@@ -3236,7 +3236,7 @@ export class SessionCoordinator {
    * Release every resource owned by one sessionEntry.   *
    * Teardown contract:
    *   1. emit session_shutdown so SDK extensions can clean timers/subscriptions
-   *   2. unsubscribe G-SAP session event forwarding
+   *   2. unsubscribe Codia session event forwarding
    *   3. session.dispose so SDK listeners and agent subscriptions are released
    *
    * Every step is best-effort: failures are logged and teardown continues.   *

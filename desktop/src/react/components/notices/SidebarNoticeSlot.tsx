@@ -4,7 +4,7 @@ import type { AutoUpdateState } from '../../types';
 import { getDesktopApi } from '../../utils/desktop-api';
 import styles from './SidebarNoticeSlot.module.css';
 
-const DISMISSED_UPDATE_KEY = 'gsap-sidebar-update-dismissed-key';
+const DISMISSED_UPDATE_KEY = 'codia-sidebar-update-dismissed-key';
 const ACTIONABLE_UPDATE_STATUSES = new Set<AutoUpdateState['status']>([
   'downloaded',
 ]);

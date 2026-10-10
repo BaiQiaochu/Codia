@@ -87,7 +87,7 @@ describe('InputArea compact bottom inset layout', () => {
     expect(css).toMatch(/@container\s*\(max-width:\s*440px\)\s*\{[\s\S]*\.model-selector\s*\{[\s\S]*max-width:\s*120px/);
   });
 
-  it('renders workspace tools as a compact dropdown inside the composer instead of a welcome-page detail block', () => {
+  it('moves workspace tools into the unified composer add menu instead of a conflicting toolbar control', () => {
     const inputSource = read('components/InputArea.tsx');
     const inputCss = read('components/input/InputArea.module.css');
     const welcomeSource = read('components/WelcomeScreen.tsx');
@@ -96,15 +96,12 @@ describe('InputArea compact bottom inset layout', () => {
     expect(inputSource).toContain('WORKSPACE_TOOL_SELECT_EVENT');
     expect(inputSource).toContain('WORKSPACE_TOOL_OPTIONS');
     expect(inputSource).toContain('readWorkspaceToolSelectionDetail');
-    expect(inputSource).toContain('data-testid="workspace-tool-menu-button"');
-    expect(inputSource).toContain("styles['workspace-tool-menu-button']");
-    expect(inputSource).toContain('WORKSPACE_TOOL_OPTIONS.map');
-    expect(inputCss).toContain('.workspace-tool-menu-button');
-    expect(inputCss).toContain('.workspace-tool-menu');
-    expect(cssBlock(inputCss, String.raw`\.workspace-tool-menu-button`)).toMatch(/max-width:\s*clamp/);
-    expect(inputSource).toMatch(/<AnchoredPortal[\s\S]*?open=\{visible && workspaceToolMenuOpen\}[\s\S]*?anchorRef=\{workspaceToolMenuRef\}/);
-    expect(cssBlock(inputCss, String.raw`\.workspace-tool-menu`)).not.toMatch(/position:\s*absolute|bottom:/);
-    expect(cssBlock(inputCss, String.raw`\.workspace-tool-menu`)).toMatch(/max-height:\s*min\(360px, 48vh\)/);
+    expect(inputSource).toContain('<ComposerAddMenu');
+    expect(inputSource).toContain('workspaceTools={WORKSPACE_TOOL_OPTIONS}');
+    expect(inputSource).toContain('onSelectTool={handleWorkspaceToolPick}');
+    expect(inputSource).not.toContain('data-testid="workspace-tool-menu-button"');
+    expect(inputCss).toContain('.composer-add-menu');
+    expect(inputCss).not.toContain('.workspace-tool-menu-button');
     expect(welcomeSource).not.toContain('HomeActions');
     expect(welcomeSource).not.toContain('styles.homeActionsShell');
     expect(welcomeCss).not.toContain('.homeActionsShell');
@@ -114,17 +111,19 @@ describe('InputArea compact bottom inset layout', () => {
     expect(welcomeCss).not.toContain('.homeActionDetail');
   });
 
-  it('opens skills from the desktop star while preserving typed slash commands and skill insertion', () => {
+  it('opens the add menu from the desktop star while preserving slash commands and skill insertion', () => {
     const source = read('components/InputArea.tsx');
     const utilities = read('components/input/InputUtilityButtons.tsx');
     expect(source).toContain('<InputUtilityButtons');
-    expect(utilities).toContain("setActivePanel('skills')");
+    expect(utilities).toContain('<StarFour');
+    expect(utilities).not.toContain('<Paperclip');
+    expect(source).toContain('open={visible && addMenuOpen}');
+    expect(source).toContain('onSelectSkill={handleAddSkill}');
     expect(source).toContain('getSlashMatches(text, slashCommands)');
     expect(source).toContain('if (!fileMention && slashMatches.length > 0');
     expect(source).toContain('<SlashCommandMenu');
     expect(source).toContain('buildSkillEditorContent(exactSkill.name, trailingArgs || parsed.args)');
-    expect(source).toContain("mobileCommands={surface === 'mobile' ?");
-    expect(source).not.toContain('else openSlashMenu()');
+    expect(utilities).not.toContain("setActivePanel('skills')");
   });
 
   it('docks welcome actions above the composer and adapts four quick tasks by content width', () => {
@@ -139,22 +138,22 @@ describe('InputArea compact bottom inset layout', () => {
     expect(cssBlock(css, String.raw`\.codiaQuickGrid > button`)).toMatch(/flex-direction:\s*row/);
     expect(cssBlock(css, String.raw`\.codiaQuickGrid > button`)).toMatch(/min-height:\s*62px/);
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
-    expect(source).toContain('codia-mascot-gaze-strip.png');
-    expect(source).toContain('data-codia-mascot-frame');
+    expect(source).not.toContain('codia-mascot-gaze-strip.png');
+    expect(source).not.toContain('data-codia-mascot-frame');
     expect(source).not.toContain('codia-kitten.png');
-    expect(css).toContain('@keyframes codiaMascotPeek');
-    expect(css).toContain('@keyframes codiaMascotGaze');
-    expect(cssBlock(css, String.raw`\.codiaMascotSprite`)).toMatch(/width:\s*300%/);
+    expect(css).not.toContain('@keyframes codiaMascotPeek');
+    expect(css).not.toContain('@keyframes codiaMascotGaze');
+    expect(css).not.toContain('codiaMascotSprite');
     expect(source.match(/className=\{styles.codiaQuickCopy\}/g)).toHaveLength(4);
   });
 
-  it('sizes the Live2D surface independently of the clipped sprite fallback', () => {
+  it('sizes the Live2D surface without the removed sprite fallback', () => {
     const source = read('components/WelcomeScreen.tsx');
     const css = read('components/Welcome.module.css');
     const live2D = cssBlock(css, String.raw`\.codiaLive2D`);
     expect(source).toContain('<CodiaLive2DMascot');
     expect(source).toContain('className={styles.codiaLive2D}');
-    expect(source).toContain('fallback={(');
+    expect(source).not.toContain('fallback={(');
     expect(live2D).toMatch(/width:\s*clamp\(174px, 18cqw, 200px\)/);
     expect(live2D).toMatch(/overflow:\s*visible/);
     expect(live2D).not.toMatch(/animation:|transform:|border-radius:/);

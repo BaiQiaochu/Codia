@@ -85,7 +85,6 @@ export function finishSessionStream(state) {
 
 /**
   *
-  *
  */
 export function resumeSessionStream(state, opts = {}) {
   const requestedStreamId = opts.streamId ?? state.streamId ?? null;

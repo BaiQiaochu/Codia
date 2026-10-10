@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '../stores';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 
 import { renderMarkdownPreview } from '../utils/markdown';
 import { getDesktopApi } from '../utils/desktop-api';
@@ -68,7 +68,7 @@ export function SkillViewerOverlay() {
         showToast(`${t('skillViewer.installFailed')}no current agent`);
         return;
       }
-      const res = await gsapFetch(`/api/skills/install?agentId=${encodeURIComponent(agentId)}`, {
+      const res = await codiaFetch(`/api/skills/install?agentId=${encodeURIComponent(agentId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: data.baseDir }),

@@ -7,7 +7,7 @@ import { API_PROVIDER_PRESETS } from "../desktop/src/react/utils/provider-preset
 
 describe("provider preset alignment", () => {
   it("keeps first-run provider presets aligned with registry defaults", () => {
-    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-provider-presets-"));
+    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "codia-provider-presets-"));
     try {
       const registry = new ProviderRegistry(tempHome);
 

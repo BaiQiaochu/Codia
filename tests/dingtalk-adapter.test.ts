@@ -62,7 +62,7 @@ function makeAdapter(fetchMock: ReturnType<typeof vi.fn>, onMessage = vi.fn(), o
     clientId: "dt-client",
     clientSecret: "dt-secret",
     robotCode: "ding-robot",
-    agentId: "gsap",
+    agentId: "codia",
     onMessage,
     onStatus,
     fetchImpl: fetchMock as any,
@@ -141,10 +141,10 @@ describe("DingTalk bridge adapter", () => {
 
     expect(onMessage).toHaveBeenCalledWith(expect.objectContaining({
       platform: "dingtalk",
-      agentId: "gsap",
+      agentId: "codia",
       chatId: "manager1234",
       userId: "manager1234",
-      sessionKey: "dt_dm_manager1234@gsap",
+      sessionKey: "dt_dm_manager1234@codia",
       text: "hello DingTalk!",
       senderName: "Alice",
       isGroup: false,
@@ -187,7 +187,7 @@ describe("DingTalk bridge adapter", () => {
     expect(onMessage).toHaveBeenCalledWith(expect.objectContaining({
       chatId: "cid-group",
       userId: "staff-bob",
-      sessionKey: "dt_group_cid-group@gsap",
+      sessionKey: "dt_group_cid-group@codia",
       text: "group hello",
       isGroup: true,
     }));
@@ -221,13 +221,13 @@ describe("DingTalk bridge adapter", () => {
       robotCode: "ding-robot",
       userIds: ["manager1234"],
       msgKey: "sampleMarkdown",
-      msgParam: JSON.stringify({ title: "BYOUNG", text: "direct hello" }),
+      msgParam: JSON.stringify({ title: "CODIA", text: "direct hello" }),
     });
     expect(JSON.parse(fetchMock.mock.calls[3][1].body)).toEqual({
       robotCode: "ding-robot",
       openConversationId: "cid-group",
       msgKey: "sampleMarkdown",
-      msgParam: JSON.stringify({ title: "BYOUNG", text: "group hello" }),
+      msgParam: JSON.stringify({ title: "CODIA", text: "group hello" }),
     });
 
     adapter.stop();
@@ -275,8 +275,8 @@ describe("DingTalk bridge adapter", () => {
     expect(fetchMock).toHaveBeenCalledTimes(4);
     const first = JSON.parse(JSON.parse(fetchMock.mock.calls[2][1].body).msgParam);
     const second = JSON.parse(JSON.parse(fetchMock.mock.calls[3][1].body).msgParam);
-    expect(first.title).toBe("BYOUNG 1/2");
-    expect(second.title).toBe("BYOUNG 2/2");
+    expect(first.title).toBe("CODIA 1/2");
+    expect(second.title).toBe("CODIA 2/2");
     expect(first.text + second.text).toBe(text);
 
     adapter.stop();

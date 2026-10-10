@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { applyDevEnvironment, defaultDevGsapHome } from "./dev-env.js";
+import { applyDevEnvironment, defaultDevCodiaHome } from "./dev-env.js";
 import {
   buildDevWebClientConfig,
   buildDevWebPreviewUrl,
@@ -14,9 +14,9 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
-const gsapHome = defaultDevGsapHome(process.env);
-const serverInfoPath = path.join(gsapHome, "server-info.json");
-const clientPort = Number(process.env.GSAP_DEV_WEB_CLIENT_PORT || 5173);
+const codiaHome = defaultDevCodiaHome(process.env);
+const serverInfoPath = path.join(codiaHome, "server-info.json");
+const clientPort = Number(process.env.CODIA_DEV_WEB_CLIENT_PORT || 5173);
 
 let serverProcess = null;
 let viteProcess = null;
@@ -42,7 +42,7 @@ async function waitForServerInfo({ timeoutMs = 90_000, intervalMs = 200 } = {}) 
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (!isChildAlive(serverProcess)) {
-      throw new Error("G-SAP server exited before writing server-info.json");
+      throw new Error("Codia server exited before writing server-info.json");
     }
     try {
       const raw = fs.readFileSync(serverInfoPath, "utf-8");
@@ -55,7 +55,7 @@ async function waitForServerInfo({ timeoutMs = 90_000, intervalMs = 200 } = {}) 
 }
 
 function spawnServer() {
-  fs.mkdirSync(gsapHome, { recursive: true });
+  fs.mkdirSync(codiaHome, { recursive: true });
   removeStaleServerInfo();
 
   const serverEnv = applyDevEnvironment({ ...process.env });
@@ -65,11 +65,11 @@ function spawnServer() {
   const sourceServerBootstrap = fs.existsSync(path.join(rootDir, "server", "bootstrap.ts"))
     ? path.join(rootDir, "server", "bootstrap.ts")
     : path.join(rootDir, "server", "bootstrap.js");
-  serverEnv.GSAP_ROOT = rootDir;
-  serverEnv.GSAP_SERVER_ENTRY = sourceServerEntry;
-  serverEnv.GSAP_SERVER_INFO = serverInfoPath;
-  serverEnv.GSAP_CREATE_STARTUP_SESSION = "0";
-  serverEnv.GSAP_PORT = process.env.GSAP_PORT || "0";
+  serverEnv.CODIA_ROOT = rootDir;
+  serverEnv.CODIA_SERVER_ENTRY = sourceServerEntry;
+  serverEnv.CODIA_SERVER_INFO = serverInfoPath;
+  serverEnv.CODIA_CREATE_STARTUP_SESSION = "0";
+  serverEnv.CODIA_PORT = process.env.CODIA_PORT || "0";
   delete serverEnv.ELECTRON_RUN_AS_NODE;
 
   serverProcess = spawn(process.execPath, [sourceServerBootstrap], {
@@ -89,11 +89,11 @@ function spawnServer() {
 function spawnVite(clientConfig, serverInfo) {
   const viteBin = resolveViteCommand(rootDir);
   const viteEnv = applyDevEnvironment({ ...process.env });
-  viteEnv.GSAP_DEV_WEB = "1";
-  viteEnv.GSAP_DEV_WEB_CLIENT_PORT = clientConfig.serverPort;
-  viteEnv.GSAP_DEV_WEB_API_BASE_URL = clientConfig.apiBaseUrl;
-  viteEnv.GSAP_DEV_WEB_SERVER_URL = `http://127.0.0.1:${serverInfo.port}`;
-  viteEnv.GSAP_DEV_WEB_SERVER_TOKEN = serverInfo.token;
+  viteEnv.CODIA_DEV_WEB = "1";
+  viteEnv.CODIA_DEV_WEB_CLIENT_PORT = clientConfig.serverPort;
+  viteEnv.CODIA_DEV_WEB_API_BASE_URL = clientConfig.apiBaseUrl;
+  viteEnv.CODIA_DEV_WEB_SERVER_URL = `http://127.0.0.1:${serverInfo.port}`;
+  viteEnv.CODIA_DEV_WEB_SERVER_TOKEN = serverInfo.token;
   delete viteEnv.ELECTRON_RUN_AS_NODE;
 
   viteProcess = spawn(viteBin, [

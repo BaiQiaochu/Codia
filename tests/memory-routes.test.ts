@@ -7,13 +7,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createConfigRoute } from "../server/routes/config.js";
 
 function makeAgent(tmpDir, overrides = {}) {
-  const agentDir = path.join(tmpDir, "agents", "gsap");
+  const agentDir = path.join(tmpDir, "agents", "codia");
   const memoryDir = path.join(agentDir, "memory");
   const summariesDir = path.join(memoryDir, "summaries");
   fs.mkdirSync(summariesDir, { recursive: true });
 
   return {
-    id: "gsap",
+    id: "codia",
     agentDir,
     memoryMdPath: path.join(memoryDir, "memory.md"),
     summariesDir,
@@ -50,7 +50,7 @@ describe("memory health route", () => {
   let tmpDir;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-memory-routes-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-memory-routes-"));
   });
 
   afterEach(() => {
@@ -70,13 +70,13 @@ describe("memory health route", () => {
     const engine = makeEngine(agent, tmpDir);
     const app = mountConfigRoute(engine);
 
-    const res = await app.request("/api/memories/health?agentId=gsap");
+    const res = await app.request("/api/memories/health?agentId=codia");
     const data = await res.json();
 
     expect(res.status).toBe(200);
     expect(memoryTicker.getHealthStatus).toHaveBeenCalledOnce();
     expect(data).toMatchObject({
-      agentId: "gsap",
+      agentId: "codia",
       status: "degraded",
       reason: null,
       failedSteps: ["deepMemory"],
@@ -118,7 +118,7 @@ describe("memory health route", () => {
     ));
     const app = mountConfigRoute(engine);
 
-    const res = await app.request("/api/memories/compiled?agentId=gsap");
+    const res = await app.request("/api/memories/compiled?agentId=codia");
     const data = await res.json();
 
     expect(res.status).toBe(200);
@@ -146,7 +146,7 @@ describe("memory health route", () => {
     ));
     const app = mountConfigRoute(engine);
 
-    const res = await app.request("/api/memories/compiled/facts?agentId=gsap", {
+    const res = await app.request("/api/memories/compiled/facts?agentId=codia", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ facts: "edited facts" }),
@@ -160,6 +160,6 @@ describe("memory health route", () => {
     const memoryMd = fs.readFileSync(agent.memoryMdPath, "utf-8");
     expect(memoryMd).toContain("edited facts");
     expect(memoryMd).toContain("today part");
-    expect(engine.updateConfig).toHaveBeenCalledWith({}, { agentId: "gsap" });
+    expect(engine.updateConfig).toHaveBeenCalledWith({}, { agentId: "codia" });
   });
 });

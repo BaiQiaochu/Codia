@@ -6,7 +6,7 @@
 
 import { useStore } from './index';
 import { sessionScopedKey, sessionScopedValue } from './session-slice';
-import { gsapFetch, gsapUrl } from '../hooks/use-gsap-fetch';
+import { codiaFetch, codiaUrl } from '../hooks/use-codia-fetch';
 import { buildItemsFromHistory } from '../utils/history-builder';
 import { migrateLegacyTodos } from '../utils/todo-compat';
 import { loadAvatars as loadAvatarsAction, clearChat as clearChatAction } from './agent-actions';
@@ -161,7 +161,7 @@ function errorMessage(err: unknown): string {
 
 function dispatchPlanMode(detail: { enabled: boolean; mode: string }): void {
   if (typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent('gsap-plan-mode', { detail }));
+  window.dispatchEvent(new CustomEvent('codia-plan-mode', { detail }));
 }
 
 function notifySessionCreateFailed(error: unknown): void {
@@ -198,7 +198,7 @@ export async function loadMessages(forPath?: string): Promise<void> {
     ? bumpLoadMessagesVersion(targetPath)
     : 0;
   try {
-    const res = await gsapFetch(sessionMessagesUrl(targetPath));
+    const res = await codiaFetch(sessionMessagesUrl(targetPath));
     const data = await res.json();
     const latestState = useStore.getState() as Record<string, any>;
     const latestVersion =
@@ -328,7 +328,7 @@ export async function completeSessionTodos(sessionPath: string): Promise<boolean
   if (state.streamingSessions.includes(sessionKey) || state.streamingSessions.includes(sessionPath)) return false;
 
   try {
-    await gsapFetch('/api/sessions/todos/complete', {
+    await codiaFetch('/api/sessions/todos/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -356,7 +356,7 @@ export async function loadMoreMessages(forPath?: string): Promise<void> {
   useStore.getState().setLoadingMore(targetPath, true);
   try {
     const before = session.oldestId ?? '';
-    const res = await gsapFetch(sessionMessagesUrl(targetPath, { before }));
+    const res = await codiaFetch(sessionMessagesUrl(targetPath, { before }));
     const data = await res.json();
     if (Array.isArray(data.sessionFiles)) {
       useStore.getState().setSessionRegistryFiles(targetPath, data.sessionFiles);
@@ -379,7 +379,7 @@ export async function loadMoreMessages(forPath?: string): Promise<void> {
 
 export async function loadSessions(): Promise<void> {
   try {
-    const res = await gsapFetch('/api/sessions');
+    const res = await codiaFetch('/api/sessions');
     const data = await res.json();
     const sessions = normalizeSessionListRows(data);
 
@@ -429,7 +429,7 @@ export async function switchSession(input: SessionSwitchInput): Promise<void> {
   _switchAbortController = abortController;
 
   try {
-    const res = await gsapFetch('/api/sessions/switch', {
+    const res = await codiaFetch('/api/sessions/switch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -493,7 +493,7 @@ export async function switchSession(input: SessionSwitchInput): Promise<void> {
       agentPatch.currentAgentId = data.agentId;
       agentPatch.agentName = data.agentName || ag?.name || data.agentId;
       agentPatch.agentYuan = normalizeYuanKey(ag?.yuan);
-      agentPatch.agentAvatarUrl = ag?.hasAvatar ? gsapUrl(`/api/agents/${data.agentId}/avatar?t=${Date.now()}`, { includeTokenQuery: true }) : null;
+      agentPatch.agentAvatarUrl = ag?.hasAvatar ? codiaUrl(`/api/agents/${data.agentId}/avatar?t=${Date.now()}`, { includeTokenQuery: true }) : null;
     }
 
  // 保存当前 session 的附件到 keyed store
@@ -667,7 +667,7 @@ export async function createNewSession(options: unknown = {}): Promise<void> {
   // 重置 context ring
   useStore.setState({ contextTokens: null, contextWindow: null, contextPercent: null });
   try {
-    const res = await gsapFetch('/api/session-permission-mode');
+    const res = await codiaFetch('/api/session-permission-mode');
     const data = await res.json();
     const mode = data.defaultMode || data.mode || 'ask';
     dispatchPlanMode({ enabled: mode === 'read_only', mode });
@@ -676,7 +676,7 @@ export async function createNewSession(options: unknown = {}): Promise<void> {
   }
 
   try {
-    const res = await gsapFetch('/api/session-thinking-level');
+    const res = await codiaFetch('/api/session-thinking-level');
     const data = await res.json();
     if (data.thinkingLevel && isPendingNewSessionDraftView()) {
       useStore.getState().setThinkingLevel(data.thinkingLevel);
@@ -740,7 +740,7 @@ export async function ensureSession(): Promise<boolean> {
     }
     body.currentSessionPath = s.currentSessionPath;
 
-    const res = await gsapFetch('/api/sessions/new', {
+    const res = await codiaFetch('/api/sessions/new', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -786,7 +786,7 @@ export async function ensureSession(): Promise<boolean> {
         patch.agentAvatarUrl = null;
         window.i18n.defaultName = data.agentName || s.agentName;
  // 异步刷新头像
-        gsapFetch('/api/health').then((r: Response) => r.json()).then((d: any) => {
+        codiaFetch('/api/health').then((r: Response) => r.json()).then((d: any) => {
           loadAvatarsAction(d.avatars);
         }).catch(() => {
           loadAvatarsAction();
@@ -854,7 +854,7 @@ export async function ensureSession(): Promise<boolean> {
 
 export async function archiveSession(path: string): Promise<void> {
   try {
-    const res = await gsapFetch('/api/sessions/archive', {
+    const res = await codiaFetch('/api/sessions/archive', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path }),
@@ -981,7 +981,7 @@ export async function deleteSession(input: SessionSwitchInput): Promise<void> {
   const sessionId = normalizedInput.sessionId || sessionIdForPathFromState(stateBeforeDelete, path);
   if (!path && !sessionId) return;
   try {
-    const res = await gsapFetch('/api/sessions/delete', {
+    const res = await codiaFetch('/api/sessions/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1019,7 +1019,7 @@ export async function deleteSession(input: SessionSwitchInput): Promise<void> {
 
 export async function continueDeletedAgentSession(path: string): Promise<boolean> {
   try {
-    const res = await gsapFetch('/api/sessions/continue-deleted-agent', {
+    const res = await codiaFetch('/api/sessions/continue-deleted-agent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path }),
@@ -1070,7 +1070,7 @@ export type RestoreResult = 'ok' | 'conflict' | 'error';
 
 export async function listArchivedSessions(): Promise<ArchivedSession[]> {
   try {
-    const res = await gsapFetch('/api/sessions/archived');
+    const res = await codiaFetch('/api/sessions/archived');
     if (!res.ok) return [];
     return await res.json();
   } catch (err) {
@@ -1081,7 +1081,7 @@ export async function listArchivedSessions(): Promise<ArchivedSession[]> {
 
 export async function restoreSession(path: string): Promise<RestoreResult> {
   try {
-    const res = await gsapFetch('/api/sessions/restore', {
+    const res = await codiaFetch('/api/sessions/restore', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path }),
@@ -1097,7 +1097,7 @@ export async function restoreSession(path: string): Promise<RestoreResult> {
 
 export async function deleteArchivedSession(path: string): Promise<boolean> {
   try {
-    const res = await gsapFetch('/api/sessions/archived/delete', {
+    const res = await codiaFetch('/api/sessions/archived/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path }),
@@ -1111,7 +1111,7 @@ export async function deleteArchivedSession(path: string): Promise<boolean> {
 
 export async function cleanupArchivedSessions(maxAgeDays: 30 | 90): Promise<{ deleted: number }> {
   try {
-    const res = await gsapFetch('/api/sessions/cleanup', {
+    const res = await codiaFetch('/api/sessions/cleanup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ maxAgeDays }),
@@ -1131,7 +1131,7 @@ export async function cleanupArchivedSessions(maxAgeDays: 30 | 90): Promise<{ de
 
 export async function renameSession(path: string, title: string): Promise<boolean> {
   try {
-    const res = await gsapFetch('/api/sessions/rename', {
+    const res = await codiaFetch('/api/sessions/rename', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path, title }),
@@ -1159,7 +1159,7 @@ export async function renameSession(path: string, title: string): Promise<boolea
 
 export async function pinSession(path: string, pinned: boolean): Promise<boolean> {
   try {
-    const res = await gsapFetch('/api/sessions/pin', {
+    const res = await codiaFetch('/api/sessions/pin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path, pinned }),
@@ -1193,7 +1193,7 @@ export async function dismissSessionCapabilityDrift(path: string, fingerprint: s
   const prevDrift = sessionScopedValue(state, state.capabilityDriftBySession, path) || null;
   useStore.getState().setSessionCapabilityDrift?.(path, null);
   try {
-    const res = await gsapFetch('/api/sessions/capability-drift/dismiss', {
+    const res = await codiaFetch('/api/sessions/capability-drift/dismiss', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path, fingerprint }),
@@ -1217,7 +1217,7 @@ export async function refreshSessionCapabilities(
     let data: any = {};
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       if (options.signal?.aborted) return false;
-      const res = await gsapFetch('/api/sessions/fresh-compact', {
+      const res = await codiaFetch('/api/sessions/fresh-compact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path }),

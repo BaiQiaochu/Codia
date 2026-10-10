@@ -6,11 +6,11 @@ import { regenerateMarkdownCoverWithPrompt } from '../../utils/markdown-cover-ac
 import { useStore } from '../../stores';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: mocks.gsapFetch,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: mocks.codiaFetch,
 }));
 
 describe('markdown cover actions', () => {
@@ -18,8 +18,8 @@ describe('markdown cover actions', () => {
 
   beforeEach(() => {
     document.body.innerHTML = '';
-    mocks.gsapFetch.mockReset();
-    mocks.gsapFetch.mockResolvedValue(new Response(JSON.stringify({
+    mocks.codiaFetch.mockReset();
+    mocks.codiaFetch.mockResolvedValue(new Response(JSON.stringify({
       systemCover: { available: true },
       agentGenerate: { available: true, enabled: true, executorAgentId: 'agent-1' },
       available: true,
@@ -29,7 +29,7 @@ describe('markdown cover actions', () => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     }));
-    mocks.gsapFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+    mocks.codiaFetch.mockResolvedValueOnce(new Response(JSON.stringify({
       systemCover: { available: true },
       agentGenerate: { available: true, enabled: true, executorAgentId: 'agent-1' },
       available: true,
@@ -73,9 +73,9 @@ describe('markdown cover actions', () => {
 
     await action;
 
-    expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/desk/beautify/status');
-    expect(mocks.gsapFetch).not.toHaveBeenCalledWith('/api/desk/beautify/status?executorAgentId=agent-1');
-    expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/desk/beautify/cover', expect.objectContaining({
+    expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/desk/beautify/status');
+    expect(mocks.codiaFetch).not.toHaveBeenCalledWith('/api/desk/beautify/status?executorAgentId=agent-1');
+    expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/desk/beautify/cover', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({
         filePath: '/vault/day.md',
@@ -88,11 +88,11 @@ describe('markdown cover actions', () => {
 
   it('does not submit custom cover generation when the selected agent has beautify disabled', async () => {
     const notices: Array<{ text: string; type: string }> = [];
-    window.addEventListener('gsap-inline-notice', ((event: CustomEvent) => {
+    window.addEventListener('codia-inline-notice', ((event: CustomEvent) => {
       notices.push(event.detail);
     }) as EventListener);
-    mocks.gsapFetch.mockReset();
-    mocks.gsapFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+    mocks.codiaFetch.mockReset();
+    mocks.codiaFetch.mockResolvedValueOnce(new Response(JSON.stringify({
       systemCover: { available: true },
       agentGenerate: {
         available: true,
@@ -118,9 +118,9 @@ describe('markdown cover actions', () => {
 
     await action;
 
-    expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/desk/beautify/status');
-    expect(mocks.gsapFetch).not.toHaveBeenCalledWith('/api/desk/beautify/status?executorAgentId=agent-1');
-    expect(mocks.gsapFetch).not.toHaveBeenCalledWith('/api/desk/beautify/cover', expect.anything());
+    expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/desk/beautify/status');
+    expect(mocks.codiaFetch).not.toHaveBeenCalledWith('/api/desk/beautify/status?executorAgentId=agent-1');
+    expect(mocks.codiaFetch).not.toHaveBeenCalledWith('/api/desk/beautify/cover', expect.anything());
     expect(notices).toContainEqual({
       text: 'Cover 生成失败：beautify tool is disabled for this agent',
       type: 'error',

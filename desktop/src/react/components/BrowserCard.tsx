@@ -5,8 +5,8 @@
 import { useCallback } from 'react';
 import { useStore } from '../stores';
 import { updateKeyed } from '../stores/create-keyed-slice';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
-import { useBrowserState } from '../stores/browser-slice';
+import { codiaFetch } from '../hooks/use-codia-fetch';
+import { useBrowserState } from '../stores/browser-selectors';
 
 export function BrowserCard() {
   const { running: browserRunning, url: browserUrl, thumbnail: browserThumbnail } = useBrowserState();
@@ -25,7 +25,7 @@ export function BrowserCard() {
     }
     window.platform?.browserEmergencyStop?.();
     if (sessionPath) {
-      gsapFetch('/api/browser/close-session', {
+      codiaFetch('/api/browser/close-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionPath }),

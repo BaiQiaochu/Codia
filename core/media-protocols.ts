@@ -15,7 +15,7 @@ export const MEDIA_CAPABILITY_KEYS = {
   music: "musicGeneration",
 };
 
-const OPENAI_COMPATIBLE_APIS = new Set(["openai-completions", "openai-responses"]);
+const OPENAI_COMPATIBLE_APIS = new Set(["openai", "openai-completions", "openai-responses"]);
 
 export function capabilityKey(capability) {
   return MEDIA_CAPABILITY_KEYS[capability] || capability;

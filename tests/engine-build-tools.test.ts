@@ -2,9 +2,9 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GsapEngine } from "../core/engine.js";
+import { CodiaEngine } from "../core/engine.js";
 
-describe("GsapEngine.buildTools", () => {
+describe("CodiaEngine.buildTools", () => {
   let tmpDir;
 
   afterEach(() => {
@@ -13,12 +13,12 @@ describe("GsapEngine.buildTools", () => {
   });
 
   it("throws when opts.agentDir points at an unknown agent instead of using focus tools", () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-build-tools-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-build-tools-"));
     const focusAgentDir = path.join(tmpDir, "agents", "focus");
     const missingAgentDir = path.join(tmpDir, "agents", "missing");
 
-    const engine = Object.create(GsapEngine.prototype);
-    engine.gsapHome = tmpDir;
+    const engine = Object.create(CodiaEngine.prototype);
+    engine.codiaHome = tmpDir;
     engine.getAgent = vi.fn(() => null);
     engine._pluginManager = null;
     engine._prefs = { getFileBackup: () => ({ enabled: false }) };
@@ -38,7 +38,7 @@ describe("GsapEngine.buildTools", () => {
   });
 
   it("uses an explicit permission mode provider instead of the desktop session default", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-build-tools-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-build-tools-"));
     const agentDir = path.join(tmpDir, "agents", "focus");
     const sessionPath = path.join(tmpDir, "sessions", "bridge.jsonl");
     const execute = vi.fn(async () => ({ details: { executed: true } }));
@@ -49,8 +49,8 @@ describe("GsapEngine.buildTools", () => {
       })),
     };
 
-    const engine = Object.create(GsapEngine.prototype);
-    engine.gsapHome = tmpDir;
+    const engine = Object.create(CodiaEngine.prototype);
+    engine.codiaHome = tmpDir;
     engine.getAgent = vi.fn(() => ({ id: "focus", agentDir, tools: [] }));
     engine._pluginManager = null;
     engine._prefs = { getFileBackup: () => ({ enabled: false }) };
@@ -86,7 +86,7 @@ describe("GsapEngine.buildTools", () => {
   });
 
   it("passes a session workbench execution boundary into plugin tools", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-build-tools-boundary-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-build-tools-boundary-"));
     const agentDir = path.join(tmpDir, "agents", "focus");
     const workspace = path.join(tmpDir, "workspace");
     const sessionPath = path.join(agentDir, "sessions", "main.jsonl");
@@ -98,8 +98,8 @@ describe("GsapEngine.buildTools", () => {
       tools: [],
     };
 
-    const engine = Object.create(GsapEngine.prototype);
-    engine.gsapHome = tmpDir;
+    const engine = Object.create(CodiaEngine.prototype);
+    engine.codiaHome = tmpDir;
     engine._runtimeContext = {
       serverId: "server_engine",
       serverNodeId: "node_engine",
@@ -153,7 +153,7 @@ describe("GsapEngine.buildTools", () => {
   });
 
   it("registers files created or modified by write and edit tools in the active session", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-build-tools-touch-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-build-tools-touch-"));
     const agentDir = path.join(tmpDir, "agents", "focus");
     const workspace = path.join(tmpDir, "workspace");
     const sessionPath = path.join(agentDir, "sessions", "touch.jsonl");
@@ -169,8 +169,8 @@ describe("GsapEngine.buildTools", () => {
       origin,
       operation,
     }));
-    const engine = Object.create(GsapEngine.prototype);
-    engine.gsapHome = tmpDir;
+    const engine = Object.create(CodiaEngine.prototype);
+    engine.codiaHome = tmpDir;
     engine.registerSessionFile = registerSessionFile;
     engine.getAgent = vi.fn(() => ({ id: "focus", agentDir, tools: [] }));
     engine._pluginManager = null;
@@ -200,7 +200,7 @@ describe("GsapEngine.buildTools", () => {
     const writeResult = await write.execute("write-1", { path: "draft.md", content: "hello\n" });
     const editResult = await edit.execute("edit-1", {
       path: "draft.md",
-      edits: [{ oldText: "hello", newText: "hello G-SAP" }],
+      edits: [{ oldText: "hello", newText: "hello Codia" }],
     });
 
     expect(registerSessionFile).toHaveBeenCalledWith(expect.objectContaining({
@@ -230,7 +230,7 @@ describe("GsapEngine.buildTools", () => {
   });
 
   it("normalizes write/edit file_path aliases before SDK execution and session file registration", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-build-tools-touch-alias-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-build-tools-touch-alias-"));
     const agentDir = path.join(tmpDir, "agents", "focus");
     const workspace = path.join(tmpDir, "workspace");
     const sessionPath = path.join(agentDir, "sessions", "touch-alias.jsonl");
@@ -246,8 +246,8 @@ describe("GsapEngine.buildTools", () => {
       origin,
       operation,
     }));
-    const engine = Object.create(GsapEngine.prototype);
-    engine.gsapHome = tmpDir;
+    const engine = Object.create(CodiaEngine.prototype);
+    engine.codiaHome = tmpDir;
     engine.registerSessionFile = registerSessionFile;
     engine.getAgent = vi.fn(() => ({ id: "focus", agentDir, tools: [] }));
     engine._pluginManager = null;

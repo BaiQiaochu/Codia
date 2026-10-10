@@ -18,7 +18,7 @@ type MockStoreState = {
 };
 
 let storeState: MockStoreState;
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
 const useStoreMock = Object.assign(
   <T,>(selector: (state: MockStoreState) => T): T => selector(storeState),
@@ -44,19 +44,19 @@ vi.mock('../../hooks/use-panel', async () => {
   };
 });
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
-  gsapUrl: (path: string) => path,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
+  codiaUrl: (path: string) => path,
 }));
 
 describe('automation error smoke', () => {
   beforeEach(() => {
     storeState = {
       agentAvatarUrl: null,
-      agentName: 'G-SAP',
-      agentYuan: 'gsap',
+      agentName: 'Codia',
+      agentYuan: 'codia',
       agents: [],
-      currentAgentId: 'gsap',
+      currentAgentId: 'codia',
       currentSessionPath: null,
       sessions: [],
       deskBasePath: null,
@@ -64,7 +64,7 @@ describe('automation error smoke', () => {
       homeFolder: null,
       addToast: vi.fn(),
     };
-    gsapFetchMock.mockReset();
+    codiaFetchMock.mockReset();
     (window as typeof window & { t?: (key: string) => string }).t = (key: string) => key;
   });
 
@@ -74,7 +74,7 @@ describe('automation error smoke', () => {
   });
 
   it('shows an explicit error toast when cron creation fails validation', async () => {
-    gsapFetchMock.mockImplementation(async (url: unknown, options?: RequestInit) => {
+    codiaFetchMock.mockImplementation(async (url: unknown, options?: RequestInit) => {
       const text = String(url);
       if (text === '/api/desk/cron' && (!options || options.method === undefined)) {
         return { json: async () => ({ jobs: [] }) };
@@ -107,11 +107,11 @@ describe('automation error smoke', () => {
       ...storeState,
       agentAvatarUrl: '/api/avatar/agent?t=stale',
       agentName: 'Stale Assistant',
-      agentYuan: 'gsap',
+      agentYuan: 'codia',
       currentAgentId: 'agent-a',
       agents: [{ id: 'agent-a', name: 'Real Assistant', yuan: 'ming', isPrimary: true, hasAvatar: true }],
     };
-    gsapFetchMock.mockImplementation(async (url: unknown, options?: RequestInit) => {
+    codiaFetchMock.mockImplementation(async (url: unknown, options?: RequestInit) => {
       const text = String(url);
       if (text === '/api/desk/cron' && (!options || options.method === undefined)) {
         return {

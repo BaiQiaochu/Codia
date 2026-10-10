@@ -19,8 +19,8 @@ describe("skill bundle store", () => {
   let engine;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-skill-bundles-"));
-    engine = { gsapHome: tempDir };
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-skill-bundles-"));
+    engine = { codiaHome: tempDir };
   });
 
   afterEach(() => {
@@ -80,21 +80,21 @@ describe("skill bundle store", () => {
 
   it("detaches deleted agents from imported bundles while keeping bundle membership", () => {
     const bundle = createSkillBundle(engine, {
-      name: "G-SAP Bundle",
+      name: "Codia Bundle",
       skillNames: ["quiet-musing", "skill-creator"],
       source: "character-card-import",
-      agentId: "gsap-2",
-      sourcePackage: "gsap-character-card.zip",
+      agentId: "codia-2",
+      sourcePackage: "codia-character-card.zip",
     });
 
-    const store = detachAgentFromBundles(engine, "gsap-2");
+    const store = detachAgentFromBundles(engine, "codia-2");
     expect(store.bundles).toHaveLength(1);
     expect(store.bundles[0]).toMatchObject({
       id: bundle.id,
       agentId: null,
       skillNames: ["quiet-musing", "skill-creator"],
       source: "character-card-import",
-      sourcePackage: "gsap-character-card.zip",
+      sourcePackage: "codia-character-card.zip",
     });
   });
 });

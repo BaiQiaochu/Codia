@@ -180,7 +180,7 @@ describe("injectGlobalFields", () => {
 // ---------------------------------------------------------------------------
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-migrate-test-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-migrate-test-"));
 }
 
 function writeAgentConfig(agentsDir, agentId, cfgObj) {

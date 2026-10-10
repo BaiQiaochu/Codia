@@ -26,7 +26,7 @@ describe("compiled memory reset state", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-compiled-reset-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-compiled-reset-"));
     memoryDir = path.join(tmpDir, "memory");
     summariesDir = path.join(memoryDir, "summaries");
     fs.mkdirSync(summariesDir, { recursive: true });
@@ -76,7 +76,7 @@ describe("compiled memory reset state", () => {
   it("normalizes section body content by removing headings and JSON string arrays", () => {
     expect(normalizeCompiledSectionBody("# 本周主题概要\n\n- 用户关注记忆系统")).toBe("- 用户关注记忆系统");
     expect(normalizeCompiledSectionBody("## 长期背景记录\n\n### 偏好\n\n用户喜欢沉静的 UI")).toBe("用户喜欢沉静的 UI");
-    expect(normalizeCompiledSectionBody("[\"用户关注 Project G-SAP\", \"用户喜欢清晰边界\"]")).toBe("- 用户关注 Project G-SAP\n- 用户喜欢清晰边界");
+    expect(normalizeCompiledSectionBody("[\"用户关注 Project Codia\", \"用户喜欢清晰边界\"]")).toBe("- 用户关注 Project Codia\n- 用户喜欢清晰边界");
   });
 });
 
@@ -86,7 +86,7 @@ describe("SessionSummaryManager reset support", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-summary-reset-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-summary-reset-"));
     summariesDir = path.join(tmpDir, "summaries");
   });
 

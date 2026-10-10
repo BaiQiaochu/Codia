@@ -41,10 +41,10 @@ describe("createSandboxedTools on Windows", () => {
     const getExternalReadPaths = () => ["C:\\outside\\brief.md"];
     const getSandboxNetworkEnabled = () => true;
     const { tools } = createSandboxedTools("C:\\work", [], {
-      agentDir: "C:\\hana\\agents\\hana",
+      agentDir: "C:\\codia\\agents\\codia",
       workspace: "C:\\work",
       workspaceFolders: [],
-      hanakoHome: "C:\\hana",
+      codiaHome: "C:\\codia",
       getSandboxEnabled: () => true,
       getSandboxNetworkEnabled,
       getExternalReadPaths,
@@ -56,7 +56,7 @@ describe("createSandboxedTools on Windows", () => {
     const sandboxCall = (createWin32Exec as any).mock.calls.find(([options]: any[]) => options?.sandbox);
     const sandbox = sandboxCall?.[0]?.sandbox;
     expect(sandbox?.policy?.mode).toBe("standard");
-    expect(sandbox?.gsapHome).toBe("C:\\hana");
+    expect(sandbox?.codiaHome).toBe("C:\\codia");
     expect(sandbox?.getExternalReadPaths).toBe(getExternalReadPaths);
     expect(sandbox?.getSandboxNetworkEnabled).toBe(getSandboxNetworkEnabled);
   });

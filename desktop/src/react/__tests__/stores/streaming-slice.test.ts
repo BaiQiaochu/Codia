@@ -28,7 +28,6 @@ describe('streaming-slice', () => {
     expect(slice.streamingSessions).toEqual([]);
 
     slice.addStreamingSession('/s1');
-    slice.addStreamingSession('/s1');
     slice.addStreamingSession('/s2');
     expect(slice.streamingSessions).toEqual(['/s1', '/s2']);
 

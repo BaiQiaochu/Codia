@@ -13,7 +13,7 @@ export class DefaultResourceLoader extends PiResourceLoader {
 
   override async reload(options?: Parameters<PiResourceLoader["reload"]>[0]): Promise<void> {
     if (this.liveExtensionFactories) {
-      // Pi 1.0.1 copies this list in its constructor and has no public setter.
+      // Pi 1.1.0 copies this list in its constructor and has no public setter.
       // Keep this internal dependency at the SDK boundary, covered by a real-SDK
       // contract test. Built-ins retain the SDK's separate discovery/trust path.
       const sdkFactories = Reflect.get(this, "extensionFactories");

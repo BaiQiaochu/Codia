@@ -77,6 +77,8 @@ describe('ChatTimelineNavigator layout', () => {
     expect(source).toContain('finiteNumber(panel.scrollHeight)');
     expect(source).toContain('finiteNumber(panel.scrollTop)');
     expect(source).toContain('finiteNumber(rect.top)');
+    expect(source).toContain('markerLayoutsEqual(current, next) ? current : next');
+    expect(source).toContain('measureRafRef.current = window.requestAnimationFrame');
     expect(source).toContain('markerWidthEm');
     expect(source).not.toContain('panel.scrollTop + rect.top - panelRect.top');
   });

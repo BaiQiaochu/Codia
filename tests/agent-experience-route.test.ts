@@ -9,13 +9,13 @@ describe("agents route experience toggle", () => {
   let agentDir;
   let app;
   let engine;
-  const agentId = "gsap";
+  const agentId = "codia";
 
   beforeEach(async () => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-exp-route-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-exp-route-"));
     agentDir = path.join(tempRoot, agentId);
     fs.mkdirSync(path.join(agentDir, "experience"), { recursive: true });
-    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: G-SAP\n", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: Codia\n", "utf-8");
     fs.writeFileSync(
       path.join(agentDir, "experience", "workflow.md"),
       "<!-- experience-title: d29ya2Zsb3c -->\n1. Keep changes small.\n",

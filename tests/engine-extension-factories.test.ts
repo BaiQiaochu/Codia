@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { GsapEngine } from "../core/engine.js";
+import { CodiaEngine } from "../core/engine.js";
 
 function makeFactory(name) {
   return Object.assign(() => {}, { _testName: name });
@@ -10,7 +10,7 @@ function names(factories) {
 }
 
 function makeEngine({ pluginFactories = [] } = {}) {
-  const engine = Object.create(GsapEngine.prototype);
+  const engine = Object.create(CodiaEngine.prototype);
   engine._coreExtensionFactories = [
     makeFactory("core-provider"),
     makeFactory("core-image"),
@@ -28,7 +28,7 @@ function makeEngine({ pluginFactories = [] } = {}) {
   return engine;
 }
 
-describe("GsapEngine extension factories", () => {
+describe("CodiaEngine extension factories", () => {
   it("reloads ResourceLoader after plugin extension factories are synced", async () => {
     const engine = makeEngine({
       pluginFactories: [makeFactory("plugin-a")],

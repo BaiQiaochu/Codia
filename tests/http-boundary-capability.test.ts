@@ -15,7 +15,7 @@ describe("HTTP request capability boundary", () => {
   it("authorizes remote principals through persisted grants", async () => {
     const { createGrant } = await import("../core/grant-registry.js");
     const { createRequestContext } = await import("../server/http/boundary.js");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-http-boundary-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-http-boundary-"));
     const principal = normalizePrincipal({
       kind: "device",
       userId: "user_1",
@@ -36,10 +36,10 @@ describe("HTTP request capability boundary", () => {
     });
 
     const context = createRequestContext({
-      req: { method: "GET", url: "http://gsap.local/api/mobile/workbench/files" },
+      req: { method: "GET", url: "http://codia.local/api/mobile/workbench/files" },
       get: (key) => key === "authPrincipal" ? principal : null,
     }, {
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       getRuntimeContext: () => ({ studioId: "studio_1", serverNodeId: "node_1" }),
     });
 
@@ -68,10 +68,10 @@ describe("HTTP request capability boundary", () => {
     });
 
     const context = createRequestContext({
-      req: { method: "GET", url: "http://gsap.local/api/mobile/workbench/files" },
+      req: { method: "GET", url: "http://codia.local/api/mobile/workbench/files" },
       get: (key) => key === "authPrincipal" ? principal : null,
     }, {
-      gsapHome: null,
+      codiaHome: null,
       getRuntimeContext: () => ({ studioId: "studio_1", serverNodeId: "node_1" }),
     });
 

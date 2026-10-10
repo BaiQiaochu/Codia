@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { t } from '../../helpers';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { Toggle } from '../../widgets/Toggle';
 import { BridgeStatusDot, BridgeStatusText } from './BridgeWidgets';
 import { PlatformDiagnostics } from './PlatformDiagnostics';
@@ -40,7 +40,7 @@ export function AgentlyMailSection({
   const checkCli = useCallback(async (silent = false) => {
     if (!silent) setBusy('check');
     try {
-      const res = await gsapFetch(`/api/bridge/agently-mail/status${agentQuery(agentId)}`);
+      const res = await codiaFetch(`/api/bridge/agently-mail/status${agentQuery(agentId)}`);
       const data = await res.json();
       setCli(data.cli || null);
       if (!silent && data.cli?.available) {
@@ -63,7 +63,7 @@ export function AgentlyMailSection({
   const startAuth = async () => {
     setBusy('auth');
     try {
-      const res = await gsapFetch(`/api/bridge/agently-mail/auth/start${agentQuery(agentId)}`, { method: 'POST' });
+      const res = await codiaFetch(`/api/bridge/agently-mail/auth/start${agentQuery(agentId)}`, { method: 'POST' });
       const data = await res.json();
       if (!data.ok || !data.authUrl) throw new Error(data.error || 'auth_url_missing');
       setAuthUrl(data.authUrl);
@@ -78,7 +78,7 @@ export function AgentlyMailSection({
   const verify = async () => {
     setBusy('verify');
     try {
-      const res = await gsapFetch(`/api/bridge/agently-mail/verify${agentQuery(agentId)}`, { method: 'POST' });
+      const res = await codiaFetch(`/api/bridge/agently-mail/verify${agentQuery(agentId)}`, { method: 'POST' });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || 'verify_failed');
       showToast(t('settings.bridge.agentlyMailVerifySuccess'), 'success');
@@ -94,7 +94,7 @@ export function AgentlyMailSection({
   const unbind = async () => {
     setBusy('unbind');
     try {
-      await gsapFetch(`/api/bridge/agently-mail/unbind${agentQuery(agentId)}`, { method: 'POST' });
+      await codiaFetch(`/api/bridge/agently-mail/unbind${agentQuery(agentId)}`, { method: 'POST' });
       showToast(t('settings.bridge.agentlyMailUnbind'), 'success');
       setAuthUrl('');
       await onReload();

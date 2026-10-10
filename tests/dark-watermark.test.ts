@@ -70,7 +70,7 @@ describe("dark watermark", () => {
   });
 
   it("writes a sidecar provenance file for generated binary artifacts", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-watermark-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-watermark-"));
     try {
       const filePath = path.join(dir, "scene.xmind");
       fs.writeFileSync(filePath, Buffer.from("binary-content"));
@@ -85,7 +85,7 @@ describe("dark watermark", () => {
         randomId: () => "binary-trace",
       });
 
-      const sidecarPath = `${filePath}.gsap-watermark.json`;
+      const sidecarPath = `${filePath}.codia-watermark.json`;
       expect(result).toMatchObject({
         product: "Codia",
         traceId: "binary-trace",

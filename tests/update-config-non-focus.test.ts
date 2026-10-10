@@ -9,7 +9,7 @@ describe("updateConfig with agentId", () => {
       focusAgent,
       targetAgent,
       deps: {
-        hanakoHome: "/tmp/test",
+        codiaHome: "/tmp/test",
         agentsDir: "/tmp/test/agents",
         getAgent: () => focusAgent,
         getAgentById: (id) => (id === "target" ? targetAgent : null),

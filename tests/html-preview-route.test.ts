@@ -50,7 +50,7 @@ describe("HTML preview route", () => {
   });
 
   it("adds a token-scoped asset base for HTML files so relative attachment images load through the preview route", async () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-html-preview-"));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "codia-html-preview-"));
     const sourceFilePath = path.join(tmp, "demo.html");
     const assetDir = path.join(tmp, "assets");
     fs.mkdirSync(assetDir, { recursive: true });
@@ -90,7 +90,7 @@ describe("HTML preview route", () => {
   });
 
   it("serves relative assets that resolve inside an explicit sandbox root", async () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-html-preview-sandbox-"));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "codia-html-preview-sandbox-"));
     const pageDir = path.join(tmp, "pages");
     const assetDir = path.join(tmp, "shared");
     fs.mkdirSync(pageDir, { recursive: true });

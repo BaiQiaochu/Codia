@@ -13,10 +13,10 @@ describe("ResourceIO sandbox file tools", () => {
   });
 
   function makeTools() {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-sandbox-tools-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-sandbox-tools-"));
     const workspace = path.join(tempRoot, "workspace");
-    const gsapHome = path.join(tempRoot, "gsap-home");
-    const agentDir = path.join(gsapHome, "agents", "gsap");
+    const codiaHome = path.join(tempRoot, "codia-home");
+    const agentDir = path.join(codiaHome, "agents", "codia");
     fs.mkdirSync(workspace, { recursive: true });
     fs.mkdirSync(agentDir, { recursive: true });
     const emitEvent = vi.fn();
@@ -25,7 +25,7 @@ describe("ResourceIO sandbox file tools", () => {
       agentDir,
       workspace,
       workspaceFolders: [],
-      gsapHome,
+      codiaHome,
       getSandboxEnabled: () => true,
       getSessionPath: () => sessionPath,
       emitEvent,
@@ -34,10 +34,10 @@ describe("ResourceIO sandbox file tools", () => {
   }
 
   function makeToolsWithResourceIO(resourceIO) {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-sandbox-tools-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-sandbox-tools-"));
     const workspace = path.join(tempRoot, "workspace");
-    const gsapHome = path.join(tempRoot, "gsap-home");
-    const agentDir = path.join(gsapHome, "agents", "gsap");
+    const codiaHome = path.join(tempRoot, "codia-home");
+    const agentDir = path.join(codiaHome, "agents", "codia");
     fs.mkdirSync(workspace, { recursive: true });
     fs.mkdirSync(agentDir, { recursive: true });
     const sessionPath = path.join(agentDir, "sessions", "main.jsonl");
@@ -45,7 +45,7 @@ describe("ResourceIO sandbox file tools", () => {
       agentDir,
       workspace,
       workspaceFolders: [],
-      gsapHome,
+      codiaHome,
       getSandboxEnabled: () => true,
       getSessionPath: () => sessionPath,
       resourceIO,

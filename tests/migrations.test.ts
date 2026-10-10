@@ -11,7 +11,7 @@ import { LATEST_DATA_VERSION, runMigrations } from "../core/migrations.js";
 // ── 测试工具 ────────────────────────────────────────────────────────────────
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-migrations-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-migrations-"));
 }
 
 /** 最小化 PreferencesManager stub */
@@ -82,10 +82,10 @@ describe("runMigrations runner", () => {
 
   it("upgrades dataVersion from 0 to latest on first run", () => {
     const prefs = makePrefs(userDir);
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "" } });
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "" } });
 
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry: makeRegistry([]),
@@ -99,10 +99,10 @@ describe("runMigrations runner", () => {
     const prefs = makePrefs(userDir);
     prefs.savePreferences({ _dataVersion: 9999 });
 
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "ghost-provider" } });
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "ghost-provider" } });
 
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry: makeRegistry([]),
@@ -110,7 +110,7 @@ describe("runMigrations runner", () => {
     });
 
     //
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.api.provider).toBe("ghost-provider");
   });
 });
@@ -133,7 +133,7 @@ describe("migration #12: backfill legacy session files into sidecars", () => {
     const prefs = makePrefs(userDir);
     prefs.savePreferences({ _dataVersion: 11 });
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry: makeRegistry([]),
@@ -143,8 +143,8 @@ describe("migration #12: backfill legacy session files into sidecars", () => {
   }
 
   it("registers legacy stage_files, present_files, and artifacts without rewriting the session jsonl", () => {
-    writeAgentConfig(agentsDir, "gsap", { agent: { name: "G-SAP" }, api: { provider: "" } });
-    const sessionPath = path.join(agentsDir, "gsap", "sessions", "legacy.jsonl");
+    writeAgentConfig(agentsDir, "codia", { agent: { name: "Codia" }, api: { provider: "" } });
+    const sessionPath = path.join(agentsDir, "codia", "sessions", "legacy.jsonl");
     const stagePath = path.join(tmpDir, "legacy-image.png");
     const presentPath = path.join(tmpDir, "legacy-present.txt");
     const artifactPath = path.join(tmpDir, "legacy-artifact.md");
@@ -205,85 +205,85 @@ describe("migration #1: cleanDanglingProviderRefs", () => {
   afterEach(() => { fs.rmSync(tmpDir, { recursive: true, force: true }); });
 
   it("clears api.provider when it points to a missing provider", () => {
-    writeAgentConfig(agentsDir, "hana", {
+    writeAgentConfig(agentsDir, "codia", {
       api: { provider: "dead-provider" },
     });
     const prefs = makePrefs(userDir);
 
     runMigrations({
-      gsapHome: tmpDir, agentsDir, prefs,
+      codiaHome: tmpDir, agentsDir, prefs,
       providerRegistry: makeRegistry(["openai"]),
       log: () => {},
     });
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.api.provider).toBe("");
   });
 
   it("keeps references to existing providers", () => {
-    writeAgentConfig(agentsDir, "hana", {
+    writeAgentConfig(agentsDir, "codia", {
       api: { provider: "openai" },
       models: { chat: "openai/gpt-4o" },
     });
     const prefs = makePrefs(userDir);
 
     runMigrations({
-      gsapHome: tmpDir, agentsDir, prefs,
+      codiaHome: tmpDir, agentsDir, prefs,
       providerRegistry: makeRegistry(["openai"]),
       log: () => {},
     });
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.api.provider).toBe("openai");
     expect(config.models.chat).toEqual({ id: "gpt-4o", provider: "openai" });
   });
 
   it("clears dangling provider/model chat references", () => {
-    writeAgentConfig(agentsDir, "hana", {
+    writeAgentConfig(agentsDir, "codia", {
       models: { chat: "minimax-token_plan/minimax-large", utility: "openai/gpt-4o-mini" },
     });
     const prefs = makePrefs(userDir);
 
     runMigrations({
-      gsapHome: tmpDir, agentsDir, prefs,
+      codiaHome: tmpDir, agentsDir, prefs,
       providerRegistry: makeRegistry(["openai"]),
       log: () => {},
     });
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.models.chat).toBe("");
     expect(config.models.utility).toEqual({ id: "gpt-4o-mini", provider: "openai" });
   });
 
   it("clears dangling object chat model references", () => {
-    writeAgentConfig(agentsDir, "hana", {
+    writeAgentConfig(agentsDir, "codia", {
       models: { chat: { id: "some-model", provider: "dead-provider" } },
     });
     const prefs = makePrefs(userDir);
 
     runMigrations({
-      gsapHome: tmpDir, agentsDir, prefs,
+      codiaHome: tmpDir, agentsDir, prefs,
       providerRegistry: makeRegistry(["openai"]),
       log: () => {},
     });
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.models.chat).toBe("");
   });
 
   it("clears dangling embedding provider references", () => {
-    writeAgentConfig(agentsDir, "hana", {
+    writeAgentConfig(agentsDir, "codia", {
       embedding_api: { provider: "dead" },
     });
     const prefs = makePrefs(userDir);
 
     runMigrations({
-      gsapHome: tmpDir, agentsDir, prefs,
+      codiaHome: tmpDir, agentsDir, prefs,
       providerRegistry: makeRegistry([]),
       log: () => {},
     });
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.embedding_api.provider).toBe("");
   });
 
@@ -296,7 +296,7 @@ describe("migration #1: cleanDanglingProviderRefs", () => {
     fs.mkdirSync(agentsDir, { recursive: true });
 
     runMigrations({
-      gsapHome: tmpDir, agentsDir, prefs,
+      codiaHome: tmpDir, agentsDir, prefs,
       providerRegistry: makeRegistry([]),
       log: () => {},
     });
@@ -314,7 +314,7 @@ describe("migration #1: cleanDanglingProviderRefs", () => {
     fs.mkdirSync(agentsDir, { recursive: true });
 
     runMigrations({
-      gsapHome: tmpDir, agentsDir, prefs,
+      codiaHome: tmpDir, agentsDir, prefs,
       providerRegistry: makeRegistry(["openai"]),
       log: () => {},
     });
@@ -324,7 +324,7 @@ describe("migration #1: cleanDanglingProviderRefs", () => {
   });
 
   it("repairs multiple agents at the same time", () => {
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "dead" } });
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "dead" } });
     writeAgentConfig(agentsDir, "butter", { api: { provider: "openai" } });
     writeAgentConfig(agentsDir, "xiaohua", {
       api: { provider: "dead" },
@@ -333,12 +333,12 @@ describe("migration #1: cleanDanglingProviderRefs", () => {
     const prefs = makePrefs(userDir);
 
     runMigrations({
-      gsapHome: tmpDir, agentsDir, prefs,
+      codiaHome: tmpDir, agentsDir, prefs,
       providerRegistry: makeRegistry(["openai"]),
       log: () => {},
     });
 
-    expect(readAgentConfig(agentsDir, "hana").api.provider).toBe("");
+    expect(readAgentConfig(agentsDir, "codia").api.provider).toBe("");
     expect(readAgentConfig(agentsDir, "butter").api.provider).toBe("openai");
     expect(readAgentConfig(agentsDir, "xiaohua").api.provider).toBe("");
     expect(readAgentConfig(agentsDir, "xiaohua").models.chat).toBe("");
@@ -366,7 +366,7 @@ describe("migration #2: migrateBridgeToPerAgent", () => {
     prefs.savePreferences(p);
 
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry: makeRegistry([]),
@@ -375,10 +375,10 @@ describe("migration #2: migrateBridgeToPerAgent", () => {
   }
 
   it("migrates a single-agent telegram bridge owner into config.yaml", () => {
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "" } });
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "" } });
     const prefs = makePrefs(userDir);
     prefs.savePreferences({
-      primaryAgent: "hana",
+      primaryAgent: "codia",
       bridge: {
         telegram: { token: "tok123", webhook: true },
         owner: { telegram: "user-001" },
@@ -388,7 +388,7 @@ describe("migration #2: migrateBridgeToPerAgent", () => {
 
     runMigration2(prefs);
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.bridge.telegram.token).toBe("tok123");
     expect(config.bridge.telegram.webhook).toBe(true);
     expect(config.bridge.telegram.owner).toBe("user-001");
@@ -427,10 +427,10 @@ describe("migration #2: migrateBridgeToPerAgent", () => {
   });
 
   it("migrates legacy owner key into primary agent", () => {
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "" } });
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "" } });
     const prefs = makePrefs(userDir);
     prefs.savePreferences({
-      primaryAgent: "hana",
+      primaryAgent: "codia",
       bridge: {
         telegram: { token: "tok" },
         owner: { telegram: "legacy-owner" },
@@ -439,7 +439,7 @@ describe("migration #2: migrateBridgeToPerAgent", () => {
 
     runMigration2(prefs);
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.bridge.telegram.owner).toBe("legacy-owner");
   });
 
@@ -465,13 +465,13 @@ describe("migration #2: migrateBridgeToPerAgent", () => {
   });
 
   it("no-ops when bridge config is missing", () => {
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "" } });
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "" } });
     const prefs = makePrefs(userDir);
-    prefs.savePreferences({ primaryAgent: "hana" });
+    prefs.savePreferences({ primaryAgent: "codia" });
 
     runMigration2(prefs);
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.bridge).toBeUndefined();
 
     const p = prefs.getPreferences();
@@ -479,11 +479,11 @@ describe("migration #2: migrateBridgeToPerAgent", () => {
   });
 
   it("falls back to primaryAgent when agentId points to a deleted agent", () => {
-    // agent-a does NOT exist, only hana exists
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "" } });
+    // agent-a does NOT exist, only codia exists
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "" } });
     const prefs = makePrefs(userDir);
     prefs.savePreferences({
-      primaryAgent: "hana",
+      primaryAgent: "codia",
       bridge: {
         telegram: { token: "tok", agentId: "deleted-agent" },
         owner: {},
@@ -492,7 +492,7 @@ describe("migration #2: migrateBridgeToPerAgent", () => {
 
     runMigration2(prefs);
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.bridge.telegram.token).toBe("tok");
     expect(config.bridge.telegram.agentId).toBeUndefined();
   });
@@ -542,7 +542,7 @@ describe("migration #3: migrateWorkspaceToPerAgent", () => {
     p._dataVersion = 2;
     prefs.savePreferences(p);
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry: makeRegistry([]),
@@ -551,17 +551,17 @@ describe("migration #3: migrateWorkspaceToPerAgent", () => {
   }
 
   it("migrates home_folder to primary agent config.yaml", () => {
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "" } });
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "" } });
     const prefs = makePrefs(userDir);
     prefs.savePreferences({
-      primaryAgent: "hana",
+      primaryAgent: "codia",
       home_folder: "/Users/test/Desktop",
       _dataVersion: 2,
     });
 
     runMigration3(prefs);
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.desk.home_folder).toBe("/Users/test/Desktop");
 
     const p = prefs.getPreferences();
@@ -570,13 +570,13 @@ describe("migration #3: migrateWorkspaceToPerAgent", () => {
   });
 
   it("skips when home_folder is empty", () => {
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "" } });
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "" } });
     const prefs = makePrefs(userDir);
-    prefs.savePreferences({ primaryAgent: "hana", _dataVersion: 2 });
+    prefs.savePreferences({ primaryAgent: "codia", _dataVersion: 2 });
 
     runMigration3(prefs);
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.desk).toBeUndefined();
     expect(prefs.getPreferences()._dataVersion).toBe(LATEST_DATA_VERSION);
   });
@@ -598,29 +598,29 @@ describe("migration #3: migrateWorkspaceToPerAgent", () => {
   });
 
   it("does not write home_folder to non-primary agents, but disables their heartbeat", () => {
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "" } });
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "" } });
     writeAgentConfig(agentsDir, "assistant", { api: { provider: "" } });
     const prefs = makePrefs(userDir);
     prefs.savePreferences({
-      primaryAgent: "hana",
+      primaryAgent: "codia",
       home_folder: "/workspace",
       _dataVersion: 2,
     });
 
     runMigration3(prefs);
 
-    const gsapConfig = readAgentConfig(agentsDir, "hana");
+    const codiaConfig = readAgentConfig(agentsDir, "codia");
     const assistantConfig = readAgentConfig(agentsDir, "assistant");
-    expect(gsapConfig.desk.home_folder).toBe("/workspace");
+    expect(codiaConfig.desk.home_folder).toBe("/workspace");
     expect(assistantConfig.desk.home_folder).toBeUndefined();
     expect(assistantConfig.desk.heartbeat_enabled).toBe(false);
   });
 
   it("preserves data when no agent config.yaml exists (version stays at 2)", () => {
-    fs.mkdirSync(path.join(agentsDir, "hana"), { recursive: true });
+    fs.mkdirSync(path.join(agentsDir, "codia"), { recursive: true });
     const prefs = makePrefs(userDir);
     prefs.savePreferences({
-      primaryAgent: "hana",
+      primaryAgent: "codia",
       home_folder: "/workspace",
       _dataVersion: 2,
     });
@@ -634,10 +634,10 @@ describe("migration #3: migrateWorkspaceToPerAgent", () => {
   });
 
   it("is idempotent: rerun after success is a no-op", () => {
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "" } });
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "" } });
     const prefs = makePrefs(userDir);
     prefs.savePreferences({
-      primaryAgent: "hana",
+      primaryAgent: "codia",
       home_folder: "/workspace",
       _dataVersion: 2,
     });
@@ -653,37 +653,37 @@ describe("migration #3: migrateWorkspaceToPerAgent", () => {
 
     // home_folder is gone from prefs, so migration skips cleanly
     expect(prefs.getPreferences()._dataVersion).toBe(LATEST_DATA_VERSION);
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.desk.home_folder).toBe("/workspace");
   });
 
   it("preserves existing desk fields when merging home_folder", () => {
-    writeAgentConfig(agentsDir, "hana", {
+    writeAgentConfig(agentsDir, "codia", {
       api: { provider: "" },
       desk: { heartbeat_enabled: false, heartbeat_interval: 30 },
     });
     const prefs = makePrefs(userDir);
     prefs.savePreferences({
-      primaryAgent: "hana",
+      primaryAgent: "codia",
       home_folder: "/workspace",
       _dataVersion: 2,
     });
 
     runMigration3(prefs);
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.desk.home_folder).toBe("/workspace");
     expect(config.desk.heartbeat_enabled).toBe(false);
     expect(config.desk.heartbeat_interval).toBe(30);
   });
 
   it("disables heartbeat for non-primary agents", () => {
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "" } });
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "" } });
     writeAgentConfig(agentsDir, "assistant", { api: { provider: "" } });
     writeAgentConfig(agentsDir, "research", { api: { provider: "" } });
     const prefs = makePrefs(userDir);
     prefs.savePreferences({
-      primaryAgent: "hana",
+      primaryAgent: "codia",
       home_folder: "/workspace",
       _dataVersion: 2,
     });
@@ -691,8 +691,8 @@ describe("migration #3: migrateWorkspaceToPerAgent", () => {
     runMigration3(prefs);
 
     // Primary agent keeps heartbeat on (default)
-    const gsapConfig = readAgentConfig(agentsDir, "hana");
-    expect(gsapConfig.desk.heartbeat_enabled).toBeUndefined();
+    const codiaConfig = readAgentConfig(agentsDir, "codia");
+    expect(codiaConfig.desk.heartbeat_enabled).toBeUndefined();
 
     // Non-primary agents get heartbeat disabled
     const assistantConfig = readAgentConfig(agentsDir, "assistant");
@@ -703,14 +703,14 @@ describe("migration #3: migrateWorkspaceToPerAgent", () => {
   });
 
   it("respects existing heartbeat_enabled on non-primary agents", () => {
-    writeAgentConfig(agentsDir, "hana", { api: { provider: "" } });
+    writeAgentConfig(agentsDir, "codia", { api: { provider: "" } });
     writeAgentConfig(agentsDir, "assistant", {
       api: { provider: "" },
       desk: { heartbeat_enabled: true },
     });
     const prefs = makePrefs(userDir);
     prefs.savePreferences({
-      primaryAgent: "hana",
+      primaryAgent: "codia",
       home_folder: "/workspace",
       _dataVersion: 2,
     });
@@ -741,7 +741,7 @@ describe("migration #4: migrateSubagentExecutorMetadata", () => {
     p._dataVersion = 3;
     prefs.savePreferences(p);
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry: makeRegistry([]),
@@ -750,11 +750,11 @@ describe("migration #4: migrateSubagentExecutorMetadata", () => {
   }
 
   it("migrates explicit delegated executor metadata into parent session history and child sidecar", () => {
-    writeAgentConfig(agentsDir, "hanako", { agent: { name: "Hanako" }, api: { provider: "" } });
+    writeAgentConfig(agentsDir, "codia", { agent: { name: "Codia" }, api: { provider: "" } });
     writeAgentConfig(agentsDir, "butter", { agent: { name: "butter" }, api: { provider: "" } });
     const prefs = makePrefs(userDir);
-    const parentSessionPath = path.join(agentsDir, "hanako", "sessions", "parent.jsonl");
-    const childSessionPath = path.join(agentsDir, "hanako", "subagent-sessions", "child.jsonl");
+    const parentSessionPath = path.join(agentsDir, "codia", "sessions", "parent.jsonl");
+    const childSessionPath = path.join(agentsDir, "codia", "subagent-sessions", "child.jsonl");
 
     writeSessionJsonl(parentSessionPath, [
       { role: "assistant", content: "parent says hi" },
@@ -791,10 +791,10 @@ describe("migration #4: migrateSubagentExecutorMetadata", () => {
   });
 
   it("backfills legacy self-dispatch records from the owning agent directory when executor metadata is missing", () => {
-    writeAgentConfig(agentsDir, "hanako", { agent: { name: "Hanako" }, api: { provider: "" } });
+    writeAgentConfig(agentsDir, "codia", { agent: { name: "Codia" }, api: { provider: "" } });
     const prefs = makePrefs(userDir);
-    const parentSessionPath = path.join(agentsDir, "hanako", "sessions", "parent.jsonl");
-    const childSessionPath = path.join(agentsDir, "hanako", "subagent-sessions", "child.jsonl");
+    const parentSessionPath = path.join(agentsDir, "codia", "sessions", "parent.jsonl");
+    const childSessionPath = path.join(agentsDir, "codia", "subagent-sessions", "child.jsonl");
 
     writeSessionJsonl(parentSessionPath, [
       { role: "assistant", content: "parent says hi" },
@@ -816,15 +816,15 @@ describe("migration #4: migrateSubagentExecutorMetadata", () => {
 
     const entries = readSessionJsonl(parentSessionPath);
     const details = entries[1].message.details;
-    expect(details.executorAgentId).toBe("hanako");
-    expect(details.executorAgentNameSnapshot).toBe("Hanako");
-    expect(details.agentId).toBe("hanako");
-    expect(details.agentName).toBe("Hanako");
+    expect(details.executorAgentId).toBe("codia");
+    expect(details.executorAgentNameSnapshot).toBe("Codia");
+    expect(details.agentId).toBe("codia");
+    expect(details.agentName).toBe("Codia");
 
     const sidecar = JSON.parse(fs.readFileSync(path.join(path.dirname(childSessionPath), "session-meta.json"), "utf-8"));
     expect(sidecar["child.jsonl"]).toMatchObject({
-      executorAgentId: "hanako",
-      executorAgentNameSnapshot: "Hanako",
+      executorAgentId: "codia",
+      executorAgentNameSnapshot: "Codia",
       executorMetaVersion: 1,
     });
   });
@@ -861,7 +861,7 @@ describe("migration #5: migrateModelRefsToCompositeKey", () => {
     p._dataVersion = 4;
     prefs.savePreferences(p);
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry,
@@ -870,14 +870,14 @@ describe("migration #5: migrateModelRefsToCompositeKey", () => {
   }
 
   it("normalizes agent config models.chat from provider/id string to object", () => {
-    writeAgentConfig(agentsDir, "hana", {
+    writeAgentConfig(agentsDir, "codia", {
       models: { chat: "openai/gpt-4o", utility: "qwen-plus" },
     });
     const prefs = makePrefs(userDir);
 
     runMigration5(prefs, makeRegistryWithModels({ openai: ["gpt-4o"], dashscope: ["qwen-plus"] }));
 
-    const config = readAgentConfig(agentsDir, "hana");
+    const config = readAgentConfig(agentsDir, "codia");
     expect(config.models.chat).toEqual({ id: "gpt-4o", provider: "openai" });
     expect(config.models.utility).toEqual({ id: "qwen-plus", provider: "dashscope" });
   });
@@ -914,7 +914,7 @@ describe("migration #20: Pi model input schema compatibility", () => {
 
   afterEach(() => { fs.rmSync(tmpDir, { recursive: true, force: true }); });
 
-  it("removes invalid Pi input modalities and preserves G-SAP video capability in compat", () => {
+  it("removes invalid Pi input modalities and preserves Codia video capability in compat", () => {
     const prefs = makePrefs(userDir);
     prefs.savePreferences({ _dataVersion: 19 });
     const modelsJsonPath = path.join(tmpDir, "models.json");
@@ -935,7 +935,7 @@ describe("migration #20: Pi model input schema compatibility", () => {
     }, null, 2) + "\n", "utf-8");
 
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry: makeRegistry([]),
@@ -946,23 +946,22 @@ describe("migration #20: Pi model input schema compatibility", () => {
     expect(raw.providers.dashscope.models[0]).toMatchObject({
       id: "qwen3-vl-plus",
       input: ["text", "image"],
-      compat: { gsapVideoInput: true },
+      compat: { codiaVideoInput: true },
     });
-    expect(raw.providers.dashscope.models[0].compat).not.toHaveProperty("hanaVideoInput");
     expect(raw.providers.dashscope.models[1]).toMatchObject({
       id: "qwen-plus",
       input: ["text"],
     });
-    expect(raw.providers.dashscope.models[1].compat?.gsapVideoInput).toBeUndefined();
+    expect(raw.providers.dashscope.models[1].compat?.codiaVideoInput).toBeUndefined();
     expect(raw.providers.dashscope.models[2]).toMatchObject({
       id: "custom-video",
       input: ["text"],
-      compat: { gsapVideoInput: true },
+      compat: { codiaVideoInput: true },
     });
     expect(raw.providers.dashscope.models[2]).not.toHaveProperty("video");
     expect(raw.providers.dashscope.modelOverrides["qwen3-vl-plus"]).toMatchObject({
       input: ["text", "image"],
-      compat: { gsapVideoInput: true },
+      compat: { codiaVideoInput: true },
     });
     expect(raw.providers.dashscope.modelOverrides["qwen-plus"]).toEqual({
       input: ["text"],
@@ -998,7 +997,7 @@ describe("migration #21: video transport capability refresh", () => {
     }, null, 2) + "\n", "utf-8");
 
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry: makeRegistry([]),
@@ -1009,9 +1008,8 @@ describe("migration #21: video transport capability refresh", () => {
     expect(raw.providers.moonshot.models[0]).toMatchObject({
       id: "kimi-k2.6",
       input: ["text", "image"],
-      compat: { gsapVideoInput: true },
+      compat: { codiaVideoInput: true },
     });
-    expect(raw.providers.moonshot.models[0].compat).not.toHaveProperty("hanaVideoInput");
     expect(prefs.getPreferences()._dataVersion).toBe(LATEST_DATA_VERSION);
   });
 });
@@ -1037,7 +1035,7 @@ describe("migration #22-25: channel phone metadata compatibility", () => {
       [
         "---",
         "id: ch_crew",
-        "members: [hana, butter, ming]",
+        "members: [codia, butter, ming]",
         "name: Crew",
         "agentPhoneReplyInstructions: legacy",
         "---",
@@ -1050,13 +1048,13 @@ describe("migration #22-25: channel phone metadata compatibility", () => {
       "utf-8",
     );
 
-    const conversationsDir = path.join(agentsDir, "hana", "phone", "conversations");
+    const conversationsDir = path.join(agentsDir, "codia", "phone", "conversations");
     fs.mkdirSync(conversationsDir, { recursive: true });
     fs.writeFileSync(
       path.join(conversationsDir, "ch_crew.md"),
       [
         "---",
-        "agentId: hana",
+        "agentId: codia",
         "conversationId: ch_crew",
         "replyInstructions: legacy",
         "replyMinChars: 20",
@@ -1071,7 +1069,7 @@ describe("migration #22-25: channel phone metadata compatibility", () => {
     const prefs = makePrefs(userDir);
     prefs.savePreferences({ _dataVersion: 21 });
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry: makeRegistry([]),
@@ -1098,7 +1096,7 @@ describe("migration #22-25: channel phone metadata compatibility", () => {
       [
         "---",
         "id: ch_quiet",
-        "members: [hana, butter]",
+        "members: [codia, butter]",
         "agentPhoneProactiveEnabled: false",
         "---",
         "",
@@ -1109,7 +1107,7 @@ describe("migration #22-25: channel phone metadata compatibility", () => {
     const prefs = makePrefs(userDir);
     prefs.savePreferences({ _dataVersion: 24 });
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry: makeRegistry([]),
@@ -1147,7 +1145,7 @@ describe("migration #28: durable subagent run registry", () => {
 
   it("backfills durable subagent run mappings from existing deferred metadata", () => {
     const prefs = makePrefs(userDir);
-    const childSessionPath = path.join(agentsDir, "gsap", "subagent-sessions", "child.jsonl");
+    const childSessionPath = path.join(agentsDir, "codia", "subagent-sessions", "child.jsonl");
     fs.mkdirSync(path.dirname(childSessionPath), { recursive: true });
     fs.writeFileSync(childSessionPath, "", "utf-8");
 
@@ -1161,10 +1159,10 @@ describe("migration #28: durable subagent run registry", () => {
           type: "subagent",
           sessionPath: childSessionPath,
           summary: "legacy summary",
-          requestedAgentId: "gsap",
-          requestedAgentNameSnapshot: "G-SAP",
-          executorAgentId: "gsap",
-          executorAgentNameSnapshot: "G-SAP",
+          requestedAgentId: "codia",
+          requestedAgentNameSnapshot: "Codia",
+          executorAgentId: "codia",
+          executorAgentNameSnapshot: "Codia",
           executorMetaVersion: 1,
         },
       },
@@ -1172,7 +1170,7 @@ describe("migration #28: durable subagent run registry", () => {
 
     prefs.savePreferences({ _dataVersion: 25 });
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry: makeRegistry([]),
@@ -1185,16 +1183,16 @@ describe("migration #28: durable subagent run registry", () => {
       childSessionPath,
       status: "resolved",
       summary: "done",
-      requestedAgentId: "gsap",
-      executorAgentId: "gsap",
+      requestedAgentId: "codia",
+      executorAgentId: "codia",
     });
     expect(prefs.getPreferences()._dataVersion).toBe(LATEST_DATA_VERSION);
   });
 
   it("backfills completed child-session mappings from parent session history", () => {
     const prefs = makePrefs(userDir);
-    const parentSessionPath = path.join(agentsDir, "gsap", "sessions", "parent.jsonl");
-    const childSessionPath = path.join(agentsDir, "gsap", "subagent-sessions", "child.jsonl");
+    const parentSessionPath = path.join(agentsDir, "codia", "sessions", "parent.jsonl");
+    const childSessionPath = path.join(agentsDir, "codia", "subagent-sessions", "child.jsonl");
     fs.mkdirSync(path.dirname(childSessionPath), { recursive: true });
     fs.writeFileSync(childSessionPath, "", "utf-8");
     writeSessionJsonl(parentSessionPath, [
@@ -1207,10 +1205,10 @@ describe("migration #28: durable subagent run registry", () => {
           task: "work",
           sessionPath: childSessionPath,
           streamStatus: "done",
-          requestedAgentId: "gsap",
-          requestedAgentNameSnapshot: "G-SAP",
-          executorAgentId: "gsap",
-          executorAgentNameSnapshot: "G-SAP",
+          requestedAgentId: "codia",
+          requestedAgentNameSnapshot: "Codia",
+          executorAgentId: "codia",
+          executorAgentNameSnapshot: "Codia",
           executorMetaVersion: 1,
         },
       },
@@ -1227,7 +1225,7 @@ describe("migration #28: durable subagent run registry", () => {
 
     prefs.savePreferences({ _dataVersion: 25 });
     runMigrations({
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       agentsDir,
       prefs,
       providerRegistry: makeRegistry([]),
@@ -1240,8 +1238,8 @@ describe("migration #28: durable subagent run registry", () => {
       parentSessionPath,
       childSessionPath,
       status: "resolved",
-      requestedAgentId: "gsap",
-      executorAgentId: "gsap",
+      requestedAgentId: "codia",
+      executorAgentId: "codia",
     });
     expect(registry.runs["subagent-without-child"]).toBeUndefined();
   });

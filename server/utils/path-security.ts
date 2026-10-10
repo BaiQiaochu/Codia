@@ -16,9 +16,9 @@ export function realPath(p) {
 const SENSITIVE_DIRS = [".ssh", ".gnupg", ".aws", ".config/gcloud", ".kube"];
 
 /**
- * 棢查路径是否指向敏感位- * @param {string} srcPath - 待检查的路径（相对路径视为敏感，fail-closed- * @param {string} [gsapHome] - gsapHome 路径（也视为敏感- * @returns {boolean}
+ * 棢查路径是否指向敏感位- * @param {string} srcPath - 待检查的路径（相对路径视为敏感，fail-closed- * @param {string} [codiaHome] - codiaHome 路径（也视为敏感- * @returns {boolean}
  */
-export function isSensitivePath(srcPath, gsapHome) {
+export function isSensitivePath(srcPath, codiaHome) {
   if (!path.isAbsolute(srcPath)) return true; // fail-closed on relative input
   const resolved = realPath(srcPath);
   if (!resolved) return true; // fail-closed
@@ -27,8 +27,8 @@ export function isSensitivePath(srcPath, gsapHome) {
     const sensitive = path.join(home, d);
     if (resolved === sensitive || resolved.startsWith(sensitive + path.sep)) return true;
   }
-  if (gsapHome) {
-    const realHome = realPath(gsapHome);
+  if (codiaHome) {
+    const realHome = realPath(codiaHome);
     if (realHome && (resolved === realHome || resolved.startsWith(realHome + path.sep))) return true;
   }
   return false;

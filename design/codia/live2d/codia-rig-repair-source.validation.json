@@ -1,8 +1,8 @@
 {
   "status": "combined authoring candidate for Editor adjustment; eye openings, base artwork repairs and motion are not visually accepted",
-  "originalPsd": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-occlusion-v1.psd",
-  "output": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-repair-source.psd",
-  "preview": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-repair-source.neutral.png",
+  "originalPsd": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-occlusion-v1.psd",
+  "output": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-repair-source.psd",
+  "preview": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-repair-source.neutral.png",
   "width": 1254,
   "height": 1254,
   "originalPsdSha256": "75b45003973850a9d0e0bd059098d66275c97fe4a5af473942def304ffdc4f74",
@@ -156,39 +156,39 @@
   },
   "inputFiles": [
     {
-      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\codia-rig-occlusion-v1.psd",
+      "file": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\codia-rig-occlusion-v1.psd",
       "sha256": "75b45003973850a9d0e0bd059098d66275c97fe4a5af473942def304ffdc4f74"
     },
     {
-      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\IrisLeft_reassigned.png",
+      "file": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\IrisLeft_reassigned.png",
       "sha256": "cfbf7e43feb8e2b633f10c680ebe000a277d4715e1bb2009f2c175afd2f2d869"
     },
     {
-      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\IrisRight_reassigned.png",
+      "file": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\IrisRight_reassigned.png",
       "sha256": "da14740050a9fcc8431f60b8dab9a343b61150ce986035d21e9541d138baa039"
     },
     {
-      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeLeft_filled.png",
+      "file": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeLeft_filled.png",
       "sha256": "301192d9636871e48630956afdad2419332065e01a32f641ea82c1f93dda2fe2"
     },
     {
-      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeRight_filled.png",
+      "file": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeRight_filled.png",
       "sha256": "895e57b7225dcbb5c490de7f7e8ee692cc5104ff34155418c32674a343aeb4bf"
     },
     {
-      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeLeft_original-ownership.png",
+      "file": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeLeft_original-ownership.png",
       "sha256": "55a6deb06045934280c3ee012d9b4248561fb29dca14e5d806fb73579c0e3429"
     },
     {
-      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeRight_original-ownership.png",
+      "file": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeRight_original-ownership.png",
       "sha256": "051184f0a0accb64a9203529d1c45a14ae09a42bff1326b950ccfe25a59b3c82"
     },
     {
-      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeLeft_opening-mask.png",
+      "file": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeLeft_opening-mask.png",
       "sha256": "b80d2986e4cba6759cb4c49830f43ed40c57bdc13e962f09f41d04bf626f3ded"
     },
     {
-      "file": "D:\\Gsap-Work\\G-sap-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeRight_opening-mask.png",
+      "file": "D:\\Codia-Work\\Codia-professional\\design\\codia\\live2d\\source\\codia-eye-patches-v2\\EyeRight_opening-mask.png",
       "sha256": "93522410ce663a5f3ec33a3251cbf9a27e3d3cb6c20fb56af5bac985b7321da7"
     }
   ],

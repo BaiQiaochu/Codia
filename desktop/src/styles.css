@@ -2,7 +2,7 @@
    设计系统 · 结构 Token（主题无关）
    ======================================== */
 :root {
-    --byoung-brand-text: #342A45;
+    --codia-brand-text: #342A45;
 
  /* 间距 */
     --space-2: 0.125rem;
@@ -131,7 +131,7 @@
 
 }
 
-:root::highlight(gsap-chat-quoted-selection) {
+:root::highlight(codia-chat-quoted-selection) {
     background-color: rgba(var(--accent-rgb, 83, 125, 150), 0.22);
     color: inherit;
 }
@@ -156,9 +156,9 @@ body.paper-texture .universal-card,
 body.paper-texture .jian-card,
 body.paper-texture .msg-card,
 body.paper-texture .input-wrapper,
-body.paper-texture .gsap-warning-box,
+body.paper-texture .codia-warning-box,
 body.paper-texture .browser-floating-card,
-body.paper-texture .gsap-toast,
+body.paper-texture .codia-toast,
 body.paper-texture .ob-input,
 body.paper-texture .ob-provider-trigger,
 body.paper-texture .ob-provider-menu,
@@ -1364,7 +1364,7 @@ body.obsidian-mode .main-content {
     overflow: hidden;
 }
 
-.gsap-reader-surface {
+.codia-reader-surface {
     flex: 1 1 auto;
     min-width: 0;
     min-height: 0;
@@ -1377,8 +1377,8 @@ body.obsidian-mode .main-content {
     overflow: hidden;
 }
 
-.gsap-reader-files,
-.gsap-reader-preview {
+.codia-reader-files,
+.codia-reader-preview {
     min-width: 0;
     min-height: 0;
     display: flex;
@@ -1386,18 +1386,18 @@ body.obsidian-mode .main-content {
     overflow: hidden;
 }
 
-.gsap-reader-files {
+.codia-reader-files {
     border-right: 1px solid var(--overlay-light);
     background: color-mix(in srgb, var(--bg) 94%, var(--overlay-subtle));
 }
 
-.gsap-reader-preview {
+.codia-reader-preview {
     --preview-panel-width: 100%;
     background: var(--bg-card);
     padding: 0;
 }
 
-.gsap-reader-preview #previewPanel {
+.codia-reader-preview #previewPanel {
     flex: 1 1 auto;
     width: 100%;
     height: 100%;
@@ -1410,25 +1410,25 @@ body.obsidian-mode .main-content {
     background: var(--bg-card);
 }
 
-.gsap-reader-preview #previewPanel[data-reader-mode="true"],
-.gsap-reader-preview #previewPanel[data-reader-mode="true"] [data-preview-panel-inner],
-.gsap-reader-preview #previewPanel[data-reader-mode="true"] [data-preview-body-shell],
-.gsap-reader-preview #previewPanel[data-reader-mode="true"] #previewBody {
+.codia-reader-preview #previewPanel[data-reader-mode="true"],
+.codia-reader-preview #previewPanel[data-reader-mode="true"] [data-preview-panel-inner],
+.codia-reader-preview #previewPanel[data-reader-mode="true"] [data-preview-body-shell],
+.codia-reader-preview #previewPanel[data-reader-mode="true"] #previewBody {
     flex: 1 1 auto;
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
 }
 
-.gsap-reader-preview #previewPanel[data-reader-mode="true"] [data-preview-panel-inner],
-.gsap-reader-preview #previewPanel[data-reader-mode="true"] [data-preview-body-shell],
-.gsap-reader-preview #previewPanel[data-reader-mode="true"] #previewBody {
+.codia-reader-preview #previewPanel[data-reader-mode="true"] [data-preview-panel-inner],
+.codia-reader-preview #previewPanel[data-reader-mode="true"] [data-preview-body-shell],
+.codia-reader-preview #previewPanel[data-reader-mode="true"] #previewBody {
     height: 100%;
 }
 
-.gsap-reader-preview #previewPanel[data-reader-mode="true"] .markdown-cover-drop-host,
-.gsap-reader-preview #previewPanel[data-reader-mode="true"] .preview-markdown,
-.gsap-reader-preview #previewPanel[data-reader-mode="true"] .md-content {
+.codia-reader-preview #previewPanel[data-reader-mode="true"] .markdown-cover-drop-host,
+.codia-reader-preview #previewPanel[data-reader-mode="true"] .preview-markdown,
+.codia-reader-preview #previewPanel[data-reader-mode="true"] .md-content {
     box-sizing: border-box;
     display: block;
     width: 100% !important;
@@ -1436,20 +1436,20 @@ body.obsidian-mode .main-content {
     max-width: none !important;
 }
 
-.gsap-reader-preview [class*="previewPanel"] {
+.codia-reader-preview [class*="previewPanel"] {
     flex: 1 1 auto;
     width: 100%;
     min-width: 0;
     max-width: none;
 }
 
-.gsap-reader-preview [class*="previewBodyShell"] {
+.codia-reader-preview [class*="previewBodyShell"] {
     margin: 0;
     flex: 1 1 auto;
     min-height: 0;
 }
 
-.gsap-reader-preview [class*="previewPanelBody"] {
+.codia-reader-preview [class*="previewPanelBody"] {
     width: 100%;
     height: 100%;
     border: 0;
@@ -1457,15 +1457,15 @@ body.obsidian-mode .main-content {
     box-shadow: none;
 }
 
-.gsap-reader-preview .preview-markdown,
-.gsap-reader-preview .md-content {
+.codia-reader-preview .preview-markdown,
+.codia-reader-preview .md-content {
     box-sizing: border-box;
     width: 100%;
     min-width: 100%;
     max-width: none;
 }
 
-.gsap-reader-preview .md-content img {
+.codia-reader-preview .md-content img {
     width: 100%;
     max-width: 100%;
     height: auto;
@@ -1473,34 +1473,34 @@ body.obsidian-mode .main-content {
     object-fit: contain;
 }
 
-.gsap-reader-preview #previewResizeHandle {
+.codia-reader-preview #previewResizeHandle {
     display: none;
 }
 
-.gsap-reader-preview [class*="previewPanelInner"] {
+.codia-reader-preview [class*="previewPanelInner"] {
     width: 100%;
     min-width: 0;
     height: 100%;
 }
 
-.gsap-reader-preview [class*="floatingActions"]:not([class*="floatingActionsSurface"]) {
+.codia-reader-preview [class*="floatingActions"]:not([class*="floatingActionsSurface"]) {
     top: 8px;
     right: 10px;
     padding: 0;
 }
 
-.gsap-reader-preview .artifact-editor,
-.gsap-reader-preview .artifact-editor .cm-editor,
-.gsap-reader-preview .artifact-editor .cm-scroller {
+.codia-reader-preview .artifact-editor,
+.codia-reader-preview .artifact-editor .cm-editor,
+.codia-reader-preview .artifact-editor .cm-scroller {
     width: 100%;
 }
 
-.gsap-reader-preview .artifact-editor .cm-content {
+.codia-reader-preview .artifact-editor .cm-content {
     box-sizing: border-box;
     min-width: 100%;
 }
 
-.gsap-reader-inspector {
+.codia-reader-inspector {
     min-width: 0;
     min-height: 0;
     display: flex;
@@ -1510,7 +1510,7 @@ body.obsidian-mode .main-content {
     background: color-mix(in srgb, var(--bg-card) 82%, var(--bg));
 }
 
-.gsap-reader-panel-header {
+.codia-reader-panel-header {
     height: 42px;
     flex: 0 0 42px;
     min-width: 0;
@@ -1523,7 +1523,7 @@ body.obsidian-mode .main-content {
     color: var(--text-muted);
 }
 
-.gsap-reader-panel-header strong {
+.codia-reader-panel-header strong {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1532,7 +1532,7 @@ body.obsidian-mode .main-content {
     font-weight: 600;
 }
 
-.gsap-reader-open-file-btn {
+.codia-reader-open-file-btn {
     flex: 0 0 auto;
     height: 24px;
     padding: 0 9px;
@@ -1544,17 +1544,17 @@ body.obsidian-mode .main-content {
     cursor: pointer;
 }
 
-.gsap-reader-open-file-btn:hover {
+.codia-reader-open-file-btn:hover {
     border-color: color-mix(in srgb, var(--accent) 34%, var(--overlay-light));
     background: color-mix(in srgb, var(--accent) 8%, var(--bg-card));
 }
 
-.gsap-reader-chat .gsap-reader-panel-header span {
+.codia-reader-chat .codia-reader-panel-header span {
     flex: 0 0 auto;
     white-space: nowrap;
 }
 
-.gsap-reader-chat .gsap-reader-panel-header strong {
+.codia-reader-chat .codia-reader-panel-header strong {
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -1562,11 +1562,11 @@ body.obsidian-mode .main-content {
     white-space: nowrap;
 }
 
-.gsap-reader-chat {
+.codia-reader-chat {
     min-width: 0;
 }
 
-.gsap-reader-history {
+.codia-reader-history {
     position: relative;
     z-index: 20;
     flex: 0 0 auto;
@@ -1575,7 +1575,7 @@ body.obsidian-mode .main-content {
     background: color-mix(in srgb, var(--bg-card) 86%, var(--bg));
 }
 
-body.obsidian-mode .gsap-reader-history .obsidian-history-dock {
+body.obsidian-mode .codia-reader-history .obsidian-history-dock {
     position: relative;
     top: auto;
     left: auto;
@@ -1584,19 +1584,19 @@ body.obsidian-mode .gsap-reader-history .obsidian-history-dock {
     gap: 6px;
 }
 
-body.obsidian-mode .gsap-reader-history .obsidian-history-trigger {
+body.obsidian-mode .codia-reader-history .obsidian-history-trigger {
     height: 32px;
     box-shadow: none;
 }
 
-body.obsidian-mode .gsap-reader-history .obsidian-history-panel {
+body.obsidian-mode .codia-reader-history .obsidian-history-panel {
     position: absolute;
     top: calc(100% + 6px);
     left: 0;
     right: 0;
 }
 
-.gsap-reader-chat-timeline {
+.codia-reader-chat-timeline {
     flex: 1 1 auto;
     min-height: 0;
     position: relative;
@@ -1606,24 +1606,24 @@ body.obsidian-mode .gsap-reader-history .obsidian-history-panel {
     background: var(--bg);
 }
 
-.gsap-reader-chat-timeline [class*="chat-panel"] {
+.codia-reader-chat-timeline [class*="chat-panel"] {
     flex: 1 1 auto;
     min-height: 0;
 }
 
-.gsap-reader-chat-input {
+.codia-reader-chat-input {
     flex: 0 0 auto;
     padding: 10px;
     border-top: 1px solid var(--overlay-light);
     background: color-mix(in srgb, var(--bg-card) 82%, var(--bg));
 }
 
-.gsap-reader-chat-input > * {
+.codia-reader-chat-input > * {
     max-width: none;
     margin: 0;
 }
 
-.gsap-reader-chat-input :is(.input-wrapper) {
+.codia-reader-chat-input :is(.input-wrapper) {
     width: 100%;
     max-width: none;
     margin: 0;
@@ -2072,9 +2072,9 @@ body.obsidian-mode .sidebar-chat-content > [class*="section"] {
 }
 
 /* */
-.gsap-toggle,
-.hana-toggle {
-    --gsap-toggle-thumb-shift: 16px;
+.codia-toggle,
+.codia-toggle {
+    --codia-toggle-thumb-shift: 16px;
     width: 36px;
     height: 20px;
     border-radius: 5px;
@@ -2087,8 +2087,8 @@ body.obsidian-mode .sidebar-chat-content > [class*="section"] {
     padding: 0;
 }
 
-.gsap-toggle::after,
-.hana-toggle::after {
+.codia-toggle::after,
+.codia-toggle::after {
     content: "";
     position: absolute;
     top: 3px;
@@ -2100,47 +2100,47 @@ body.obsidian-mode .sidebar-chat-content > [class*="section"] {
     transition: transform 0.25s;
 }
 
-.gsap-toggle:hover,
-.hana-toggle:hover {
+.codia-toggle:hover,
+.codia-toggle:hover {
     filter: brightness(0.92);
 }
 
-.gsap-toggle.on,
-.hana-toggle.on {
+.codia-toggle.on,
+.codia-toggle.on {
     background: var(--accent);
 }
 
-.gsap-toggle.on::after,
-.hana-toggle.on::after {
+.codia-toggle.on::after,
+.codia-toggle.on::after {
     transform: translateX(16px);
 }
 
-.gsap-toggle.loading,
-.hana-toggle.loading {
+.codia-toggle.loading,
+.codia-toggle.loading {
     opacity: 0.55;
-    animation: gsap-toggle-loading-pulse 1.2s ease-in-out infinite;
+    animation: codia-toggle-loading-pulse 1.2s ease-in-out infinite;
 }
 
-.gsap-toggle.loading::after,
-.hana-toggle.loading::after {
-    transform: translateX(calc(var(--gsap-toggle-thumb-shift) / 2));
+.codia-toggle.loading::after,
+.codia-toggle.loading::after {
+    transform: translateX(calc(var(--codia-toggle-thumb-shift) / 2));
 }
 
-@keyframes gsap-toggle-loading-pulse {
+@keyframes codia-toggle-loading-pulse {
     0%, 100% { opacity: 0.55; }
     50% { opacity: 0.35; }
 }
 
-.gsap-toggle.mini,
-.hana-toggle.mini {
-    --gsap-toggle-thumb-shift: 16px;
+.codia-toggle.mini,
+.codia-toggle.mini {
+    --codia-toggle-thumb-shift: 16px;
     width: 36px;
     height: 20px;
     border-radius: 5px;
 }
 
-.gsap-toggle.mini::after,
-.hana-toggle.mini::after {
+.codia-toggle.mini::after,
+.codia-toggle.mini::after {
     top: 3px;
     left: 3px;
     width: 14px;
@@ -2148,17 +2148,17 @@ body.obsidian-mode .sidebar-chat-content > [class*="section"] {
     border-radius: 3px;
 }
 
-.gsap-toggle.disabled,
-.gsap-toggle:disabled,
-.hana-toggle.disabled,
-.hana-toggle:disabled {
+.codia-toggle.disabled,
+.codia-toggle:disabled,
+.codia-toggle.disabled,
+.codia-toggle:disabled {
     opacity: 0.35;
     cursor: not-allowed;
     pointer-events: none;
 }
 
-.gsap-toggle-label,
-.hana-toggle-label {
+.codia-toggle-label,
+.codia-toggle-label {
     font-size: 0.78rem;
     color: var(--text-muted);
 }
@@ -4333,7 +4333,7 @@ body.resizing .jian-sidebar-inner {
 /* (笺编辑器样式已迁移至 Desk.module.css) */
 
 /* Toast ֪ͨ */
-.gsap-toast {
+.codia-toast {
     position: fixed;
     top: calc(var(--titlebar-h) + 12px);
     left: 50%;
@@ -4353,18 +4353,18 @@ body.resizing .jian-sidebar-inner {
     box-shadow: 0 2px 12px color-mix(in srgb, var(--shadow) 70%, transparent);
     max-width: min(760px, calc(100vw - 32px));
 }
-.gsap-toast.show {
+.codia-toast.show {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
     pointer-events: auto;
 }
-.gsap-toast.error {
+.codia-toast.error {
     background: var(--bg-elevated, var(--bg-secondary));
     color: var(--text-primary);
     border: 1px solid var(--border-light, color-mix(in srgb, var(--text-muted) 22%, transparent));
     border-left: 3px solid var(--danger, #8b3a3a);
 }
-.gsap-toast-close {
+.codia-toast-close {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4376,13 +4376,13 @@ body.resizing .jian-sidebar-inner {
     padding: 2px;
     border-radius: 4px;
 }
-.gsap-toast-close:hover {
+.codia-toast-close:hover {
     opacity: 1;
 }
-.gsap-toast.warning {
+.codia-toast.warning {
     border-left-color: var(--warning-color, #c59a28);
 }
-.gsap-toast-actions {
+.codia-toast-actions {
     display: flex;
     align-items: flex-start;
     gap: 6px;
@@ -4390,7 +4390,7 @@ body.resizing .jian-sidebar-inner {
     padding-top: 1px;
     flex-shrink: 0;
 }
-.gsap-toast-action {
+.codia-toast-action {
     background: none;
     border: 1px solid var(--border-light, #ddd);
     border-radius: 3px;
@@ -4400,14 +4400,14 @@ body.resizing .jian-sidebar-inner {
     color: inherit;
     white-space: nowrap;
 }
-.gsap-toast-body {
+.codia-toast-body {
     display: flex;
     flex-direction: column;
     gap: 8px;
     min-width: 0;
     color: inherit;
 }
-.gsap-toast-diagnostic {
+.codia-toast-diagnostic {
     display: grid;
     gap: 8px;
     width: min(620px, calc(100vw - 96px));
@@ -4419,7 +4419,7 @@ body.resizing .jian-sidebar-inner {
     background: var(--bg-elevated, var(--bg-primary));
     color: var(--text-primary);
 }
-.gsap-toast-diagnostic-row {
+.codia-toast-diagnostic-row {
     display: grid;
     grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
     gap: 10px;
@@ -4427,11 +4427,11 @@ body.resizing .jian-sidebar-inner {
     line-height: 1.45;
     min-width: 0;
 }
-.gsap-toast-diagnostic-row span {
+.codia-toast-diagnostic-row span {
     color: var(--text-secondary, var(--text-muted));
     font-weight: 600;
 }
-.gsap-toast-diagnostic-row strong {
+.codia-toast-diagnostic-row strong {
     color: var(--text-primary);
     font-weight: 500;
     min-width: 0;
@@ -4577,13 +4577,23 @@ body.resizing .jian-sidebar-inner {
 .codia-nav-item.active { background:#eee5fb; color:#65488f; font-weight:650; }
 .codia-nav-item.active svg { color:#7955ab; }
 .codia-nav-badge { margin-left:auto; min-width:18px; height:18px; padding:0 5px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:var(--accent); color:var(--accent-contrast); font-size:10px; font-weight:700; line-height:1; }
-.codia-profile { display:flex; align-items:center; gap:10px; min-height:64px; margin:8px 12px 12px; padding:8px 11px; border:1px solid #eee5f5; border-radius:17px; background:#fff; text-align:left; cursor:pointer; }
+.codia-profile { display:flex; min-width:0; min-height:52px; align-items:center; gap:10px; padding:4px; border:0; border-radius:12px; background:transparent; text-align:left; cursor:pointer; transition:background var(--duration-fast), color var(--duration-fast); }
+.codia-profile:hover { background:color-mix(in srgb, var(--accent) 8%, transparent); }
+.codia-profile:focus-visible,.codia-profile-action:focus-visible { outline:2px solid color-mix(in srgb, var(--accent) 58%, transparent); outline-offset:1px; }
 .codia-profile > span:nth-child(2) { display:flex; flex:1; min-width:0; flex-direction:column; }
-.codia-profile strong { overflow:hidden; color:#51435f; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
-.codia-profile small { margin-top:3px; color:#94899e; font-size:10px; }
+.codia-profile strong { overflow:hidden; color:var(--text); font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+.codia-profile small { margin-top:3px; color:var(--text-muted); font-size:10px; }
 .codia-profile > img,.codia-profile-avatar { width:34px; height:34px; border-radius:50%; object-fit:cover; }
-.codia-profile-avatar { display:grid; place-items:center; color:#65488f; background:#eee5fb; font-size:13px; font-weight:650; }
-.codia-profile > svg { color:#b18adf; }
+.codia-profile-avatar { display:grid; place-items:center; color:color-mix(in srgb, var(--accent) 74%, var(--text)); background:var(--accent-light); font-size:13px; font-weight:650; }
+.codia-profile > svg { color:var(--accent); }
+.codia-profile-shell { display:grid; grid-template-columns:minmax(0,1fr) auto; width:calc(100% - 24px); box-sizing:border-box; align-items:center; gap:6px; margin:8px 12px 12px; padding:6px 7px 6px 8px; border:1px solid color-mix(in srgb, var(--accent) 14%, var(--border)); border-radius:17px; background:var(--bg-card); box-shadow:0 4px 14px color-mix(in srgb, var(--shadow) 7%, transparent); }
+.codia-profile-shell .codia-profile { width:100%; }
+.codia-profile-actions { display:flex; align-items:center; gap:2px; padding-left:6px; border-left:1px solid color-mix(in srgb, var(--accent) 14%, var(--border)); }
+.codia-profile-action { position:relative; width:30px; height:30px; display:grid; flex:0 0 30px; place-items:center; padding:0; border:0; border-radius:9px; background:transparent; cursor:pointer; }
+.codia-profile-action svg { color:color-mix(in srgb, var(--accent) 72%, var(--text-muted)); }
+.codia-profile-action:hover { background:color-mix(in srgb, var(--accent) 11%, transparent); }
+.codia-profile-action:hover svg { color:color-mix(in srgb, var(--accent) 78%, var(--text)); }
+.codia-social-status-dot { position:absolute; right:3px; top:3px; width:6px; height:6px; border-radius:50%; background:color-mix(in srgb, var(--accent) 58%, var(--bg-card)); border:1px solid var(--bg-card); }
 .sidebar-inner > .sidebar-chat-content,.sidebar-inner > .sidebar-channel-content { flex:1; min-height:0; }
 .sidebar-inner { height:auto; flex:1; min-height:0; }
 @media (max-width:720px) { .codia-brand-lockup { min-height:64px; padding-left:16px; } .codia-primary-nav { padding-right:9px; padding-left:9px; } }
@@ -4917,7 +4927,7 @@ body.resizing .jian-sidebar-inner {
 }
 
 @media (max-width: 720px) {
-    .gsap-reader-surface {
+    .codia-reader-surface {
         grid-template-columns: 1fr;
         grid-template-rows: minmax(180px, 28vh) minmax(320px, 1fr) minmax(240px, 34vh);
     }
@@ -5058,7 +5068,7 @@ body.resizing .jian-sidebar-inner {
 }
 
 /* Warning overlay */
-.gsap-warning-overlay {
+.codia-warning-overlay {
     position: fixed;
     inset: 0;
     z-index: 9999;
@@ -5068,7 +5078,7 @@ body.resizing .jian-sidebar-inner {
     background: color-mix(in srgb, var(--shadow) 65%, transparent);
     animation: fade-in 0.2s ease;
 }
-.gsap-warning-box {
+.codia-warning-box {
     width: 420px;
     max-width: 90vw;
     background-color: var(--bg-card);
@@ -5077,31 +5087,31 @@ body.resizing .jian-sidebar-inner {
     padding: 1.6rem 1.8rem 1.3rem;
     animation: dropdown-in 0.25s var(--ease-out);
 }
-.gsap-warning-title {
+.codia-warning-title {
     font-size: 1rem;
     font-weight: 600;
     color: var(--text);
     margin: 0 0 0.8rem;
 }
-.gsap-warning-body {
+.codia-warning-body {
     font-size: 0.82rem;
     line-height: 1.7;
     color: var(--text-secondary);
 }
-.gsap-warning-body p {
+.codia-warning-body p {
     margin: 0 0 0.6rem;
 }
-.gsap-warning-body p:last-child {
+.codia-warning-body p:last-child {
     margin-bottom: 0;
 }
-.gsap-warning-actions {
+.codia-warning-actions {
     display: flex;
     justify-content: flex-end;
     gap: var(--space-sm);
     margin-top: 1.2rem;
 }
-.gsap-warning-cancel,
-.gsap-warning-confirm {
+.codia-warning-cancel,
+.codia-warning-confirm {
     font-family: inherit;
     font-size: 0.8rem;
     padding: 0.4rem 1rem;
@@ -5110,18 +5120,18 @@ body.resizing .jian-sidebar-inner {
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 }
-.gsap-warning-cancel {
+.codia-warning-cancel {
     background: var(--bg-secondary);
     color: var(--text-secondary);
 }
-.gsap-warning-cancel:hover {
+.codia-warning-cancel:hover {
     background: var(--overlay-medium);
 }
-.gsap-warning-confirm {
+.codia-warning-confirm {
     background: var(--primary-button-bg, var(--accent));
     color: var(--primary-button-text, var(--accent-contrast, #fff));
 }
-.gsap-warning-confirm:hover {
+.codia-warning-confirm:hover {
     background: var(--primary-button-hover, var(--accent-hover));
 }
 
@@ -5359,11 +5369,11 @@ html[data-platform="linux"] .onboarding {
     gap: 8px;
 }
 
-.ob-memory-toggle .gsap-toggle {
+.ob-memory-toggle .codia-toggle {
     flex: 0 0 36px;
 }
 
-.ob-memory-toggle .gsap-toggle-label {
+.ob-memory-toggle .codia-toggle-label {
     white-space: nowrap;
     word-break: keep-all;
     writing-mode: horizontal-tb;
@@ -5901,7 +5911,7 @@ html[data-platform="linux"] .onboarding {
     gap: var(--space-xs);
 }
 .ob-model-edit-field span,
-.ob-model-edit-toggle-row .gsap-toggle-label {
+.ob-model-edit-toggle-row .codia-toggle-label {
     color: var(--text-muted);
     font-size: 0.72rem;
 }
@@ -6312,7 +6322,7 @@ html[data-platform="linux"] .onboarding {
     --callout-color: var(--text-muted);
 }
 
-/* BYOUNG typography: all interface copy uses the institutional navy.
+/* CODIA typography: all interface copy uses the institutional navy.
    Chat surfaces opt out so message roles and composer states retain their
    purpose-specific colors. */
 body :where(
@@ -6322,17 +6332,19 @@ body :where(
     small, strong, em, code, pre, blockquote, summary,
     figcaption, time, kbd, samp, output, address
 ):not(
-    [data-byoung-chat-color-scope],
-    [data-byoung-chat-color-scope] *
+    [data-codia-chat-color-scope],
+    [data-codia-chat-color-scope] *
 ) {
     color: var(--text, #342A45) !important;
 }
 
-body :where(input, textarea):not([data-byoung-chat-color-scope] *)::placeholder {
+body :where(input, textarea):not([data-codia-chat-color-scope] *)::placeholder {
     color: var(--text-muted, #756A86) !important;
     opacity: 0.72;
 }
 
-[data-byoung-chat-color-scope] {
+[data-codia-chat-color-scope] {
+    --green: color-mix(in srgb, var(--accent) 58%, var(--bg-card));
+    --success: var(--green);
     color: var(--text) !important;
 }

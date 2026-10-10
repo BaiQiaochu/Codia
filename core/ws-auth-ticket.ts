@@ -42,7 +42,7 @@ export function createWebSocketTicketService({
     pruneExpired(issuedAtMs);
     pruneOverflow(resolvedMaxTickets - 1);
 
-    const ticket = `gsap_ws_${crypto.randomBytes(32).toString("base64url")}`;
+    const ticket = `codia_ws_${crypto.randomBytes(32).toString("base64url")}`;
     tickets.set(ticket, Object.freeze({
       principal: normalizedPrincipal,
       connectionKind: transportKind,

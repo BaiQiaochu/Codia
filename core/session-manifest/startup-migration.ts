@@ -15,13 +15,13 @@ function serializeError(error) {
   };
 }
 
-function resolveGsapHome(opts: any = {}) {
-  return opts.gsapHome || opts.hanaHome || null;
+function resolveCodiaHome(opts: any = {}) {
+  return opts.codiaHome || opts.codiaHome || null;
 }
 
 export function ensureLegacySessionManifestMigration(opts: any = {}) {
-  const gsapHome = resolveGsapHome(opts);
-  if (!gsapHome) throw new Error("ensureLegacySessionManifestMigration requires gsapHome");
+  const codiaHome = resolveCodiaHome(opts);
+  if (!codiaHome) throw new Error("ensureLegacySessionManifestMigration requires codiaHome");
   if (!opts.store) throw new Error("ensureLegacySessionManifestMigration requires store");
 
   const key = opts.stateKey || LEGACY_SESSION_MANIFEST_MIGRATION_KEY;
@@ -31,7 +31,7 @@ export function ensureLegacySessionManifestMigration(opts: any = {}) {
       const scannedAt = opts.scannedAt || new Date().toISOString();
       const migrate = opts.migrate || migrateLegacySessions;
       const result = migrate({
-        gsapHome,
+        codiaHome,
         store: opts.store,
         migratedAt: scannedAt,
         stopOnError: opts.stopOnError,
@@ -67,7 +67,7 @@ export function ensureLegacySessionManifestMigration(opts: any = {}) {
 
   try {
     checkpoint = createCheckpoint({
-      gsapHome,
+      codiaHome,
       appVersion: opts.appVersion,
       gitAnchors: opts.gitAnchors,
       createdAt: startedAt,
@@ -77,7 +77,7 @@ export function ensureLegacySessionManifestMigration(opts: any = {}) {
     });
 
     const result = migrate({
-      gsapHome,
+      codiaHome,
       store: opts.store,
       migratedAt: startedAt,
       stopOnError: opts.stopOnError,

@@ -20,7 +20,7 @@ describe("provider-compat/openai-video-url", () => {
       provider: "moonshot",
       api: "openai-completions",
       input: ["text", "image"],
-      compat: { gsapVideoInput: true },
+      compat: { codiaVideoInput: true },
       baseUrl: "https://api.moonshot.cn/v1",
     }, { mode: "chat" });
 
@@ -48,7 +48,7 @@ describe("provider-compat/openai-video-url", () => {
       provider: "dashscope",
       api: "openai-completions",
       input: ["text", "image"],
-      compat: { gsapVideoInput: true },
+      compat: { codiaVideoInput: true },
       baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
     }, { mode: "chat" });
 

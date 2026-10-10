@@ -4,7 +4,7 @@ import os from "os";
 import path from "path";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-device-registry-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-device-registry-"));
 }
 
 function readJson(root, file) {
@@ -35,7 +35,7 @@ describe("device registry", () => {
     expect(readJson(tmpDir, "pairing-sessions.json")).toMatchObject({ schemaVersion: 1, pairingSessions: [] });
   });
 
-  it("issues G-SAP device credentials and stores only a hash", async () => {
+  it("issues Codia device credentials and stores only a hash", async () => {
     tmpDir = makeTmpDir();
     const {
       authenticateDeviceCredential,
@@ -44,7 +44,7 @@ describe("device registry", () => {
     } = await import("../core/device-registry.js");
 
     const issued = createDeviceCredential(tmpDir, {
-      serverNodeId: "server_gsap",
+      serverNodeId: "server_codia",
       userId: "user_owner",
       studioIds: ["space_home"],
       displayName: "Owner Phone",
@@ -54,7 +54,7 @@ describe("device registry", () => {
       now: "2026-05-17T00:00:00.000Z",
     });
 
-    expect(issued.secret).toMatch(/^gsap_dev_/);
+    expect(issued.secret).toMatch(/^codia_dev_/);
     expect(JSON.stringify(readJson(tmpDir, "device-credentials.json"))).not.toContain(issued.secret);
     expect(readJson(tmpDir, "device-credentials.json").credentials[0]).toMatchObject({
       credentialId: issued.credential.credentialId,
@@ -70,7 +70,7 @@ describe("device registry", () => {
       kind: "device",
       credentialKind: "device_credential",
       connectionKind: "lan",
-      serverNodeId: "server_gsap",
+      serverNodeId: "server_codia",
       userId: "user_owner",
       studioId: "space_home",
       deviceId: issued.device.deviceId,

@@ -85,7 +85,7 @@ function metadataLine(metadata: Record<string, unknown> | null) {
 }
 
 function contextBlock(kind: string, text: string, metadata: Record<string, unknown> | null = null) {
-  return `[G-SAP turn context: ${kind}]${metadataLine(metadata)}\n${text}\n[/G-SAP turn context]\n\n`;
+  return `[Codia turn context: ${kind}]${metadataLine(metadata)}\n${text}\n[/Codia turn context]\n\n`;
 }
 
 function appendContextBlock(kind: string, text: string, metadata: Record<string, unknown> | null = null) {
@@ -175,7 +175,7 @@ function refValue(ref: any) {
 }
 
 export function createSessionTurnContextExtension({
-  path = "gsap-session-turn-context",
+  path = "codia-session-turn-context",
   sessionPathRef,
   getTurnContext,
 }: {

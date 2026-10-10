@@ -1,6 +1,6 @@
 import { useStore } from './index';
 import type { ChatMessage } from './chat-types';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import { collectUiContext } from '../utils/ui-context';
 import { toStringArray } from './session-selectors';
 
@@ -15,7 +15,7 @@ export async function replayLatestUserMessage(
     const state = useStore.getState();
     if (toStringArray(state.streamingSessions).includes(sessionPath)) return false;
 
-    await gsapFetch('/api/sessions/latest-user-message/replay', {
+    await codiaFetch('/api/sessions/latest-user-message/replay', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({

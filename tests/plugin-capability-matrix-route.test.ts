@@ -8,7 +8,7 @@ import { createPluginsRoute } from "../server/routes/plugins.js";
 const roots = [];
 
 function makePluginDir() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-plugin-matrix-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-matrix-"));
   roots.push(root);
   const pluginDir = path.join(root, "plugins", "demo");
   fs.mkdirSync(path.join(pluginDir, "tools"), { recursive: true });

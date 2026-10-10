@@ -15,8 +15,8 @@ const path = require("path");
 const root = path.join(__dirname, "..");
 const sdkRoot = path.join(root, "node_modules", "@earendil-works", "pi-coding-agent");
 const piAiRoot = path.join(root, "node_modules", "@earendil-works", "pi-ai");
-const verifiedVersions = new Set(["1.0.1"]);
-const verifiedPiAiVersions = new Set(["1.0.1"]);
+const verifiedVersions = new Set(["1.1.0"]);
+const verifiedPiAiVersions = new Set(["1.1.0"]);
 const piAgentCoreRoot = path.join(root, "node_modules", "@earendil-works", "pi-agent-core");
 
 function fail(message) {
@@ -47,13 +47,15 @@ if (!verifiedPiAiVersions.has(piAiPkg.version)) {
   fail(`pi-ai version ${piAiPkg.version} is not verified. Verified versions: ${[...verifiedPiAiVersions].join(", ")}`);
 }
 const piAgentCorePkg = readJson(path.join(piAgentCoreRoot, "package.json"));
-if (piAgentCorePkg.version !== "1.0.1") {
-  fail(`pi-agent-core version ${piAgentCorePkg.version} does not match 1.0.1`);
+if (piAgentCorePkg.version !== "1.1.0") {
+  fail(`pi-agent-core version ${piAgentCorePkg.version} does not match 1.1.0`);
 }
 
 const sdkIndex = fs.readFileSync(path.join(sdkRoot, "dist", "index.js"), "utf8");
 const expectedExportMarkers = [
   "createAgentSession",
+  "createCodemodeExtension",
+  "createToolSearchExtension",
   "ModelRuntime",
   "ModelRegistry",
   "createReadTool",

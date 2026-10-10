@@ -2,64 +2,9 @@ import { useEffect, useRef } from 'react';
 import { useStore } from '../stores';
 import { createNewSession } from '../stores/session-actions';
 import { closePreview } from '../stores/preview-actions';
-import { CHAT_MIN_WIDTH } from '../layout-constants';
+import { updateLayout } from '../services/layout-state';
 
-function getSidebarWidth(): number {
-  return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width')) || 240;
-}
-function getJianWidth(): number {
-  return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--jian-sidebar-width')) || 260;
-}
-function getPreviewWidth(): number {
-  return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--preview-panel-width')) || 580;
-}
-
-export function updateLayout(): void {
-  const s = useStore.getState();
-  const currentTab = s.currentTab;
-  if (typeof currentTab === 'string' && currentTab.startsWith('plugin:')) return;
-  const w = window.innerWidth;
-  const leftW = s.sidebarOpen ? getSidebarWidth() : 0;
-  const rightW = s.jianOpen ? getJianWidth() : 0;
-  const previewW = s.previewOpen ? getPreviewWidth() : 0;
-  const contentW = w - leftW - rightW - previewW;
-
-  if (contentW < CHAT_MIN_WIDTH) {
-    if (s.jianOpen) {
-      useStore.setState({ jianOpen: false, jianAutoCollapsed: true });
-
-      const newContentW = w - (s.sidebarOpen ? getSidebarWidth() : 0) - previewW;
-      if (newContentW < CHAT_MIN_WIDTH && s.sidebarOpen) {
-        useStore.setState({ sidebarOpen: false, sidebarAutoCollapsed: true });
-      }
-    } else if (s.sidebarOpen) {
-      useStore.setState({ sidebarOpen: false, sidebarAutoCollapsed: true });
-    }
-  } else {
-    if (s.sidebarAutoCollapsed) {
-      const neededForLeft = getSidebarWidth();
-      if (w - rightW - previewW - neededForLeft >= CHAT_MIN_WIDTH) {
-        const tab = s.currentTab || 'chat';
-        const savedLeft = localStorage.getItem(`gsap-sidebar-${tab}`);
-        if (savedLeft !== 'closed') {
-          useStore.setState({ sidebarOpen: true, sidebarAutoCollapsed: false });
-        }
-      }
-    }
-    const s2 = useStore.getState();
-    if (s2.jianAutoCollapsed) {
-      const leftW2 = s2.sidebarOpen ? getSidebarWidth() : 0;
-      const neededForRight = getJianWidth();
-      if (w - leftW2 - previewW - neededForRight >= CHAT_MIN_WIDTH) {
-        const tab2 = s2.currentTab || 'chat';
-        const savedRight = localStorage.getItem(`gsap-jian-${tab2}`);
-        if (savedRight !== 'closed') {
-          useStore.setState({ jianOpen: true, jianAutoCollapsed: false });
-        }
-      }
-    }
-  }
-}
+export { updateLayout } from '../services/layout-state';
 
 export function toggleSidebar(forceOpen?: boolean): void {
   const s = useStore.getState();
@@ -67,7 +12,7 @@ export function toggleSidebar(forceOpen?: boolean): void {
   useStore.setState({ sidebarOpen: open });
 
   const tab = s.currentTab || 'chat';
-  localStorage.setItem(`gsap-sidebar-${tab}`, open ? 'open' : 'closed');
+  localStorage.setItem(`codia-sidebar-${tab}`, open ? 'open' : 'closed');
 
   if (forceOpen === undefined) {
     useStore.setState({ sidebarAutoCollapsed: false });
@@ -84,11 +29,11 @@ export function SidebarLayout() {
     initDone.current = true;
 
     // 迁移 localStorage
-    const legacy = localStorage.getItem('gsap-sidebar');
-    if (legacy && !localStorage.getItem('gsap-sidebar-chat')) {
-      localStorage.setItem('gsap-sidebar-chat', legacy);
+    const legacy = localStorage.getItem('codia-sidebar');
+    if (legacy && !localStorage.getItem('codia-sidebar-chat')) {
+      localStorage.setItem('codia-sidebar-chat', legacy);
     }
-    const savedOpen = localStorage.getItem('gsap-sidebar-chat');
+    const savedOpen = localStorage.getItem('codia-sidebar-chat');
     const sidebarOpen = savedOpen !== 'closed';
 
     useStore.setState({

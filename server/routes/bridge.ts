@@ -561,6 +561,48 @@ export function createBridgeRoute(engine: any, bridgeManager: any, options: any 
     return c.json({ messages: bridgeManager.getMessages(limit, agent.id) });
   });
 
+  /** 汇总全部助手与平台的只读连接状态。 */
+  route.get("/bridge/overview", async (c) => {
+    const agents = typeof engine.listAgents === "function"
+      ? engine.listAgents()
+      : [...(engine.agents?.values?.() || engine.agents || [])];
+    const list = Array.isArray(agents) ? agents : [...(agents?.values?.() || [])];
+    const assistants = list.map((agent) => {
+      const live = bridgeManager.getStatus(agent.id) || {};
+      const configured = agent.config?.bridge || {};
+      const platforms = {};
+      for (const platform of KNOWN_PLATFORMS) {
+        const status = live[platform] || {};
+        const cfg = configured[platform] || {};
+        platforms[platform] = {
+          enabled: !!cfg.enabled,
+          configured: platform === "telegram" ? !!cfg.token : !!cfg.enabled || !!cfg.email || !!cfg.botToken || !!cfg.appId || !!cfg.appID,
+          status: status.status || "disconnected",
+          error: status.error || null,
+          lastConnectedAt: status.lastConnectedAt ?? null,
+          lastErrorAt: status.lastErrorAt ?? null,
+          lastSyncAt: status.lastSyncAt ?? null,
+        };
+      }
+      return { id: agent.id, name: agent.name || agent.config?.name || agent.id, platforms };
+    });
+    return c.json({ assistants, generatedAt: Date.now() });
+  });
+
+  /** 跨助手分页发送记录，默认只读最近 7 天。 */
+  route.get("/bridge/deliveries", async (c) => {
+    const limit = Math.max(1, Math.min(2000, Number(c.req.query("limit")) || 100));
+    const records = typeof bridgeManager.getDeliveryRecords === "function"
+      ? bridgeManager.getDeliveryRecords({
+        limit,
+        agentId: c.req.query("agentId") || null,
+        platform: c.req.query("platform") || null,
+        status: c.req.query("status") || null,
+      })
+      : [];
+    return c.json({ deliveries: records, limit, generatedAt: Date.now() });
+  });
+
   /** 获取 bridge session 列表 */
   route.get("/bridge/sessions", async (c) => {
     const platform = c.req.query("platform"); // optional filter
@@ -865,7 +907,7 @@ export function createBridgeRoute(engine: any, bridgeManager: any, options: any 
             subscriptions: [
               { topic: DINGTALK_BOT_CALLBACK_TOPIC, type: "CALLBACK" },
             ],
-            ua: "gsap-bridge-dingtalk/1.0.0",
+            ua: "codia-bridge-dingtalk/1.0.0",
           }),
           signal: AbortSignal.timeout(10_000),
         });
@@ -935,7 +977,7 @@ export function createBridgeRoute(engine: any, bridgeManager: any, options: any 
       await bridgeManager.stopPlatform("whatsapp", agent.id);
     }
 
-    const cfg = { ...(agent.config?.bridge?.whatsapp || {}), enabled: true, _gsapHome: engine.gsapHome };
+    const cfg = { ...(agent.config?.bridge?.whatsapp || {}), enabled: true, _codiaHome: engine.codiaHome };
     agent.updateConfig({ bridge: { whatsapp: cfg } });
     await bridgeManager.startPlatformFromConfig("whatsapp", cfg, agent.id);
 

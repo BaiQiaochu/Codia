@@ -41,7 +41,7 @@ function nowIso(now) {
 }
 
 function resolveHome(opts = {}) {
-  return opts.gsapHome || opts.hanakoHome || null;
+  return opts.codiaHome || opts.codiaHome || null;
 }
 
 function readJson(filePath, fallback = {}) {
@@ -60,31 +60,31 @@ function writeJson(filePath, value) {
   fs.renameSync(tmpPath, filePath);
 }
 
-function getGpuStartupStatePath(gsapHome) {
-  return path.join(gsapHome, STATE_FILE);
+function getGpuStartupStatePath(codiaHome) {
+  return path.join(codiaHome, STATE_FILE);
 }
 
-function getPreferencesPath(gsapHome) {
-  return path.join(gsapHome, PREFERENCES_FILE);
+function getPreferencesPath(codiaHome) {
+  return path.join(codiaHome, PREFERENCES_FILE);
 }
 
-function readState(gsapHome) {
-  return readJson(getGpuStartupStatePath(gsapHome), { version: STATE_VERSION });
+function readState(codiaHome) {
+  return readJson(getGpuStartupStatePath(codiaHome), { version: STATE_VERSION });
 }
 
-function writeState(gsapHome, state) {
-  writeJson(getGpuStartupStatePath(gsapHome), {
+function writeState(codiaHome, state) {
+  writeJson(getGpuStartupStatePath(codiaHome), {
     ...state,
     version: STATE_VERSION,
   });
 }
 
-function readPreferences(gsapHome) {
-  return readJson(getPreferencesPath(gsapHome), {});
+function readPreferences(codiaHome) {
+  return readJson(getPreferencesPath(codiaHome), {});
 }
 
-function writePreferences(gsapHome, prefs) {
-  writeJson(getPreferencesPath(gsapHome), prefs);
+function writePreferences(codiaHome, prefs) {
+  writeJson(getPreferencesPath(codiaHome), prefs);
 }
 
 function boolFromSetting(value, defaultValue) {
@@ -104,28 +104,26 @@ function hasArg(argv, name) {
 }
 
 function isExplicitSafeMode(argv, env) {
-  if (boolFromSetting(env?.GSAP_GPU_SAFE_MODE, false)) return true;
-  if (boolFromSetting(env?.GSAP_DISABLE_HARDWARE_ACCELERATION, false)) return true;
-  if (boolFromSetting(env?.HANA_GPU_SAFE_MODE, false)) return true;
-  if (boolFromSetting(env?.HANA_DISABLE_HARDWARE_ACCELERATION, false)) return true;
-  return hasArg(argv, "gsap-gpu-safe-mode")
-    || hasArg(argv, "gsap-disable-hardware-acceleration")
-    || hasArg(argv, "hana-gpu-safe-mode")
-    || hasArg(argv, "hana-disable-hardware-acceleration");
+  if (boolFromSetting(env?.CODIA_GPU_SAFE_MODE, false)) return true;
+  if (boolFromSetting(env?.CODIA_DISABLE_HARDWARE_ACCELERATION, false)) return true;
+  if (boolFromSetting(env?.CODIA_GPU_SAFE_MODE, false)) return true;
+  if (boolFromSetting(env?.CODIA_DISABLE_HARDWARE_ACCELERATION, false)) return true;
+  return hasArg(argv, "codia-gpu-safe-mode")
+    || hasArg(argv, "codia-disable-hardware-acceleration")
+    || hasArg(argv, "codia-gpu-safe-mode")
+    || hasArg(argv, "codia-disable-hardware-acceleration");
 }
 
 function isExplicitGpuSandboxCompatibility(argv, env) {
-  if (boolFromSetting(env?.GSAP_GPU_SANDBOX_COMPAT, false)) return true;
-  if (boolFromSetting(env?.HANA_GPU_SANDBOX_COMPAT, false)) return true;
-  return hasArg(argv, "gsap-gpu-sandbox-compat")
-    || hasArg(argv, "hana-gpu-sandbox-compat");
+  if (boolFromSetting(env?.CODIA_GPU_SANDBOX_COMPAT, false)) return true;
+  return hasArg(argv, "codia-gpu-sandbox-compat")
+    || hasArg(argv, "codia-gpu-sandbox-compat");
 }
 
 function isExplicitUnsafeNoSandbox(argv, env) {
-  if (boolFromSetting(env?.GSAP_GPU_UNSAFE_NO_SANDBOX, false)) return true;
-  if (boolFromSetting(env?.HANA_GPU_UNSAFE_NO_SANDBOX, false)) return true;
-  return hasArg(argv, "gsap-gpu-unsafe-no-sandbox")
-    || hasArg(argv, "hana-gpu-unsafe-no-sandbox");
+  if (boolFromSetting(env?.CODIA_GPU_UNSAFE_NO_SANDBOX, false)) return true;
+  return hasArg(argv, "codia-gpu-unsafe-no-sandbox")
+    || hasArg(argv, "codia-gpu-unsafe-no-sandbox");
 }
 
 function policyForMode(mode, reason, extra = {}) {
@@ -160,15 +158,15 @@ function summarizeGpuStartupPolicy(policy) {
   };
 }
 
-function writeAutoGpuMode(gsapHome, mode, {
+function writeAutoGpuMode(codiaHome, mode, {
   reason,
   previousMode,
   previousStartup,
   now,
 } = {}) {
   const timestamp = nowIso(now);
-  const state = readState(gsapHome);
-  writeState(gsapHome, {
+  const state = readState(codiaHome);
+  writeState(codiaHome, {
     ...state,
     autoGpuMode: {
       mode,
@@ -180,7 +178,7 @@ function writeAutoGpuMode(gsapHome, mode, {
   });
 }
 
-function migrateLegacyAutoSafeModePreference(gsapHome, prefs, state, now) {
+function migrateLegacyAutoSafeModePreference(codiaHome, prefs, state, now) {
   if (prefs?.hardware_acceleration !== false) return null;
   const safeMode = state?.safeMode;
   if (!safeMode?.enabled) return null;
@@ -188,8 +186,8 @@ function migrateLegacyAutoSafeModePreference(gsapHome, prefs, state, now) {
 
   const nextPrefs = { ...prefs };
   delete nextPrefs.hardware_acceleration;
-  writePreferences(gsapHome, nextPrefs);
-  writeAutoGpuMode(gsapHome, GPU_MODE_GPU_SANDBOX_COMPAT, {
+  writePreferences(codiaHome, nextPrefs);
+  writeAutoGpuMode(codiaHome, GPU_MODE_GPU_SANDBOX_COMPAT, {
     reason: "legacy-auto-safe-mode-migration",
     previousMode: GPU_MODE_SOFTWARE_SAFE,
     previousStartup: safeMode.previousStartup || null,
@@ -310,15 +308,14 @@ function isGpuRecoveryIncompleteStartup(state) {
 }
 
 function resolveGpuStartupPolicy({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   platform = process.platform,
   argv = process.argv,
   env = process.env,
   now,
 } = {}) {
-  const home = resolveHome({ gsapHome, hanakoHome });
-  if (!home) throw new Error("resolveGpuStartupPolicy requires gsapHome");
+  const home = resolveHome({ codiaHome });
+  if (!home) throw new Error("resolveGpuStartupPolicy requires codiaHome");
 
   const prefs = readPreferences(home);
   if (isExplicitSafeMode(argv, env)) {
@@ -444,16 +441,15 @@ function applyGpuStartupPolicy(app, policy) {
 }
 
 function markGpuStartupPending({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   platform = process.platform,
   phase = "electron-starting",
   startupId = `${Date.now()}-${process.pid}`,
   policy = null,
   now,
 } = {}) {
-  const home = resolveHome({ gsapHome, hanakoHome });
-  if (!home) throw new Error("markGpuStartupPending requires gsapHome");
+  const home = resolveHome({ codiaHome });
+  if (!home) throw new Error("markGpuStartupPending requires codiaHome");
   const timestamp = nowIso(now);
   const state = readState(home);
   const gpuRecovery = buildGpuRecoveryState(phase, null, timestamp);
@@ -475,14 +471,13 @@ function markGpuStartupPending({
 }
 
 function markGpuStartupPhase({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   platform = process.platform,
   phase,
   startupId,
   now,
 } = {}) {
-  const home = resolveHome({ gsapHome, hanakoHome });
+  const home = resolveHome({ codiaHome });
   if (!home || !phase) return null;
   const state = readState(home);
   if (!state.startup || state.startup.status !== "pending") return null;
@@ -506,15 +501,14 @@ function markGpuStartupPhase({
 }
 
 function markGpuStartupReady({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   platform = process.platform,
   phase = "app-ready",
   startupId,
   now,
 } = {}) {
-  const home = resolveHome({ gsapHome, hanakoHome });
-  if (!home) throw new Error("markGpuStartupReady requires gsapHome");
+  const home = resolveHome({ codiaHome });
+  if (!home) throw new Error("markGpuStartupReady requires codiaHome");
   const state = readState(home);
   const timestamp = nowIso(now);
   state.startup = {
@@ -531,15 +525,14 @@ function markGpuStartupReady({
 }
 
 function markGpuStartupFailed({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   platform = process.platform,
   reason,
   startupId,
   now,
 } = {}) {
-  const home = resolveHome({ gsapHome, hanakoHome });
-  if (!home) throw new Error("markGpuStartupFailed requires gsapHome");
+  const home = resolveHome({ codiaHome });
+  if (!home) throw new Error("markGpuStartupFailed requires codiaHome");
   const state = readState(home);
   const timestamp = nowIso(now);
   state.startup = {
@@ -570,14 +563,13 @@ function isGpuChildProcessFailure(details = {}) {
 }
 
 function recordGpuChildProcessGone({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   platform = process.platform,
   policy = null,
   details,
   now,
 } = {}) {
-  const home = resolveHome({ gsapHome, hanakoHome });
+  const home = resolveHome({ codiaHome });
   if (!home || !isGpuChildProcessFailure(details)) return false;
   const timestamp = nowIso(now);
   const crash = {
@@ -603,13 +595,12 @@ function recordGpuChildProcessGone({
 }
 
 function recordGpuInfoUpdate({
-  gsapHome,
-  hanakoHome,
+  codiaHome,
   platform = process.platform,
   featureStatus,
   now,
 } = {}) {
-  const home = resolveHome({ gsapHome, hanakoHome });
+  const home = resolveHome({ codiaHome });
   if (!home || !featureStatus || typeof featureStatus !== "object") return false;
   const state = readState(home);
   writeState(home, {
@@ -623,8 +614,8 @@ function recordGpuInfoUpdate({
   return true;
 }
 
-function buildGpuStartupDiagnostics({ gsapHome, hanakoHome, policy, app } = {}) {
-  const home = resolveHome({ gsapHome, hanakoHome });
+function buildGpuStartupDiagnostics({ codiaHome, policy, app } = {}) {
+  const home = resolveHome({ codiaHome });
   const items = [
     "",
     "--- GPU Startup ---",

@@ -15,7 +15,7 @@ describe("pinned memory tools", () => {
   });
 
   function makeAgentDir() {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-pinned-memory-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-pinned-memory-"));
     tempRoots.push(dir);
     return dir;
   }

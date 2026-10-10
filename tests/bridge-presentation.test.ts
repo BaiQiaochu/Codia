@@ -39,11 +39,11 @@ describe("bridge presentation renderers", () => {
   it("renders Telegram rich draft placeholders with the documented tg-thinking tag", () => {
     const richMessage = renderTelegramRichMessage("", {
       includeThinkingPlaceholder: true,
-      thinkingText: "G-SAP <thinking>",
+      thinkingText: "Codia <thinking>",
     });
 
     expect(richMessage).toEqual({
-      html: "<tg-thinking>G-SAP &lt;thinking&gt;</tg-thinking>",
+      html: "<tg-thinking>Codia &lt;thinking&gt;</tg-thinking>",
     });
   });
 

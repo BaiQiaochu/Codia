@@ -37,7 +37,7 @@ export function resolveComputerUseHelperBuildArch({
 
   const explicitArg = Array.isArray(argv) ? argv[2] : null;
 
-  return explicitArg || env.GSAP_COMPUTER_USE_HELPER_ARCH || arch;
+  return explicitArg || env.CODIA_COMPUTER_USE_HELPER_ARCH || arch;
 
 }
 
@@ -825,7 +825,7 @@ export function buildComputerUseHelper({
 
   env = process.env,
 
-  arch = env.GSAP_COMPUTER_USE_HELPER_ARCH || process.arch,
+  arch = env.CODIA_COMPUTER_USE_HELPER_ARCH || process.arch,
 
 } = {}) {
 
@@ -839,7 +839,7 @@ export function buildComputerUseHelper({
 
 
 
-  const packageDir = path.join(rootDir, "desktop", "native", "GsapComputerUseHelper");
+  const packageDir = path.join(rootDir, "desktop", "native", "CodiaComputerUseHelper");
 
   const swiftArch = swiftArchForNodeArch(arch);
 
@@ -865,7 +865,7 @@ export function buildComputerUseHelper({
 
     "--product",
 
-    "gsap-computer-use-helper",
+    "codia-computer-use-helper",
 
   ];
 
@@ -883,7 +883,7 @@ export function buildComputerUseHelper({
 
   const binPath = read("swift", ["build", "--show-bin-path", ...baseArgs], { cwd: rootDir, env });
 
-  const source = path.join(binPath, "gsap-computer-use-helper");
+  const source = path.join(binPath, "codia-computer-use-helper");
 
   if (!fs.existsSync(source)) {
 
@@ -899,7 +899,7 @@ export function buildComputerUseHelper({
 
   fs.mkdirSync(outDir, { recursive: true });
 
-  const target = path.join(outDir, "gsap-computer-use-helper");
+  const target = path.join(outDir, "codia-computer-use-helper");
 
   fs.copyFileSync(source, target);
 

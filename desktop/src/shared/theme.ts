@@ -6,7 +6,7 @@ import {
 } from "./appearance-preferences";
 
 const themeSheet = document.getElementById("themeSheet") as HTMLLinkElement | null;
-const THEME_OVERRIDES_KEY = "gsap-theme-overrides";
+const THEME_OVERRIDES_KEY = "codia-theme-overrides";
 const THEME_OVERRIDE_PROPS = ["--accent", "--accent-hover", "--accent-light", "--radius-input", "--radius-chat-card"] as const;
 
 function systemIsDark(): boolean {

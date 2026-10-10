@@ -13,7 +13,7 @@ describe("AgentPhoneActivityStore", () => {
     const activity = store.record({
       conversationId: "ch_crew",
       conversationType: "channel",
-      agentId: "hana",
+      agentId: "codia",
       state: "triaging",
       summary: "Checking whether to reply",
     });
@@ -21,7 +21,7 @@ describe("AgentPhoneActivityStore", () => {
     expect(activity).toMatchObject({
       conversationId: "ch_crew",
       conversationType: "channel",
-      agentId: "hana",
+      agentId: "codia",
       state: "triaging",
       summary: "Checking whether to reply",
       timestamp: "2026-05-12T12:00:00.000Z",
@@ -39,7 +39,7 @@ describe("AgentPhoneActivityStore", () => {
     store.record({
       conversationId: "ch_crew",
       conversationType: "channel",
-      agentId: "hana",
+      agentId: "codia",
       state: "viewed",
       summary: "Viewed messages",
     });
@@ -51,7 +51,7 @@ describe("AgentPhoneActivityStore", () => {
       summary: "Skipped reply",
     });
 
-    expect(store.snapshot("ch_crew").map((item) => item.agentId).sort()).toEqual(["hana", "yui"]);
+    expect(store.snapshot("ch_crew").map((item) => item.agentId).sort()).toEqual(["codia", "yui"]);
     expect(store.snapshot("dm:yui")).toEqual([]);
   });
 });

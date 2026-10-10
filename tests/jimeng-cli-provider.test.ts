@@ -7,7 +7,7 @@ import * as provider from "../plugins/jimeng-cli/providers/jimeng-cli.ts";
 
 describe("Jimeng CLI provider contribution", () => {
   it("declares an optional media-only provider", () => {
-    const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-jimeng-provider-"));
+    const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "codia-jimeng-provider-"));
     const registry = new ProviderRegistry(tmpHome);
 
     try {

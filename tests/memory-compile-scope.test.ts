@@ -29,9 +29,9 @@ describe("compiled memory scope", () => {
   let root;
 
   beforeEach(() => {
-    root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-memory-compile-"));
+    root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-memory-compile-"));
     vi.clearAllMocks();
-    vi.mocked(callText).mockResolvedValue("The user worked on G-SAP.");
+    vi.mocked(callText).mockResolvedValue("The user worked on Codia.");
   });
 
   afterEach(() => {
@@ -43,7 +43,7 @@ describe("compiled memory scope", () => {
       getSummariesInRange: vi.fn(() => [{
         session_id: "s1",
         updated_at: "2026-05-19T02:00:00.000Z",
-        summary: "### Timeline\n- 2026-05-19 10:00 User worked on G-SAP packaging tests.",
+        summary: "### Timeline\n- 2026-05-19 10:00 User worked on Codia packaging tests.",
       }]),
     };
 
@@ -51,8 +51,8 @@ describe("compiled memory scope", () => {
 
     const request = vi.mocked(callText).mock.calls[0][0];
     expect(request.systemPrompt).toContain("Compiled Memory Scope Override");
-    expect(request.systemPrompt).toContain("G-SAP");
-    expect(request.systemPrompt).not.toContain("Project Hana");
+    expect(request.systemPrompt).toContain("Codia");
+    expect(request.systemPrompt).not.toContain("Project Codia");
     expect(request.systemPrompt).toContain("Do not keep:");
     expect(request.systemPrompt).toContain("commands");
   });

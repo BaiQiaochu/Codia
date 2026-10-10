@@ -14,7 +14,7 @@ describe("install_skill session file ownership", () => {
   });
 
   it("registers the installed SKILL.md as a session file", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-install-skill-tool-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-install-skill-tool-"));
     const agentDir = path.join(tmpDir, "agent");
     const userSkillsDir = path.join(tmpDir, "user-skills");
     fs.mkdirSync(agentDir, { recursive: true });

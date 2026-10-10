@@ -19,10 +19,10 @@ function writeCronJobs(filePath, jobs) {
 
 describe("automation cron migrations", () => {
   it("patches studio and legacy agent cron jobs through the current automation read model", () => {
-    const gsapHome = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-migrations-automation-"));
+    const codiaHome = fs.mkdtempSync(path.join(os.tmpdir(), "codia-migrations-automation-"));
     try {
-      const agentsDir = path.join(gsapHome, "agents");
-      const studioJobsPath = path.join(gsapHome, "studios", "main", "desk", "cron-jobs.json");
+      const agentsDir = path.join(codiaHome, "agents");
+      const studioJobsPath = path.join(codiaHome, "studios", "main", "desk", "cron-jobs.json");
       const agentJobsPath = path.join(agentsDir, "agent-a", "desk", "cron-jobs.json");
       writeCronJobs(studioJobsPath, [{
         id: "studio_job_1",
@@ -44,7 +44,7 @@ describe("automation cron migrations", () => {
 
       const prefs = makePrefs({ _dataVersion: 29 });
       runMigrations({
-        gsapHome,
+        codiaHome,
         agentsDir,
         prefs,
         providerRegistry: null,
@@ -73,7 +73,7 @@ describe("automation cron migrations", () => {
         expect.objectContaining({ _dataVersion: LATEST_DATA_VERSION }),
       );
     } finally {
-      fs.rmSync(gsapHome, { recursive: true, force: true });
+      fs.rmSync(codiaHome, { recursive: true, force: true });
     }
   });
 });

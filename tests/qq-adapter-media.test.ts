@@ -66,7 +66,7 @@ describe("createQQAdapter markdown replies", () => {
     const adapter = createQQAdapter({
       appID: "app-id",
       appSecret: "app-secret",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage: vi.fn(),
     });
 
@@ -105,7 +105,7 @@ describe("createQQAdapter markdown replies", () => {
     const adapter = createQQAdapter({
       appID: "app-id",
       appSecret: "app-secret",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage: vi.fn(),
     });
 
@@ -130,7 +130,7 @@ describe("createQQAdapter markdown replies", () => {
     const adapter = createQQAdapter({
       appID: "app-id",
       appSecret: "app-secret",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage: vi.fn(),
     });
 
@@ -154,7 +154,7 @@ describe("createQQAdapter markdown replies", () => {
     const adapter = createQQAdapter({
       appID: "app-id",
       appSecret: "app-secret",
-      agentId: "gsap",
+      agentId: "codia",
       onMessage: vi.fn(),
     });
 

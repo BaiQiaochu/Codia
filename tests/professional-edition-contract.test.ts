@@ -13,11 +13,11 @@ function exists(relativePath: string): boolean {
 }
 
 describe("Codia professional edition contract", () => {
-  it("uses an isolated professional product identity", () => {
+  it("uses the unified Codia product identity", () => {
     const pkg = JSON.parse(read("package.json"));
-    expect(pkg.name).toBe("g-sap-professional");
+    expect(pkg.name).toBe("codia");
     expect(pkg.version).toMatch(/^\d+\.\d+\.\d+$/u);
-    expect(pkg.build.appId).toBe("cn.edu.njust.byoung");
+    expect(pkg.build.appId).toBe("io.github.baiqiaochu.codia");
     expect(pkg.build.productName).toBe("Codia");
     expect(pkg.build.win.executableName).toBe("Codia");
     expect(pkg.build.nsis.shortcutName).toBe("Codia");
@@ -40,7 +40,7 @@ describe("Codia professional edition contract", () => {
     expect(engine).not.toContain("disabledToolNamesForLicense");
   });
 
-  it("does not ship desktop pet or Live2D entertainment surfaces", () => {
+  it("ships the welcome Live2D mascot without the removed desktop-pet surface", () => {
     const pkg = JSON.parse(read("package.json"));
     const agent = read("core/agent.ts");
     const main = read("desktop/main.cjs");
@@ -57,9 +57,11 @@ describe("Codia professional edition contract", () => {
     expect(main).not.toContain("desktop-pet.html");
     expect(main).not.toContain("DESKTOP_PET_MODEL_PROTOCOL");
     expect(main).not.toContain("registerSchemesAsPrivileged");
-    expect(main).not.toContain("com.gsap.app");
-    expect(main).toContain('const APP_USER_MODEL_ID = "cn.edu.njust.byoung"');
+    expect(main).not.toContain("com.codia.app");
+    expect(main).toContain('const APP_USER_MODEL_ID = "io.github.baiqiaochu.codia"');
     expect(preload).not.toContain("desktop-pet");
+    expect(exists("desktop/src/react/components/CodiaLive2DMascot.tsx")).toBe(true);
+    expect(read("desktop/src/react/components/WelcomeScreen.tsx")).toContain("CodiaLive2DMascot");
   });
 
   it("removes license and pet entries from settings navigation", () => {

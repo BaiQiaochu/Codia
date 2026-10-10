@@ -5,7 +5,7 @@ import path from "path";
 import { syncModels } from "../core/model-sync.ts";
 
 function projectMimoModel(modelId) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-known-mimo-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-known-mimo-"));
   const modelsJsonPath = path.join(tempDir, "models.json");
   try {
     syncModels({
@@ -35,7 +35,7 @@ describe("MiMo known model capabilities", () => {
       maxTokens: 131072,
       reasoning: true,
     });
-    expect(model.compat).not.toHaveProperty("hanaVideoInput");
+    expect(model.compat).not.toHaveProperty("codiaVideoInput");
   });
 
   it("keeps MiMo V2.5 full-modal while preserving Pi-compatible input", () => {
@@ -45,8 +45,8 @@ describe("MiMo known model capabilities", () => {
       id: "mimo-v2.5",
       input: ["text", "image"],
       compat: {
-        hanaVideoInput: true,
-        hanaAudioInput: true,
+        codiaVideoInput: true,
+        codiaAudioInput: true,
       },
     });
   });

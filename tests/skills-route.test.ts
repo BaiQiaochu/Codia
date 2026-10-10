@@ -91,7 +91,7 @@ function createStoredZip(entries) {
 }
 
 describe("skills route", () => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-skills-route-"));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-skills-route-"));
 
   afterEach(() => {
     fs.rmSync(tempRoot, { recursive: true, force: true });
@@ -99,10 +99,10 @@ describe("skills route", () => {
   });
 
   it("runtime=1 returns workspace skills in the runtime view while default remains agent skills", async () => {
-    const agentId = "gsap";
+    const agentId = "codia";
     const agentDir = path.join(tempRoot, agentId);
     fs.mkdirSync(agentDir, { recursive: true });
-    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: G-SAP\n", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: Codia\n", "utf-8");
 
     const { createSkillsRoute } = await import("../server/routes/skills.js");
     const app = new Hono();
@@ -141,10 +141,10 @@ describe("skills route", () => {
   });
 
   it("filters out skills that have been replaced by built-in tools", async () => {
-    const agentId = "gsap";
+    const agentId = "codia";
     const agentDir = path.join(tempRoot, agentId);
     fs.mkdirSync(agentDir, { recursive: true });
-    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: G-SAP\n", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: Codia\n", "utf-8");
 
     const { createSkillsRoute } = await import("../server/routes/skills.js");
     const app = new Hono();
@@ -220,7 +220,7 @@ describe("skills route", () => {
     const { createSkillsRoute } = await import("../server/routes/skills.js");
     const app = new Hono();
     const engine = {
-      gsapHome: tempRoot,
+      codiaHome: tempRoot,
       agentsDir: tempRoot,
       userSkillsDir,
       reloadSkills: vi.fn(async () => {}),
@@ -254,10 +254,10 @@ describe("skills route", () => {
   });
 
   it("translates skill names through the requested agent context", async () => {
-    const agentId = "gsap";
+    const agentId = "codia";
     const agentDir = path.join(tempRoot, agentId);
     fs.mkdirSync(agentDir, { recursive: true });
-    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: G-SAP\n", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: Codia\n", "utf-8");
 
     const { createSkillsRoute } = await import("../server/routes/skills.js");
     const app = new Hono();
@@ -311,10 +311,10 @@ describe("skills route", () => {
   });
 
   it("lists skill bundles with the requested agent enabled state", async () => {
-    const agentId = "gsap";
+    const agentId = "codia";
     const agentDir = path.join(tempRoot, agentId);
     fs.mkdirSync(agentDir, { recursive: true });
-    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: G-SAP\n", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: Codia\n", "utf-8");
     fs.writeFileSync(path.join(tempRoot, "skill-bundles.json"), JSON.stringify({
       schemaVersion: 1,
       bundles: [
@@ -334,7 +334,7 @@ describe("skills route", () => {
     const { createSkillsRoute } = await import("../server/routes/skills.js");
     const app = new Hono();
     const engine = {
-      gsapHome: tempRoot,
+      codiaHome: tempRoot,
       agentsDir: tempRoot,
       getAllSkills: vi.fn(() => [
         { name: "writer", enabled: true, source: "user" },
@@ -372,7 +372,7 @@ describe("skills route", () => {
     const { createSkillsRoute } = await import("../server/routes/skills.js");
     const app = new Hono();
     const engine = {
-      gsapHome: tempRoot,
+      codiaHome: tempRoot,
       agentsDir: tempRoot,
       emitEvent: vi.fn(),
       getAllSkills: vi.fn(() => [
@@ -459,7 +459,7 @@ describe("skills route", () => {
       ],
     }), "utf-8");
     const engine = {
-      gsapHome: tempRoot,
+      codiaHome: tempRoot,
       userSkillsDir,
       skillsDir: userSkillsDir,
       cwd: exportsDir,
@@ -548,7 +548,7 @@ describe("skills route", () => {
     }), "utf-8");
 
     const engine = {
-      gsapHome: tempRoot,
+      codiaHome: tempRoot,
       userSkillsDir: path.join(tempRoot, "skills"),
       skillsDir: path.join(tempRoot, "skills"),
       cwd: exportsDir,
@@ -625,7 +625,7 @@ describe("skills route", () => {
     }), "utf-8");
 
     const engine = {
-      gsapHome: tempRoot,
+      codiaHome: tempRoot,
       userSkillsDir: skillsDir,
       skillsDir,
       cwd: exportsDir,
@@ -664,7 +664,7 @@ describe("skills route", () => {
     const { createSkillsRoute } = await import("../server/routes/skills.js");
     const app = new Hono();
     const engine = {
-      gsapHome: tempRoot,
+      codiaHome: tempRoot,
       agentsDir: tempRoot,
       getAllSkills: vi.fn(() => [{ name: "writer", enabled: false, source: "user" }]),
       emitEvent: vi.fn(),
@@ -761,7 +761,7 @@ describe("skills route", () => {
       }));
     });
     const engine = {
-      gsapHome: tempRoot,
+      codiaHome: tempRoot,
       agentsDir: tempRoot,
       getAgent: vi.fn(() => ({ id: agentId })),
       updateConfig,
@@ -808,12 +808,11 @@ describe("DELETE /skills/:name per-agent target selection", () => {
       agentMap.set(id, { agentDir });
     }
     return {
-      gsapHome: tempRoot,
+      codiaHome: tempRoot,
       skillsDir,
       agentsDir,
       currentAgentId,
       getAgent: (id) => agentMap.get(id),
-      //
       //
       getAllSkills: vi.fn(() => []),
       getRuntimeSkills: vi.fn(() => []),
@@ -852,7 +851,7 @@ describe("DELETE /skills/:name per-agent target selection", () => {
   }
 
   beforeEach(() => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-skills-delete-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-skills-delete-"));
     agentsDir = path.join(tempRoot, "agents");
     skillsDir = path.join(tempRoot, "skills");
     fs.mkdirSync(agentsDir, { recursive: true });
@@ -951,7 +950,7 @@ describe("DELETE /skills/:name per-agent target selection", () => {
       agents: ["agent-a"],
       currentAgentId: "agent-a",
     });
-    engine.gsapHome = tempRoot;
+    engine.codiaHome = tempRoot;
     writeUserSkill("bundled-skill");
     fs.writeFileSync(path.join(tempRoot, "skill-bundles.json"), JSON.stringify({
       schemaVersion: 1,

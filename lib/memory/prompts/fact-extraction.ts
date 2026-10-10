@@ -16,7 +16,7 @@ Rules:
 0. 只提取用户画像和粗颗粒近况。禁止提取工作方式偏好、协作流程偏好、工具偏好、项目工程规则、助手执行规则、文件名、命令、测试、发布、commit、push 或其他执行细节。如果一条事实描述的是“以后遇到类似任务应该怎么做”，它属于项目说明、经验库或 skill，不属于记忆事实。
 1. Extract only objective facts about the user profile and coarse current state.
 2. User-profile facts include identity, traits, aesthetics, interests, likes/dislikes, long-term relationships, life orientation, and long-term focus directions.
-3. Coarse current-state facts include broad domains/projects/themes the user is focused on, such as memory systems, G-SAP, or AI agents.
+3. Coarse current-state facts include broad domains/projects/themes the user is focused on, such as memory systems, Codia, or AI agents.
 4. Do not extract work-style preferences, collaboration-process preferences, tool preferences, engineering rules, assistant execution rules, filenames, commands, tests, releases, commits, pushes, or other execution details.
 5. If a fact describes how to handle similar tasks later, it belongs in project instructions, an experience library, or a reusable skill, not memory.
 6. If a fact describes a concrete subproblem, concrete solution, or concrete change inside a broad theme, do not extract it.

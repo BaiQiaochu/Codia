@@ -5,10 +5,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useStore } from '../../stores';
 
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 function workflowActionButton(pattern: RegExp) {
@@ -21,8 +21,8 @@ describe('ChannelWorkflowWindow drag contract', () => {
   beforeEach(() => {
     window.t = ((key: string) => key) as typeof window.t;
     window.localStorage.clear();
-    gsapFetchMock.mockReset();
-    gsapFetchMock.mockResolvedValue({
+    codiaFetchMock.mockReset();
+    codiaFetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
         channels: [{ id: 'company_channel', internalChannelId: 'ch_crew' }],
@@ -34,8 +34,8 @@ describe('ChannelWorkflowWindow drag contract', () => {
       channelHeaderName: '工作群',
       channelMessages: [],
       channelMembers: ['worker-a'],
-      agents: [{ id: 'worker-a', name: '工人A', yuan: 'gsap', isPrimary: false }],
-      currentAgentId: 'gsap',
+      agents: [{ id: 'worker-a', name: '工人A', yuan: 'codia', isPrimary: false }],
+      currentAgentId: 'codia',
       channelAgentActivities: { ch_crew: {} },
       channelTickerStatus: { ch_crew: { running: false } },
     } as never);

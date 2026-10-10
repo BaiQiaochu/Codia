@@ -150,7 +150,6 @@ const IMG_MD_RE = /!\[[^\]]*\]\((https?:\/\/[^)\s]+)\)/;
  *
  * 提取规则（按优先级）- * 1. MEDIA:<url> 指令行（主协议，不区分媒体类型）
   *
-  *
  *
  * @param {string} text
  * @returns {{ text: string, mediaUrls: string[] }}

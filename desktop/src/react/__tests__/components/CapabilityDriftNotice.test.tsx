@@ -99,7 +99,7 @@ describe('CapabilityDriftNotice', () => {
     const onNotice = (event: Event) => {
       notices.push((event as CustomEvent).detail);
     };
-    window.addEventListener('gsap-inline-notice', onNotice);
+    window.addEventListener('codia-inline-notice', onNotice);
     try {
       render(<CapabilityDriftNotice sessionPath="/tmp/s.jsonl" drift={makeDrift()} />);
       fireEvent.click(screen.getByText('session.capabilityDrift.refreshButton'));
@@ -114,7 +114,7 @@ describe('CapabilityDriftNotice', () => {
         });
       });
     } finally {
-      window.removeEventListener('gsap-inline-notice', onNotice);
+      window.removeEventListener('codia-inline-notice', onNotice);
     }
   });
 });

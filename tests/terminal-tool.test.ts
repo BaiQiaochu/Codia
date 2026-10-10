@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { createTerminalTool } from "../lib/tools/terminal-tool.js";
 
-function makeCtx(sessionPath = "/tmp/agents/gsap/sessions/s1.jsonl") {
+function makeCtx(sessionPath = "/tmp/agents/codia/sessions/s1.jsonl") {
   return {
     sessionManager: {
       getSessionFile: () => sessionPath,
@@ -26,7 +26,7 @@ describe("terminal tool", () => {
     };
     const tool = createTerminalTool({
       getTerminalSessionManager: () => manager,
-      getAgentId: () => "gsap",
+      getAgentId: () => "codia",
       getCwd: () => "/tmp/workspace",
     });
 
@@ -40,8 +40,8 @@ describe("terminal tool", () => {
 
     expect(started).toMatchObject({ terminalId: "term_1", status: "running", seq: 0 });
     expect(manager.start).toHaveBeenCalledWith(expect.objectContaining({
-      sessionPath: "/tmp/agents/gsap/sessions/s1.jsonl",
-      agentId: "gsap",
+      sessionPath: "/tmp/agents/codia/sessions/s1.jsonl",
+      agentId: "codia",
       cwd: "/tmp/workspace",
       command: "npm run dev",
       label: "dev",
@@ -54,7 +54,7 @@ describe("terminal tool", () => {
     }, null, null, makeCtx()));
     expect(written.output).toBe("ok\n");
     expect(manager.write).toHaveBeenCalledWith(expect.objectContaining({
-      sessionPath: "/tmp/agents/gsap/sessions/s1.jsonl",
+      sessionPath: "/tmp/agents/codia/sessions/s1.jsonl",
       terminalId: "term_1",
       chars: "rs\n",
     }));
@@ -66,7 +66,7 @@ describe("terminal tool", () => {
   it("requires an active session before touching terminal state", async () => {
     const tool = createTerminalTool({
       getTerminalSessionManager: () => ({ list: vi.fn() }),
-      getAgentId: () => "gsap",
+      getAgentId: () => "codia",
       getCwd: () => "/tmp/workspace",
     });
 

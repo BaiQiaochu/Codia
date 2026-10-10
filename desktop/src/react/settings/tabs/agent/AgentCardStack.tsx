@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSettingsStore, type Agent } from '../../store';
-import { gsapFetch, gsapUrl, yuanFallbackAvatar } from '../../api';
+import { codiaFetch, codiaUrl, yuanFallbackAvatar } from '../../api';
 import { t } from '../../helpers';
 import { loadAgents } from '../../actions';
 import styles from '../../Settings.module.css';
@@ -189,7 +189,7 @@ export function AgentCardStack({ agents, selectedId, currentAgentId, onSelect, o
             const [movedAgent] = reordered.splice(dragIdx, 1);
             reordered.splice(dropIdx, 0, movedAgent);
             useSettingsStore.setState({ agents: reordered });
-            gsapFetch('/api/agents/order', {
+            codiaFetch('/api/agents/order', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ order: reordered.map(a => a.id) }),
@@ -265,7 +265,7 @@ export function AgentCardStack({ agents, selectedId, currentAgentId, onSelect, o
                   className={styles['agent-card-avatar']}
                   draggable={false}
                   src={agent.hasAvatar
-                    ? gsapUrl(`/api/agents/${agent.id}/avatar?t=${ts}`, { includeTokenQuery: true })
+                    ? codiaUrl(`/api/agents/${agent.id}/avatar?t=${ts}`, { includeTokenQuery: true })
                     : yuanFallbackAvatar(agent.yuan)}
                   onError={(e) => {
                     const img = e.target as HTMLImageElement;

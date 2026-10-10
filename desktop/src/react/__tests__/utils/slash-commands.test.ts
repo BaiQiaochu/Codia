@@ -56,13 +56,14 @@ afterAll(() => {
 
 describe('slash commands', () => {
   function commands() {
+    const noop = vi.fn(async () => {});
     return buildSlashCommands(
       (key: string) => key,
-      vi.fn(async () => {}),
-      vi.fn(async () => {}),
-      vi.fn(async () => {}),
-      vi.fn(async () => {}),
-      vi.fn((_cmd: string) => async () => {}),
+      noop,
+      noop,
+      noop,
+      noop,
+      vi.fn((_cmd: string) => noop),
     );
   }
 
@@ -131,7 +132,7 @@ describe('slash commands', () => {
     });
     mocks.ensureSession.mockImplementation(async () => {
       useStore.setState({
-        currentSessionPath: 'E:/GSAPmaim/G-sap/.tmp/current.jsonl',
+        currentSessionPath: 'E:/CODIAmaim/Codia/.tmp/current.jsonl',
         pendingNewSession: false,
       });
       return true;
@@ -150,7 +151,7 @@ describe('slash commands', () => {
     expect(JSON.parse(mocks.ws.send.mock.calls[0][0])).toMatchObject({
       type: 'slash',
       text: '/reset',
-      sessionPath: 'E:/GSAPmaim/G-sap/.tmp/current.jsonl',
+      sessionPath: 'E:/CODIAmaim/Codia/.tmp/current.jsonl',
     });
   });
 
@@ -161,7 +162,7 @@ describe('slash commands', () => {
     });
     mocks.ensureSession.mockImplementation(async () => {
       useStore.setState({
-        currentSessionPath: 'E:/GSAPmaim/G-sap/.tmp/recovered.jsonl',
+        currentSessionPath: 'E:/CODIAmaim/Codia/.tmp/recovered.jsonl',
         pendingNewSession: false,
       });
       return true;
@@ -180,23 +181,23 @@ describe('slash commands', () => {
     expect(JSON.parse(mocks.ws.send.mock.calls[0][0])).toMatchObject({
       type: 'slash',
       text: '/reset',
-      sessionPath: 'E:/GSAPmaim/G-sap/.tmp/recovered.jsonl',
+      sessionPath: 'E:/CODIAmaim/Codia/.tmp/recovered.jsonl',
     });
   });
 
   it('sends the stable sessionId with WebSocket slash commands when available', async () => {
     useStore.setState({
-      currentSessionPath: 'E:/GSAPmaim/G-sap/.tmp/current.jsonl',
+      currentSessionPath: 'E:/CODIAmaim/Codia/.tmp/current.jsonl',
       currentSessionId: 'sess_current_123',
       sessions: [{
-        path: 'E:/GSAPmaim/G-sap/.tmp/current.jsonl',
+        path: 'E:/CODIAmaim/Codia/.tmp/current.jsonl',
         sessionId: 'sess_current_123',
         title: 'Current',
         firstMessage: '',
         modified: new Date(0).toISOString(),
         messageCount: 0,
         agentId: 'agent-1',
-        agentName: 'G-SAP',
+        agentName: 'Codia',
         cwd: null,
       }],
       pendingNewSession: false,
@@ -215,7 +216,7 @@ describe('slash commands', () => {
     expect(JSON.parse(mocks.ws.send.mock.calls[0][0])).toMatchObject({
       type: 'slash',
       text: '/reset',
-      sessionPath: 'E:/GSAPmaim/G-sap/.tmp/current.jsonl',
+      sessionPath: 'E:/CODIAmaim/Codia/.tmp/current.jsonl',
       sessionId: 'sess_current_123',
     });
   });

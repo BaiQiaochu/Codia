@@ -58,9 +58,9 @@ function makeCoordinatorDeps(overrides = {}) {
       buildSystemPrompt: () => "mock-prompt",
       config: {},
       tools: [],
-      agentDir: "/tmp/agents/gsap",
+      agentDir: "/tmp/agents/codia",
     }),
-    getActiveAgentId: () => "gsap",
+    getActiveAgentId: () => "codia",
     getModels: () => ({
       currentModel: { id: "test-model", name: "test-model" },
       authStorage: {},
@@ -110,7 +110,7 @@ describe("createSession 返回值结构", () => {
     expect(result).toHaveProperty("sessionPath");
     expect(result).toHaveProperty("agentId");
     expect(result.sessionPath).toBe("/tmp/sessions/test-session.jsonl");
-    expect(result.agentId).toBe("gsap");
+    expect(result.agentId).toBe("codia");
     expect(result.session).toBeDefined();
     expect(result.session.sessionManager).toBeDefined();
   });
@@ -138,7 +138,7 @@ describe("createSession 返回值结构", () => {
     const result = await coordinator.createSession(null, "/tmp/workspace", false);
 
     expect(result.sessionPath).toMatch(/^_anon_/);
-    expect(result.agentId).toBe("gsap");
+    expect(result.agentId).toBe("codia");
   });
 });
 
@@ -176,10 +176,10 @@ function makeSubagentDeps(overrides = {}) {
     }),
     getSessionPath: () => "/test/session.jsonl",
     listAgents: vi.fn(() => [
-      { id: "gsap", name: "G-SAP", model: "claude-3-5-sonnet", summary: "主 agent" },
+      { id: "codia", name: "Codia", model: "claude-3-5-sonnet", summary: "主 agent" },
     ]),
-    currentAgentId: "gsap",
-    agentDir: "/test/agents/gsap",
+    currentAgentId: "codia",
+    agentDir: "/test/agents/codia",
     emitEvent: vi.fn(),
     ...overrides,
   };
@@ -423,10 +423,10 @@ describe("resolveAgent 并发安全", () => {
   it("returns explicit agent when agentId is valid", () => {
     const engine = mockEngine({
       _focus: { id: "_focus" },
-      gsap: { id: "gsap", name: "G-SAP" },
+      codia: { id: "codia", name: "Codia" },
     });
-    const agent = resolveAgent(engine, mockReqCtx("gsap"));
-    expect(agent).toEqual({ id: "gsap", name: "G-SAP" });
+    const agent = resolveAgent(engine, mockReqCtx("codia"));
+    expect(agent).toEqual({ id: "codia", name: "Codia" });
   });
 
   it("throws AgentNotFoundError when explicit agentId not found", () => {
@@ -442,9 +442,9 @@ describe("resolveAgent 并发安全", () => {
   });
 
   it("resolveAgentStrict returns agent when valid agentId provided", () => {
-    const engine = mockEngine({ gsap: { id: "gsap" } });
-    const agent = resolveAgentStrict(engine, mockReqCtx("gsap"));
-    expect(agent).toEqual({ id: "gsap" });
+    const engine = mockEngine({ codia: { id: "codia" } });
+    const agent = resolveAgentStrict(engine, mockReqCtx("codia"));
+    expect(agent).toEqual({ id: "codia" });
   });
 
   it("resolveAgentStrict throws when agentId provided but not found", () => {

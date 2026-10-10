@@ -9,7 +9,7 @@ describe("SubagentRunStore", () => {
   let storePath;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-subagent-runs-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-subagent-runs-"));
     storePath = path.join(tempDir, "subagent-runs.json");
   });
 
@@ -17,16 +17,16 @@ describe("SubagentRunStore", () => {
     const store = new SubagentRunStore(storePath);
 
     store.register("subagent-1", {
-      parentSessionPath: "/agents/gsap/sessions/parent.jsonl",
+      parentSessionPath: "/agents/codia/sessions/parent.jsonl",
       threadId: "thread-1",
       threadKind: "direct",
       summary: "check project",
-      requestedAgentId: "gsap",
-      requestedAgentNameSnapshot: "G-SAP",
+      requestedAgentId: "codia",
+      requestedAgentNameSnapshot: "Codia",
     });
-    store.attachSession("subagent-1", "/agents/gsap/subagent-sessions/child.jsonl", {
-      executorAgentId: "gsap",
-      executorAgentNameSnapshot: "G-SAP",
+    store.attachSession("subagent-1", "/agents/codia/subagent-sessions/child.jsonl", {
+      executorAgentId: "codia",
+      executorAgentNameSnapshot: "Codia",
       executorMetaVersion: 1,
     });
     store.resolve("subagent-1", "finished summary");
@@ -34,32 +34,32 @@ describe("SubagentRunStore", () => {
     const restored = new SubagentRunStore(storePath);
     expect(restored.query("subagent-1")).toMatchObject({
       taskId: "subagent-1",
-      parentSessionPath: "/agents/gsap/sessions/parent.jsonl",
-      childSessionPath: "/agents/gsap/subagent-sessions/child.jsonl",
+      parentSessionPath: "/agents/codia/sessions/parent.jsonl",
+      childSessionPath: "/agents/codia/subagent-sessions/child.jsonl",
       threadId: "thread-1",
       threadKind: "direct",
       status: "resolved",
       summary: "finished summary",
-      requestedAgentId: "gsap",
-      executorAgentId: "gsap",
-      executorAgentNameSnapshot: "G-SAP",
+      requestedAgentId: "codia",
+      executorAgentId: "codia",
+      executorAgentNameSnapshot: "Codia",
     });
   });
 
   it("aborts pending runs for an archived parent session", () => {
     const store = new SubagentRunStore(storePath);
     store.register("subagent-1", {
-      parentSessionPath: "/agents/gsap/sessions/a.jsonl",
-      requestedAgentId: "gsap",
+      parentSessionPath: "/agents/codia/sessions/a.jsonl",
+      requestedAgentId: "codia",
     });
     store.register("subagent-2", {
-      parentSessionPath: "/agents/gsap/sessions/b.jsonl",
-      requestedAgentId: "gsap",
+      parentSessionPath: "/agents/codia/sessions/b.jsonl",
+      requestedAgentId: "codia",
     });
     store.resolve("subagent-2", "done");
 
     const result = store.abortByParentSession(
-      "/agents/gsap/sessions/a.jsonl",
+      "/agents/codia/sessions/a.jsonl",
       "parent session archived",
     );
 
@@ -73,8 +73,8 @@ describe("SubagentRunStore", () => {
   });
 
   it("aborts pending runs by stable parent session id after the parent path moves", () => {
-    const originalPath = "/agents/gsap/sessions/original.jsonl";
-    const movedPath = "/agents/gsap/sessions/archive/renamed.jsonl";
+    const originalPath = "/agents/codia/sessions/original.jsonl";
+    const movedPath = "/agents/codia/sessions/archive/renamed.jsonl";
     const sessionId = "sess_subagent_runs";
     const store = new SubagentRunStore(storePath, {
       getSessionIdForPath: (sessionPath: string) => (
@@ -84,11 +84,11 @@ describe("SubagentRunStore", () => {
 
     store.register("subagent-1", {
       parentSessionPath: originalPath,
-      requestedAgentId: "gsap",
+      requestedAgentId: "codia",
     });
     store.register("subagent-2", {
-      parentSessionPath: "/agents/gsap/sessions/other.jsonl",
-      requestedAgentId: "gsap",
+      parentSessionPath: "/agents/codia/sessions/other.jsonl",
+      requestedAgentId: "codia",
     });
 
     const result = store.abortByParentSession(movedPath, "parent session archived");

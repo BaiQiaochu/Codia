@@ -10,7 +10,7 @@ import { createVoiceRoute } from "../server/routes/voice.js";
 let tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-voice-route-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-voice-route-"));
   tempDirs.push(dir);
   return dir;
 }

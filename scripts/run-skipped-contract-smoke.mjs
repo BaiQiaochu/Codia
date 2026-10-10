@@ -55,7 +55,7 @@ try {
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });
   const result = spawnSync(process.execPath, args, {
     cwd: root,
-    env: { ...process.env, GSAP_SKIPPED_CONTRACT_SMOKE: "1" },
+    env: { ...process.env, CODIA_SKIPPED_CONTRACT_SMOKE: "1" },
     stdio: "inherit",
   });
   if (fs.existsSync(reportPath)) {

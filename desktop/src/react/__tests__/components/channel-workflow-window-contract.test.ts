@@ -40,7 +40,7 @@ describe('channel workflow window contract', () => {
     expect(source).toContain('workflowDraftStorageKey');
     expect(source).toContain('关联执行频道');
     expect(source).toContain('工作流画布');
-    expect(source).not.toContain('G-SAP 工作流画布');
+    expect(source).not.toContain('Codia 工作流画布');
   });
 
   it('lets the workflow canvas add nodes, connect nodes, delete the workflow, and dispatch agent tasks', () => {
@@ -65,12 +65,12 @@ describe('channel workflow window contract', () => {
     const panelSource = read('components/channels/ChannelWorkspacePanel.tsx');
     const css = read('components/channels/Channels.module.css');
 
-    expect(workflowSource).toContain('gsap-channel-task-focus-workflow');
-    expect(workflowSource).toContain('gsap-channel-workflow-focus-task');
+    expect(workflowSource).toContain('codia-channel-task-focus-workflow');
+    expect(workflowSource).toContain('codia-channel-workflow-focus-task');
     expect(workflowSource).toContain('scrollWorkflowNodeIntoView');
     expect(workflowSource).toContain('data-workflow-node-id');
-    expect(panelSource).toContain('gsap-channel-task-focus-workflow');
-    expect(panelSource).toContain('gsap-channel-workflow-focus-task');
+    expect(panelSource).toContain('codia-channel-task-focus-workflow');
+    expect(panelSource).toContain('codia-channel-workflow-focus-task');
     expect(panelSource).toContain('scrollTaskNodeIntoView');
     expect(panelSource).toContain('data-company-task-id');
     expect(css).toContain('.channelTaskNodeFocused');

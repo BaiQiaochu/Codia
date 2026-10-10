@@ -7,7 +7,7 @@ import { PreferencesManager } from "../core/preferences-manager.js";
 import { createPreferencesRoute } from "../server/routes/preferences.js";
 
 function makePrefs() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-prefs-notification-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-prefs-notification-"));
   const userDir = path.join(root, "user");
   const agentsDir = path.join(root, "agents");
   fs.mkdirSync(userDir, { recursive: true });

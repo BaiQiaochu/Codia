@@ -123,7 +123,7 @@ function killProcessTree(child) {
 }
 
 async function main() {
-  const remoteDebugPort = Number(process.env.GSAP_E2E_REMOTE_DEBUG_PORT || await getAvailablePort());
+  const remoteDebugPort = Number(process.env.CODIA_E2E_REMOTE_DEBUG_PORT || await getAvailablePort());
   const mockOpenAI = await startMockOpenAI({ reply: "E2E copy reply." });
   const e2eHome = createIsolatedE2EHome({ mockBaseUrl: mockOpenAI.baseUrl });
   let child = null;
@@ -136,10 +136,10 @@ async function main() {
       {
         cwd: ROOT,
         env: desktopLaunchEnv({
-          GSAP_HOME: e2eHome,
-          GSAP_E2E: "1",
-          GSAP_E2E_REMOTE_DEBUG_PORT: String(remoteDebugPort),
-          GSAP_DESKTOP_SERVER_MODE: "dist",
+          CODIA_HOME: e2eHome,
+          CODIA_E2E: "1",
+          CODIA_E2E_REMOTE_DEBUG_PORT: String(remoteDebugPort),
+          CODIA_DESKTOP_SERVER_MODE: "dist",
         }),
         stdio: ["ignore", "pipe", "pipe"],
       },
@@ -156,14 +156,14 @@ async function main() {
 
     const diagnostics = {
       readyState: await cdp.evaluate("document.readyState").catch(() => null),
-      hasGsap: await cdp.evaluate("typeof window.gsap !== 'undefined'").catch(() => null),
-      hasE2EFlag: await cdp.evaluate("typeof window.gsap?.isE2EMode !== 'undefined'").catch(() => null),
-      hasHelper: await cdp.evaluate("typeof window.__GSAP_E2E__ !== 'undefined'").catch(() => null),
+      hasCodia: await cdp.evaluate("typeof window.codia !== 'undefined'").catch(() => null),
+      hasE2EFlag: await cdp.evaluate("typeof window.codia?.isE2EMode !== 'undefined'").catch(() => null),
+      hasHelper: await cdp.evaluate("typeof window.__CODIA_E2E__ !== 'undefined'").catch(() => null),
     };
 
     await waitFor(
       async () => await cdp.evaluate(
-        "typeof window.__GSAP_RUNTIME_DIAGNOSTICS__ !== 'undefined' && window.__GSAP_E2E__?.appReady === true",
+        "typeof window.__CODIA_RUNTIME_DIAGNOSTICS__ !== 'undefined' && window.__CODIA_E2E__?.appReady === true",
       ),
       "renderer app ready",
       60000,
@@ -210,16 +210,16 @@ async function main() {
     },
   ];
 
-  const multiSession = await cdp.evaluate(`window.__GSAP_E2E__.seedCopySession({ sessionPath: "/__e2e__/multi", items: ${toExpr(multiSelectItems)} })`);
-  await cdp.evaluate(`window.__GSAP_E2E__.selectMessages(${toExpr(multiSession)}, ["u1", "a1"])`);
+  const multiSession = await cdp.evaluate(`window.__CODIA_E2E__.seedCopySession({ sessionPath: "/__e2e__/multi", items: ${toExpr(multiSelectItems)} })`);
+  await cdp.evaluate(`window.__CODIA_E2E__.selectMessages(${toExpr(multiSession)}, ["u1", "a1"])`);
   await waitFor(
     async () => await cdp.evaluate(`!!document.querySelector('[data-message-id="a1"]')`),
     "multi-select copy target",
   );
-  await cdp.evaluate(`window.__GSAP_E2E__.copySelection(${toExpr(multiSession)}, "a1")`);
+  await cdp.evaluate(`window.__CODIA_E2E__.copySelection(${toExpr(multiSession)}, "a1")`);
   const multiClipboard = await waitFor(
     async () => {
-      const text = await cdp.evaluate(`window.__GSAP_E2E__.readClipboardText()`);
+      const text = await cdp.evaluate(`window.__CODIA_E2E__.readClipboardText()`);
       return String(text).includes("quoted request") ? text : null;
     },
     "multi-select clipboard",
@@ -231,15 +231,15 @@ async function main() {
     }
   }
 
-  const singleSession = await cdp.evaluate(`window.__GSAP_E2E__.seedCopySession({ sessionPath: "/__e2e__/assistant", items: ${toExpr(assistantCardItems)} })`);
+  const singleSession = await cdp.evaluate(`window.__CODIA_E2E__.seedCopySession({ sessionPath: "/__e2e__/assistant", items: ${toExpr(assistantCardItems)} })`);
   await waitFor(
     async () => await cdp.evaluate(`!!document.querySelector('[data-message-id="a2"]')`),
     "assistant copy target",
   );
-  await cdp.evaluate(`window.__GSAP_E2E__.copySelection(${toExpr(singleSession)}, "a2")`);
+  await cdp.evaluate(`window.__CODIA_E2E__.copySelection(${toExpr(singleSession)}, "a2")`);
   const assistantClipboard = await waitFor(
     async () => {
-      const text = await cdp.evaluate(`window.__GSAP_E2E__.readClipboardText()`);
+      const text = await cdp.evaluate(`window.__CODIA_E2E__.readClipboardText()`);
       return String(text).includes("hello.png") ? text : null;
     },
     "assistant clipboard",

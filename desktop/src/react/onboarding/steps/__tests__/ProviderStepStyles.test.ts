@@ -89,8 +89,8 @@ describe('ProviderStep CSS contract', () => {
               </div>
               <div class="ob-memory-toggle">
                 <div>
-                  <button type="button" class="gsap-toggle on"></button>
-                  <span class="gsap-toggle-label">Memory System</span>
+                  <button type="button" class="codia-toggle on"></button>
+                  <span class="codia-toggle-label">Memory System</span>
                 </div>
               </div>
             </div>
@@ -101,7 +101,7 @@ describe('ProviderStep CSS contract', () => {
 
     const toggleWrap = document.querySelector('.ob-memory-toggle') as HTMLElement;
     const toggleInner = document.querySelector('.ob-memory-toggle > div') as HTMLElement;
-    const label = document.querySelector('.ob-memory-toggle .gsap-toggle-label') as HTMLElement;
+    const label = document.querySelector('.ob-memory-toggle .codia-toggle-label') as HTMLElement;
 
     expect(getComputedStyle(toggleWrap).flexShrink).toBe('0');
     expect(getComputedStyle(toggleInner).flexDirection).toBe('row');
@@ -116,7 +116,6 @@ describe('ProviderStep CSS contract', () => {
       <div class="onboarding">
         <div class="onboarding-step active">
           <div class="custom-provider-fields">
-            <div class="custom-field"><input class="ob-input" /></div>
             <div class="custom-field"><input class="ob-input" /></div>
             <div class="custom-field"><button type="button" class="ob-input">OpenAI Compatible</button></div>
           </div>

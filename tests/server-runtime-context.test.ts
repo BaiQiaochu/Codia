@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-server-runtime-context-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-server-runtime-context-"));
 }
 
 function writeJson(filePath, data) {
@@ -43,7 +43,7 @@ function writeValidIdentity(root) {
       ownerUserId: "user_runtime",
       label: "Runtime Space",
       kind: "personal",
-      storage: { provider: "legacy_gsap_home", legacyRoot: true },
+      storage: { provider: "legacy_codia_home", legacyRoot: true },
       membershipModel: "single_user_implicit",
       createdAt: "2026-05-16T00:00:00.000Z",
       updatedAt: "2026-05-16T00:00:00.000Z",
@@ -66,7 +66,7 @@ describe("server runtime context", () => {
     writeValidIdentity(tmpDir);
     const { createServerRuntimeContext } = await import("../core/server-runtime-context.js");
 
-    const context = createServerRuntimeContext({ gsapHome: tmpDir, appVersion: "2.3.4" });
+    const context = createServerRuntimeContext({ codiaHome: tmpDir, appVersion: "2.3.4" });
 
     expect(context).toEqual({
       schemaVersion: 1,
@@ -85,7 +85,7 @@ describe("server runtime context", () => {
       spaceKind: "personal",
       studioKind: "personal",
       membershipModel: "single_user_implicit",
-      storage: { provider: "legacy_gsap_home", legacyRoot: true },
+      storage: { provider: "legacy_codia_home", legacyRoot: true },
       connectionKind: "local",
       authState: "paired",
       trustState: "local",
@@ -127,7 +127,7 @@ describe("server runtime context", () => {
     fs.writeFileSync(path.join(tmpDir, "users.json"), "{ bad json", "utf-8");
     const { createServerRuntimeContext } = await import("../core/server-runtime-context.js");
 
-    expect(() => createServerRuntimeContext({ gsapHome: tmpDir }))
+    expect(() => createServerRuntimeContext({ codiaHome: tmpDir }))
       .toThrow("invalid users.json");
   });
 });

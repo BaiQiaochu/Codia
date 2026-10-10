@@ -16,35 +16,35 @@ const USERNAME_MAX_LENGTH = 64;
 const DISPLAY_NAME_MAX_LENGTH = 80;
 const SCRYPT_OPTIONS = Object.freeze({ N: 16384, r: 8, p: 1 });
 
-export function getLocalAccountSummary(gsapHome) {
-  const { user } = loadDefaultUser(gsapHome);
-  const auth = loadLocalUserAuth(gsapHome);
+export function getLocalAccountSummary(codiaHome) {
+  const { user } = loadDefaultUser(codiaHome);
+  const auth = loadLocalUserAuth(codiaHome);
   return sanitizeAccount(user, { passwordSet: !!findCredential(auth, user.userId) });
 }
 
-export function updateLocalAccountProfile(gsapHome, {
+export function updateLocalAccountProfile(codiaHome, {
   username,
   displayName,
   now = new Date().toISOString(),
 } = {}) {
-  const users = loadUsers(gsapHome);
+  const users = loadUsers(codiaHome);
   const user = getDefaultUser(users);
   user.username = normalizeUsername(username, user.username || user.displayName);
   user.displayName = normalizeDisplayName(displayName, user.displayName);
   user.updatedAt = now;
   users.updatedAt = now;
-  writeJsonAtomic(path.join(gsapHome, USERS_FILE), users);
-  const auth = loadLocalUserAuth(gsapHome);
+  writeJsonAtomic(path.join(codiaHome, USERS_FILE), users);
+  const auth = loadLocalUserAuth(codiaHome);
   return sanitizeAccount(user, { passwordSet: !!findCredential(auth, user.userId) });
 }
 
-export function setLocalAccountPassword(gsapHome, {
+export function setLocalAccountPassword(codiaHome, {
   password,
   now = new Date().toISOString(),
 } = {}) {
-  const { user } = loadDefaultUser(gsapHome);
+  const { user } = loadDefaultUser(codiaHome);
   const normalizedPassword = normalizePassword(password);
-  const auth = loadLocalUserAuth(gsapHome);
+  const auth = loadLocalUserAuth(codiaHome);
   const credential = findCredential(auth, user.userId);
   const passwordSalt = randomToken(16);
   const nextCredential = {
@@ -61,27 +61,27 @@ export function setLocalAccountPassword(gsapHome, {
   if (credential) Object.assign(credential, nextCredential);
   else auth.credentials.push(nextCredential);
   auth.updatedAt = now;
-  writeJsonAtomic(path.join(gsapHome, LOCAL_USER_AUTH_FILE), auth);
+  writeJsonAtomic(path.join(codiaHome, LOCAL_USER_AUTH_FILE), auth);
   return sanitizeAccount(user, { passwordSet: true });
 }
 
-export function clearLocalAccountPassword(gsapHome, {
+export function clearLocalAccountPassword(codiaHome, {
   now = new Date().toISOString(),
 } = {}) {
-  const { user } = loadDefaultUser(gsapHome);
-  const auth = loadLocalUserAuth(gsapHome);
+  const { user } = loadDefaultUser(codiaHome);
+  const auth = loadLocalUserAuth(codiaHome);
   auth.credentials = auth.credentials.filter((credential) => credential.userId !== user.userId);
   auth.updatedAt = now;
-  writeJsonAtomic(path.join(gsapHome, LOCAL_USER_AUTH_FILE), auth);
+  writeJsonAtomic(path.join(codiaHome, LOCAL_USER_AUTH_FILE), auth);
   return sanitizeAccount(user, { passwordSet: false });
 }
 
-export function verifyLocalAccountPassword(gsapHome, { username, password } = {}) {
+export function verifyLocalAccountPassword(codiaHome, { username, password } = {}) {
   if (!isNonEmptyString(username) || !isNonEmptyString(password)) {
     return { ok: false, reason: "invalid_credentials" };
   }
-  const users = loadUsers(gsapHome);
-  const auth = loadLocalUserAuth(gsapHome);
+  const users = loadUsers(codiaHome);
+  const auth = loadLocalUserAuth(codiaHome);
   const normalizedUsername = normalizeAccountLookup(username);
   const user = users.users.find((candidate) => {
     return normalizeAccountLookup(candidate.username) === normalizedUsername
@@ -99,8 +99,8 @@ export function verifyLocalAccountPassword(gsapHome, { username, password } = {}
   };
 }
 
-export function loadLocalUserAuth(gsapHome, { now = new Date().toISOString() } = {}) {
-  const filePath = path.join(gsapHome, LOCAL_USER_AUTH_FILE);
+export function loadLocalUserAuth(codiaHome, { now = new Date().toISOString() } = {}) {
+  const filePath = path.join(codiaHome, LOCAL_USER_AUTH_FILE);
   const existing = readJsonIfPresent(filePath, LOCAL_USER_AUTH_FILE);
   if (existing) return validateLocalUserAuth(existing, LOCAL_USER_AUTH_FILE);
   return {
@@ -111,13 +111,13 @@ export function loadLocalUserAuth(gsapHome, { now = new Date().toISOString() } =
   };
 }
 
-function loadDefaultUser(gsapHome) {
-  const users = loadUsers(gsapHome);
+function loadDefaultUser(codiaHome) {
+  const users = loadUsers(codiaHome);
   return { users, user: getDefaultUser(users) };
 }
 
-function loadUsers(gsapHome) {
-  return validateUsers(readJsonRequired(path.join(gsapHome, USERS_FILE), USERS_FILE), USERS_FILE);
+function loadUsers(codiaHome) {
+  return validateUsers(readJsonRequired(path.join(codiaHome, USERS_FILE), USERS_FILE), USERS_FILE);
 }
 
 function getDefaultUser(users) {

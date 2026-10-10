@@ -14,17 +14,17 @@ describe("agent config editor typography route", () => {
   });
 
   it("saves editor typography through the global editor preference setter", async () => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-editor-config-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-editor-config-"));
     const agentsDir = path.join(tempRoot, "agents");
-    const agentDir = path.join(agentsDir, "gsap");
+    const agentDir = path.join(agentsDir, "codia");
     fs.mkdirSync(agentDir, { recursive: true });
-    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: G-SAP\n", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: Codia\n", "utf-8");
 
     let editor = null;
     const engine = {
       agentsDir,
       productDir: path.join(tempRoot, "product"),
-      currentAgentId: "gsap",
+      currentAgentId: "codia",
       setEditor: vi.fn((value) => { editor = value; }),
       getEditor: vi.fn(() => editor),
       updateConfig: vi.fn(async () => {}),
@@ -35,13 +35,13 @@ describe("agent config editor typography route", () => {
       },
       onProviderChanged: vi.fn(async () => {}),
       invalidateAgentListCache: vi.fn(),
-      getAgent: () => ({ id: "gsap" }),
+      getAgent: () => ({ id: "codia" }),
       emitEvent: vi.fn(),
     };
     const app = new Hono();
     app.route("/api", createAgentsRoute(engine));
 
-    const res = await app.request("/api/agents/gsap/config", {
+    const res = await app.request("/api/agents/codia/config", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -62,21 +62,21 @@ describe("agent config editor typography route", () => {
         contentPadding: 30,
       },
     });
-    expect(engine.updateConfig).toHaveBeenCalledWith({}, { agentId: "gsap" });
+    expect(engine.updateConfig).toHaveBeenCalledWith({}, { agentId: "codia" });
   });
 
   it("returns a diagnostic error when the runtime cannot save global editor preferences", async () => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-editor-config-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-editor-config-"));
     const agentsDir = path.join(tempRoot, "agents");
-    const agentDir = path.join(agentsDir, "gsap");
+    const agentDir = path.join(agentsDir, "codia");
     fs.mkdirSync(agentDir, { recursive: true });
-    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: G-SAP\n", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: Codia\n", "utf-8");
 
     const app = new Hono();
     app.route("/api", createAgentsRoute({
       agentsDir,
       productDir: path.join(tempRoot, "product"),
-      currentAgentId: "gsap",
+      currentAgentId: "codia",
       updateConfig: vi.fn(async () => {}),
       providerRegistry: {
         getAllProvidersRaw: () => ({}),
@@ -85,11 +85,11 @@ describe("agent config editor typography route", () => {
       },
       onProviderChanged: vi.fn(async () => {}),
       invalidateAgentListCache: vi.fn(),
-      getAgent: () => ({ id: "gsap" }),
+      getAgent: () => ({ id: "codia" }),
       emitEvent: vi.fn(),
     }));
 
-    const res = await app.request("/api/agents/gsap/config", {
+    const res = await app.request("/api/agents/codia/config", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ editor: { markdown: { bodyFontSize: 18 } } }),

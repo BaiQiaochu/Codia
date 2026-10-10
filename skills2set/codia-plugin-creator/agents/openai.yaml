@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codia Plugin Creator"
+  short_description: "Plan and scaffold Codia plugins"
+  default_prompt: "Help me create a Codia plugin. Start with the right beginner or developer flow."

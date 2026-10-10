@@ -12,7 +12,7 @@ import {
 import { desktopLaunchCommand, desktopLaunchEnv } from "./e2e-desktop-launcher.mjs";
 
 const ROOT = process.cwd();
-const ARTIFACT_DIR = path.join(ROOT, "artifacts", process.env.GSAP_GPU_SAFE_MODE === "1" ? "desktop-full-smoke-gpu-safe" : "desktop-full-smoke");
+const ARTIFACT_DIR = path.join(ROOT, "artifacts", process.env.CODIA_GPU_SAFE_MODE === "1" ? "desktop-full-smoke-gpu-safe" : "desktop-full-smoke");
 const REPORT_PATH = path.join(ARTIFACT_DIR, "report.json");
 const SCREENSHOT_PATH = path.join(ARTIFACT_DIR, "workflow.png");
 const LAYOUT_1440_PATH = path.join(ARTIFACT_DIR, "layout-1440x900.png");
@@ -137,8 +137,11 @@ function assertChatLayout(layout, label) {
 }
 
 async function checkWelcomeLive2D(cdp, checks) {
-  const gpu = await cdp.evaluate("(window.gsap || window.platform).getGpuRuntimeState()");
-  const expectedRenderer = gpu.gpuSafeMode || !gpu.hardwareAccelerationEnabled ? "fallback" : "live2d";
+  const gpu = await cdp.evaluate("(window.codia || window.platform).getGpuRuntimeState()");
+  // The welcome card no longer has a sprite renderer. Software WebGL (WARP)
+  // must still initialize the real Cubism model when hardware acceleration is
+  // disabled, so every desktop GPU policy is expected to reach Live2D.
+  const expectedRenderer = "live2d";
   const readMascot = () => cdp.evaluate(`(() => {
     const mascot = document.querySelector('[data-codia-renderer]');
     if (!mascot) return null;
@@ -288,7 +291,7 @@ function summarizeMockRequests(requests) {
 
 async function main() {
   fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
-  const remoteDebugPort = Number(process.env.GSAP_E2E_REMOTE_DEBUG_PORT || await getAvailablePort());
+  const remoteDebugPort = Number(process.env.CODIA_E2E_REMOTE_DEBUG_PORT || await getAvailablePort());
   const mockOpenAI = await startMockOpenAI({ reply: MOCK_REPLY, responseFactory: requestedToolResponse });
   const e2eHome = createIsolatedE2EHome({ mockBaseUrl: mockOpenAI.baseUrl });
   visualToolOutputDir = path.join(e2eHome, "generated");
@@ -298,10 +301,10 @@ async function main() {
   const child = spawn(launch.command, launch.args, {
     cwd: launch.cwd,
     env: desktopLaunchEnv({
-      GSAP_HOME: e2eHome,
-      GSAP_E2E: "1",
-      GSAP_E2E_REMOTE_DEBUG_PORT: String(remoteDebugPort),
-      GSAP_DESKTOP_SERVER_MODE: "dist",
+      CODIA_HOME: e2eHome,
+      CODIA_E2E: "1",
+      CODIA_E2E_REMOTE_DEBUG_PORT: String(remoteDebugPort),
+      CODIA_DESKTOP_SERVER_MODE: "dist",
     }),
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -316,7 +319,7 @@ async function main() {
     cdp = createCdpClient(target.webSocketDebuggerUrl, exceptions);
     await cdp.ready;
     await cdp.send("Runtime.enable");
-    await waitFor(() => cdp.evaluate("window.__GSAP_E2E__?.appReady === true"), "renderer ready", 60_000);
+    await waitFor(() => cdp.evaluate("window.__CODIA_E2E__?.appReady === true"), "renderer ready", 60_000);
 
     await checkWelcomeLive2D(cdp, checks);
     await cdp.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
@@ -416,15 +419,15 @@ async function main() {
     await waitFor(() => cdp.evaluate("!!document.querySelector('.input-area:not(.hidden) [contenteditable=\"true\"] [data-quick-action=\"ideas\"]')"), "welcome quick action badge");
     checks.push({ name: "welcome-quick-action", ok: true });
 
-    await cdp.evaluate("window.__GSAP_E2E__.ensureSession()");
-    await waitFor(() => cdp.evaluate("typeof window.__GSAP_E2E__.setInputText === 'function'"), "chat input helper");
-    await cdp.evaluate(`window.__GSAP_E2E__.setInputText(${JSON.stringify("请回复桌面冒烟测试。")})`);
-    await cdp.evaluate("window.__GSAP_E2E__.clickSendButton()");
-    await waitFor(() => cdp.evaluate(`JSON.stringify(window.__GSAP_E2E__.getSessionMessages()).includes(${JSON.stringify(MOCK_REPLY)})`), "mock chat response", 45_000);
+    await cdp.evaluate("window.__CODIA_E2E__.ensureSession()");
+    await waitFor(() => cdp.evaluate("typeof window.__CODIA_E2E__.setInputText === 'function'"), "chat input helper");
+    await cdp.evaluate(`window.__CODIA_E2E__.setInputText(${JSON.stringify("请回复桌面冒烟测试。")})`);
+    await cdp.evaluate("window.__CODIA_E2E__.clickSendButton()");
+    await waitFor(() => cdp.evaluate(`JSON.stringify(window.__CODIA_E2E__.getSessionMessages()).includes(${JSON.stringify(MOCK_REPLY)})`), "mock chat response", 45_000);
     checks.push({ name: "mock-chat", ok: true, requestCount: mockOpenAI.requests.length });
 
-    await waitFor(() => cdp.evaluate("window.__GSAP_E2E__.getStateSnapshot().streamingSessions.length === 0"), "reply completed before compaction");
-    const compactSessionPath = await cdp.evaluate("window.__GSAP_E2E__.getStateSnapshot().currentSessionPath");
+    await waitFor(() => cdp.evaluate("window.__CODIA_E2E__.getStateSnapshot().streamingSessions.length === 0"), "reply completed before compaction");
+    const compactSessionPath = await cdp.evaluate("window.__CODIA_E2E__.getStateSnapshot().currentSessionPath");
     const serverInfo = JSON.parse(fs.readFileSync(path.join(e2eHome, 'server-info.desktop.json'), 'utf8'));
     const compactResponse = await fetch(`http://127.0.0.1:${serverInfo.port}/api/sessions/fresh-compact`, {
       method: 'POST',
@@ -464,9 +467,9 @@ async function main() {
     }
     checks.push({ name: "navigation-simplified", ok: true, detail: navigationSimplified });
 
-    await cdp.evaluate("window.__GSAP_E2E__.setStore({ channelTotalUnread: 3 })");
+    await cdp.evaluate("window.__CODIA_E2E__.setStore({ channelTotalUnread: 3 })");
     await waitFor(() => cdp.evaluate("!!document.querySelector('[aria-label=\"3 条未读消息\"]')"), "channel unread badge");
-    await cdp.evaluate("window.__GSAP_E2E__.setStore({ channelTotalUnread: 0 })");
+    await cdp.evaluate("window.__CODIA_E2E__.setStore({ channelTotalUnread: 0 })");
     checks.push({ name: "channel-unread-badge", ok: true });
 
     await cdp.evaluate("document.querySelector('[data-testid=\"workspace-tool-menu-button\"]')?.click()");
@@ -555,7 +558,7 @@ async function main() {
       throw new Error(`workflow template preview is invalid: ${JSON.stringify(templatePreview)}`);
     }
     const beforeTemplateApply = await cdp.evaluate(`(() => {
-      const key = Object.keys(localStorage).find((item) => item.startsWith('gsap.channel.workflow.draft.'));
+      const key = Object.keys(localStorage).find((item) => item.startsWith('codia.channel.workflow.draft.'));
       const serialized = key ? localStorage.getItem(key) : null;
       const value = serialized ? JSON.parse(serialized) : null;
       return { key, serialized, nodeCount: value?.nodes?.length || 0, edgeCount: value?.edges?.length || 0 };
@@ -581,7 +584,7 @@ async function main() {
     await waitFor(() => cdp.evaluate("!document.querySelector('section[role=\"dialog\"][aria-labelledby=\"workflowTemplateTitle\"]') && document.body.innerText.includes('收集需求（已编辑）')"), "workflow template applied");
     await waitFor(() => cdp.evaluate("(document.activeElement?.textContent || '').trim() === '生成模板'"), "workflow template focus restored");
     const draft = await waitFor(() => cdp.evaluate(`(() => {
-      const key = Object.keys(localStorage).find((item) => item.startsWith('gsap.channel.workflow.draft.'));
+      const key = Object.keys(localStorage).find((item) => item.startsWith('codia.channel.workflow.draft.'));
       const value = key ? JSON.parse(localStorage.getItem(key) || '{}') : null;
       if (!key || value?.nodes?.length !== 2) return null;
       return {
@@ -616,7 +619,7 @@ async function main() {
       const dialog = document.querySelector('section[role="dialog"][aria-labelledby="workflowTemplateTitle"]');
       const alert = dialog?.querySelector('[role="alert"]');
       if (!alert || !(alert.textContent || '').includes('2 到 8')) return null;
-      const key = Object.keys(localStorage).find((item) => item.startsWith('gsap.channel.workflow.draft.'));
+      const key = Object.keys(localStorage).find((item) => item.startsWith('codia.channel.workflow.draft.'));
       return { error: (alert.textContent || '').trim(), serialized: key ? localStorage.getItem(key) : null };
     })()`), "invalid workflow template rejected", 45_000);
     if (templateFailure.serialized !== draft.serialized) {
@@ -655,8 +658,8 @@ async function main() {
       { pluginId: "mind-map", prompt: "请根据这些内容生成冒烟思维导图。" },
     ];
     for (const visualTool of visualToolCases) {
-      await cdp.evaluate(`window.__GSAP_E2E__.setInputText(${JSON.stringify(visualTool.prompt)})`);
-      await cdp.evaluate("window.__GSAP_E2E__.clickSendButton()");
+      await cdp.evaluate(`window.__CODIA_E2E__.setInputText(${JSON.stringify(visualTool.prompt)})`);
+      await cdp.evaluate("window.__CODIA_E2E__.clickSendButton()");
       const approvalRequired = await waitFor(() => cdp.evaluate(`(() => {
         if (document.querySelector('iframe[src*="/api/plugins/${visualTool.pluginId}/card"]')) return 'card';
         const approve = Array.from(document.querySelectorAll('button')).find((button) => (button.textContent || '').trim() === '同意');
@@ -678,8 +681,8 @@ async function main() {
       checks.push({ name: `inline-${visualTool.pluginId}`, ok: true, detail: pluginFrame });
     }
 
-    const visualSessionPath = await cdp.evaluate("window.__GSAP_E2E__.getStateSnapshot().currentSessionPath");
-    await cdp.evaluate(`window.__GSAP_E2E__.switchSession(${JSON.stringify(visualSessionPath)})`);
+    const visualSessionPath = await cdp.evaluate("window.__CODIA_E2E__.getStateSnapshot().currentSessionPath");
+    await cdp.evaluate(`window.__CODIA_E2E__.switchSession(${JSON.stringify(visualSessionPath)})`);
     await waitFor(() => cdp.evaluate(`(() => {
       const graph = document.querySelector('iframe[src*="/api/plugins/knowledge-graph/card"]');
       const mindMap = document.querySelector('iframe[src*="/api/plugins/mind-map/card"]');
@@ -701,7 +704,7 @@ async function main() {
       screenshot: path.relative(ROOT, LAYOUT_1280_PATH).replace(/\\/g, "/"),
     });
 
-    await cdp.evaluate("window.__GSAP_E2E__.openSettings('general')");
+    await cdp.evaluate("window.__CODIA_E2E__.openSettings('general')");
     const settingsModal = await waitFor(() => cdp.evaluate(`(() => {
       const modal = document.querySelector('[data-testid="settings-modal-overlay"] [role="dialog"]');
       return modal ? { label: modal.getAttribute('aria-label'), state: modal.getAttribute('data-state') } : null;
@@ -755,8 +758,8 @@ async function main() {
     let rendererDiagnostics = null;
     try {
       rendererDiagnostics = cdp ? await cdp.evaluate(`(() => ({
-        state: window.__GSAP_E2E__?.getStateSnapshot?.() || null,
-        messages: window.__GSAP_E2E__?.getSessionMessages?.() || [],
+        state: window.__CODIA_E2E__?.getStateSnapshot?.() || null,
+        messages: window.__CODIA_E2E__?.getSessionMessages?.() || [],
         bodyTextTail: (document.body?.innerText || '').slice(-4000),
         pluginFrames: Array.from(document.querySelectorAll('iframe[src*="/api/plugins/"]')).map((frame) => frame.getAttribute('src')),
       }))()`) : null;

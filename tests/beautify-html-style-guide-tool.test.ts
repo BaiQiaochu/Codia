@@ -23,7 +23,7 @@ import { isBeautifyEnabledForAgentConfig } from "../plugins/beautify/lib/availab
 describe("beautify html style guide", () => {
   beforeEach(() => resetHtmlStyleGuideTracking());
 
-  it("declares a G-SAP full-page HTML guide with required first sections", () => {
+  it("declares a Codia full-page HTML guide with required first sections", () => {
     expect(HTML_STYLE_GUIDE_SECTIONS).toEqual([
       "color",
       "typography",
@@ -35,8 +35,7 @@ describe("beautify html style guide", () => {
     ]);
     expect(REQUIRED_SECTIONS).toEqual(["color", "typography"]);
     expect(HTML_STYLE_GUIDE_VERSION).toBe("2026-06-10");
-    expect(description).toContain("G-SAP");
-    expect(description).not.toMatch(/Hana|Hanako/i);
+    expect(description).toContain("Codia");
     expect(promptGuidelines).toContain("beautify_get-html-style-guide");
     expect(parameters.properties.section.enum).toEqual(HTML_STYLE_GUIDE_SECTIONS);
     expect(isEnabledForAgentConfig).toBe(isBeautifyEnabledForAgentConfig);

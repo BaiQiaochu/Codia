@@ -6,7 +6,7 @@ import { PreferencesManager } from "../core/preferences-manager.js";
 import { DEFAULT_NETWORK_PROXY_CONFIG } from "../shared/network-proxy.ts";
 
 function makePrefs() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-prefs-network-proxy-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-prefs-network-proxy-"));
   return new PreferencesManager({
     userDir: path.join(root, "user"),
     agentsDir: path.join(root, "agents"),

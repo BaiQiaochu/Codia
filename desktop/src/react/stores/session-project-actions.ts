@@ -1,4 +1,4 @@
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import { useStore } from './index';
 import type { SessionProject, SessionProjectCatalog, SessionProjectFolder } from '../types/session-projects';
 import { EMPTY_SESSION_PROJECT_CATALOG } from './session-project-slice';
@@ -45,7 +45,7 @@ export function normalizeSessionProjectCatalogResponse(data: unknown): SessionPr
 }
 
 export async function loadSessionProjectCatalog(): Promise<SessionProjectCatalog> {
-  const res = await gsapFetch('/api/session-projects');
+  const res = await codiaFetch('/api/session-projects');
   const data = await res.json().catch(() => ({}));
   const catalog = normalizeSessionProjectCatalogResponse(data);
   useStore.getState().setSessionProjectCatalog(catalog);
@@ -68,7 +68,7 @@ export async function initSessionProjectCatalog(attempts = 3): Promise<void> {
 }
 
 export async function createSessionProjectInCatalog(input: { name: string; folderId?: string | null }): Promise<SessionProject | null> {
-  const res = await gsapFetch('/api/session-projects/projects', {
+  const res = await codiaFetch('/api/session-projects/projects', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: input.name, folderId: input.folderId ?? null }),
@@ -90,7 +90,7 @@ export async function patchSessionProjectInCatalog(
   projectId: string,
   patch: { folderId?: string | null; name?: string },
 ): Promise<SessionProject | null> {
-  const res = await gsapFetch(`/api/session-projects/projects/${encodeURIComponent(projectId)}`, {
+  const res = await codiaFetch(`/api/session-projects/projects/${encodeURIComponent(projectId)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(patch),
@@ -114,7 +114,7 @@ export async function patchSessionProjectFolderInCatalog(
   folderId: string,
   patch: { name?: string },
 ): Promise<SessionProjectFolder | null> {
-  const res = await gsapFetch(`/api/session-projects/folders/${encodeURIComponent(folderId)}`, {
+  const res = await codiaFetch(`/api/session-projects/folders/${encodeURIComponent(folderId)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(patch),
@@ -135,7 +135,7 @@ export async function patchSessionProjectFolderInCatalog(
 }
 
 export async function reorderSessionProjectsInCatalog(folderId: string | null, projectIds: string[]): Promise<void> {
-  const res = await gsapFetch('/api/session-projects/projects/reorder', {
+  const res = await codiaFetch('/api/session-projects/projects/reorder', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ folderId, projectIds }),
@@ -147,7 +147,7 @@ export async function reorderSessionProjectsInCatalog(folderId: string | null, p
 }
 
 export async function reorderSessionProjectFoldersInCatalog(folderIds: string[]): Promise<void> {
-  const res = await gsapFetch('/api/session-projects/folders/reorder', {
+  const res = await codiaFetch('/api/session-projects/folders/reorder', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ folderIds }),
@@ -159,7 +159,7 @@ export async function reorderSessionProjectFoldersInCatalog(folderIds: string[])
 }
 
 export async function deleteSessionProjectFromCatalog(projectId: string, fallbackSessionPaths: string[] = []): Promise<void> {
-  const res = await gsapFetch(`/api/session-projects/projects/${encodeURIComponent(projectId)}`, {
+  const res = await codiaFetch(`/api/session-projects/projects/${encodeURIComponent(projectId)}`, {
     method: 'DELETE',
   });
   const data = await res.json().catch(() => ({}));
@@ -188,7 +188,7 @@ export async function deleteSessionProjectFromCatalog(projectId: string, fallbac
 }
 
 export async function deleteSessionProjectFolderFromCatalog(folderId: string): Promise<void> {
-  const res = await gsapFetch(`/api/session-projects/folders/${encodeURIComponent(folderId)}`, {
+  const res = await codiaFetch(`/api/session-projects/folders/${encodeURIComponent(folderId)}`, {
     method: 'DELETE',
   });
   const data = await res.json().catch(() => ({}));
@@ -198,7 +198,7 @@ export async function deleteSessionProjectFolderFromCatalog(folderId: string): P
 }
 
 export async function setSessionProjectAssignmentForSession(sessionPath: string, projectId: string | null): Promise<void> {
-  await gsapFetch('/api/session-projects/session-assignment', {
+  await codiaFetch('/api/session-projects/session-assignment', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sessionPath, projectId }),

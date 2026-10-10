@@ -6,7 +6,7 @@ const currentPath = '/sessions/current.jsonl';
 type MockState = Record<string, unknown>;
 
 let state: MockState;
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 const clearSessionMock = vi.fn();
 const clearChatMock = vi.fn();
 const addToastMock = vi.fn();
@@ -29,9 +29,9 @@ vi.mock('../../stores/index', () => ({
   },
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
-  gsapUrl: (path: string) => path,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
+  codiaUrl: (path: string) => path,
 }));
 
 vi.mock('../../utils/ui-helpers', () => ({
@@ -62,7 +62,7 @@ vi.mock('../../utils/todo-compat', () => ({
 describe('deleteSession cleanup', () => {
   beforeEach(() => {
     vi.resetModules();
-    gsapFetchMock.mockReset();
+    codiaFetchMock.mockReset();
     clearSessionMock.mockReset();
     clearChatMock.mockReset();
     state = {
@@ -74,9 +74,9 @@ describe('deleteSession cleanup', () => {
       pendingNewSession: false,
       pendingSessionSwitchPath: null,
       activePanel: null,
-      agents: [{ id: 'gsap', name: 'G-SAP', yuan: 'gsap' }],
-      currentAgentId: 'gsap',
-      agentName: 'G-SAP',
+      agents: [{ id: 'codia', name: 'Codia', yuan: 'codia' }],
+      currentAgentId: 'codia',
+      agentName: 'Codia',
       currentModelInfo: null,
       chatSessions: { [deletedPath]: { items: [], hasMore: false } },
       sessionStreams: { [deletedPath]: { isStreaming: true }, [currentPath]: { isStreaming: false } },
@@ -112,7 +112,7 @@ describe('deleteSession cleanup', () => {
     };
     addToastMock.mockReset();
 
-    gsapFetchMock.mockImplementation((url: string) => {
+    codiaFetchMock.mockImplementation((url: string) => {
       if (url === '/api/sessions/delete') return Promise.resolve(jsonResponse({ ok: true }));
       if (url === '/api/sessions') return Promise.resolve(jsonResponse([{ path: currentPath, title: 'current' }]));
       return Promise.resolve(jsonResponse({ ok: true }));
@@ -124,7 +124,7 @@ describe('deleteSession cleanup', () => {
 
     await deleteSession(deletedPath);
 
-    expect(gsapFetchMock).toHaveBeenCalledWith('/api/sessions/delete', expect.objectContaining({
+    expect(codiaFetchMock).toHaveBeenCalledWith('/api/sessions/delete', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({ path: deletedPath, sessionId: 'sess_deleted' }),
     }));
@@ -160,13 +160,13 @@ describe('deleteSession cleanup', () => {
 
   it('continues a deleted-agent session and warns without discarding when fresh compaction failed', async () => {
     const continuedPath = '/sessions/continued.jsonl';
-    gsapFetchMock.mockImplementation((url: string) => {
+    codiaFetchMock.mockImplementation((url: string) => {
       if (url === '/api/sessions/continue-deleted-agent') {
         return Promise.resolve(jsonResponse({
           ok: true,
           path: continuedPath,
-          agentId: 'gsap',
-          agentName: 'G-SAP',
+          agentId: 'codia',
+          agentName: 'Codia',
           cwd: '/workspace',
           workspaceFolders: ['/workspace'],
           compacted: false,
@@ -180,8 +180,8 @@ describe('deleteSession cleanup', () => {
         return Promise.resolve(jsonResponse({
           ok: true,
           isStreaming: false,
-          agentId: 'gsap',
-          agentName: 'G-SAP',
+          agentId: 'codia',
+          agentName: 'Codia',
           workspaceFolders: ['/workspace'],
           memoryEnabled: true,
           permissionMode: 'ask',
@@ -205,7 +205,7 @@ describe('deleteSession cleanup', () => {
 
     await expect(continueDeletedAgentSession(deletedPath)).resolves.toBe(true);
 
-    expect(gsapFetchMock).toHaveBeenCalledWith('/api/sessions/continue-deleted-agent', expect.objectContaining({
+    expect(codiaFetchMock).toHaveBeenCalledWith('/api/sessions/continue-deleted-agent', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({ path: deletedPath }),
     }));

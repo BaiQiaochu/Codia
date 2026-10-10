@@ -19,7 +19,7 @@ const {
 let root;
 
 function makeHome() {
-  root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-gpu-policy-"));
+  root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-gpu-policy-"));
   return root;
 }
 
@@ -27,14 +27,14 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf-8"));
 }
 
-function writePrefs(gsapHome, prefs) {
-  const prefsPath = path.join(gsapHome, "user", "preferences.json");
+function writePrefs(codiaHome, prefs) {
+  const prefsPath = path.join(codiaHome, "user", "preferences.json");
   fs.mkdirSync(path.dirname(prefsPath), { recursive: true });
   fs.writeFileSync(prefsPath, JSON.stringify(prefs, null, 2) + "\n", "utf-8");
 }
 
-function readPrefs(gsapHome) {
-  return readJson(path.join(gsapHome, "user", "preferences.json"));
+function readPrefs(codiaHome) {
+  return readJson(path.join(codiaHome, "user", "preferences.json"));
 }
 
 describe("desktop GPU startup policy", () => {
@@ -47,12 +47,12 @@ describe("desktop GPU startup policy", () => {
   });
 
   it("keeps hardware acceleration enabled by default", () => {
-    const gsapHome = makeHome();
+    const codiaHome = makeHome();
 
     const policy = resolveGpuStartupPolicy({
-      gsapHome,
+      codiaHome,
       platform: "win32",
-      argv: ["G-SAP.exe"],
+      argv: ["Codia.exe"],
       env: {},
     });
 
@@ -62,13 +62,13 @@ describe("desktop GPU startup policy", () => {
   });
 
   it("honors the user hardware acceleration preference", () => {
-    const gsapHome = makeHome();
-    writePrefs(gsapHome, { hardware_acceleration: false });
+    const codiaHome = makeHome();
+    writePrefs(codiaHome, { hardware_acceleration: false });
 
     const policy = resolveGpuStartupPolicy({
-      gsapHome,
+      codiaHome,
       platform: "win32",
-      argv: ["G-SAP.exe"],
+      argv: ["Codia.exe"],
       env: {},
     });
 
@@ -77,32 +77,32 @@ describe("desktop GPU startup policy", () => {
     expect(policy.reason).toBe("preference");
   });
 
-  it("honors explicit G-SAP safe mode flags and legacy aliases", () => {
-    const gsapHome = makeHome();
+  it("honors explicit Codia safe mode flags and legacy aliases", () => {
+    const codiaHome = makeHome();
 
     expect(resolveGpuStartupPolicy({
-      gsapHome,
-      argv: ["G-SAP.exe", "--gsap-disable-hardware-acceleration"],
+      codiaHome,
+      argv: ["Codia.exe", "--codia-disable-hardware-acceleration"],
       env: {},
     }).reason).toBe("explicit");
     expect(resolveGpuStartupPolicy({
-      gsapHome,
-      argv: ["G-SAP.exe"],
-      env: { HANA_GPU_SAFE_MODE: "1" },
+      codiaHome,
+      argv: ["Codia.exe"],
+      env: { CODIA_GPU_SAFE_MODE: "1" },
     }).reason).toBe("explicit");
   });
 
   it("records the active policy on the pending startup marker", () => {
-    const gsapHome = makeHome();
+    const codiaHome = makeHome();
     const policy = resolveGpuStartupPolicy({
-      gsapHome,
+      codiaHome,
       platform: "win32",
-      argv: ["G-SAP.exe"],
-      env: { GSAP_GPU_SANDBOX_COMPAT: "1" },
+      argv: ["Codia.exe"],
+      env: { CODIA_GPU_SANDBOX_COMPAT: "1" },
     });
 
     markGpuStartupPending({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       phase: "electron-starting",
       startupId: "launch-with-policy",
@@ -110,7 +110,7 @@ describe("desktop GPU startup policy", () => {
       now: "2026-05-19T01:00:00.000Z",
     });
 
-    const state = readJson(path.join(gsapHome, "user", "gpu-startup.json"));
+    const state = readJson(path.join(codiaHome, "user", "gpu-startup.json"));
     expect(state.startup.policy).toEqual({
       mode: "gpu-sandbox-compat",
       reason: "explicit",
@@ -123,9 +123,9 @@ describe("desktop GPU startup policy", () => {
   });
 
   it("turns on GPU sandbox compatibility on Windows after an incomplete startup", () => {
-    const gsapHome = makeHome();
+    const codiaHome = makeHome();
     markGpuStartupPending({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       phase: "launching-splash",
       startupId: "previous-launch",
@@ -133,9 +133,9 @@ describe("desktop GPU startup policy", () => {
     });
 
     const policy = resolveGpuStartupPolicy({
-      gsapHome,
+      codiaHome,
       platform: "win32",
-      argv: ["G-SAP.exe"],
+      argv: ["Codia.exe"],
       env: {},
       now: "2026-05-19T01:01:00.000Z",
     });
@@ -144,7 +144,7 @@ describe("desktop GPU startup policy", () => {
     expect(policy.mode).toBe("gpu-sandbox-compat");
     expect(policy.hardwareAccelerationEnabled).toBe(true);
     expect(policy.shouldApplyGpuSandboxCompatSwitches).toBe(true);
-    const state = readJson(path.join(gsapHome, "user", "gpu-startup.json"));
+    const state = readJson(path.join(codiaHome, "user", "gpu-startup.json"));
     expect(state.autoGpuMode).toMatchObject({
       mode: "gpu-sandbox-compat",
       reason: "previous-startup-incomplete",
@@ -153,9 +153,9 @@ describe("desktop GPU startup policy", () => {
   });
 
   it("migrates legacy automatic safe mode into GPU sandbox compatibility", () => {
-    const gsapHome = makeHome();
-    writePrefs(gsapHome, { hardware_acceleration: false, locale: "zh" });
-    const statePath = path.join(gsapHome, "user", "gpu-startup.json");
+    const codiaHome = makeHome();
+    writePrefs(codiaHome, { hardware_acceleration: false, locale: "zh" });
+    const statePath = path.join(codiaHome, "user", "gpu-startup.json");
     fs.mkdirSync(path.dirname(statePath), { recursive: true });
     fs.writeFileSync(statePath, JSON.stringify({
       version: 2,
@@ -167,16 +167,16 @@ describe("desktop GPU startup policy", () => {
     }), "utf-8");
 
     const policy = resolveGpuStartupPolicy({
-      gsapHome,
+      codiaHome,
       platform: "win32",
-      argv: ["G-SAP.exe"],
+      argv: ["Codia.exe"],
       env: {},
       now: "2026-05-21T01:01:00.000Z",
     });
 
     expect(policy.mode).toBe("gpu-sandbox-compat");
     expect(policy.reason).toBe("legacy-auto-safe-mode-migration");
-    expect(readPrefs(gsapHome)).toEqual({ locale: "zh" });
+    expect(readPrefs(codiaHome)).toEqual({ locale: "zh" });
     expect(readJson(statePath).autoGpuMode).toMatchObject({
       mode: "gpu-sandbox-compat",
       reason: "legacy-auto-safe-mode-migration",
@@ -185,9 +185,9 @@ describe("desktop GPU startup policy", () => {
   });
 
   it("does not auto-disable hardware acceleration for non-Windows stale startup markers", () => {
-    const gsapHome = makeHome();
+    const codiaHome = makeHome();
     markGpuStartupPending({
-      gsapHome,
+      codiaHome,
       platform: "darwin",
       phase: "launching-splash",
       startupId: "previous-launch",
@@ -195,9 +195,9 @@ describe("desktop GPU startup policy", () => {
     });
 
     const policy = resolveGpuStartupPolicy({
-      gsapHome,
+      codiaHome,
       platform: "darwin",
-      argv: ["G-SAP"],
+      argv: ["Codia"],
       env: {},
     });
 
@@ -206,19 +206,19 @@ describe("desktop GPU startup policy", () => {
   });
 
   it("records GPU child process crashes as next-launch GPU sandbox compatibility", () => {
-    const gsapHome = makeHome();
+    const codiaHome = makeHome();
 
     recordGpuChildProcessGone({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       details: { type: "GPU", reason: "crashed", exitCode: -2147483645 },
       now: "2026-05-19T01:02:00.000Z",
     });
 
     const policy = resolveGpuStartupPolicy({
-      gsapHome,
+      codiaHome,
       platform: "win32",
-      argv: ["G-SAP.exe"],
+      argv: ["Codia.exe"],
       env: {},
     });
 
@@ -226,14 +226,14 @@ describe("desktop GPU startup policy", () => {
     expect(policy.reason).toBe("gpu-child-process-gone");
     expect(policy.mode).toBe("gpu-sandbox-compat");
     expect(policy.shouldApplyGpuSandboxCompatSwitches).toBe(true);
-    expect(fs.existsSync(path.join(gsapHome, "user", "preferences.json"))).toBe(false);
+    expect(fs.existsSync(path.join(codiaHome, "user", "preferences.json"))).toBe(false);
   });
 
   it("escalates repeated GPU crashes to deep compatibility switches", () => {
-    const gsapHome = makeHome();
+    const codiaHome = makeHome();
 
     recordGpuChildProcessGone({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       policy: { mode: "software-safe" },
       details: { type: "GPU", reason: "crashed", exitCode: -2147483645 },
@@ -241,9 +241,9 @@ describe("desktop GPU startup policy", () => {
     });
 
     const policy = resolveGpuStartupPolicy({
-      gsapHome,
+      codiaHome,
       platform: "win32",
-      argv: ["G-SAP.exe"],
+      argv: ["Codia.exe"],
       env: {},
     });
     const app = {
@@ -260,45 +260,45 @@ describe("desktop GPU startup policy", () => {
   });
 
   it("clears the pending marker when startup reaches app-ready", () => {
-    const gsapHome = makeHome();
+    const codiaHome = makeHome();
     markGpuStartupPending({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       phase: "launching-splash",
       startupId: "launch-1",
     });
 
     markGpuStartupReady({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       startupId: "launch-1",
       phase: "app-ready",
     });
 
-    const state = readJson(path.join(gsapHome, "user", "gpu-startup.json"));
+    const state = readJson(path.join(codiaHome, "user", "gpu-startup.json"));
     expect(state.startup.status).toBe("ready");
     expect(state.startup.phase).toBe("app-ready");
   });
 
   it("marks startup failures without converting them into GPU safe mode", () => {
-    const gsapHome = makeHome();
+    const codiaHome = makeHome();
     markGpuStartupPending({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       phase: "server-starting",
       startupId: "launch-1",
     });
     markGpuStartupFailed({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       startupId: "launch-1",
       reason: "server-start-failed",
     });
 
     const policy = resolveGpuStartupPolicy({
-      gsapHome,
+      codiaHome,
       platform: "win32",
-      argv: ["G-SAP.exe"],
+      argv: ["Codia.exe"],
       env: {},
     });
 
@@ -347,23 +347,23 @@ describe("desktop GPU startup policy", () => {
   });
 
   it("does not enter GPU recovery for a startup that only reached server phases", () => {
-    const gsapHome = makeHome();
+    const codiaHome = makeHome();
     markGpuStartupPending({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       phase: "electron-starting",
       startupId: "server-only",
       now: "2026-06-26T00:00:00.000Z",
     });
     markGpuStartupPhase({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       phase: "server-starting",
       startupId: "server-only",
       now: "2026-06-26T00:00:01.000Z",
     });
     markGpuStartupPhase({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       phase: "server-ready",
       startupId: "server-only",
@@ -371,9 +371,9 @@ describe("desktop GPU startup policy", () => {
     });
 
     const policy = resolveGpuStartupPolicy({
-      gsapHome,
+      codiaHome,
       platform: "win32",
-      argv: ["G-SAP.exe"],
+      argv: ["Codia.exe"],
       now: "2026-06-26T00:01:00.000Z",
     });
 
@@ -383,23 +383,23 @@ describe("desktop GPU startup policy", () => {
   });
 
   it("re-enables GPU recovery when startup reaches window creation after server boot", () => {
-    const gsapHome = makeHome();
+    const codiaHome = makeHome();
     markGpuStartupPending({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       phase: "electron-starting",
       startupId: "hidden-launch",
       now: "2026-06-26T01:00:00.000Z",
     });
     markGpuStartupPhase({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       phase: "server-ready",
       startupId: "hidden-launch",
       now: "2026-06-26T01:00:01.000Z",
     });
     markGpuStartupPhase({
-      gsapHome,
+      codiaHome,
       platform: "win32",
       phase: "main-window-starting",
       startupId: "hidden-launch",
@@ -407,12 +407,12 @@ describe("desktop GPU startup policy", () => {
     });
 
     const policy = resolveGpuStartupPolicy({
-      gsapHome,
+      codiaHome,
       platform: "win32",
-      argv: ["G-SAP.exe"],
+      argv: ["Codia.exe"],
       now: "2026-06-26T01:01:00.000Z",
     });
-    const state = readJson(path.join(gsapHome, "user", "gpu-startup.json"));
+    const state = readJson(path.join(codiaHome, "user", "gpu-startup.json"));
 
     expect(policy.mode).toBe("gpu-sandbox-compat");
     expect(policy.reason).toBe("previous-startup-incomplete");
@@ -423,11 +423,11 @@ describe("desktop GPU startup policy", () => {
   });
 
   it("allows explicit unsafe no-sandbox only through diagnostic flags", () => {
-    const gsapHome = makeHome();
+    const codiaHome = makeHome();
     const policy = resolveGpuStartupPolicy({
-      gsapHome,
+      codiaHome,
       platform: "win32",
-      argv: ["G-SAP.exe", "--gsap-gpu-unsafe-no-sandbox"],
+      argv: ["Codia.exe", "--codia-gpu-unsafe-no-sandbox"],
       env: {},
     });
 

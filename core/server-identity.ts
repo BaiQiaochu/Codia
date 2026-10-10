@@ -7,10 +7,10 @@ const SERVER_NODE_FILE = "server-node.json";
 const USERS_FILE = "users.json";
 const SPACES_FILE = "spaces.json";
 
-export function loadServerIdentity(gsapHome) {
-  const serverNode = readRequiredIdentityJson(path.join(gsapHome, SERVER_NODE_FILE), SERVER_NODE_FILE);
-  const users = readRequiredIdentityJson(path.join(gsapHome, USERS_FILE), USERS_FILE);
-  const spaces = readRequiredIdentityJson(path.join(gsapHome, SPACES_FILE), SPACES_FILE);
+export function loadServerIdentity(codiaHome) {
+  const serverNode = readRequiredIdentityJson(path.join(codiaHome, SERVER_NODE_FILE), SERVER_NODE_FILE);
+  const users = readRequiredIdentityJson(path.join(codiaHome, USERS_FILE), USERS_FILE);
+  const spaces = readRequiredIdentityJson(path.join(codiaHome, SPACES_FILE), SPACES_FILE);
 
   validateServerNodeIdentity(serverNode, SERVER_NODE_FILE);
   validateUsersIdentity(users, USERS_FILE);
@@ -34,10 +34,10 @@ export function loadServerIdentity(gsapHome) {
   };
 }
 
-export function ensureLocalIdentityRegistries(gsapHome) {
-  const serverNodePath = path.join(gsapHome, SERVER_NODE_FILE);
-  const usersPath = path.join(gsapHome, USERS_FILE);
-  const spacesPath = path.join(gsapHome, SPACES_FILE);
+export function ensureLocalIdentityRegistries(codiaHome) {
+  const serverNodePath = path.join(codiaHome, SERVER_NODE_FILE);
+  const usersPath = path.join(codiaHome, USERS_FILE);
+  const spacesPath = path.join(codiaHome, SPACES_FILE);
 
   const existingServerNode = readIdentityJsonIfPresent(serverNodePath, SERVER_NODE_FILE);
   const existingUsers = readIdentityJsonIfPresent(usersPath, USERS_FILE);
@@ -161,7 +161,7 @@ function createLegacySpacesIdentity({ ownerUserId, now }) {
       label: "Personal Space",
       kind: "personal",
       storage: {
-        provider: "legacy_gsap_home",
+        provider: "legacy_codia_home",
         legacyRoot: true,
       },
       membershipModel: "single_user_implicit",

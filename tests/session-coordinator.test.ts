@@ -44,7 +44,7 @@ describe("SessionCoordinator", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-session-coordinator-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-coordinator-"));
     sessionManagerCreateMock.mockReturnValue({ getCwd: () => "/tmp/workspace" });
     sessionManagerOpenMock.mockReturnValue({ getCwd: () => "/tmp/workspace" });
     createAgentSessionMock.mockResolvedValue({
@@ -76,7 +76,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: "/tmp/agents",
       getAgent: () => agent,
-      getActiveAgentId: () => "hana",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { name: "test-model" },
         authStorage: {},
@@ -114,7 +114,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("persists and restores per-session prompt and skill snapshots", async () => {
-    const agentDir = path.join(tempDir, "agents", "gsap");
+    const agentDir = path.join(tempDir, "agents", "codia");
     const sessionDir = path.join(agentDir, "sessions");
     const sessionFile = path.join(sessionDir, "main.jsonl");
     fs.mkdirSync(sessionDir, { recursive: true });
@@ -133,7 +133,7 @@ describe("SessionCoordinator", () => {
     };
     const sessionMgr = { getCwd: () => tempDir, getSessionFile: () => sessionFile };
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir,
       sessionDir,
       config: { locale: "en", tools: { disabled: [] } },
@@ -154,7 +154,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "default-model", provider: "test-provider", name: "Default" },
         authStorage: {},
@@ -212,7 +212,7 @@ describe("SessionCoordinator", () => {
 
   it("keeps newly created sessions hidden from the sidebar until the first prompt", async () => {
     const agentsDir = path.join(tempDir, "agents");
-    const agentDir = path.join(agentsDir, "gsap");
+    const agentDir = path.join(agentsDir, "codia");
     const sessionDir = path.join(agentDir, "sessions");
     const sessionFile = path.join(sessionDir, "hidden-new.jsonl");
     fs.mkdirSync(sessionDir, { recursive: true });
@@ -234,9 +234,9 @@ describe("SessionCoordinator", () => {
     sessionManagerCreateMock.mockReturnValue(session.sessionManager);
 
     const agent = {
-      id: "gsap",
-      name: "G-SAP",
-      agentName: "G-SAP",
+      id: "codia",
+      name: "Codia",
+      agentName: "Codia",
       agentDir,
       sessionDir,
       sessionMemoryEnabled: true,
@@ -250,7 +250,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir,
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "model-a", provider: "test" },
         availableModels: [{ id: "model-a", provider: "test" }],
@@ -267,14 +267,14 @@ describe("SessionCoordinator", () => {
       buildTools: () => ({ tools: [], customTools: [] }),
       emitEvent: () => {},
       getHomeCwd: () => tempDir,
-      agentIdFromSessionPath: () => "gsap",
+      agentIdFromSessionPath: () => "codia",
       switchAgentOnly: async () => {},
       getConfig: () => ({}),
       getPrefs: () => ({ getThinkingLevel: () => "medium" }),
       getAgents: () => new Map(),
       getActivityStore: () => null,
       getAgentById: () => agent,
-      listAgents: () => [{ id: "gsap", name: "G-SAP" }],
+      listAgents: () => [{ id: "codia", name: "Codia" }],
     });
 
     await coordinator.createSession(null, tempDir, true);
@@ -291,14 +291,14 @@ describe("SessionCoordinator", () => {
   });
 
   it("restores the final SDK prompt snapshot without rebuilding current agent state", async () => {
-    const agentDir = path.join(tempDir, "agents", "gsap");
+    const agentDir = path.join(tempDir, "agents", "codia");
     const sessionDir = path.join(agentDir, "sessions");
     const sessionFile = path.join(sessionDir, "final-prompt.jsonl");
     fs.mkdirSync(sessionDir, { recursive: true });
 
     let promptText = "SYSTEM PROMPT V1";
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir,
       sessionDir,
       config: { locale: "en", tools: { disabled: [] } },
@@ -334,7 +334,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "default-model", provider: "test-provider", name: "Default" },
         availableModels: [{ id: "default-model", provider: "test-provider", name: "Default" }],
@@ -379,7 +379,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("refreshes the desktop session capability baseline after a fresh compact", async () => {
-    const agentDir = path.join(tempDir, "agents", "gsap");
+    const agentDir = path.join(tempDir, "agents", "codia");
     const sessionDir = path.join(agentDir, "sessions");
     const sessionFile = path.join(sessionDir, "fresh-compact-baseline.jsonl");
     fs.mkdirSync(sessionDir, { recursive: true });
@@ -422,7 +422,7 @@ describe("SessionCoordinator", () => {
     createAgentSessionMock.mockResolvedValue({ session });
 
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir,
       sessionDir,
       config: { locale: "en", tools: { disabled: [] } },
@@ -435,7 +435,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "default-model", provider: "test-provider", name: "Default" },
         availableModels: [{ id: "default-model", provider: "test-provider", name: "Default" }],
@@ -451,7 +451,7 @@ describe("SessionCoordinator", () => {
       buildTools: () => ({ tools: [readTool], customTools: [browserTool] }),
       emitEvent: () => {},
       getHomeCwd: () => tempDir,
-      agentIdFromSessionPath: () => "gsap",
+      agentIdFromSessionPath: () => "codia",
       switchAgentOnly: async () => {},
       getConfig: () => ({}),
       getPrefs: () => ({ getThinkingLevel: () => "medium" }),
@@ -486,7 +486,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("reloads a desktop session runtime through the original restore path", async () => {
-    const agentDir = path.join(tempDir, "agents", "gsap");
+    const agentDir = path.join(tempDir, "agents", "codia");
     const sessionDir = path.join(agentDir, "sessions");
     const sessionFile = path.join(sessionDir, "reload.jsonl");
     fs.mkdirSync(sessionDir, { recursive: true });
@@ -514,7 +514,7 @@ describe("SessionCoordinator", () => {
       .mockResolvedValueOnce({ session: reloadedSession });
 
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir,
       sessionDir,
       config: { locale: "en", tools: { disabled: [] } },
@@ -527,7 +527,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "default-model", provider: "test-provider", name: "Default" },
         availableModels: [{ id: "default-model", provider: "test-provider", name: "Default" }],
@@ -543,7 +543,7 @@ describe("SessionCoordinator", () => {
       buildTools: () => ({ tools: [], customTools: [] }),
       emitEvent: () => {},
       getHomeCwd: () => tempDir,
-      agentIdFromSessionPath: () => "gsap",
+      agentIdFromSessionPath: () => "codia",
       switchAgentOnly: async () => {},
       getConfig: () => ({}),
       getPrefs: () => ({ getThinkingLevel: () => "medium" }),
@@ -577,7 +577,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("keeps legacy create_artifact out of fresh sessions but restores it for old sessions", async () => {
-    const agentDir = path.join(tempDir, "agents", "gsap");
+    const agentDir = path.join(tempDir, "agents", "codia");
     const sessionDir = path.join(agentDir, "sessions");
     const freshFile = path.join(sessionDir, "fresh.jsonl");
     const legacyFile = path.join(sessionDir, "legacy.jsonl");
@@ -595,7 +595,7 @@ describe("SessionCoordinator", () => {
       .mockResolvedValueOnce({ session: session(legacyFile) });
 
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir,
       sessionDir,
       config: { tools: { disabled: [] } },
@@ -613,7 +613,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "default-model", provider: "test-provider", name: "Default" },
         authStorage: {},
@@ -647,7 +647,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("excludes tools disabled by runtime agent-config checks from new session snapshots", async () => {
-    const sessionFile = path.join(tempDir, "agents", "gsap", "sessions", "main.jsonl");
+    const sessionFile = path.join(tempDir, "agents", "codia", "sessions", "main.jsonl");
     fs.mkdirSync(path.dirname(sessionFile), { recursive: true });
     const sessionMgr = { getCwd: () => tempDir, getSessionFile: () => sessionFile };
     const session = {
@@ -659,7 +659,7 @@ describe("SessionCoordinator", () => {
     createAgentSessionMock.mockResolvedValue({ session });
 
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir: path.dirname(path.dirname(sessionFile)),
       sessionDir: path.dirname(sessionFile),
       config: { tools: { disabled: [] } },
@@ -673,7 +673,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "default-model", provider: "test-provider", name: "Default" },
         authStorage: {},
@@ -707,7 +707,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("keeps default media generation plugin tools when restoring a legacy session without toolNames", async () => {
-    const sessionFile = path.join(tempDir, "agents", "gsap", "sessions", "legacy.jsonl");
+    const sessionFile = path.join(tempDir, "agents", "codia", "sessions", "legacy.jsonl");
     const metaPath = path.join(path.dirname(sessionFile), "session-meta.json");
     fs.mkdirSync(path.dirname(sessionFile), { recursive: true });
     fs.writeFileSync(metaPath, JSON.stringify({
@@ -727,7 +727,7 @@ describe("SessionCoordinator", () => {
     const providerVideoTool = { name: "image-gen_generate-video", _pluginId: "image-gen" };
     const arbitraryPluginTool = { name: "other-plugin_do-work", _pluginId: "other-plugin" };
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir: path.dirname(path.dirname(sessionFile)),
       sessionDir: path.dirname(sessionFile),
       config: { tools: { disabled: [] } },
@@ -741,7 +741,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "default-model", provider: "test-provider", name: "Default" },
         authStorage: {},
@@ -790,7 +790,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("deduplicates restored toolNames before applying them back to the session", async () => {
-    const sessionFile = path.join(tempDir, "agents", "gsap", "sessions", "restored.jsonl");
+    const sessionFile = path.join(tempDir, "agents", "codia", "sessions", "restored.jsonl");
     const metaPath = path.join(path.dirname(sessionFile), "session-meta.json");
     fs.mkdirSync(path.dirname(sessionFile), { recursive: true });
     fs.writeFileSync(metaPath, JSON.stringify({
@@ -807,7 +807,7 @@ describe("SessionCoordinator", () => {
     createAgentSessionMock.mockResolvedValue({ session });
 
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir: path.dirname(path.dirname(sessionFile)),
       sessionDir: path.dirname(sessionFile),
       config: { tools: { disabled: [] } },
@@ -821,7 +821,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "default-model", provider: "test-provider", name: "Default" },
         authStorage: {},
@@ -855,7 +855,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("switches only the current session permission mode without changing the default", async () => {
-    const sessionFile = path.join(tempDir, "agents", "gsap", "sessions", "main.jsonl");
+    const sessionFile = path.join(tempDir, "agents", "codia", "sessions", "main.jsonl");
     fs.mkdirSync(path.dirname(sessionFile), { recursive: true });
     const sessionMgr = { getCwd: () => tempDir, getSessionFile: () => sessionFile };
     const session = {
@@ -868,7 +868,7 @@ describe("SessionCoordinator", () => {
 
     const defaultModeSave = vi.fn();
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir: path.dirname(path.dirname(sessionFile)),
       sessionDir: path.dirname(sessionFile),
       config: { tools: { disabled: [] } },
@@ -882,7 +882,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "default-model", provider: "test-provider", name: "Default" },
         authStorage: {},
@@ -927,7 +927,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("auto-compacts a nearly full context before sending the next prompt", async () => {
-    const sessionFile = path.join(tempDir, "agents", "gsap", "sessions", "auto-compact.jsonl");
+    const sessionFile = path.join(tempDir, "agents", "codia", "sessions", "auto-compact.jsonl");
     fs.mkdirSync(path.dirname(sessionFile), { recursive: true });
     const sessionMgr = { getCwd: () => tempDir, getSessionFile: () => sessionFile };
     const events = [];
@@ -952,7 +952,7 @@ describe("SessionCoordinator", () => {
     createAgentSessionMock.mockResolvedValue({ session });
 
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir: path.dirname(path.dirname(sessionFile)),
       sessionDir: path.dirname(sessionFile),
       config: { tools: { disabled: [] } },
@@ -967,7 +967,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "relay-gpt", provider: "relay", name: "Relay GPT", contextWindow: 100_000 },
         authStorage: {},
@@ -1001,7 +1001,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("does not auto-compact when SDK reports percent as a low 0-100 percentage", async () => {
-    const sessionFile = path.join(tempDir, "agents", "gsap", "sessions", "auto-compact-low-percent.jsonl");
+    const sessionFile = path.join(tempDir, "agents", "codia", "sessions", "auto-compact-low-percent.jsonl");
     fs.mkdirSync(path.dirname(sessionFile), { recursive: true });
     const sessionMgr = { getCwd: () => tempDir, getSessionFile: () => sessionFile };
     const events = [];
@@ -1023,7 +1023,7 @@ describe("SessionCoordinator", () => {
     createAgentSessionMock.mockResolvedValue({ session });
 
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir: path.dirname(path.dirname(sessionFile)),
       sessionDir: path.dirname(sessionFile),
       config: { tools: { disabled: [] } },
@@ -1038,7 +1038,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "relay-gpt", provider: "relay", name: "Relay GPT", contextWindow: 100_000 },
         authStorage: {},
@@ -1069,7 +1069,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("records a lifecycle trace around promptSession and exposes it to tool wrappers", async () => {
-    const sessionFile = path.join(tempDir, "agents", "gsap", "sessions", "trace.jsonl");
+    const sessionFile = path.join(tempDir, "agents", "codia", "sessions", "trace.jsonl");
     fs.mkdirSync(path.dirname(sessionFile), { recursive: true });
     const sessionMgr = { getCwd: () => tempDir, getSessionFile: () => sessionFile };
     let buildToolsOpts = null;
@@ -1077,7 +1077,7 @@ describe("SessionCoordinator", () => {
       startTrace: vi.fn(() => ({
         traceId: "trace-session",
         sessionPath: sessionFile,
-        agentId: "gsap",
+        agentId: "codia",
         status: "running",
       })),
       recordPhase: vi.fn(),
@@ -1092,7 +1092,7 @@ describe("SessionCoordinator", () => {
         expect(buildToolsOpts.getTraceContext()).toMatchObject({
           traceId: "trace-session",
           sessionPath: sessionFile,
-          agentId: "gsap",
+          agentId: "codia",
         });
       }),
       isStreaming: false,
@@ -1101,7 +1101,7 @@ describe("SessionCoordinator", () => {
     createAgentSessionMock.mockResolvedValue({ session });
 
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir: path.dirname(path.dirname(sessionFile)),
       sessionDir: path.dirname(sessionFile),
       config: { tools: { disabled: [] } },
@@ -1116,7 +1116,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: { id: "relay-gpt", provider: "relay", name: "Relay GPT" },
         authStorage: {},
@@ -1148,7 +1148,7 @@ describe("SessionCoordinator", () => {
     expect(traceStore.startTrace).toHaveBeenCalledWith(expect.objectContaining({
       traceId: "trace-session",
       sessionPath: sessionFile,
-      agentId: "gsap",
+      agentId: "codia",
       kind: "chat_turn",
     }));
     expect(traceStore.recordPhase.mock.calls.map((call) => call[1])).toEqual(expect.arrayContaining([
@@ -1193,7 +1193,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: "/tmp/agents",
       getAgent: () => targetAgent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         authStorage: {},
         modelRegistry: {},
@@ -1239,12 +1239,12 @@ describe("SessionCoordinator", () => {
       },
     });
 
-    const focusSessionPath = path.join(tempDir, "agents", "gsap", "sessions", "focus.jsonl");
+    const focusSessionPath = path.join(tempDir, "agents", "codia", "sessions", "focus.jsonl");
     const buildTools = vi.fn(() => ({ tools: [], customTools: [] }));
     const targetAgent = {
-      id: "gsap",
-      agentDir: path.join(tempDir, "agents", "gsap"),
-      sessionDir: path.join(tempDir, "agents", "gsap", "sessions"),
+      id: "codia",
+      agentDir: path.join(tempDir, "agents", "codia"),
+      sessionDir: path.join(tempDir, "agents", "codia", "sessions"),
       agentName: "test-agent",
       config: { locale: "en", models: { chat: "default-model" } },
       tools: [],
@@ -1253,7 +1253,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => targetAgent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         authStorage: {},
         modelRegistry: {},
@@ -1300,7 +1300,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("resumes isolated sessions, injects extra tools, and returns produced files and tool errors", async () => {
-    const resumeFile = path.join(tempDir, "agents", "gsap", "sessions", "child.jsonl");
+    const resumeFile = path.join(tempDir, "agents", "codia", "sessions", "child.jsonl");
     fs.mkdirSync(path.dirname(resumeFile), { recursive: true });
     fs.writeFileSync(resumeFile, '{"type":"message"}\n', "utf-8");
     const producedFile = { filePath: path.join(tempDir, "report.md"), label: "report.md" };
@@ -1346,9 +1346,9 @@ describe("SessionCoordinator", () => {
     });
 
     const targetAgent = {
-      id: "gsap",
-      agentDir: path.join(tempDir, "agents", "gsap"),
-      sessionDir: path.join(tempDir, "agents", "gsap", "sessions"),
+      id: "codia",
+      agentDir: path.join(tempDir, "agents", "codia"),
+      sessionDir: path.join(tempDir, "agents", "codia", "sessions"),
       agentName: "test-agent",
       config: { locale: "en", models: { chat: "default-model" } },
       tools: [],
@@ -1357,7 +1357,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => targetAgent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         authStorage: {},
         modelRegistry: {},
@@ -1429,7 +1429,7 @@ describe("SessionCoordinator", () => {
         config: { models: { chat: "default-model" } },
         tools: [],
       }),
-      getActiveAgentId: () => "hana",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         authStorage: {},
         modelRegistry: {},
@@ -1665,17 +1665,18 @@ describe("SessionCoordinator", () => {
       maxTokens: 16384,
     });
 
-    expect(settingsInMemoryMock).toHaveBeenLastCalledWith({
+    expect(settingsInMemoryMock).toHaveBeenLastCalledWith(expect.objectContaining({
       compaction: {
         enabled: true,
         reserveTokens: 4096,
         keepRecentTokens: 3072,
       },
-    });
+      defaultTools: ["+codemode", "+tool_search"],
+    }));
   });
 
   it("adds visual context for tool result image blocks through the session resource loader", async () => {
-    const sessionFile = path.join(tempDir, "agents", "gsap", "sessions", "main.jsonl");
+    const sessionFile = path.join(tempDir, "agents", "codia", "sessions", "main.jsonl");
     fs.mkdirSync(path.dirname(sessionFile), { recursive: true });
     const sessionMgr = { getCwd: () => tempDir, getSessionFile: () => sessionFile };
     const chatModel = { id: "deepseek-chat", provider: "deepseek", input: ["text"] };
@@ -1687,7 +1688,7 @@ describe("SessionCoordinator", () => {
     };
     createAgentSessionMock.mockResolvedValue({ session });
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir: path.dirname(path.dirname(sessionFile)),
       sessionDir: path.dirname(sessionFile),
       config: { tools: { disabled: [] } },
@@ -1716,7 +1717,7 @@ describe("SessionCoordinator", () => {
     const coordinator = new SessionCoordinator({
       agentsDir: path.join(tempDir, "agents"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: chatModel,
         authStorage: {},
@@ -1742,7 +1743,7 @@ describe("SessionCoordinator", () => {
     await coordinator.createSession(sessionMgr, tempDir, true);
     const resourceLoader = createAgentSessionMock.mock.calls[0][0].resourceLoader;
     const { extensions } = resourceLoader.getExtensions();
-    const visionExtension = extensions.find((extension) => extension.path === "gsap-vision-context-injection");
+    const visionExtension = extensions.find((extension) => extension.path === "codia-vision-context-injection");
     const contextHandler = visionExtension?.handlers.get("context")?.[0];
     expect(contextHandler).toBeTypeOf("function");
     const messages = [
@@ -1764,7 +1765,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("blocks provider calls when an existing session cache prefix mutates without renew", async () => {
-    const sessionFile = path.join(tempDir, "gsap", "sessions", "cache-contract.jsonl");
+    const sessionFile = path.join(tempDir, "codia", "sessions", "cache-contract.jsonl");
     const model = {
       id: "deepseek-v4-pro",
       provider: "deepseek",
@@ -1798,7 +1799,7 @@ describe("SessionCoordinator", () => {
     createAgentSessionMock.mockResolvedValue({ session });
 
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir: path.dirname(path.dirname(sessionFile)),
       sessionDir: path.dirname(sessionFile),
       sessionMemoryEnabled: true,
@@ -1809,9 +1810,9 @@ describe("SessionCoordinator", () => {
       tools: [],
     };
     const coordinator = new SessionCoordinator({
-      agentsDir: path.join(tempDir, "gsap"),
+      agentsDir: path.join(tempDir, "codia"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: model,
         authStorage: {},
@@ -1827,7 +1828,7 @@ describe("SessionCoordinator", () => {
       buildTools: () => ({ tools: [readTool, bashTool], customTools: [] }),
       emitEvent: () => {},
       getHomeCwd: () => "/tmp/home",
-      agentIdFromSessionPath: () => "gsap",
+      agentIdFromSessionPath: () => "codia",
       switchAgentOnly: async () => {},
       getConfig: () => ({}),
       getPrefs: () => ({ getThinkingLevel: () => "medium" }),
@@ -1857,7 +1858,7 @@ describe("SessionCoordinator", () => {
   });
 
   it("renews the cache prefix contract for an explicit model switch", async () => {
-    const sessionFile = path.join(tempDir, "gsap", "sessions", "cache-contract-model-switch.jsonl");
+    const sessionFile = path.join(tempDir, "codia", "sessions", "cache-contract-model-switch.jsonl");
     const initialModel = {
       id: "deepseek-v4-flash",
       provider: "deepseek",
@@ -1895,7 +1896,7 @@ describe("SessionCoordinator", () => {
     createAgentSessionMock.mockResolvedValue({ session });
 
     const agent = {
-      id: "gsap",
+      id: "codia",
       agentDir: path.dirname(path.dirname(sessionFile)),
       sessionDir: path.dirname(sessionFile),
       sessionMemoryEnabled: true,
@@ -1906,9 +1907,9 @@ describe("SessionCoordinator", () => {
       tools: [],
     };
     const coordinator = new SessionCoordinator({
-      agentsDir: path.join(tempDir, "gsap"),
+      agentsDir: path.join(tempDir, "codia"),
       getAgent: () => agent,
-      getActiveAgentId: () => "gsap",
+      getActiveAgentId: () => "codia",
       getModels: () => ({
         currentModel: initialModel,
         availableModels: [initialModel, nextModel],
@@ -1925,7 +1926,7 @@ describe("SessionCoordinator", () => {
       buildTools: () => ({ tools: [readTool], customTools: [] }),
       emitEvent: () => {},
       getHomeCwd: () => "/tmp/home",
-      agentIdFromSessionPath: () => "gsap",
+      agentIdFromSessionPath: () => "codia",
       switchAgentOnly: async () => {},
       getConfig: () => ({}),
       getPrefs: () => ({ getThinkingLevel: () => "medium" }),

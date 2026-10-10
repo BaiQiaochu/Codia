@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { t } from '../helpers';
 import { formatBridgeError } from '../tabs/bridge/BridgeWidgets';
 import styles from './WechatQrcodeOverlay.module.css';
@@ -44,7 +44,7 @@ export function WhatsappQrcodeOverlay() {
     setErrorType(null);
 
     try {
-      const res = await gsapFetch(`/api/bridge/whatsapp/qrcode${query}`, { method: 'POST' });
+      const res = await codiaFetch(`/api/bridge/whatsapp/qrcode${query}`, { method: 'POST' });
       const data = await res.json();
 
       if (data.qrcodeUrl) {
@@ -55,7 +55,7 @@ export function WhatsappQrcodeOverlay() {
 
       if (data.authenticated) {
         setStatus('confirmed');
-        window.dispatchEvent(new Event('gsap-bridge-reload'));
+        window.dispatchEvent(new Event('codia-bridge-reload'));
         setTimeout(close, 1200);
         return;
       }
@@ -81,7 +81,7 @@ export function WhatsappQrcodeOverlay() {
       while (!stoppedRef.current) {
         try {
           const query = agentIdRef.current ? `?agentId=${encodeURIComponent(agentIdRef.current)}` : '';
-          const res = await gsapFetch(`/api/bridge/status${query}`);
+          const res = await codiaFetch(`/api/bridge/status${query}`);
           const data = await res.json();
           const wa = data?.whatsapp || {};
 
@@ -92,7 +92,7 @@ export function WhatsappQrcodeOverlay() {
 
           if (wa.authenticated) {
             setStatus('confirmed');
-            window.dispatchEvent(new Event('gsap-bridge-reload'));
+            window.dispatchEvent(new Event('codia-bridge-reload'));
             setTimeout(close, 1200);
             return;
           }
@@ -122,9 +122,9 @@ export function WhatsappQrcodeOverlay() {
       fetchQrcode(!!detail?.force);
     };
 
-    window.addEventListener('gsap-show-whatsapp-qrcode', show);
+    window.addEventListener('codia-show-whatsapp-qrcode', show);
     return () => {
-      window.removeEventListener('gsap-show-whatsapp-qrcode', show);
+      window.removeEventListener('codia-show-whatsapp-qrcode', show);
       stopPolling();
     };
   }, [fetchQrcode, stopPolling]);

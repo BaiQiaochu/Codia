@@ -6,7 +6,7 @@ describe("image-gen provider discovery", () => {
   it("uses provider media capabilities instead of a hardcoded image provider catalog", async () => {
     const app = new Hono();
     mediaRoute(app, {
-      dataDir: "/tmp/hana-image-gen-test",
+      dataDir: "/tmp/codia-image-gen-test",
       config: { get: () => ({}) },
       _mediaGen: {
         registry: {
@@ -48,7 +48,7 @@ describe("image-gen provider discovery", () => {
   it("filters media models without a registered protocol adapter from selectable provider lists", async () => {
     const app = new Hono();
     mediaRoute(app, {
-      dataDir: "/tmp/hana-image-gen-test",
+      dataDir: "/tmp/codia-image-gen-test",
       config: { get: () => ({}) },
       _mediaGen: {
         registry: {
@@ -86,7 +86,7 @@ describe("image-gen provider discovery", () => {
   it("keeps custom provider models whose inferred protocol has a registered adapter", async () => {
     const app = new Hono();
     mediaRoute(app, {
-      dataDir: "/tmp/gsap-image-gen-test",
+      dataDir: "/tmp/codia-image-gen-test",
       config: { get: () => ({}) },
       _mediaGen: {
         registry: {
@@ -128,7 +128,7 @@ describe("image-gen provider discovery", () => {
     const warn: string[] = [];
     const app = new Hono();
     mediaRoute(app, {
-      dataDir: "/tmp/gsap-image-gen-test",
+      dataDir: "/tmp/codia-image-gen-test",
       config: { get: () => ({}) },
       log: { warn: (...args) => warn.push(args.join(" ")) },
       _mediaGen: {
@@ -169,7 +169,7 @@ describe("image-gen provider discovery", () => {
     const calls = [];
     const app = new Hono();
     mediaRoute(app, {
-      dataDir: "/tmp/hana-image-gen-test",
+      dataDir: "/tmp/codia-image-gen-test",
       config: { get: () => ({}) },
       bus: {
         async request(type, payload) {

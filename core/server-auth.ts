@@ -33,7 +33,7 @@ interface RuntimeContext {
 }
 
 interface ServerAuthOptions {
-  gsapHome: string;
+  codiaHome: string;
   loopbackToken: string;
   runtimeContext?: RuntimeContext | (() => RuntimeContext | null | undefined) | null;
 }
@@ -74,11 +74,11 @@ interface ServerAuthService {
 }
 
 export function createServerAuthService({
-  gsapHome,
+  codiaHome,
   loopbackToken,
   runtimeContext,
 }: ServerAuthOptions): ServerAuthService {
-  if (!gsapHome) throw new Error("gsapHome required");
+  if (!codiaHome) throw new Error("codiaHome required");
   if (!isNonEmptyString(loopbackToken)) throw new Error("loopbackToken required");
 
   function resolveRuntimeContext(): RuntimeContext | null | undefined {
@@ -113,7 +113,7 @@ export function createServerAuthService({
   }: AuthRequestInput = {}): AuthResult {
     const parsed = parseCredential({ authorization, queryToken, allowQueryToken, connectionKind });
     if (!parsed) {
-      const webPrincipal = authenticateWebSession(gsapHome, cookieHeader, { now });
+      const webPrincipal = authenticateWebSession(codiaHome, cookieHeader, { now });
       if (!webPrincipal) {
         return denyAuth("missing_credential", { connectionKind });
       }
@@ -141,7 +141,7 @@ export function createServerAuthService({
       return allowAuth(createLocalPrincipal(resolveRuntimeContext()));
     }
 
-    const devicePrincipal = authenticateDeviceCredential(gsapHome, parsed.token, { now });
+    const devicePrincipal = authenticateDeviceCredential(codiaHome, parsed.token, { now });
     if (!devicePrincipal) {
       return denyAuth("invalid_credential", {
         credentialSource: parsed.source,

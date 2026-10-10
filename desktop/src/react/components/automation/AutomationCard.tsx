@@ -53,7 +53,7 @@ export function AutomationCard({
   const agents = useStore(s => s.agents);
   const currentAgentId = useStore(s => s.currentAgentId);
   const fallbackAgentName = useStore(s => s.agentName) || '助手';
-  const fallbackAgentYuan = useStore(s => s.agentYuan) || 'gsap';
+  const fallbackAgentYuan = useStore(s => s.agentYuan) || 'codia';
   const addToast = useStore(s => s.addToast);
   const [label, setLabel] = useState(jobTitle(job));
   const [scheduleDraft, setScheduleDraft] = useState<ScheduleDraft>(() => scheduleDraftFromStored(job.type, job.schedule));
@@ -125,7 +125,7 @@ export function AutomationCard({
     <div className={styles.card}>
       <button type="button" className={styles.row} onClick={onToggleOpen} aria-expanded={open}>
         <span
-          className={`gsap-toggle${job.enabled ? ' on' : ''}`}
+          className={`codia-toggle${job.enabled ? ' on' : ''}`}
           title={job.enabled ? t('automation.disable') : t('automation.enable')}
           onClick={(e) => {
             e.stopPropagation();

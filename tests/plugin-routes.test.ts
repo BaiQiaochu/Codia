@@ -62,7 +62,7 @@ function mockEngine(overrides = {}) {
   const defaultAgent = overrides.agent || { id: currentAgentId };
   return {
     appVersion: overrides.appVersion || "0.7.3",
-    gsapHome: overrides.gsapHome,
+    codiaHome: overrides.codiaHome,
     currentAgentId,
     getAgent: overrides.getAgent || vi.fn((agentId) => (
       agentId === currentAgentId ? defaultAgent : null
@@ -236,7 +236,7 @@ function makeStoredZip(files) {
 
 describe("plugin asset session boundary", () => {
   it("issues a scoped HttpOnly asset cookie from plugin HTML and serves bundled web assets", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-plugin-assets-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-assets-"));
     try {
       const pluginDir = path.join(root, "demo-plugin");
       fs.mkdirSync(path.join(pluginDir, "assets", "dist"), { recursive: true });
@@ -250,7 +250,7 @@ describe("plugin asset session boundary", () => {
       pluginApp.get("/page", (c) => c.html("<script type=\"module\" src=\"/api/plugins/demo/assets/dist/app.js\"></script>"));
 
       const engine = mockEngine({
-        gsapHome: root,
+        codiaHome: root,
         plugins: [{ id: "demo", name: "Demo", version: "1.0.0", status: "loaded", pluginDir }],
       });
       engine.pluginManager.routeRegistry.set("demo", pluginApp);
@@ -259,7 +259,7 @@ describe("plugin asset session boundary", () => {
       const page = await app.request("/api/plugins/demo/page");
       expect(page.status).toBe(200);
       const cookie = page.headers.get("set-cookie") || "";
-      expect(cookie).toContain("gsap_plugin_assets_");
+      expect(cookie).toContain("codia_plugin_assets_");
       expect(cookie).toContain("HttpOnly");
       expect(cookie).toContain("SameSite=Strict");
       expect(cookie).toContain("Path=/api/plugins/demo/assets/");
@@ -295,7 +295,7 @@ describe("plugin asset session boundary", () => {
   });
 
   it("rejects plugin asset traversal, dotfiles, source maps, and unknown extensions", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-plugin-assets-deny-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-assets-deny-"));
     try {
       const pluginDir = path.join(root, "demo-plugin");
       fs.mkdirSync(path.join(pluginDir, "assets", "dist"), { recursive: true });
@@ -307,14 +307,14 @@ describe("plugin asset session boundary", () => {
       const pluginApp = new Hono();
       pluginApp.get("/page", (c) => c.html("<main>demo</main>"));
       const engine = mockEngine({
-        gsapHome: root,
+        codiaHome: root,
         plugins: [{ id: "demo", name: "Demo", version: "1.0.0", status: "loaded", pluginDir }],
       });
       engine.pluginManager.routeRegistry.set("demo", pluginApp);
       const app = createAppWithProductionPluginResourceAuth(engine);
       const page = await app.request("/api/plugins/demo/page");
       const cookie = page.headers.get("set-cookie") || "";
-      expect(cookie).toContain("gsap_plugin_assets_");
+      expect(cookie).toContain("codia_plugin_assets_");
 
       const normalizedTraversal = await app.request("/api/plugins/demo/assets/../outside.js", {
         headers: { Cookie: cookie },
@@ -836,7 +836,7 @@ describe("plugin management API", () => {
     });
 
     it("rejects dragged OpenClaw plugin zips with an explicit incompatibility error", async () => {
-      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-openclaw-plugin-"));
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-openclaw-plugin-"));
       try {
         const userPluginsDir = path.join(tmpDir, "plugins");
         const sourcePath = path.join(tmpDir, "openclaw-plugin.zip");
@@ -879,7 +879,7 @@ describe("plugin management API", () => {
     });
 
     it("restores the previous plugin directory when replacement fails to load", async () => {
-      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-plugin-rollback-"));
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-rollback-"));
       try {
         const userPluginsDir = path.join(tmp, "plugins");
         const existingDir = path.join(userPluginsDir, "demo");
@@ -902,7 +902,7 @@ describe("plugin management API", () => {
           .mockRejectedValueOnce(new Error("load exploded"))
           .mockResolvedValueOnce({ id: "demo", name: "Demo", version: "1.0.0", status: "loaded" });
         const engine = mockEngine({
-          gsapHome: tmp,
+          codiaHome: tmp,
           pm: {
             getUserPluginsDir: () => userPluginsDir,
             listPlugins: () => [{ id: "demo", name: "Demo", version: "1.0.0", status: "loaded", pluginDir: existingDir }],
@@ -931,12 +931,12 @@ describe("plugin management API", () => {
 
   describe("GET /plugins/marketplace", () => {
     it("returns deterministic version state for marketplace plugins", async () => {
-      const oldDir = path.join(os.tmpdir(), "gsap-plugin-old");
-      const newDir = path.join(os.tmpdir(), "gsap-plugin-new");
+      const oldDir = path.join(os.tmpdir(), "codia-plugin-old");
+      const newDir = path.join(os.tmpdir(), "codia-plugin-new");
       const plugin = {
         id: "demo",
         name: "Demo",
-        publisher: "G-SAP",
+        publisher: "Codia",
         description: "Demo plugin",
         trust: "restricted",
         permissions: [],
@@ -985,7 +985,7 @@ describe("plugin management API", () => {
     });
 
     it("blocks marketplace downgrades unless explicitly allowed and records deterministic installs", async () => {
-      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-marketplace-version-"));
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "codia-marketplace-version-"));
       try {
         const userPluginsDir = path.join(tmp, "plugins");
         const sourceDir = path.join(tmp, "sources", "demo");
@@ -998,7 +998,7 @@ describe("plugin management API", () => {
         const plugin = {
           id: "demo",
           name: "Demo",
-          publisher: "G-SAP",
+          publisher: "Codia",
           description: "Demo plugin",
           trust: "restricted",
           permissions: [],
@@ -1027,7 +1027,7 @@ describe("plugin management API", () => {
         }));
         const engine = mockEngine({
           appVersion: "0.7.3",
-          gsapHome: tmp,
+          codiaHome: tmp,
           plugins: [{ id: "demo", name: "Demo", version: "2.0.0", status: "loaded", pluginDir: path.join(userPluginsDir, "demo") }],
           recordPluginInstall,
           pm: {

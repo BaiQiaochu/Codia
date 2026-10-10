@@ -40,8 +40,8 @@ export function prepareBundledFfmpeg({ rootDir, outDir, platform }) {
   if (platform !== "win32") {
     return { prepared: false, reason: "unsupported-platform" };
   }
-  if (process.env.GSAP_SKIP_BUNDLED_FFMPEG === "1") {
-    console.log("[prepare-ffmpeg] skipped by GSAP_SKIP_BUNDLED_FFMPEG=1");
+  if (process.env.CODIA_SKIP_BUNDLED_FFMPEG === "1") {
+    console.log("[prepare-ffmpeg] skipped by CODIA_SKIP_BUNDLED_FFMPEG=1");
     return { prepared: false, reason: "skipped-by-env" };
   }
 
@@ -53,7 +53,7 @@ export function prepareBundledFfmpeg({ rootDir, outDir, platform }) {
 
   if (!fileExists(ffmpegExe) || !fileExists(ffprobeExe)) {
     const archivePath = path.join(vendorRoot, "ffmpeg-portable.zip");
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-ffmpeg-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-ffmpeg-"));
     try {
       console.log("[prepare-ffmpeg] downloading bundled ffmpeg...");
       execFileSync("curl.exe", ["-L", "-o", archivePath, FFMPEG_URL], { stdio: "inherit" });

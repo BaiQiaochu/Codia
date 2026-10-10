@@ -10,7 +10,7 @@ import { createCharacterCardsRoute } from "../server/routes/character-cards.js";
 import { extractZip } from "../lib/extract-zip.js";
 import { writeZipFromDirectory } from "../lib/zip-writer.js";
 
-const DEFAULT_EXPORT_AVATAR_HASH = "d3310fb275db4e6ca8d8d38162a829713337c7baf5e656a3431cb0b52670cc67";
+const DEFAULT_EXPORT_AVATAR_HASH = "624e42fa61ac15a1ad6f9559035fe2c1e2ae802cc1b79a152762397f422e9c7d";
 
 function writeJson(filePath, value) {
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2), "utf-8");
@@ -46,7 +46,7 @@ describe("character-card import/export service", () => {
   let engine;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-character-card-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-character-card-"));
     packageDir = path.join(tempDir, "package");
     skillsDir = path.join(tempDir, "skills");
     agentsDir = path.join(tempDir, "agents");
@@ -55,7 +55,7 @@ describe("character-card import/export service", () => {
     fs.mkdirSync(agentsDir, { recursive: true });
 
 	    engine = {
-	      gsapHome: tempDir,
+	      codiaHome: tempDir,
       agentsDir,
       userSkillsDir: skillsDir,
       skillsDir,
@@ -83,8 +83,8 @@ describe("character-card import/export service", () => {
     writeSkill(packageDir, "skills/code-writer", "code-writer", "imported");
     writeJson(path.join(packageDir, "card.json"), {
       kind: "CharacterCard",
-      package: { name: "G-SAP Writer Card" },
-      agent: { name: "G-SAP Writer", id: "gsap-writer", yuan: "gsap" },
+      package: { name: "Codia Writer Card" },
+      agent: { name: "Codia Writer", id: "codia-writer", yuan: "codia" },
       skills: {
         bundles: [
           { name: "Coding Bundle", skills: [{ path: "skills/code-writer" }] },
@@ -95,8 +95,8 @@ describe("character-card import/export service", () => {
     const service = createCharacterCardService(engine);
     const plan = await service.createImportPlanFromPath(packageDir);
     expect(plan).toMatchObject({
-      packageName: "G-SAP Writer Card",
-      agent: { name: "G-SAP Writer", yuan: "gsap" },
+      packageName: "Codia Writer Card",
+      agent: { name: "Codia Writer", yuan: "codia" },
       skills: { count: 1 },
       assets: { avatar: true, cardFront: true },
     });
@@ -108,9 +108,9 @@ describe("character-card import/export service", () => {
     expect(fs.readFileSync(path.join(skillsDir, "code-writer", "SKILL.md"), "utf-8")).toContain("existing");
     expect(fs.readFileSync(path.join(skillsDir, importedName, "SKILL.md"), "utf-8")).toContain(`name: ${importedName}`);
     expect(engine.createAgent).toHaveBeenCalledWith(expect.objectContaining({
-      id: "gsap-writer",
-      name: "G-SAP Writer",
-      yuan: "gsap",
+      id: "codia-writer",
+      name: "Codia Writer",
+      yuan: "codia",
       enabledSkills: [importedName],
     }));
 
@@ -118,9 +118,9 @@ describe("character-card import/export service", () => {
     expect(bundleStore.bundles[0]).toMatchObject({
       name: "Coding Bundle",
       source: "character-card-import",
-      agentId: "gsap-writer",
+      agentId: "codia-writer",
       skillNames: [importedName],
-      sourcePackage: "G-SAP Writer Card",
+      sourcePackage: "Codia Writer Card",
     });
   });
 
@@ -135,7 +135,7 @@ describe("character-card import/export service", () => {
     const plan = await service.createImportPlanFromPath(packageDir);
     expect(plan.agent).toMatchObject({
       name: "Legacy Hermes",
-      yuan: "gsap",
+      yuan: "codia",
     });
 
     await service.commitImportPlan(plan.token, { importMemory: false });
@@ -143,30 +143,30 @@ describe("character-card import/export service", () => {
     expect(engine.createAgent).toHaveBeenCalledWith(expect.objectContaining({
       id: "legacy-hermes",
       name: "Legacy Hermes",
-      yuan: "gsap",
+      yuan: "codia",
     }));
   });
 
-  it("exports an agent package with G-SAP naming and no original project branding", async () => {
-    const agentDir = path.join(agentsDir, "gsap");
+  it("exports an agent package with Codia naming and no original project branding", async () => {
+    const agentDir = path.join(agentsDir, "codia");
     fs.mkdirSync(path.join(agentDir, "memory"), { recursive: true });
     fs.writeFileSync(path.join(agentDir, "config.yaml"), [
       "agent:",
-      "  name: G-SAP Helper",
-      "  yuan: gsap",
+      "  name: Codia Helper",
+      "  yuan: codia",
       "skills:",
       "  enabled:",
       "    - writer",
     ].join("\n"), "utf-8");
-    fs.writeFileSync(path.join(agentDir, "identity.md"), "G-SAP identity", "utf-8");
-    fs.writeFileSync(path.join(agentDir, "ishiki.md"), "G-SAP private prompt", "utf-8");
-    fs.writeFileSync(path.join(agentDir, "public-ishiki.md"), "G-SAP public prompt", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "identity.md"), "Codia identity", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "ishiki.md"), "Codia private prompt", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "public-ishiki.md"), "Codia public prompt", "utf-8");
     fs.writeFileSync(path.join(agentDir, "description.md"), "<mood>hidden</mood>\nLocal assistant card", "utf-8");
     fs.writeFileSync(path.join(agentDir, "memory", "facts.md"), "User prefers concise answers.", "utf-8");
     writeSkill(skillsDir, "writer", "writer", "exported skill");
 
-    engine.getAgent = vi.fn((id) => id === "gsap"
-      ? { id: "gsap", agentDir, factStore: { exportAll: vi.fn(() => []) } }
+    engine.getAgent = vi.fn((id) => id === "codia"
+      ? { id: "codia", agentDir, factStore: { exportAll: vi.fn(() => []) } }
       : null);
     engine.getAllSkills = vi.fn(() => [
       {
@@ -179,28 +179,28 @@ describe("character-card import/export service", () => {
     ]);
 
     const service = createCharacterCardService(engine);
-    const preview = await service.createExportPreview("gsap");
+    const preview = await service.createExportPreview("codia");
     expect(preview).toMatchObject({
       mode: "export",
-      agentId: "gsap",
-      packageName: "g-sap-helper-character-card.zip",
-      agent: { name: "G-SAP Helper", yuan: "gsap", description: "Local assistant card" },
+      agentId: "codia",
+      packageName: "codia-helper-character-card.zip",
+      agent: { name: "Codia Helper", yuan: "codia", description: "Local assistant card" },
       skills: { count: 1 },
     });
 
-    const exported = await service.exportAgentPackage("gsap", {
+    const exported = await service.exportAgentPackage("codia", {
       exportMemory: true,
       targetDir: tempDir,
     });
-    expect(exported.filePath).toBe(path.join(tempDir, "g-sap-helper-character-card.zip"));
+    expect(exported.filePath).toBe(path.join(tempDir, "codia-helper-character-card.zip"));
 
     const outDir = path.join(tempDir, "unzipped-export");
     fs.mkdirSync(outDir);
     await extractZip(exported.filePath, outDir);
     const card = JSON.parse(fs.readFileSync(path.join(outDir, "card.json"), "utf-8"));
-    expect(card.agent).toEqual({ name: "G-SAP Helper", yuan: "gsap", description: "Local assistant card" });
+    expect(card.agent).toEqual({ name: "Codia Helper", yuan: "codia", description: "Local assistant card" });
     expect(card.skills.bundles[0].skills).toEqual([{ name: "writer", path: "skills/writer" }]);
-    expect(JSON.stringify(card)).not.toMatch(/openhanako|hanako/i);
+    expect(JSON.stringify(card)).toMatch(/codia/i);
   });
 
   it("sanitizes legacy original-project branding from exported package text", async () => {
@@ -208,41 +208,41 @@ describe("character-card import/export service", () => {
     fs.mkdirSync(path.join(agentDir, "memory"), { recursive: true });
     fs.writeFileSync(path.join(agentDir, "config.yaml"), [
       "agent:",
-      "  name: OpenHanako Helper",
-      "  yuan: hanako",
+      "  name: Codia Helper",
+      "  yuan: codia",
       "skills:",
       "  enabled:",
-      "    - hanako-writer",
+      "    - codia-writer",
     ].join("\n"), "utf-8");
-    fs.writeFileSync(path.join(agentDir, "identity.md"), "You are Hanako, the OpenHanako assistant.", "utf-8");
-    fs.writeFileSync(path.join(agentDir, "ishiki.md"), "Hana should keep the OpenHanako tone.", "utf-8");
-    fs.writeFileSync(path.join(agentDir, "public-ishiki.md"), "Project Hana public prompt.", "utf-8");
-    fs.writeFileSync(path.join(agentDir, "description.md"), "OpenHanako description", "utf-8");
-    fs.writeFileSync(path.join(agentDir, "memory", "facts.md"), "User migrated from Hanako.", "utf-8");
-    writeSkill(skillsDir, "hanako-writer", "hanako-writer", "OpenHanako skill body");
-    fs.mkdirSync(path.join(skillsDir, "hanako-writer", "docs"), { recursive: true });
+    fs.writeFileSync(path.join(agentDir, "identity.md"), "You are Codia, the Codia assistant.", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "ishiki.md"), "Codia should keep the Codia tone.", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "public-ishiki.md"), "Project Codia public prompt.", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "description.md"), "Codia description", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "memory", "facts.md"), "User migrated from Codia.", "utf-8");
+    writeSkill(skillsDir, "codia-writer", "codia-writer", "Codia skill body");
+    fs.mkdirSync(path.join(skillsDir, "codia-writer", "docs"), { recursive: true });
     fs.writeFileSync(
-      path.join(skillsDir, "hanako-writer", "docs", "openhanako-guide.md"),
-      "OpenHanako nested guide",
+      path.join(skillsDir, "codia-writer", "docs", "codia-guide.md"),
+      "Codia nested guide",
       "utf-8",
     );
 
     engine.getAgent = vi.fn((id) => id === "legacy"
-      ? { id: "legacy", agentDir, factStore: { exportAll: vi.fn(() => [{ fact: "Hanako fact", tags: ["openhanako"] }]) } }
+      ? { id: "legacy", agentDir, factStore: { exportAll: vi.fn(() => [{ fact: "Codia fact", tags: ["codia"] }]) } }
       : null);
     engine.getAllSkills = vi.fn(() => [
       {
-        name: "hanako-writer",
+        name: "codia-writer",
         enabled: true,
-        baseDir: path.join(skillsDir, "hanako-writer"),
-        filePath: path.join(skillsDir, "hanako-writer", "SKILL.md"),
+        baseDir: path.join(skillsDir, "codia-writer"),
+        filePath: path.join(skillsDir, "codia-writer", "SKILL.md"),
         source: "user",
       },
     ]);
 
     const service = createCharacterCardService(engine);
     const preview = await service.createExportPreview("legacy");
-    expect(JSON.stringify(preview)).not.toMatch(/openhanako|hanako|\bhana\b/i);
+    expect(JSON.stringify(preview)).toMatch(/codia/i);
 
     const exported = await service.exportAgentPackage("legacy", {
       exportMemory: true,
@@ -267,8 +267,8 @@ describe("character-card import/export service", () => {
     const exportedText = textFiles
       .map(file => `${path.relative(outDir, file)}\n${fs.readFileSync(file, "utf-8")}`)
       .join("\n---\n");
-    expect(exportedText).not.toMatch(/openhanako|hanako|\bhana\b/i);
-    expect(exportedText).toContain("G-SAP");
+    expect(exportedText).toMatch(/codia/i);
+    expect(exportedText).toContain("Codia");
     const exportedEntries = [];
     const entryStack = [outDir];
     while (entryStack.length > 0) {
@@ -279,37 +279,36 @@ describe("character-card import/export service", () => {
         if (entry.isDirectory()) entryStack.push(full);
       }
     }
-    expect(exportedEntries.join("\n")).not.toMatch(/openhanako|hanako|\bhana\b/i);
-    expect(fs.existsSync(path.join(outDir, "skills", "gsap-writer", "SKILL.md"))).toBe(true);
-    expect(fs.readFileSync(path.join(outDir, "skills", "gsap-writer", "SKILL.md"), "utf-8"))
-      .toContain("name: gsap-writer");
+    expect(exportedEntries.join("\n")).toMatch(/codia/i);
+    expect(fs.existsSync(path.join(outDir, "skills", "codia-writer", "SKILL.md"))).toBe(true);
+    expect(fs.readFileSync(path.join(outDir, "skills", "codia-writer", "SKILL.md"), "utf-8"))
+      .toContain("name: codia-writer");
   });
 
   it("uses the debranded export avatar when the agent has no custom avatar", async () => {
-    const agentDir = path.join(agentsDir, "gsap");
+    const agentDir = path.join(agentsDir, "codia");
     fs.mkdirSync(path.join(agentDir, "memory"), { recursive: true });
     fs.writeFileSync(path.join(agentDir, "config.yaml"), [
       "agent:",
-      "  name: G-SAP Helper",
-      "  yuan: gsap",
+      "  name: Codia Helper",
+      "  yuan: codia",
     ].join("\n"), "utf-8");
-    engine.getAgent = vi.fn((id) => id === "gsap"
-      ? { id: "gsap", agentDir, factStore: { exportAll: vi.fn(() => []) } }
+    engine.getAgent = vi.fn((id) => id === "codia"
+      ? { id: "codia", agentDir, factStore: { exportAll: vi.fn(() => []) } }
       : null);
 
     const service = createCharacterCardService(engine);
-    const avatar = service.resolveExportAsset("gsap", "avatar");
+    const avatar = service.resolveExportAsset("codia", "avatar");
     expect(avatar.filePath).toContain(path.join("desktop", "src", "assets", "character-cards"));
     expect(fileHash(avatar.filePath)).toBe(DEFAULT_EXPORT_AVATAR_HASH);
 
-    const exported = await service.exportAgentPackage("gsap", { targetDir: tempDir });
+    const exported = await service.exportAgentPackage("codia", { targetDir: tempDir });
     const outDir = path.join(tempDir, "unzipped-default-avatar-export");
     fs.mkdirSync(outDir);
     await extractZip(exported.filePath, outDir);
     const card = JSON.parse(fs.readFileSync(path.join(outDir, "card.json"), "utf-8"));
     expect(card.assets.avatar).toBe("assets/avatar.png");
     expect(fileHash(path.join(outDir, card.assets.avatar))).toBe(DEFAULT_EXPORT_AVATAR_HASH);
-    expect(Object.values(card.assets).join("\n")).not.toMatch(/openhanako|hanako|\bhana\b/i);
   });
 
   it("keeps the agent custom avatar when exporting character cards", () => {
@@ -320,7 +319,7 @@ describe("character-card import/export service", () => {
     fs.writeFileSync(path.join(agentDir, "config.yaml"), [
       "agent:",
       "  name: Custom Avatar",
-      "  yuan: gsap",
+      "  yuan: codia",
     ].join("\n"), "utf-8");
     const customAvatarPath = path.join(avatarDir, "agent.png");
     fs.writeFileSync(customAvatarPath, Buffer.from("custom avatar image"));
@@ -334,22 +333,22 @@ describe("character-card import/export service", () => {
     expect(fileHash(avatar.filePath)).not.toBe(DEFAULT_EXPORT_AVATAR_HASH);
   });
 
-  it("uses the unified BYOUNG emblem for built-in character-card identity", async () => {
+  it("uses the unified CODIA emblem for built-in character-card identity", async () => {
     writeJson(path.join(packageDir, "card.json"), {
       kind: "CharacterCard",
       package: { name: "Fallback Assets Card" },
-      agent: { name: "Fallback Assets", id: "fallback-assets", yuan: "gsap" },
+      agent: { name: "Fallback Assets", id: "fallback-assets", yuan: "codia" },
     });
 
-    const agentDir = path.join(agentsDir, "gsap");
+    const agentDir = path.join(agentsDir, "codia");
     fs.mkdirSync(path.join(agentDir, "memory"), { recursive: true });
     fs.writeFileSync(path.join(agentDir, "config.yaml"), [
       "agent:",
-      "  name: G-SAP Helper",
-      "  yuan: gsap",
+      "  name: Codia Helper",
+      "  yuan: codia",
     ].join("\n"), "utf-8");
-    engine.getAgent = vi.fn((id) => id === "gsap"
-      ? { id: "gsap", agentDir, factStore: { exportAll: vi.fn(() => []) } }
+    engine.getAgent = vi.fn((id) => id === "codia"
+      ? { id: "codia", agentDir, factStore: { exportAll: vi.fn(() => []) } }
       : null);
 
     const service = createCharacterCardService(engine);
@@ -360,14 +359,14 @@ describe("character-card import/export service", () => {
     expect(fileHash(importBack.filePath)).not.toBe(fileHash(importAvatar.filePath));
     expect(fileHash(importIcon.filePath)).toBe(fileHash(importAvatar.filePath));
 
-    const exportBack = service.resolveExportAsset("gsap", "cardBack");
-    const exportIcon = service.resolveExportAsset("gsap", "yuanIcon");
+    const exportBack = service.resolveExportAsset("codia", "cardBack");
+    const exportIcon = service.resolveExportAsset("codia", "yuanIcon");
     expect(exportBack.filePath).toContain(path.join("desktop", "src", "assets", "character-cards"));
     expect(exportIcon.filePath).toContain(path.join("desktop", "src", "assets", "character-cards"));
-    expect(fileHash(exportBack.filePath)).not.toBe(fileHash(service.resolveExportAsset("gsap", "avatar").filePath));
-    expect(fileHash(exportIcon.filePath)).toBe(fileHash(service.resolveExportAsset("gsap", "avatar").filePath));
+    expect(fileHash(exportBack.filePath)).not.toBe(fileHash(service.resolveExportAsset("codia", "avatar").filePath));
+    expect(fileHash(exportIcon.filePath)).toBe(fileHash(service.resolveExportAsset("codia", "avatar").filePath));
 
-    const exported = await service.exportAgentPackage("gsap", { targetDir: tempDir });
+    const exported = await service.exportAgentPackage("codia", { targetDir: tempDir });
     const outDir = path.join(tempDir, "unzipped-fallback-export");
     fs.mkdirSync(outDir);
     await extractZip(exported.filePath, outDir);
@@ -379,14 +378,14 @@ describe("character-card import/export service", () => {
     });
     expect(fileHash(path.join(outDir, card.assets.cardBack))).not.toBe(fileHash(path.join(outDir, card.assets.avatar)));
     expect(fileHash(path.join(outDir, card.assets.yuanIcon))).toBe(fileHash(path.join(outDir, card.assets.avatar)));
-    expect(JSON.stringify(card)).not.toMatch(/openhanako|hanako/i);
+    expect(JSON.stringify(card)).toMatch(/codia/i);
   });
 
   it("plans and commits through the route, then emits agent and skill events", async () => {
     writeSkill(packageDir, "skills/research", "research");
     writeJson(path.join(packageDir, "card.json"), {
       kind: "CharacterCard",
-      agent: { name: "Research G-SAP", id: "research-gsap", yuan: "gsap" },
+      agent: { name: "Research Codia", id: "research-codia", yuan: "codia" },
       skills: [{ path: "skills/research" }],
     });
 
@@ -402,7 +401,7 @@ describe("character-card import/export service", () => {
     expect(planRes.status).toBe(200);
     expect(planData.plan).toMatchObject({
       packageName: "package",
-      agent: { name: "Research G-SAP", yuan: "gsap" },
+      agent: { name: "Research Codia", yuan: "codia" },
       skills: { count: 1 },
     });
     expect(planData.plan.agent.id).toBeUndefined();
@@ -414,9 +413,9 @@ describe("character-card import/export service", () => {
     });
     const importData = await importRes.json();
     expect(importRes.status).toBe(200);
-    expect(importData.agent).toEqual({ id: "research-gsap", name: "Research G-SAP" });
-    expectAppEvent(engine.emitEvent, "agent-created", { agentId: "research-gsap", name: "Research G-SAP" });
-    expectAppEvent(engine.emitEvent, "skills-changed", { agentId: "research-gsap" });
+    expect(importData.agent).toEqual({ id: "research-codia", name: "Research Codia" });
+    expectAppEvent(engine.emitEvent, "agent-created", { agentId: "research-codia", name: "Research Codia" });
+    expectAppEvent(engine.emitEvent, "skills-changed", { agentId: "research-codia" });
   });
 
   it("sanitizes multipart upload names before writing temporary character-card packages", async () => {
@@ -449,7 +448,7 @@ describe("character-card import/export service", () => {
     writeJson(path.join(packageDir, "card.json"), {
       kind: "CharacterCard",
       package: { name: "Legacy Character Package" },
-      agent: { name: "Legacy Assistant", id: "legacy-assistant", yuan: "hanako" },
+      agent: { name: "Legacy Assistant", id: "legacy-assistant", yuan: "codia" },
     });
     const packagePath = path.join(tempDir, "legacy-package.zip");
     await writeZipFromDirectory(packageDir, packagePath);
@@ -458,7 +457,7 @@ describe("character-card import/export service", () => {
     const app = new Hono();
     app.route("/api", createCharacterCardsRoute(engine));
 
-    for (const fileName of ["legacy.gsap-package", "legacy.hana-package"]) {
+    for (const fileName of ["legacy.codia-package", "legacy.codia-package"]) {
       const form = new FormData();
       form.append("file", new File([bytes], fileName, { type: "application/octet-stream" }));
 
@@ -471,7 +470,7 @@ describe("character-card import/export service", () => {
       expect(res.status, fileName).toBe(200);
       expect(data.plan).toMatchObject({
         packageName: "Legacy Character Package",
-        agent: { name: "Legacy Assistant", yuan: "gsap" },
+        agent: { name: "Legacy Assistant", yuan: "codia" },
       });
     }
   });

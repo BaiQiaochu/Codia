@@ -1,5 +1,5 @@
 import { useStore } from './index';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import type { PluginPageInfo, PluginUiHostCapabilityGrant, PluginWidgetInfo, VsCodeFileIconThemeInfo } from '../types';
 import { schedulePersistCurrentWorkspaceUiState } from './workspace-ui-state-actions';
 
@@ -31,12 +31,12 @@ export async function refreshPluginUI(): Promise<void> {
     let vscodeFileIconThemes: VsCodeFileIconThemeInfo[] = [];
     let hostCapabilityGrants: PluginUiHostCapabilityGrant[] = [];
 
-    // gsapFetch throws on non-2xx, so wrap each call individually
+    // codiaFetch throws on non-2xx, so wrap each call individually
     const [pagesResult, widgetsResult, vscodeIconResult, grantsResult] = await Promise.allSettled([
-      gsapFetch('/api/plugins/pages').then(r => r.json()),
-      gsapFetch('/api/plugins/widgets').then(r => r.json()),
-      gsapFetch('/api/plugins/vscode/file-icon-themes').then(r => r.json()),
-      gsapFetch('/api/plugins/ui-host-capabilities').then(r => r.json()),
+      codiaFetch('/api/plugins/pages').then(r => r.json()),
+      codiaFetch('/api/plugins/widgets').then(r => r.json()),
+      codiaFetch('/api/plugins/vscode/file-icon-themes').then(r => r.json()),
+      codiaFetch('/api/plugins/ui-host-capabilities').then(r => r.json()),
     ]);
     if (pagesResult.status === 'fulfilled') pages = pagesResult.value;
     if (widgetsResult.status === 'fulfilled') widgets = widgetsResult.value;
@@ -53,7 +53,7 @@ export async function refreshPluginUI(): Promise<void> {
     s.setPluginUiHostCapabilities(collectPluginUiHostCapabilities(pages, widgets, hostCapabilityGrants));
     s.setVsCodeFileIconThemes(vscodeFileIconThemes);
     document.documentElement.dataset.pluginUiReady = 'true';
-    window.dispatchEvent(new Event('gsap-plugin-ui-ready'));
+    window.dispatchEvent(new Event('codia-plugin-ui-ready'));
 
     // If current tab is a removed plugin tab, switch to chat
     const currentTab = s.currentTab;
@@ -87,7 +87,7 @@ export async function refreshPluginUI(): Promise<void> {
 async function savePluginPrefs(): Promise<void> {
   const s = useStore.getState();
   try {
-    await gsapFetch('/api/preferences', {
+    await codiaFetch('/api/preferences', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

@@ -52,7 +52,7 @@ export class Scheduler {
     });
   }
 
-  /** @returns {import('../core/engine.ts').GsapEngine} */
+  /** @returns {import('../core/engine.ts').CodiaEngine} */
   get _engine() { return this._hub.engine; }
 
   /** Get one agent's heartbeat instance. */

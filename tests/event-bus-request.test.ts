@@ -35,7 +35,7 @@ describe("handle + request", () => {
   });
 
   it("accepts the global skip symbol used by plugin runtimes", async () => {
-    bus.handle("bridge:send", async () => Symbol.for("gsap.event-bus.skip"));
+    bus.handle("bridge:send", async () => Symbol.for("codia.event-bus.skip"));
     bus.handle("bridge:send", async () => ({ sent: true }));
 
     await expect(bus.request("bridge:send", {})).resolves.toEqual({ sent: true });

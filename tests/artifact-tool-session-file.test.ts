@@ -14,8 +14,8 @@ describe("create_artifact session file ownership", () => {
   });
 
   it("persists agent-created artifacts in the session file cache and registers them", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-artifact-tool-"));
-    const sessionPath = path.join(tmpDir, "agents", "hana", "sessions", "main.jsonl");
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-artifact-tool-"));
+    const sessionPath = path.join(tmpDir, "agents", "codia", "sessions", "main.jsonl");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(sessionPath, "", "utf-8");
 
@@ -38,7 +38,7 @@ describe("create_artifact session file ownership", () => {
       missingAt: null,
     }));
     const tool = createArtifactTool({
-      getHanakoHome: () => tmpDir,
+      getCodiaHome: () => tmpDir,
       registerSessionFile,
     });
 
@@ -83,7 +83,7 @@ describe("create_artifact session file ownership", () => {
   it("keeps legacy in-memory artifacts when there is no active session", async () => {
     const registerSessionFile = vi.fn();
     const tool = createArtifactTool({
-      getHanakoHome: () => "/tmp/hana",
+      getCodiaHome: () => "/tmp/codia",
       registerSessionFile,
     });
 

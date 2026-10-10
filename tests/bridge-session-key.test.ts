@@ -30,16 +30,16 @@ describe("parseSessionKey", () => {
 
   it("parses new format with @agentId suffix", () => {
     const cases = [
-      ["tg_dm_123@hana",       { platform: "telegram",  chatType: "dm",    chatId: "123",  agentId: "hana" }],
+      ["tg_dm_123@codia",       { platform: "telegram",  chatType: "dm",    chatId: "123",  agentId: "codia" }],
       ["tg_group_abc@kuro",    { platform: "telegram",  chatType: "group", chatId: "abc",  agentId: "kuro" }],
-      ["fs_dm_u001@hana",      { platform: "feishu",    chatType: "dm",    chatId: "u001", agentId: "hana" }],
-      ["dt_dm_u001@gsap",      { platform: "dingtalk",  chatType: "dm",    chatId: "u001", agentId: "gsap" }],
-      ["dt_group_g99@gsap",    { platform: "dingtalk",  chatType: "group", chatId: "g99",  agentId: "gsap" }],
+      ["fs_dm_u001@codia",      { platform: "feishu",    chatType: "dm",    chatId: "u001", agentId: "codia" }],
+      ["dt_dm_u001@codia",      { platform: "dingtalk",  chatType: "dm",    chatId: "u001", agentId: "codia" }],
+      ["dt_group_g99@codia",    { platform: "dingtalk",  chatType: "group", chatId: "g99",  agentId: "codia" }],
       ["qq_dm_x99@agent-1",    { platform: "qq",        chatType: "dm",    chatId: "x99",  agentId: "agent-1" }],
-      ["wx_dm_wxid@hana",      { platform: "wechat",    chatType: "dm",    chatId: "wxid", agentId: "hana" }],
-      ["wa_dm_user42@hana",    { platform: "whatsapp",  chatType: "dm",    chatId: "user42", agentId: "hana" }],
-      ["wa_group_room7@hana",  { platform: "whatsapp",  chatType: "group", chatId: "room7", agentId: "hana" }],
-      ["am_dm_agent%40qq.com@hana", { platform: "agentlyMail", chatType: "dm", chatId: "agent%40qq.com", agentId: "hana" }],
+      ["wx_dm_wxid@codia",      { platform: "wechat",    chatType: "dm",    chatId: "wxid", agentId: "codia" }],
+      ["wa_dm_user42@codia",    { platform: "whatsapp",  chatType: "dm",    chatId: "user42", agentId: "codia" }],
+      ["wa_group_room7@codia",  { platform: "whatsapp",  chatType: "group", chatId: "room7", agentId: "codia" }],
+      ["am_dm_agent%40qq.com@codia", { platform: "agentlyMail", chatType: "dm", chatId: "agent%40qq.com", agentId: "codia" }],
     ];
 
     for (const [key, expected] of cases) {

@@ -1,4 +1,4 @@
-// Upstream reference test migrated and debranded; skipped until the matching G-SAP source contract is migrated.
+// Upstream reference test migrated and debranded; skipped until the matching Codia source contract is migrated.
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -14,7 +14,7 @@ describe.skip("AgentManager.switchAgent workspace selection", () => {
   });
 
   function makeDir(name) {
-    if (!tempDir) tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-agent-switch-"));
+    if (!tempDir) tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-agent-switch-"));
     const dir = path.join(tempDir, name);
     fs.mkdirSync(dir, { recursive: true });
     return dir;

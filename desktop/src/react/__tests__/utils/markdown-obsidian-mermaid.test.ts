@@ -81,7 +81,7 @@ describe('renderMarkdown Obsidian and Mermaid compatibility', () => {
     ].join('\n'));
 
     const refMatch = html.match(
-      /<sup class="footnote-ref"><a href="#(?<footnoteId>fn-gsap-fn-[a-z0-9]+-1)" id="(?<refId>fnref-gsap-fn-[a-z0-9]+-1)" role="doc-noteref">1<\/a><\/sup>/,
+      /<sup class="footnote-ref"><a href="#(?<footnoteId>fn-codia-fn-[a-z0-9]+-1)" id="(?<refId>fnref-codia-fn-[a-z0-9]+-1)" role="doc-noteref">1<\/a><\/sup>/,
     );
 
     expect(refMatch?.groups?.footnoteId).toBeTruthy();
@@ -102,21 +102,21 @@ describe('renderMarkdown Obsidian and Mermaid compatibility', () => {
     ].join('\n'));
 
     expect(html).toMatch(/<section class="footnotes" role="doc-endnotes">/);
-    expect(html).toMatch(/<sup class="footnote-ref"><a href="#fn-gsap-fn-[a-z0-9]+-1" id="fnref-gsap-fn-[a-z0-9]+-1" role="doc-noteref" rel="noopener noreferrer">1<\/a><\/sup>/);
-    expect(html).toMatch(/<li id="fn-gsap-fn-[a-z0-9]+-1">/);
-    expect(html).toMatch(/<a href="#fnref-gsap-fn-[a-z0-9]+-1" class="footnote-backref" role="doc-backlink" title="Jump back to reference" rel="noopener noreferrer">(?:↩|&#8617;)<\/a>/);
+    expect(html).toMatch(/<sup class="footnote-ref"><a href="#fn-codia-fn-[a-z0-9]+-1" id="fnref-codia-fn-[a-z0-9]+-1" role="doc-noteref" rel="noopener noreferrer">1<\/a><\/sup>/);
+    expect(html).toMatch(/<li id="fn-codia-fn-[a-z0-9]+-1">/);
+    expect(html).toMatch(/<a href="#fnref-codia-fn-[a-z0-9]+-1" class="footnote-backref" role="doc-backlink" title="Jump back to reference" rel="noopener noreferrer">(?:↩|&#8617;)<\/a>/);
   });
 
   it('strips unsafe raw footnote ids classes and roles in markdown preview mode', () => {
     const html = renderMarkdownPreview([
       '<section class="footnotes evil" role="doc-endnotes">',
-      '<ol><li id="fn-gsap-fn-abc-1" role="button">',
-      '<a id="fnref-gsap-fn-abc-1" href="#fn-gsap-fn-abc-1" class="footnote-backref evil" role="doc-backlink">back</a>',
+      '<ol><li id="fn-codia-fn-abc-1" role="button">',
+      '<a id="fnref-codia-fn-abc-1" href="#fn-codia-fn-abc-1" class="footnote-backref evil" role="doc-backlink">back</a>',
       '</li></ol></section>',
     ].join(''));
 
     expect(html).toContain('<section class="footnotes" role="doc-endnotes">');
-    expect(html).toContain('<li id="fn-gsap-fn-abc-1">');
+    expect(html).toContain('<li id="fn-codia-fn-abc-1">');
     expect(html).toContain('class="footnote-backref"');
     expect(html).toContain('role="doc-backlink"');
     expect(html).not.toContain('evil');

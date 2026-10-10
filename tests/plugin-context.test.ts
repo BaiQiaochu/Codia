@@ -72,7 +72,7 @@ describe("createPluginContext", () => {
     const fs = await import("fs");
     const os = await import("os");
     const path = await import("path");
-    const tmpDir = path.join(os.tmpdir(), "gsap-ctx-test-" + Date.now());
+    const tmpDir = path.join(os.tmpdir(), "codia-ctx-test-" + Date.now());
     fs.mkdirSync(tmpDir, { recursive: true });
     try {
       const ctx = createPluginContext({

@@ -33,12 +33,12 @@ describe("MountProvider", () => {
   });
 
   function setup() {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-mount-"));
-    const gsapHome = path.join(tempRoot, "gsap");
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-mount-"));
+    const codiaHome = path.join(tempRoot, "codia");
     const mountRoot = path.join(tempRoot, "mounted");
     fs.mkdirSync(mountRoot, { recursive: true });
     const studioId = "studio_mount";
-    upsertStudioMount(gsapHome, {
+    upsertStudioMount(codiaHome, {
       schemaVersion: 1,
       mountId: "mount_local",
       hostStudioId: studioId,
@@ -50,13 +50,13 @@ describe("MountProvider", () => {
       capabilities: ["list", "read", "write", "watch", "materialize"],
       grantId: null,
     });
-    upsertStudioMount(gsapHome, {
+    upsertStudioMount(codiaHome, {
       schemaVersion: 1,
       mountId: "mount_s3",
       hostStudioId: studioId,
       sourceKind: "storage",
       provider: "s3",
-      rootLocator: { bucket: "gsap" },
+      rootLocator: { bucket: "codia" },
       label: "Remote",
       presentation: "folder",
       capabilities: ["list", "read"],
@@ -65,7 +65,7 @@ describe("MountProvider", () => {
     return {
       mountRoot,
       provider: new MountProvider({
-        gsapHome,
+        codiaHome,
         studioId,
         localFsProviderFactory: ({ cwd, guard }) => new LocalFsProvider({ cwd, guard }),
       }),

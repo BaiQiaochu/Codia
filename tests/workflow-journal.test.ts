@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { WorkflowJournal } from "../lib/workflow/journal.js";
 
 function tmpJournalPath() {
-  return path.join(os.tmpdir(), `gsap-test-journal-${Date.now()}-${Math.random().toString(36).slice(2)}.jsonl`);
+  return path.join(os.tmpdir(), `codia-test-journal-${Date.now()}-${Math.random().toString(36).slice(2)}.jsonl`);
 }
 
 function cleanup(filePath) {

@@ -84,7 +84,7 @@ describe("writeDiary hybrid material collection", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-05-07T12:00:00+08:00"));
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-diary-test-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-diary-test-"));
     callText.mockResolvedValue("# 2026-05-07 Test diary\n\nToday had enough material.");
   });
 
@@ -115,19 +115,19 @@ describe("writeDiary hybrid material collection", () => {
     expect(latestDiaryPrompt()).toContain("Backfilled summary for the diary.");
   });
 
-  it("writes new diary files under BYOUNG-Works and ignores legacy diary folders", async () => {
+  it("writes new diary files under Codia-Works and ignores legacy diary folders", async () => {
     const opts = createBaseOptions();
     fs.mkdirSync(path.join(tempRoot, "diary"), { recursive: true });
     writeSession(opts.sessionDir, "workspace-output-session", [
       { role: "user", content: "Put new diary files under the unified workspace output folder.", timestamp: "2026-05-07T04:10:00+08:00" },
-      { role: "assistant", content: "I will write new diary files into BYOUNG-Works.", timestamp: "2026-05-07T04:12:00+08:00" },
+      { role: "assistant", content: "I will write new diary files into Codia-Works.", timestamp: "2026-05-07T04:12:00+08:00" },
     ]);
-    opts.summaryManager.rollingSummary.mockResolvedValue("Workspace output belongs under BYOUNG-Works.");
+    opts.summaryManager.rollingSummary.mockResolvedValue("Workspace output belongs under Codia-Works.");
 
     const result = await writeDiary(opts);
 
     expect(result.error).toBeUndefined();
-    expect(result.filePath).toContain(path.join("BYOUNG-Works", "Diary"));
+    expect(result.filePath).toContain(path.join("Codia-Works", "Diary"));
     expect(result.filePath).not.toContain(path.join(tempRoot, "diary"));
     expect(fs.readdirSync(path.join(tempRoot, "diary"))).toEqual([]);
     expect(fs.existsSync(result.filePath)).toBe(true);

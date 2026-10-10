@@ -4,8 +4,8 @@ export default function registerSdkShowcaseRoutes(app, ctx) {
 }
 
 function renderShell(c, ctx, surface) {
-  const gsapCss = c.req.query("gsap-css") || "";
-  const theme = c.req.query("gsap-theme") || "inherit";
+  const codiaCss = c.req.query("codia-css") || "";
+  const theme = c.req.query("codia-theme") || "inherit";
   const base = `/api/plugins/${ctx.pluginId}`;
 
   return `<!doctype html>
@@ -13,10 +13,10 @@ function renderShell(c, ctx, surface) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  ${gsapCss ? `<link rel="stylesheet" href="${escapeAttr(gsapCss)}">` : ""}
+  ${codiaCss ? `<link rel="stylesheet" href="${escapeAttr(codiaCss)}">` : ""}
   <link rel="stylesheet" href="${base}/assets/panel.css">
 </head>
-<body data-gsap-theme="${escapeAttr(theme)}" data-surface="${surface}">
+<body data-codia-theme="${escapeAttr(theme)}" data-surface="${surface}">
   <div id="root" data-surface="${surface}"></div>
   <script type="module" src="${base}/assets/panel.js"></script>
 </body>

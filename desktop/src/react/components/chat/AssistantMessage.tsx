@@ -22,13 +22,13 @@ import type { ChatMessage, ContentBlock } from '../../stores/chat-types';
 import { useStore } from '../../stores';
 import { sessionScopedValue } from '../../stores/session-slice';
 import { selectSessionFiles } from '../../stores/selectors/file-refs';
-import { gsapFetch, gsapUrl } from '../../hooks/use-gsap-fetch';
+import { codiaFetch, codiaUrl } from '../../hooks/use-codia-fetch';
 import { openFilePreview, openSkillPreview } from '../../utils/file-preview';
 import { writeAppFileDragPayload, clearAppFileDragPayload } from '../../utils/app-file-drag';
 import { openMediaViewerForRef } from '../../utils/open-media-viewer';
 import { buildFileRefId, inferKindByExt, isImageOrSvgExt } from '../../utils/file-kind';
 import { resolveServerConnection } from '../../services/server-connection';
-import { resolveFileRefUrl } from '../../services/resource-url';
+import { resolveFileRefNativePath, resolveFileRefUrl, resolveFileRefUrls } from '../../services/resource-url';
 import type { FileRef } from '../../types/file-ref';
 import { openPreview } from '../../stores/preview-actions';
 import { selectIsStreamingSession, selectSelectedIdsBySession } from '../../stores/session-selectors';
@@ -137,7 +137,7 @@ export const AssistantMessage = memo(function AssistantMessage({
 }: Props) {
   const agents = useStore(s => s.agents);
   const globalAgentName = useStore(s => s.agentName) || '助手';
-  const globalYuan = useStore(s => s.agentYuan) || 'gsap';
+  const globalYuan = useStore(s => s.agentYuan) || 'codia';
   const isStreaming = useStore(s => selectIsStreamingSession(s, sessionPath));
   const selectedIds = useStore(s => selectSelectedIdsBySession(s, sessionPath));
   const isSelected = selectedIds.includes(message.id);
@@ -149,7 +149,7 @@ export const AssistantMessage = memo(function AssistantMessage({
   const displayYuan = agent?.yuan || globalYuan;
   const fallbackAvatar = useMemo(() => yuanFallbackAvatar(displayYuan), [displayYuan]);
   const avatarSrc = (agent?.hasAvatar && agentId)
-    ? gsapUrl(`/api/agents/${agentId}/avatar?t=${agentId}`, { includeTokenQuery: true })
+    ? codiaUrl(`/api/agents/${agentId}/avatar?t=${agentId}`, { includeTokenQuery: true })
     : fallbackAvatar;
 
   useEffect(() => {
@@ -304,7 +304,7 @@ export const AssistantMessage = memo(function AssistantMessage({
         <div className={styles.avatarRow}>
           {!avatarFailed ? (
             <img
-              className={`${styles.avatar} ${styles.gsapAvatar}`}
+              className={`${styles.avatar} ${styles.codiaAvatar}`}
               src={avatarSrc}
               alt={displayName}
               draggable={false}
@@ -537,12 +537,73 @@ function useResolvedSessionFileUrl({
         connection: resolveServerConnection(state),
         platform: typeof window !== 'undefined' ? window.platform : null,
         preferLocalFile,
-        resourceContentUrl: gsapUrl,
+        resourceContentUrl: codiaUrl,
       }).url;
     } catch {
       return '';
     }
   }, [ctx, ext, fileId, filePath, kind, label, preferLocalFile]));
+}
+
+const FILE_URL_LIST_SEPARATOR = '\u0000';
+
+function useResolvedSessionFileUrls({
+  fileId,
+  filePath,
+  label,
+  ext,
+  kind,
+  ctx,
+}: {
+  fileId?: string;
+  filePath: string;
+  label: string;
+  ext: string;
+  kind: FileRef['kind'];
+  ctx: FileBlockCtx;
+}): string[] {
+  const serialized = useStore(useCallback((state) => {
+    const files = selectSessionFiles(state, ctx.sessionPath);
+    const ref = findSessionFileRef(files, fileId, filePath)
+      ?? buildFallbackSessionFileRef({ fileId, filePath, label, ext, kind, ctx });
+    try {
+      return resolveFileRefUrls(ref, {
+        connection: resolveServerConnection(state),
+        platform: typeof window !== 'undefined' ? window.platform : null,
+        preferLocalFile: false,
+        resourceContentUrl: codiaUrl,
+      }).map(result => result.url).join(FILE_URL_LIST_SEPARATOR);
+    } catch {
+      return '';
+    }
+  }, [ctx, ext, fileId, filePath, kind, label]));
+  return useMemo(
+    () => serialized ? serialized.split(FILE_URL_LIST_SEPARATOR).filter(Boolean) : [],
+    [serialized],
+  );
+}
+
+function useSessionFileNativePath({
+  fileId,
+  filePath,
+  label,
+  ext,
+  kind,
+  ctx,
+}: {
+  fileId?: string;
+  filePath: string;
+  label: string;
+  ext: string;
+  kind: FileRef['kind'];
+  ctx: FileBlockCtx;
+}): string | null {
+  return useStore(useCallback((state) => {
+    const files = selectSessionFiles(state, ctx.sessionPath);
+    const ref = findSessionFileRef(files, fileId, filePath)
+      ?? buildFallbackSessionFileRef({ fileId, filePath, label, ext, kind, ctx });
+    return resolveFileRefNativePath(ref, resolveServerConnection(state));
+  }, [ctx, ext, fileId, filePath, kind, label]));
 }
 
 function useSessionFileDownloadUrl({
@@ -570,7 +631,7 @@ function useSessionFileDownloadUrl({
         connection: resolveServerConnection(state),
         platform: typeof window !== 'undefined' ? window.platform : null,
         preferLocalFile: false,
-        resourceContentUrl: gsapUrl,
+        resourceContentUrl: codiaUrl,
       });
       if (resolved.mode === 'local-file') return null;
       return resolved.url;
@@ -608,9 +669,13 @@ const ImageOutputCard = memo(function ImageOutputCard({ fileId, filePath, label,
   ctx: FileBlockCtx;
 }) {
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [sourceIndex, setSourceIndex] = useState(0);
   const displayName = fileDisplayName(filePath, label);
   const kind = ext.toLowerCase() === 'svg' ? 'svg' : 'image';
-  const imageUrl = useResolvedSessionFileUrl({ fileId, filePath, label: displayName, ext, kind, ctx });
+  const imageUrls = useResolvedSessionFileUrls({ fileId, filePath, label: displayName, ext, kind, ctx });
+  const imageUrlsKey = imageUrls.join(FILE_URL_LIST_SEPARATOR);
+  const imageUrl = imageUrls[sourceIndex] || '';
   const downloadUrl = useSessionFileDownloadUrl({ fileId, filePath, label: displayName, ext, kind, ctx });
   const previewContext = {
     origin: 'session' as const,
@@ -629,8 +694,32 @@ const ImageOutputCard = memo(function ImageOutputCard({ fileId, filePath, label,
     scrollTop: number;
   }>(null);
 
+  useEffect(() => {
+    setSourceIndex(0);
+    setFailed(false);
+    setLoaded(false);
+  }, [imageUrlsKey]);
+
   const handlePreview = () => {
-    openFilePreview(filePath, label, ext, previewContext);
+    const id = buildFileRefId({
+      source: 'session-block-file',
+      sessionPath: ctx.sessionPath,
+      messageId: ctx.messageId,
+      blockIdx: ctx.blockIdx,
+      path: filePath,
+    });
+    openMediaViewerForRef({
+      id,
+      fileId,
+      kind: 'image',
+      source: 'session-block-file',
+      name: displayName,
+      path: filePath,
+      ext,
+      previewUrl: imageUrl,
+      sessionMessageId: ctx.messageId,
+      sessionBlockIdx: ctx.blockIdx,
+    }, previewContext);
   };
 
   const handleDragStart = useCallback((event: React.DragEvent) => {
@@ -651,7 +740,28 @@ const ImageOutputCard = memo(function ImageOutputCard({ fileId, filePath, label,
   }, [displayName, fileId, filePath]);
 
   if (status === 'expired') return <FileOutputCard fileId={fileId} filePath={filePath} label={label} ext={ext} status={status} ctx={ctx} />;
-  if (failed || !imageUrl) return <FileOutputCard fileId={fileId} filePath={filePath} label={label} ext={ext} status={status} ctx={ctx} />;
+  if (!imageUrl) return <FileOutputCard fileId={fileId} filePath={filePath} label={label} ext={ext} status={status} ctx={ctx} />;
+  if (failed) {
+    return (
+      <div className={`${styles.fileOutputCard} ${styles.imageOutputFailure}`} role="status">
+        <div className={styles.fileOutputInfo}>
+          <div className={styles.fileOutputName}>{displayName}</div>
+          <div className={styles.fileOutputType}>{tWithFallback('chat.imagePreviewFailed', 'Image preview failed')}</div>
+        </div>
+        <button
+          type="button"
+          className={styles.imageOutputRetryButton}
+          onClick={() => {
+            setSourceIndex(0);
+            setFailed(false);
+            setLoaded(false);
+          }}
+        >
+          {tWithFallback('common.retry', 'Retry')}
+        </button>
+      </div>
+    );
+  }
 
   const downloadHref = downloadUrl || imageUrl;
   const stopToolbarEvent = (event: ReactMouseEvent) => {
@@ -780,6 +890,7 @@ const ImageOutputCard = memo(function ImageOutputCard({ fileId, filePath, label,
       </div>
       <div
         className={styles.imageOutputPreviewWrap}
+        aria-busy={!loaded}
         onClick={expanded ? (event) => event.stopPropagation() : undefined}
         onWheel={handleWheelZoom}
         onPointerDown={handlePointerDown}
@@ -787,12 +898,21 @@ const ImageOutputCard = memo(function ImageOutputCard({ fileId, filePath, label,
         onPointerUp={handlePointerEnd}
         onPointerCancel={handlePointerEnd}
       >
+        {!loaded && <div className={styles.imageOutputLoading}>{tWithFallback('common.loading', 'Loading…')}</div>}
         <img
           src={imageUrl}
           alt={displayName}
-          className={styles.imageOutputPreview}
+          className={`${styles.imageOutputPreview}${loaded ? ` ${styles.loaded}` : ''}`}
           style={{ width: `${Math.round(scale * 100)}%` }}
-          onError={() => setFailed(true)}
+          onLoad={() => setLoaded(true)}
+          onError={() => {
+            setLoaded(false);
+            if (sourceIndex + 1 < imageUrls.length) {
+              setSourceIndex(index => index + 1);
+            } else {
+              setFailed(true);
+            }
+          }}
           draggable={false}
           loading="lazy"
         />
@@ -983,6 +1103,7 @@ const FileOutputCard = memo(function FileOutputCard({ fileId, filePath, label, e
 
   const displayName = fileDisplayName(filePath, label);
   const downloadUrl = useSessionFileDownloadUrl({ fileId, filePath, label: displayName, ext, kind: 'other', ctx });
+  const localFilePath = useSessionFileNativePath({ fileId, filePath, label: displayName, ext, kind: 'other', ctx });
   const typeLabel = expired ? expiredLabel : (EXT_LABELS[ext] || ext.toUpperCase());
 
   return (
@@ -1005,6 +1126,7 @@ const FileOutputCard = memo(function FileOutputCard({ fileId, filePath, label, e
       {!expired && (
         <FileOutputActions
           filePath={filePath}
+          localFilePath={localFilePath}
           displayName={displayName}
           downloadUrl={downloadUrl}
           downloadName={displayName}
@@ -1131,7 +1253,7 @@ const CronConfirmBlock = memo(function CronConfirmBlock({ block }: { block: any 
   const handleApprove = async () => {
     try {
       if (block.confirmId) {
-        await gsapFetch(`/api/confirm/${block.confirmId}`, {
+        await codiaFetch(`/api/confirm/${block.confirmId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(isSuggestionCard
@@ -1139,7 +1261,7 @@ const CronConfirmBlock = memo(function CronConfirmBlock({ block }: { block: any 
             : { action: 'confirmed' }),
         });
       } else {
-        await gsapFetch('/api/desk/cron', {
+        await codiaFetch('/api/desk/cron', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'add', ...jobData }),
@@ -1154,7 +1276,7 @@ const CronConfirmBlock = memo(function CronConfirmBlock({ block }: { block: any 
   const handleReject = async () => {
     if (block.confirmId) {
       try {
-        await gsapFetch(`/api/confirm/${block.confirmId}`, {
+        await codiaFetch(`/api/confirm/${block.confirmId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'rejected' }),

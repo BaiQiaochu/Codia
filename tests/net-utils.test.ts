@@ -14,9 +14,9 @@ describe("web access network helpers", () => {
   });
 
   it("normalizes public base URLs safely", () => {
-    expect(normalizePublicBaseUrl("https://api.example.com/gsap/?token=secret#x")).toBe("https://api.example.com/gsap");
+    expect(normalizePublicBaseUrl("https://api.example.com/codia/?token=secret#x")).toBe("https://api.example.com/codia");
     expect(normalizePublicBaseUrl("http://1.2.3.4:8123///")).toBe("http://1.2.3.4:8123");
-    expect(normalizePublicBaseUrl("file:///tmp/gsap")).toBe("");
+    expect(normalizePublicBaseUrl("file:///tmp/codia")).toBe("");
     expect(normalizePublicBaseUrl("not a url")).toBe("");
   });
 

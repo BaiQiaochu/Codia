@@ -9,7 +9,7 @@ import { useSettingsStore } from '../../../store';
 
 const mocks = vi.hoisted(() => ({
   autoSaveGlobalModels: vi.fn(),
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
   modelWidgetProps: [] as Array<{
     value: unknown;
     modelsPath?: string;
@@ -26,7 +26,7 @@ vi.mock('../../../helpers', () => ({
 }));
 
 vi.mock('../../../api', () => ({
-  gsapFetch: (...args: unknown[]) => mocks.gsapFetch(...args),
+  codiaFetch: (...args: unknown[]) => mocks.codiaFetch(...args),
 }));
 
 vi.mock('../../../actions', () => ({
@@ -105,7 +105,7 @@ describe('OtherModelsSection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.modelWidgetProps.length = 0;
-    mocks.gsapFetch.mockResolvedValue({ json: async () => ({ ok: true }) });
+    mocks.codiaFetch.mockResolvedValue({ json: async () => ({ ok: true }) });
     useSettingsStore.setState({
       globalModelsConfig: {
         models: {
@@ -202,7 +202,7 @@ describe('OtherModelsSection', () => {
     fireEvent.change(keyInputs[1], { target: { value: 'tvly-secret' } });
     fireEvent.click(screen.getAllByRole('button', { name: 'settings.search.verify' })[1]);
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/search/verify', expect.objectContaining({
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/search/verify', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({
         provider: 'tavily',

@@ -1,10 +1,10 @@
 // @ts-nocheck
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { GsapEngine } from "../core/engine.ts";
+import { CodiaEngine } from "../core/engine.ts";
 
 /**
  * 轻量测试：只校验 setUiContext / getUiContext 的 Map 行为。
- * 不实例化 HanaEngine（依赖过多），用原型方法 + 手工 fake this 测试。
+ * 不实例化 CodiaEngine（依赖过多），用原型方法 + 手工 fake this 测试。
  */
 
 function makeFakeEngine() {
@@ -16,16 +16,16 @@ function makeFakeEngine() {
     _sessionFiles: { unloadSession: vi.fn() },
     _computerHost: { abortSession: vi.fn() },
   };
-  fake.setUiContext = GsapEngine.prototype.setUiContext;
-  fake.getUiContext = GsapEngine.prototype.getUiContext;
-  fake.clearSessionRuntimeState = GsapEngine.prototype.clearSessionRuntimeState;
+  fake.setUiContext = CodiaEngine.prototype.setUiContext;
+  fake.getUiContext = CodiaEngine.prototype.getUiContext;
+  fake.clearSessionRuntimeState = CodiaEngine.prototype.clearSessionRuntimeState;
   fake.getSessionIdForPath = vi.fn(() => null);
-  fake._runtimeSessionKey = GsapEngine.prototype._runtimeSessionKey;
-  fake._sessionRefForPath = GsapEngine.prototype._sessionRefForPath;
+  fake._runtimeSessionKey = CodiaEngine.prototype._runtimeSessionKey;
+  fake._sessionRefForPath = CodiaEngine.prototype._sessionRefForPath;
   return fake;
 }
 
-describe("HanaEngine uiContext", () => {
+describe("CodiaEngine uiContext", () => {
   let engine;
 
   beforeEach(() => {

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { SettingsButton } from '../components/SettingsButton';
 import { useSettingsStore } from '../store';
 import styles from '../Settings.module.css';
@@ -463,7 +463,7 @@ export function DiagnosticsTab() {
   }, [groups, lastRun, showToast]);
 
   const exportJson = useCallback(() => {
-    downloadJson(`gsap-diagnostics-${Date.now()}.json`, {
+    downloadJson(`codia-diagnostics-${Date.now()}.json`, {
       generatedAt: new Date().toISOString(),
       lastRun,
       groups,
@@ -479,7 +479,7 @@ export function DiagnosticsTab() {
         captureUiSnapshot(),
         captureDocumentPng(),
       ]);
-      const res = await gsapFetch('/api/system/diagnostic-package', {
+      const res = await codiaFetch('/api/system/diagnostic-package', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -495,7 +495,7 @@ export function DiagnosticsTab() {
       });
       const data = await res.json();
       if (data.error) throw new Error(String(data.error));
-      downloadJson(`gsap-diagnostic-package-${Date.now()}.json`, data);
+      downloadJson(`codia-diagnostic-package-${Date.now()}.json`, data);
       showToast(settingsCopy('diagnostics.opsOverview.packageExported'), 'success');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -508,7 +508,7 @@ export function DiagnosticsTab() {
   const testProviderModel = useCallback(async (item: NonNullable<NonNullable<OpsOverviewPayload['modules']>[number]['items']>[number]) => {
     if (!item.providerId) return;
     try {
-      const res = await gsapFetch('/api/providers/test', {
+      const res = await codiaFetch('/api/providers/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: item.providerId, modelId: item.testModelId || null }),
@@ -533,15 +533,15 @@ export function DiagnosticsTab() {
         bridgePayload,
         agentConfig,
       ] = await Promise.all([
-        safeJson<SystemHealthPayload>(gsapFetch('/api/system/health', { timeout: 8_000 }), {}),
-        safeJson<OpsOverviewPayload>(gsapFetch('/api/system/ops-overview', { timeout: 8_000 }), {}),
-        safeJson<LongTaskRecoveryPayload>(gsapFetch('/api/system/task-recovery', { timeout: 8_000 }), {}),
-        safeJson<RuntimeDiagnosticsPayload>(gsapFetch('/api/diagnostics/runtime', { timeout: 8_000 }), {}),
-        safeJson<ModelsPayload>(gsapFetch('/api/models'), { models: [] }),
-        safeJson<ModelRoutingPayload>(gsapFetch('/api/models/routing', { timeout: 8_000 }), {}),
-        safeJson<Record<string, { configured?: boolean; status?: string; error?: string | null }>>(gsapFetch('/api/bridge/status', { timeout: 8_000 }), {}),
+        safeJson<SystemHealthPayload>(codiaFetch('/api/system/health', { timeout: 8_000 }), {}),
+        safeJson<OpsOverviewPayload>(codiaFetch('/api/system/ops-overview', { timeout: 8_000 }), {}),
+        safeJson<LongTaskRecoveryPayload>(codiaFetch('/api/system/task-recovery', { timeout: 8_000 }), {}),
+        safeJson<RuntimeDiagnosticsPayload>(codiaFetch('/api/diagnostics/runtime', { timeout: 8_000 }), {}),
+        safeJson<ModelsPayload>(codiaFetch('/api/models'), { models: [] }),
+        safeJson<ModelRoutingPayload>(codiaFetch('/api/models/routing', { timeout: 8_000 }), {}),
+        safeJson<Record<string, { configured?: boolean; status?: string; error?: string | null }>>(codiaFetch('/api/bridge/status', { timeout: 8_000 }), {}),
         safeJson<{ availableTools?: string[] }>(
-          gsapFetch(`/api/agents/${encodeURIComponent(getSettingsAgentId?.() || 'default')}/config`, { timeout: 8_000 }),
+          codiaFetch(`/api/agents/${encodeURIComponent(getSettingsAgentId?.() || 'default')}/config`, { timeout: 8_000 }),
           {},
         ),
       ]);
@@ -761,7 +761,7 @@ export function DiagnosticsTab() {
               <SettingsButton
                 variant="secondary"
                 onClick={() => {
-                  downloadJson(`gsap-runtime-records-${Date.now()}.json`, {
+                  downloadJson(`codia-runtime-records-${Date.now()}.json`, {
                     generatedAt: new Date().toISOString(),
                     records: runtimeRecords,
                   });

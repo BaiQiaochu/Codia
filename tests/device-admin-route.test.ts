@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "hana-device-admin-route-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-device-admin-route-"));
 }
 
 function localOwner() {
@@ -43,7 +43,7 @@ describe("device admin route", () => {
     const { createDevicesRoute } = await import("../server/routes/devices.ts");
     tmpDir = makeTmpDir();
     const engine = {
-      hanakoHome: tmpDir,
+      codiaHome: tmpDir,
       getRuntimeContext: () => ({
         serverNodeId: "node_home_mac",
         userId: "user_owner",
@@ -88,7 +88,7 @@ describe("device admin route", () => {
     const approved = await approvedRes.json();
 
     expect(approvedRes.status).toBe(200);
-    expect(approved.secret).toMatch(/^gsap_dev_/);
+    expect(approved.secret).toMatch(/^codia_dev_/);
     expect(approved.device).toMatchObject({
       displayName: "Owner iPhone",
       deviceKind: "mobile",

@@ -26,8 +26,8 @@ describe("computeSessionCapabilityFingerprint", () => {
   });
 
   it("ignores the volatile current-date line in the system prompt", () => {
-    const promptA = "You are G-SAP.\nCurrent date and time: Monday, June 8, 2026, 10:00 CST\nYour day starts at 04:00.";
-    const promptB = "You are G-SAP.\nCurrent date and time: Thursday, June 11, 2026, 23:59 CST\nYour day starts at 04:00.";
+    const promptA = "You are Codia.\nCurrent date and time: Monday, June 8, 2026, 10:00 CST\nYour day starts at 04:00.";
+    const promptB = "You are Codia.\nCurrent date and time: Thursday, June 11, 2026, 23:59 CST\nYour day starts at 04:00.";
     const a = computeSessionCapabilityFingerprint({ toolNames: ["read"], systemPrompt: promptA });
     const b = computeSessionCapabilityFingerprint({ toolNames: ["read"], systemPrompt: promptB });
     expect(a).toBe(b);

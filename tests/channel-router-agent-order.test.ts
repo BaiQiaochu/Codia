@@ -14,7 +14,7 @@ vi.mock("../lib/debug-log.js", () => ({
 }));
 
 function mktemp() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "hana-channel-router-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-router-"));
 }
 
 describe("ChannelRouter agent order", () => {
@@ -30,8 +30,8 @@ describe("ChannelRouter agent order", () => {
   it("does not use channels.md existence as agent participation state", () => {
     tmpDir = mktemp();
     const agentsDir = path.join(tmpDir, "agents");
-    fs.mkdirSync(path.join(agentsDir, "hana"), { recursive: true });
-    fs.writeFileSync(path.join(agentsDir, "hana", "config.yaml"), "agent:\n  name: G-SAP\n", "utf-8");
+    fs.mkdirSync(path.join(agentsDir, "codia"), { recursive: true });
+    fs.writeFileSync(path.join(agentsDir, "codia", "config.yaml"), "agent:\n  name: Codia\n", "utf-8");
     fs.mkdirSync(path.join(agentsDir, "yui"), { recursive: true });
     fs.writeFileSync(path.join(agentsDir, "yui", "config.yaml"), "agent:\n  name: Yui\n", "utf-8");
     fs.writeFileSync(path.join(agentsDir, "yui", "channels.md"), "# 频道\n\n", "utf-8");
@@ -43,6 +43,6 @@ describe("ChannelRouter agent order", () => {
       },
     });
 
-    expect(router.getAgentOrder().sort()).toEqual(["hana", "yui"]);
+    expect(router.getAgentOrder().sort()).toEqual(["codia", "yui"]);
   });
 });

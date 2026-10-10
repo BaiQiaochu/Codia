@@ -1,15 +1,6 @@
 import { cancelAgentReview, isAgentReviewPending } from './agent-review-turns.ts';
 /**
   *
-  *
-  *
-  *
-  *
-  *
-  *
-  *
-  *
-  *
  */
 import fs from "fs";
 import os from "os";
@@ -29,13 +20,19 @@ import { serializeSessionFile } from "../lib/session-files/session-file-response
 import { findModel } from "../shared/model-ref.ts";
 import { resolveRunnableModel, canRunBackgroundTask as runtimeCanRunBackgroundTask } from "../lib/runtime/model-availability.ts";
 import { resolveWorkspaceSkillPaths } from "../shared/workspace-skill-paths.ts";
-import { resolveGsapPiAgentDir, resolveGsapPiProjectDir } from "../shared/gsap-runtime-paths.ts";
+import { resolveCodiaPiAgentDir, resolveCodiaPiProjectDir } from "../shared/codia-runtime-paths.ts";
 import { PluginManager } from "./plugin-manager.ts";
 import { PluginDevService } from "./plugin-dev-service.ts";
 import { createPluginDevTools } from "./plugin-dev-tools.ts";
 import { PluginInstallRecords } from "../lib/plugin-install-records.ts";
 import { DeferredResultCoordinator } from "../lib/deferred-result-coordinator.ts";
-import { DefaultResourceLoader, PI_BUILTIN_TOOL_NAMES, SettingsManager } from "../lib/pi-sdk/index.ts";
+import {
+  createCodemodeExtension,
+  createToolSearchExtension,
+  DefaultResourceLoader,
+  PI_BUILTIN_TOOL_NAMES,
+  SettingsManager,
+} from "../lib/pi-sdk/index.ts";
 
 /** */
 export const WELL_KNOWN_SKILL_PATHS = [
@@ -71,9 +68,9 @@ function resolveRequestReasoningLevel(models, prefs, ctx) {
     : (sessionThinkingLevel || preferenceThinkingLevel);
 }
 
-function createLocalRuntimeContext(gsapHome) {
+function createLocalRuntimeContext(codiaHome) {
   try {
-    return createServerRuntimeContext({ gsapHome });
+    return createServerRuntimeContext({ codiaHome });
   } catch {
     // Resource URLs still need a stable local owner context during early tests
     // or partially initialized homes.
@@ -186,7 +183,7 @@ type DynamicOptions = {
 };
 
 type EngineConstructorOptions = {
-  gsapHome: string;
+  codiaHome: string;
   productDir: string;
   agentId?: string | null;
 };
@@ -247,38 +244,38 @@ function normalizePathList(value: unknown): string[] {
     .map((item) => item.trim());
 }
 
-export class GsapEngine {
+export class CodiaEngine {
   [key: string]: any;
 
   /**
    * @param {object} dirs
-   * @param {string} dirs.gsapHome
+   * @param {string} dirs.codiaHome
    * @param {string} dirs.productDir
    * @param {string} [dirs.agentId]
    */
-  constructor({ gsapHome, productDir, agentId = null }: EngineConstructorOptions) {
-    this.gsapHome = gsapHome;
+  constructor({ codiaHome, productDir, agentId = null }: EngineConstructorOptions) {
+    this.codiaHome = codiaHome;
     this.productDir = productDir;
     this._license = null;
     this._currentTurnNativeMedia = createCurrentTurnNativeMediaStore();
-    this.agentsDir = path.join(gsapHome, "agents");
-    this.userDir = path.join(gsapHome, "user");
-    this.channelsDir = path.join(gsapHome, "channels");
+    this.agentsDir = path.join(codiaHome, "agents");
+    this.userDir = path.join(codiaHome, "user");
+    this.channelsDir = path.join(codiaHome, "channels");
     fs.mkdirSync(this.channelsDir, { recursive: true });
     this._sessionFiles = new SessionFileRegistry({
-      managedCacheRoot: path.join(gsapHome, "session-files"),
+      managedCacheRoot: path.join(codiaHome, "session-files"),
       getSessionIdForPath: (sessionPath) => this.getSessionIdForPath(sessionPath),
     });
     this._sessionManifestStore = new SessionManifestStore({
-      dbPath: path.join(gsapHome, "session-manifest.db"),
+      dbPath: path.join(codiaHome, "session-manifest.db"),
     });
     this._sessionManifestResolver = new SessionManifestResolver({
       store: this._sessionManifestStore,
     });
     this._sessionManifestMigration = this._runSessionManifestStartupMigration();
-    this._runtimeContext = createLocalRuntimeContext(gsapHome);
+    this._runtimeContext = createLocalRuntimeContext(codiaHome);
     this._studioCronService = new StudioCronService({
-      gsapHome: this.gsapHome,
+      codiaHome: this.codiaHome,
       agentsDir: this.agentsDir,
       getStudioId: () => {
         const studioId = this._runtimeContext?.studioId;
@@ -293,7 +290,7 @@ export class GsapEngine {
     });
     this._resourceAccess = new ResourceAccessService({
       resourceService: this._resources,
-      audit: (event) => appendSecurityAuditEvent(this.gsapHome, event),
+      audit: (event) => appendSecurityAuditEvent(this.codiaHome, event),
     });
     this._resourceIO = null;
     this._resourceIOScopeKey = null;
@@ -306,7 +303,7 @@ export class GsapEngine {
 
     // ── Core managers ──
     this._prefs = new PreferencesManager({ userDir: this.userDir, agentsDir: this.agentsDir });
-    this._models = new ModelManager({ gsapHome });
+    this._models = new ModelManager({ codiaHome });
     this._speechRecognition = new SpeechRecognitionService({
       providerRegistry: this._models.providerRegistry,
       preferences: this._prefs,
@@ -314,7 +311,7 @@ export class GsapEngine {
       emitEvent: (event, sessionPath) => this._emitEvent(event, sessionPath),
     } as unknown as ConstructorParameters<typeof SpeechRecognitionService>[0]);
     this._media = new UniversalMediaManager({
-      gsapHome: this.gsapHome,
+      codiaHome: this.codiaHome,
       providerRegistry: this._models.providerRegistry,
       preferences: this._prefs,
       speechRecognition: this._speechRecognition,
@@ -323,7 +320,7 @@ export class GsapEngine {
       onProviderChanged: () => this.refreshModels(),
     });
     this._sessionProjects = new SessionProjectCatalogStore({ userDir: this.userDir });
-    this._pluginInstallRecords = new PluginInstallRecords({ gsapHome });
+    this._pluginInstallRecords = new PluginInstallRecords({ codiaHome });
     this._approvalGateway = createApprovalGateway({
       smallToolModelReviewer: createModelApprovalReviewer({
         role: "utility",
@@ -351,7 +348,7 @@ export class GsapEngine {
 
     // ── Agent Manager ──
     this._agentMgr = new AgentManager({
-      gsapHome: this.gsapHome,
+      codiaHome: this.codiaHome,
       agentsDir: this.agentsDir,
       productDir: this.productDir,
       userDir: this.userDir,
@@ -409,7 +406,7 @@ export class GsapEngine {
 
     // ── Config Coordinator ──
     this._configCoord = new ConfigCoordinator({
-      gsapHome,
+      codiaHome,
       agentsDir: this.agentsDir,
       getAgent: () => this.agent,
       getAgentById: (id) => this._agentMgr.getAgent(id),
@@ -444,7 +441,7 @@ export class GsapEngine {
       getHomeCwd: (agentId) => this.getHomeCwd(agentId),
       getVisionBridge: () => this._visionBridge,
       isVisionAuxiliaryEnabled: () => this.isVisionAuxiliaryEnabled(),
-      getGsapHome: () => this.gsapHome,
+      getCodiaHome: () => this.codiaHome,
       registerSessionFile: (entry) => this.registerSessionFile(entry),
       getSessionFile: (fileId, options) => this.getSessionFile(fileId, options),
       getSessionFileByPath: (filePath, options) => this.getSessionFileByPath(filePath, options),
@@ -470,7 +467,7 @@ export class GsapEngine {
 
  // 任务注册表（外部 abort 用）
     this._taskRegistry = new TaskRegistry({
-      persistencePath: path.join(this.gsapHome, ".ephemeral", "plugin-tasks.json"),
+      persistencePath: path.join(this.codiaHome, ".ephemeral", "plugin-tasks.json"),
     });
 
     this._subagentControllers = new Map();
@@ -482,13 +479,13 @@ export class GsapEngine {
     });
 
     this._terminalSessions = new TerminalSessionManager({
-      gsapHome: this.gsapHome,
+      codiaHome: this.codiaHome,
       emitEvent: (event, sessionPath) => this._emitEvent(event, sessionPath),
     });
 
  // Checkpoint 备份存储
     this._checkpointStore = new CheckpointStore(
-      path.join(this.gsapHome, "checkpoints")
+      path.join(this.codiaHome, "checkpoints")
     );
 
     // Computer Use is lazy: provider construction touches native/runtime paths,
@@ -761,7 +758,7 @@ export class GsapEngine {
         workspaceFolders: resourceScope.workspaceFolders,
         authorizedFolders: resourceScope.authorizedFolders,
         getAuthorizedFolders: () => this._resolveResourceIOScope().authorizedFolders,
-        gsapHome: this.gsapHome,
+        codiaHome: this.codiaHome,
         getSandboxEnabled: () => this._readPreferences?.().sandbox !== false,
         getSessionPath: () => this.currentSessionPath || null,
         emitEvent: (event, sessionPath) => this._emitEvent(event, sessionPath),
@@ -860,7 +857,7 @@ export class GsapEngine {
   _runSessionManifestStartupMigration() {
     try {
       const result = ensureLegacySessionManifestMigration({
-        gsapHome: this.gsapHome,
+        codiaHome: this.codiaHome,
         store: this._sessionManifestStore,
       });
       if (result?.status === "failed") {
@@ -1091,8 +1088,8 @@ export class GsapEngine {
     return this._configCoord.getHomeFolder(agentId) || null;
   }
   _createResourceLoaderOptions(skillsDir) {
-    const cwd = resolveGsapPiProjectDir(this.gsapHome);
-    const agentDir = resolveGsapPiAgentDir(this.gsapHome);
+    const cwd = resolveCodiaPiProjectDir(this.codiaHome);
+    const agentDir = resolveCodiaPiAgentDir(this.codiaHome);
     if (!cwd || typeof cwd !== "string") {
       throw new Error("ResourceLoader init: cwd is required");
     }
@@ -1599,15 +1596,15 @@ export class GsapEngine {
     });
 
  //
-    migrateToProvidersYaml(this.gsapHome, this.agentsDir, log);
-    migrateProviderMediaConfig(this.gsapHome, log);
+    migrateToProvidersYaml(this.codiaHome, this.agentsDir, log);
+    migrateProviderMediaConfig(this.codiaHome, log);
 
  //
     this._models.providerRegistry.migrateOverridesToAddedModels(this.agentsDir, log);
 
     // 0d. Versioned data migrations.
     runMigrations({
-      gsapHome: this.gsapHome,
+      codiaHome: this.codiaHome,
       agentsDir: this.agentsDir,
       prefs: this._prefs,
       providerRegistry: this._models.providerRegistry,
@@ -1638,7 +1635,7 @@ export class GsapEngine {
     // 3. ResourceLoader + Skills
     log(`[init] 3/5 ResourceLoader initializing...`);
     const t_rl = Date.now();
-    const skillsDir = path.join(this.gsapHome, "skills");
+    const skillsDir = path.join(this.codiaHome, "skills");
     fs.mkdirSync(skillsDir, { recursive: true });
 
     // Resolve external skill paths.
@@ -1651,10 +1648,12 @@ export class GsapEngine {
     const externalPaths = this._getResolvedExternalSkillPaths(null);
 
     this._skills = new SkillManager({ skillsDir, externalPaths });
-    this._baseExtensionFactoryCount = 2;
+    this._baseExtensionFactoryCount = 4;
     this._resourceLoader = new DefaultResourceLoader({
       ...this._createResourceLoaderOptions(skillsDir),
       extensionFactories: this._extensionFactories = [
+        createCodemodeExtension({ mode: "on", inlineBudget: 3000 }),
+        createToolSearchExtension(),
  /** 兼容性修正：剥离第三-anthropic-messages 供应商不支持的字-*/
         (pi) => {
           pi.on("context", (event, ctx) => {
@@ -1829,10 +1828,10 @@ export class GsapEngine {
   async initPlugins(bus) {
     this._media?.start?.(bus);
     const builtinPluginsDir = path.join(this.productDir, "..", "plugins");
-    const userPluginsDir = path.join(this.gsapHome, "plugins");
-    const pluginDataDir = path.join(this.gsapHome, "plugin-data");
-    const devPluginsDir = path.join(this.gsapHome, "plugins-dev");
-    const pluginDevRunDir = path.join(this.gsapHome, "plugin-dev-runs");
+    const userPluginsDir = path.join(this.codiaHome, "plugins");
+    const pluginDataDir = path.join(this.codiaHome, "plugin-data");
+    const devPluginsDir = path.join(this.codiaHome, "plugins-dev");
+    const pluginDevRunDir = path.join(this.codiaHome, "plugin-dev-runs");
 
     // Read app version for plugin compatibility check
     let appVersion = "0.0.0";
@@ -1866,7 +1865,7 @@ export class GsapEngine {
     const allowedPluginDevSourceRoots = [
       this.productDir,
       path.dirname(this.productDir),
-      this.gsapHome,
+      this.codiaHome,
       os.homedir(),
     ].filter(Boolean);
     this._pluginDevService = new PluginDevService({
@@ -2055,7 +2054,7 @@ export class GsapEngine {
           workspaceFolders,
           getAuthorizedFolders(),
         ),
-        gsapHome: this.gsapHome,
+        codiaHome: this.codiaHome,
       });
     };
     const getPermissionMode = typeof opts.getPermissionMode === "function"
@@ -2078,7 +2077,7 @@ export class GsapEngine {
       workspaceFolders,
       authorizedFolders: staticAuthorizedFolders,
       getAuthorizedFolders,
-      gsapHome: this.gsapHome,
+      codiaHome: this.codiaHome,
       executionBoundary,
       getTraceContext,
       recordToolCall,
@@ -2269,7 +2268,7 @@ export class GsapEngine {
       ? opts.skills
       : (opts.agentId ? this.getAllSkills(opts.agentId) : []);
     return translateSkillNamesWithCache({
-      cachePath: getSkillNameTranslationCachePath(this.gsapHome),
+      cachePath: getSkillNameTranslationCachePath(this.codiaHome),
       skills,
       names,
       lang,
@@ -2391,5 +2390,3 @@ export class GsapEngine {
 
   static PATROL_TOOLS_DEFAULT = "*";
 }
-
-export const HanaEngine = GsapEngine;

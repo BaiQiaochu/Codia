@@ -1,5 +1,5 @@
 import { EditorView, WidgetType, Decoration } from '@codemirror/view';
-import type { DecoRange } from '../md-decorations';
+import type { DecoRange } from './types';
 import { createWidgetElement } from './dom';
 
 const codeBlockLineDeco = Decoration.line({ class: 'cm-codeblock-line' });

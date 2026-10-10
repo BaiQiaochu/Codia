@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { t } from '../../helpers';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { Toggle } from '../../widgets/Toggle';
 import { BridgeStatusDot, BridgeStatusText } from './BridgeWidgets';
 import { PlatformDiagnostics } from './PlatformDiagnostics';
@@ -46,12 +46,12 @@ export function WechatSection({
     try {
       const agentQuery = agentId ? `?agentId=${encodeURIComponent(agentId)}` : '';
       await Promise.all([
-        gsapFetch(`/api/bridge/config${agentQuery}`, {
+        codiaFetch(`/api/bridge/config${agentQuery}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ platform: 'wechat', credentials: { botToken: '' }, enabled: false }),
         }),
-        gsapFetch(`/api/bridge/owner${agentQuery}`, {
+        codiaFetch(`/api/bridge/owner${agentQuery}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ platform: 'wechat', userId: null }),
@@ -88,7 +88,7 @@ export function WechatSection({
               {t('settings.bridge.wechatLoggedIn')}
             </span>
             <div className={bridgeStyles['wechat-btn-row']}>
-              <button type="button" className="bridge-test-btn" onClick={() => window.dispatchEvent(new CustomEvent('gsap-show-wechat-qrcode', { detail: { agentId } }))}>
+              <button type="button" className="bridge-test-btn" onClick={() => window.dispatchEvent(new CustomEvent('codia-show-wechat-qrcode', { detail: { agentId } }))}>
                 {t('settings.bridge.wechatRescan')}
               </button>
               <button type="button" className="bridge-test-btn" onClick={unbind}>
@@ -98,7 +98,7 @@ export function WechatSection({
           </div>
         ) : (
           <div className={bridgeStyles['wechat-scan-row']}>
-            <button type="button" className="bridge-test-btn" onClick={() => window.dispatchEvent(new CustomEvent('gsap-show-wechat-qrcode', { detail: { agentId } }))}>
+            <button type="button" className="bridge-test-btn" onClick={() => window.dispatchEvent(new CustomEvent('codia-show-wechat-qrcode', { detail: { agentId } }))}>
               {t('settings.bridge.wechatScan')}
             </button>
           </div>

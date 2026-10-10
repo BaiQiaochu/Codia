@@ -14,18 +14,18 @@ describe("Bridge media allowed roots", () => {
   });
 
   function makeDir(name) {
-    if (!tmpDir) tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-bridge-roots-"));
+    if (!tmpDir) tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bridge-roots-"));
     const dir = path.join(tmpDir, name);
     fs.mkdirSync(dir, { recursive: true });
     return dir;
   }
 
   it("includes target and known agent workspaces from getHomeCwd", () => {
-    const gsapHome = makeDir("gsap-home");
+    const codiaHome = makeDir("codia-home");
     const ownerHome = makeDir("owner-workspace");
     const otherHome = makeDir("other-workspace");
     const engine = {
-      gsapHome,
+      codiaHome,
       getHomeCwd: vi.fn((agentId) => {
         if (agentId === "owner") return ownerHome;
         if (agentId === "other") return otherHome;
@@ -39,7 +39,7 @@ describe("Bridge media allowed roots", () => {
 
     const roots = collectBridgeMediaAllowedRoots(engine, { agentId: "owner" });
 
-    expect(roots).toContain(fs.realpathSync(gsapHome));
+    expect(roots).toContain(fs.realpathSync(codiaHome));
     expect(roots).toContain(fs.realpathSync(ownerHome));
     expect(roots).toContain(fs.realpathSync(otherHome));
     expect(engine.getHomeCwd).toHaveBeenCalledWith("owner");

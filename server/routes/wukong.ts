@@ -82,7 +82,7 @@ export function createWukongRoute(engine: any) {
       }
       return c.json({
         ok: true,
-        direction: "inbound_to_gsap",
+        direction: "inbound_to_codia",
         platform: "wukong",
         agentId: agent.id,
         sessionKey,
@@ -103,7 +103,7 @@ export function createWukongRoute(engine: any) {
         engine,
         text: task.text,
         source: {
-          subsystem: "gsap",
+          subsystem: "codia",
           surface: "api",
           ...(task.source || {}),
         },
@@ -116,7 +116,7 @@ export function createWukongRoute(engine: any) {
       }
       return c.json({
         ok: true,
-        direction: "gsap_to_wukong",
+        direction: "codia_to_wukong",
         platform: "wukong",
         agentId: agent.id,
         result,

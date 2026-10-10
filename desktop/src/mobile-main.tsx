@@ -26,9 +26,9 @@ async function readFileBase64(file: File): Promise<string> {
 }
 
 function installMobilePwaBridge(): void {
-  const target = window as Window & { __GSAP_PWA__?: MobilePwaBridge };
-  const existing = target.__GSAP_PWA__ || {};
-  target.__GSAP_PWA__ = {
+  const target = window as Window & { __CODIA_PWA__?: MobilePwaBridge };
+  const existing = target.__CODIA_PWA__ || {};
+  target.__CODIA_PWA__ = {
     ...existing,
     serverUrl: existing.serverUrl || ((path: string) => normalizeBackendPath(path)),
     wsUrl: existing.wsUrl || ((token?: string | null) => {
@@ -76,8 +76,8 @@ void import('./react/mobile/MobileApp')
     el.textContent = 'Codia 启动失败';
   });
 
-const MOBILE_UPDATE_AVAILABLE_EVENT = 'gsap-mobile-update-available';
-const MOBILE_APPLY_UPDATE_EVENT = 'gsap-mobile-apply-update';
+const MOBILE_UPDATE_AVAILABLE_EVENT = 'codia-mobile-update-available';
+const MOBILE_APPLY_UPDATE_EVENT = 'codia-mobile-apply-update';
 
 function registerMobileServiceWorker(): void {
   if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
@@ -85,7 +85,7 @@ function registerMobileServiceWorker(): void {
   let reloadOnControllerChange = false;
   let reloadStarted = false;
   const notifyUpdateAvailable = () => {
-    window.__gsapMobileUpdateAvailable = true;
+    window.__codiaMobileUpdateAvailable = true;
     window.dispatchEvent(new CustomEvent(MOBILE_UPDATE_AVAILABLE_EVENT));
   };
   const reloadForUpdate = () => {

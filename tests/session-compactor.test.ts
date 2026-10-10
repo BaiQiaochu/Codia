@@ -177,7 +177,7 @@ describe("session-compactor", () => {
     expect(context.tools).toBeUndefined();
     expect(context.messages).toHaveLength(2);
     expect(context.messages[1].role).toBe("user");
-    expect(context.messages[1].content[0].text).toContain("G-SAP cache-preserving compaction");
+    expect(context.messages[1].content[0].text).toContain("Codia cache-preserving compaction");
     expect(context.messages[1].content[0].text).toContain("focus on decisions");
     expect(options).toEqual(expect.objectContaining({
       maxTokens: 800,

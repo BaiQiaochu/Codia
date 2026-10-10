@@ -8,7 +8,6 @@ const MAX_RENDERER_JS_CHUNK_BYTES = 500 * 1024;
 const KNOWN_LAZY_CHUNK_LIMITS = [
   { pattern: /^editor-markdown-support-[\w-]+\.js$/, maxBytes: 650 * 1024 },
   { pattern: /^mermaid-parser-vendor-[\w-]+\.js$/, maxBytes: 650 * 1024 },
-  { pattern: /^ocr-opencv-vendor-[\w-]+\.js$/, maxBytes: 11 * 1024 * 1024 },
   { pattern: /^settings-core-[\w-]+\.js$/, maxBytes: 600 * 1024 },
 ];
 

@@ -1,7 +1,6 @@
 // @ts-nocheck
 /**
   *
-  *
   * */
 
 import fs from "fs";

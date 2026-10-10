@@ -32,7 +32,7 @@ describe("LocalFsProvider", () => {
   });
 
   function makeProvider(check = vi.fn(() => ({ allowed: true }))) {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-local-fs-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-local-fs-"));
     const cwd = path.join(tempRoot, "workspace");
     const trashRoot = path.join(tempRoot, "trash");
     fs.mkdirSync(cwd, { recursive: true });
@@ -240,10 +240,10 @@ describe("LocalFsProvider", () => {
 });
 
 function makeProviderWithPolicy() {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-local-fs-policy-"));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-local-fs-policy-"));
   const cwd = path.join(tempRoot, "workspace");
-  const agentDir = path.join(tempRoot, "gsap-home", "agents", "gsap");
-  const gsapHome = path.join(tempRoot, "gsap-home");
+  const agentDir = path.join(tempRoot, "codia-home", "agents", "codia");
+  const codiaHome = path.join(tempRoot, "codia-home");
   const trashRoot = path.join(tempRoot, "trash");
   fs.mkdirSync(cwd, { recursive: true });
   fs.mkdirSync(agentDir, { recursive: true });
@@ -252,7 +252,7 @@ function makeProviderWithPolicy() {
     agentDir,
     workspace: cwd,
     workspaceFolders: [cwd],
-    gsapHome,
+    codiaHome,
     getSandboxEnabled: () => true,
   });
   return {

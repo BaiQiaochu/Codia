@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Agent } from '../../types';
-import { gsapUrl } from '../../hooks/use-gsap-fetch';
+import { codiaUrl } from '../../hooks/use-codia-fetch';
 import { yuanFallbackAvatar } from '../../utils/agent-helpers';
 
 let _avatarTs = Date.now();
@@ -46,7 +46,7 @@ export function resolveChannelMember(
     return {
       id: memberId,
       displayName: agent.name || agent.id,
-      avatarUrl: agent.hasAvatar ? gsapUrl(`/api/agents/${agent.id}/avatar?t=${_avatarTs}`, { includeTokenQuery: true }) : null,
+      avatarUrl: agent.hasAvatar ? codiaUrl(`/api/agents/${agent.id}/avatar?t=${_avatarTs}`, { includeTokenQuery: true }) : null,
       fallbackAvatar: yuanFallbackAvatar(agent.yuan),
       yuan: agent.yuan,
       isUser: false,

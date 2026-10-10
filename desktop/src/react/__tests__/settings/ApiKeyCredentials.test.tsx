@@ -9,11 +9,11 @@ import '@testing-library/jest-dom/vitest';
 import type { ProviderSummary } from '../../settings/store';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
 }));
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: (...args: unknown[]) => mocks.gsapFetch(...args),
+  codiaFetch: (...args: unknown[]) => mocks.codiaFetch(...args),
 }));
 
 vi.mock('../../hooks/use-config', () => ({
@@ -52,8 +52,8 @@ function providerSummary(overrides: Partial<ProviderSummary>): ProviderSummary {
 
 describe('ApiKeyCredentials', () => {
   beforeEach(() => {
-    mocks.gsapFetch.mockReset();
-    mocks.gsapFetch.mockResolvedValue(jsonResponse({ ok: true }));
+    mocks.codiaFetch.mockReset();
+    mocks.codiaFetch.mockResolvedValue(jsonResponse({ ok: true }));
   });
 
   afterEach(() => {
@@ -104,11 +104,11 @@ describe('ApiKeyCredentials', () => {
     expect(verifyButton).not.toBeNull();
     fireEvent.click(verifyButton as HTMLButtonElement);
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith(
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith(
       '/api/providers/test',
       expect.objectContaining({ method: 'POST' }),
     ));
-    const [, options] = mocks.gsapFetch.mock.calls[0];
+    const [, options] = mocks.codiaFetch.mock.calls[0];
     expect(JSON.parse(String((options as RequestInit).body))).toMatchObject({
       name: 'groq',
       base_url: 'https://api.groq.com/openai/v1',
@@ -119,7 +119,7 @@ describe('ApiKeyCredentials', () => {
 
   it('reveals a masked saved api key through the explicit provider endpoint', async () => {
     const onRefresh = vi.fn(async () => {});
-    mocks.gsapFetch.mockResolvedValueOnce(jsonResponse({ api_key: 'sk-real-provider-key' }));
+    mocks.codiaFetch.mockResolvedValueOnce(jsonResponse({ api_key: 'sk-real-provider-key' }));
 
     const { container } = render(
       <ApiKeyCredentials
@@ -136,13 +136,13 @@ describe('ApiKeyCredentials', () => {
     expect(revealButton).toBeTruthy();
     fireEvent.click(revealButton as HTMLButtonElement);
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/providers/deepseek/api-key'));
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/providers/deepseek/api-key'));
     await waitFor(() => expect(container.querySelector('input[type="text"]')).toHaveValue('sk-real-provider-key'));
   });
 
   it('saves discovered Gemini models during preset setup instead of static defaults', async () => {
     const onRefresh = vi.fn(async () => {});
-    mocks.gsapFetch
+    mocks.codiaFetch
       .mockResolvedValueOnce(jsonResponse({ ok: true }))
       .mockResolvedValueOnce(jsonResponse({
         models: [
@@ -182,15 +182,15 @@ describe('ApiKeyCredentials', () => {
     const saveButton = container.querySelector('button[title="settings.providers.verifyConnection"]') as HTMLButtonElement;
     fireEvent.click(saveButton);
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith(
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith(
       '/api/config',
       expect.objectContaining({ method: 'PUT' }),
     ));
-    expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/providers/fetch-models', expect.objectContaining({
+    expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/providers/fetch-models', expect.objectContaining({
       method: 'POST',
     }));
 
-    const configCall = mocks.gsapFetch.mock.calls.find(([path]) => path === '/api/config');
+    const configCall = mocks.codiaFetch.mock.calls.find(([path]) => path === '/api/config');
     const body = JSON.parse(String((configCall?.[1] as RequestInit).body));
     expect(body.providers.gemini).toEqual({
       base_url: 'https://generativelanguage.googleapis.com/v1beta',

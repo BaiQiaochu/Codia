@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
-const upstreamDir = process.argv[2] || "openhanako-0.303.3";
+const upstreamDir = process.argv[2] || "codia-0.303.3";
 const outputPath = process.argv.includes("--out")
   ? process.argv[process.argv.indexOf("--out") + 1]
   : "";
@@ -33,7 +33,7 @@ function toPosix(value) {
 
 function isExcluded(relativePath) {
   const normalized = toPosix(relativePath);
-  if (/^openhanako-[^/]+(?:\/|$)/.test(normalized)) return true;
+  if (/^codia-[^/]+(?:\/|$)/.test(normalized)) return true;
   return excludedParts.some((part) => normalized === part || normalized.startsWith(`${part}/`));
 }
 

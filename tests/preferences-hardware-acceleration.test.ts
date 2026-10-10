@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { PreferencesManager } from "../core/preferences-manager.ts";
 
 function makePrefs() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "hana-prefs-hardware-accel-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-prefs-hardware-accel-"));
   return new PreferencesManager({
     userDir: path.join(root, "user"),
     agentsDir: path.join(root, "agents"),

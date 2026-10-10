@@ -43,7 +43,7 @@ describe("system prompt route", () => {
   });
 
   it("legacy identity and ishiki routes use the same editable template fallback", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-config-prompt-"));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-config-prompt-"));
     try {
       const agentsDir = path.join(tempRoot, "agents");
       const productDir = path.join(tempRoot, "product");

@@ -30,8 +30,8 @@ describe('ChannelCreateOverlay interaction', () => {
     useStore.setState({
       channelCreateOverlayVisible: true,
       agents: [
-        { id: 'worker-a', name: '工人A', yuan: 'gsap', isPrimary: false },
-        { id: 'admin-a', name: '管理员A', yuan: 'gsap', isPrimary: false },
+        { id: 'worker-a', name: '工人A', yuan: 'codia', isPrimary: false },
+        { id: 'admin-a', name: '管理员A', yuan: 'codia', isPrimary: false },
       ],
     } as never);
   });

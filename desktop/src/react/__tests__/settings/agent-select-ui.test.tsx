@@ -10,7 +10,7 @@ import styles from '../../settings/Settings.module.css';
 import { useSettingsStore } from '../../settings/store';
 
 vi.mock('../../settings/api', () => ({
-  gsapUrl: (path: string) => `http://settings.test${path}`,
+  codiaUrl: (path: string) => `http://settings.test${path}`,
   yuanFallbackAvatar: (yuan: string) => `fallback://${yuan}`,
 }));
 
@@ -24,7 +24,7 @@ describe('AgentSelect bridge UI', () => {
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: 600 });
     useSettingsStore.setState({
       agents: [
-        { id: 'agent-a', name: 'Agent 名称 → 火星舰外·铁形修士', yuan: 'gsap', isPrimary: true, hasAvatar: false },
+        { id: 'agent-a', name: 'Agent 名称 → 火星舰外·铁形修士', yuan: 'codia', isPrimary: true, hasAvatar: false },
         { id: 'agent-b', name: 'Other Agent', yuan: 'ming', isPrimary: false, hasAvatar: false },
       ],
     });

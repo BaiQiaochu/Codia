@@ -10,7 +10,7 @@ import {
 
 describe("plugin config schema", () => {
   it("normalizes fields and materializes global defaults", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-plugin-config-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-config-"));
     try {
       const schema = normalizePluginConfigSchema("demo", {
         properties: {
@@ -29,7 +29,7 @@ describe("plugin config schema", () => {
   });
 
   it("rejects invalid type writes with field errors", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-plugin-config-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-config-"));
     try {
       const schema = normalizePluginConfigSchema("demo", {
         properties: {
@@ -50,7 +50,7 @@ describe("plugin config schema", () => {
   });
 
   it("keeps scoped values in their own keyed containers", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-plugin-config-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-config-"));
     try {
       const schema = normalizePluginConfigSchema("demo", {
         properties: {
@@ -59,12 +59,12 @@ describe("plugin config schema", () => {
       });
       const store = createPluginConfigStore({ dataDir: dir, schema });
 
-      store.set("agentMode", "strict", { scope: "per-agent", agentId: "gsap" });
+      store.set("agentMode", "strict", { scope: "per-agent", agentId: "codia" });
 
-      expect(store.get("agentMode", { scope: "per-agent", agentId: "gsap" })).toBe("strict");
+      expect(store.get("agentMode", { scope: "per-agent", agentId: "codia" })).toBe("strict");
       expect(store.getState()).toMatchObject({
         agents: {
-          gsap: { agentMode: "strict" },
+          codia: { agentMode: "strict" },
         },
       });
     } finally {
@@ -73,7 +73,7 @@ describe("plugin config schema", () => {
   });
 
   it("reads old flat config files as global config", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-plugin-config-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-config-"));
     try {
       fs.writeFileSync(path.join(dir, "config.json"), JSON.stringify({ oldKey: "old" }), "utf-8");
       const store = createPluginConfigStore({
@@ -88,7 +88,7 @@ describe("plugin config schema", () => {
   });
 
   it("removes optional keys when a patch value is undefined", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-plugin-config-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-config-"));
     try {
       const schema = normalizePluginConfigSchema("image-gen", {
         properties: {

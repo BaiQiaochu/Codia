@@ -26,7 +26,7 @@ type EditorWindowApi = NonNullable<ReturnType<typeof getDesktopApi>> & {
   editorClose?: () => void;
 };
 
-const gsap = getDesktopApi() as EditorWindowApi | undefined;
+const codia = getDesktopApi() as EditorWindowApi | undefined;
 const titleEl = document.getElementById('editorTitle')!;
 const bodyEl = document.getElementById('editorBody')!;
 const btnDock = document.getElementById('btnDock')!;
@@ -53,7 +53,7 @@ async function createEditor(content: string, mode: 'markdown' | 'code' | 'csv' |
   bodyEl.innerHTML = '';
   const markdownImageContext: MarkdownImageContext = {
     filePath,
-    getFileUrl: gsap?.getFileUrl?.bind(gsap),
+    getFileUrl: codia?.getFileUrl?.bind(codia),
   };
 
   const [cm, modeResources] = await Promise.all([
@@ -96,7 +96,7 @@ async function createEditor(content: string, mode: 'markdown' | 'code' | 'csv' |
 async function saveContent(text: string) {
   if (!filePath) return;
   lastSavedContent = text;
-  await gsap?.writeFile(filePath, text);
+  await codia?.writeFile(filePath, text);
 }
 
 async function loadContent(data: EditorLoadData) {
@@ -107,16 +107,16 @@ async function loadContent(data: EditorLoadData) {
   if (mode === 'markdown' || mode === 'csv') bodyEl.classList.add('mode-markdown');
   else bodyEl.classList.remove('mode-markdown');
 
-  const content = await gsap?.readFile(filePath);
+  const content = await codia?.readFile(filePath);
   if (content == null) return;
 
   await createEditor(content, mode);
 
   if (!fileWatcherBound && filePath) {
     fileWatcherBound = true;
-    gsap?.onFileChanged((changedPath: string) => {
+    codia?.onFileChanged((changedPath: string) => {
       if (changedPath !== filePath) return;
-      gsap?.readFile(filePath).then((newContent: string | null) => {
+      codia?.readFile(filePath).then((newContent: string | null) => {
         if (newContent == null || !editorView) return;
         if (newContent === lastSavedContent) return;
         const current = editorView.state.doc.toString();
@@ -129,15 +129,15 @@ async function loadContent(data: EditorLoadData) {
     });
   }
 
-  gsap?.watchFile(filePath);
+  codia?.watchFile(filePath);
 }
 
-gsap?.onEditorLoad?.((data) => {
+codia?.onEditorLoad?.((data) => {
   loadContent(data);
 });
 
-btnDock.addEventListener('click', () => gsap?.editorDock?.());
-btnClose.addEventListener('click', () => gsap?.editorClose?.());
+btnDock.addEventListener('click', () => codia?.editorDock?.());
+btnClose.addEventListener('click', () => codia?.editorClose?.());
 
 const saved = registry.migrateSavedTheme(
   localStorage.getItem(registry.STORAGE_KEY) || localStorage.getItem(registry.LEGACY_STORAGE_KEY) || 'auto',

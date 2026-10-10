@@ -56,7 +56,7 @@ describe('preview-file-refresh', () => {
       readFile: vi.fn(async () => null),
     } as unknown as PlatformApi;
     const notice = vi.fn();
-    window.addEventListener('gsap-inline-notice', notice);
+    window.addEventListener('codia-inline-notice', notice);
 
     await refreshPreviewItemsFromFile('/tmp/note.md');
 
@@ -64,6 +64,6 @@ describe('preview-file-refresh', () => {
     expect(artifact.status).toBe('missing');
     expect(typeof artifact.missingAt).toBe('number');
     expect(notice).not.toHaveBeenCalled();
-    window.removeEventListener('gsap-inline-notice', notice);
+    window.removeEventListener('codia-inline-notice', notice);
   });
 });

@@ -10,7 +10,7 @@ const fixModules = require("../scripts/fix-modules.cjs").default;
 const tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-computer-use-packaging-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-computer-use-packaging-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -21,13 +21,13 @@ function makeMacAfterPackContext(appOutDir) {
     arch: 3,
     packager: {
       platform: { name: "mac" },
-      appInfo: { productFilename: "G-SAP" },
+      appInfo: { productFilename: "Codia" },
     },
   };
 }
 
 function resourcesDir(appOutDir) {
-  return path.join(appOutDir, "G-SAP.app", "Contents", "Resources");
+  return path.join(appOutDir, "Codia.app", "Contents", "Resources");
 }
 
 afterEach(() => {

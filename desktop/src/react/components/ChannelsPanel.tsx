@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../stores';
 import { sessionScopedValue } from '../stores/session-slice';
 import { fetchConfig } from '../hooks/use-config';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import { useI18n } from '../hooks/use-i18n';
 import { attachFilesFromPaths } from '../MainContent';
 import { renderMarkdown } from '../utils/markdown';
@@ -287,7 +287,7 @@ export function ChannelMessages() {
                         block={block}
                         agentName={senderInfo.displayName}
                         agentId={senderInfo.isUser ? null : msg.sender}
-                        yuan={senderInfo.yuan || 'gsap'}
+                        yuan={senderInfo.yuan || 'codia'}
                         sessionPath={channelBlockSessionPath(block, currentChannel)}
                         messageId={messageId}
                         blockIdx={blockIdx}
@@ -728,7 +728,7 @@ export function AgentPhoneSessionPreview({ sessionPath, agentId, agentYuan }: {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const stickToBottomRef = useRef(true);
-  const moodYuan = agentYuan || 'gsap';
+  const moodYuan = agentYuan || 'codia';
 
   const scrollToBottom = useCallback(() => {
     const el = scrollRef.current;
@@ -1168,7 +1168,7 @@ export function ChannelAgentSettingsPanel() {
 
   useEffect(() => {
     if (models.length > 0) return;
-    void gsapFetch('/api/models')
+    void codiaFetch('/api/models')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data?.models) useStore.setState({ models: data.models });
@@ -1576,7 +1576,7 @@ export function ChannelInput() {
           const ext = mimeType.split('/')[1] === 'jpeg' ? 'jpg' : (mimeType.split('/')[1] || 'png');
           const name = `${t('input.pastedImage')}.${ext}`;
           try {
-            const res = await gsapFetch('/api/upload-blob', {
+            const res = await codiaFetch('/api/upload-blob', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -1780,8 +1780,8 @@ export function ChannelInput() {
       if (detail.channelId && detail.channelId !== currentChannel) return;
       inputRef.current?.focus();
     };
-    window.addEventListener('gsap-channel-focus-input', onFocusRequest);
-    return () => window.removeEventListener('gsap-channel-focus-input', onFocusRequest);
+    window.addEventListener('codia-channel-focus-input', onFocusRequest);
+    return () => window.removeEventListener('codia-channel-focus-input', onFocusRequest);
   }, [currentChannel]);
 
   if (isDM || !currentChannel) return null;
@@ -1789,7 +1789,7 @@ export function ChannelInput() {
   return (
     <div
       className={`${styles.channelInputWrapper}${dragActive ? ` ${styles.channelInputWrapperDrag}` : ''}`}
-      data-byoung-chat-color-scope=""
+      data-codia-chat-color-scope=""
       onDrop={handleDropFiles}
       onDragOver={handleDragOverFiles}
       onDragLeave={handleDragLeaveFiles}

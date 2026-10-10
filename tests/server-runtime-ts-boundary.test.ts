@@ -8,7 +8,7 @@ const require = createRequire(import.meta.url);
 const { resolveServerLaunchConfig } = require("../desktop/server-runtime.cjs");
 
 function makeProject(files) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-ts-runtime-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-ts-runtime-"));
   for (const relativePath of files) {
     const fullPath = path.join(root, relativePath);
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });
@@ -21,7 +21,7 @@ describe("server runtime TypeScript boundary", () => {
   it("uses source JavaScript while server/index.js is present", () => {
     const root = makeProject(["server/index.js", "server/bootstrap.js"]);
     const config = resolveServerLaunchConfig({
-      env: { GSAP_LAUNCH_NODE: process.execPath },
+      env: { CODIA_LAUNCH_NODE: process.execPath },
       projectRoot: root,
       resourcesPath: "",
       platform: process.platform,
@@ -30,13 +30,13 @@ describe("server runtime TypeScript boundary", () => {
     });
 
     expect(config.kind).toBe("dev-source-node");
-    expect(config.serverEnv.GSAP_SERVER_ENTRY.endsWith(path.join("server", "index.js"))).toBe(true);
+    expect(config.serverEnv.CODIA_SERVER_ENTRY.endsWith(path.join("server", "index.js"))).toBe(true);
   });
 
   it("uses TypeScript source directly when the launch Node supports it", () => {
     const root = makeProject(["server/index.ts", "server/bootstrap.ts"]);
     const config = resolveServerLaunchConfig({
-      env: { GSAP_LAUNCH_NODE: process.execPath, GSAP_LAUNCH_NODE_VERSION: "24.14.0" },
+      env: { CODIA_LAUNCH_NODE: process.execPath, CODIA_LAUNCH_NODE_VERSION: "24.14.0" },
       projectRoot: root,
       resourcesPath: "",
       platform: process.platform,
@@ -46,13 +46,13 @@ describe("server runtime TypeScript boundary", () => {
 
     expect(config.kind).toBe("dev-source-node");
     expect(config.serverArgs).toEqual([path.join(root, "server", "bootstrap.ts")]);
-    expect(config.serverEnv.GSAP_SERVER_ENTRY.endsWith(path.join("server", "index.ts"))).toBe(true);
+    expect(config.serverEnv.CODIA_SERVER_ENTRY.endsWith(path.join("server", "index.ts"))).toBe(true);
   });
 
   it("does not choose raw TypeScript source before Node 24", () => {
     const root = makeProject(["server/index.ts", "server/bootstrap.ts"]);
     const config = resolveServerLaunchConfig({
-      env: { GSAP_LAUNCH_NODE: process.execPath, GSAP_LAUNCH_NODE_VERSION: "22.16.0" },
+      env: { CODIA_LAUNCH_NODE: process.execPath, CODIA_LAUNCH_NODE_VERSION: "22.16.0" },
       projectRoot: root,
       resourcesPath: "",
       platform: process.platform,
@@ -61,7 +61,7 @@ describe("server runtime TypeScript boundary", () => {
     });
 
     expect(config.kind).not.toBe("dev-source-node");
-    expect(config.serverEnv.GSAP_SERVER_ENTRY.endsWith(path.join("server", "index.ts"))).toBe(false);
+    expect(config.serverEnv.CODIA_SERVER_ENTRY.endsWith(path.join("server", "index.ts"))).toBe(false);
   });
 
   it("rejects raw TypeScript bootstrap entries before Node 24", async () => {

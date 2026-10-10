@@ -18,12 +18,12 @@ describe("message sanitizer", () => {
     expect(modelSupportsVideo({ input: ["text", "image"] })).toBe(false);
   });
 
-  it("detects video-capable models from G-SAP compat metadata", () => {
-    expect(modelSupportsVideo({ input: ["text", "image"], compat: { gsapVideoInput: true } })).toBe(true);
+  it("detects video-capable models from Codia compat metadata", () => {
+    expect(modelSupportsVideo({ input: ["text", "image"], compat: { codiaVideoInput: true } })).toBe(true);
   });
 
-  it("keeps legacy Hana video compat metadata readable", () => {
-    expect(modelSupportsVideo({ input: ["text", "image"], compat: { hanaVideoInput: true } })).toBe(true);
+  it("keeps legacy Codia video compat metadata readable", () => {
+    expect(modelSupportsVideo({ input: ["text", "image"], compat: { codiaVideoInput: true } })).toBe(true);
   });
 
   it("detects image-capable models from image and vision flags", () => {
@@ -74,7 +74,6 @@ describe("message sanitizer", () => {
     expect(result.messages[0].content).toEqual([
       { type: "text", text: "see" },
       { type: "text", text: "[image omitted: current model does not support image input]" },
-      { type: "text", text: "[image omitted: current model does not support image input]" },
     ]);
   });
 
@@ -121,9 +120,9 @@ describe("message sanitizer", () => {
     ]);
   });
 
-  it("keeps video blocks for G-SAP video-compatible models", () => {
+  it("keeps video blocks for Codia video-compatible models", () => {
     const input = [{ role: "user", content: [{ type: "video", data: "BASE64", mimeType: "video/mp4" }] }];
-    const result = sanitizeMessagesForModel(input, { input: ["text"], compat: { gsapVideoInput: true } });
+    const result = sanitizeMessagesForModel(input, { input: ["text"], compat: { codiaVideoInput: true } });
     expect(result).toEqual({ messages: input, stripped: 0 });
   });
 

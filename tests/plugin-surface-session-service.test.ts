@@ -9,14 +9,14 @@ import {
 } from "../core/plugin-surface-session-service.ts";
 
 function withTempHome() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-plugin-surface-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-surface-"));
 }
 
 describe("plugin surface session service", () => {
   it("issues and verifies a plugin-bound surface session", () => {
-    const gsapHome = withTempHome();
+    const codiaHome = withTempHome();
     const issued = issuePluginSurfaceSession({
-      gsapHome,
+      codiaHome,
       pluginId: "demo-plugin",
       principalId: "principal_local_owner",
       now: "2026-06-11T00:00:00.000Z",
@@ -27,7 +27,7 @@ describe("plugin surface session service", () => {
     expect(issued.pluginId).toBe("demo-plugin");
 
     const verified = verifyPluginSurfaceSession({
-      gsapHome,
+      codiaHome,
       pluginId: "demo-plugin",
       token: issued.token,
       now: "2026-06-11T00:00:30.000Z",
@@ -42,24 +42,24 @@ describe("plugin surface session service", () => {
   });
 
   it("rejects sessions for another plugin", () => {
-    const gsapHome = withTempHome();
+    const codiaHome = withTempHome();
     const issued = issuePluginSurfaceSession({
-      gsapHome,
+      codiaHome,
       pluginId: "demo-plugin",
       principalId: "principal_local_owner",
     });
 
     expect(() => verifyPluginSurfaceSession({
-      gsapHome,
+      codiaHome,
       pluginId: "other-plugin",
       token: issued.token,
     })).toThrow(PluginSurfaceSessionError);
   });
 
   it("rejects expired sessions with a stable code", () => {
-    const gsapHome = withTempHome();
+    const codiaHome = withTempHome();
     const issued = issuePluginSurfaceSession({
-      gsapHome,
+      codiaHome,
       pluginId: "demo-plugin",
       principalId: "principal_local_owner",
       now: "2026-06-11T00:00:00.000Z",
@@ -68,7 +68,7 @@ describe("plugin surface session service", () => {
 
     try {
       verifyPluginSurfaceSession({
-        gsapHome,
+        codiaHome,
         pluginId: "demo-plugin",
         token: issued.token,
         now: "2026-06-11T00:00:01.000Z",

@@ -6,12 +6,12 @@
 # 身份信息
 agent:
   name: 小豆蔻                           # 你的助手叫什么
-  yuan: gsap                             # 源模板：gsap / butter / ming / kong
+  yuan: codia                             # 源模板：codia / butter / ming / kong
 user:
   name: ""                               # 你的名字
 
 # API 配置（主通道）
-# 凭证从全局 ~/.gsap/added-models.yaml 或当前 agent 的 providers 块读取
+# 凭证从全局 ~/.codia/added-models.yaml 或当前 agent 的 providers 块读取
 api:
   provider: ""                     # dashscope / volcengine / openai / ...
 

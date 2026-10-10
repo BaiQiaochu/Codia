@@ -17,6 +17,7 @@ export interface ThinkingModelLike {
 }
 
 const OPENAI_XHIGH_MODEL_MARKERS = [
+  'gpt-6',
   'gpt-5',
   'gpt-5.2',
   'gpt-5.3',
@@ -25,6 +26,11 @@ const OPENAI_XHIGH_MODEL_MARKERS = [
 ];
 
 const ANTHROPIC_MAX_EFFORT_MODEL_MARKERS = [
+  'fable-5',
+  'opus-5-5',
+  'opus-5.5',
+  'sonnet-5-5',
+  'sonnet-5.5',
   'opus-4-6',
   'opus-4.6',
   'opus-4-7',

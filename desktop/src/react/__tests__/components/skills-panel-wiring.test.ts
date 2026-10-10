@@ -8,18 +8,19 @@ function read(relPath: string) {
   return fs.readFileSync(path.join(ROOT, relPath), 'utf8');
 }
 
-describe('Skills panel wiring', () => {
-  it('opens the Skills panel from the composer sparkle button', () => {
+describe('Composer add menu wiring', () => {
+  it('opens skills inside the composer add menu', () => {
     const app = read('App.tsx');
-    const types = read('types.ts');
+    const input = read('components/InputArea.tsx');
     const buttons = read('components/input/InputUtilityButtons.tsx');
+    const addMenu = read('components/input/ComposerAddMenu.tsx');
 
-    expect(types).toContain("'skills'");
     expect(app).toContain('SkillsPanel');
-    expect(app).not.toContain("togglePanel('skills')");
-    expect(buttons).toContain("setActivePanel('skills')");
-    expect(buttons).toContain("'skills.panel.title'");
-    expect(buttons).toContain('<Sparkle');
-    expect(app).toContain("activePanel === 'skills'");
+    expect(buttons).toContain('<StarFour');
+    expect(buttons).toContain("t('input.addMenu')");
+    expect(input).toContain('<ComposerAddMenu');
+    expect(input).toContain('onSelectSkill={handleAddSkill}');
+    expect(addMenu).toContain("openView('skills')");
+    expect(buttons).not.toContain("setActivePanel('skills')");
   });
 });

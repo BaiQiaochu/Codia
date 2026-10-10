@@ -13,10 +13,10 @@ describe("file tool", () => {
   });
 
   function makeTree() {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-file-tool-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-file-tool-"));
     const workspace = path.join(tmpDir, "workspace");
     const source = path.join(tmpDir, "plugin-data", "generated", "cover.png");
-    const sessionPath = path.join(tmpDir, "agents", "gsap", "sessions", "main.jsonl");
+    const sessionPath = path.join(tmpDir, "agents", "codia", "sessions", "main.jsonl");
     fs.mkdirSync(workspace, { recursive: true });
     fs.mkdirSync(path.dirname(source), { recursive: true });
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });

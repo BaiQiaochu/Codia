@@ -91,7 +91,6 @@ export class SlashCommandDispatcher {
 
   _resolveRole(ctx) {
  //
- //
  // - 其他（channel-router / cron / 未来-source）→ 默认 anyone
  //
     if (ADMIN_SOURCES.has(ctx.source)) return "admin";

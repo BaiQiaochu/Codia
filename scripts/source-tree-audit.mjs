@@ -55,7 +55,7 @@ const IGNORED_PREFIXES = [
   "dist-repack/",
   "docs/",
   "node_modules/",
-  "openhanako-",
+  "codia-",
   "reviews/",
   "tmp/",
   "vendor/",

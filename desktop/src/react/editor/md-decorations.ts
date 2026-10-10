@@ -11,13 +11,14 @@ import { handleBlockquote } from './widgets/blockquote';
 import { handleCodeBlock } from './widgets/code-block';
 import { addImageDecoration, addStandardMarkdownImageDecoration, handleImage } from './widgets/image';
 import { handleLink } from './widgets/link';
+import type { DecoRange } from './widgets/types';
 import {
   parseObsidianImageEmbed,
   resolveMarkdownImageSrc,
   type MarkdownImageContext,
 } from '../utils/markdown';
 
-export type DecoRange = { from: number; to: number; deco: Decoration };
+export type { DecoRange } from './widgets/types';
 export type LivePreviewRange =
   | { kind: 'hide'; from: number; to: number }
   | { kind: 'mark'; from: number; to: number; text: string; color?: string }

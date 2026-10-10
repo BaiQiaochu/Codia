@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { SessionProjectCatalogStore } from "../core/session-project-catalog-store.js";
 
 function makeStore() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-session-projects-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-projects-"));
   const userDir = path.join(root, "user");
   return {
     root,
@@ -153,11 +153,11 @@ describe("SessionProjectCatalogStore", () => {
 
   it("materializes cwd-derived project metadata when an auto project is renamed or reordered", () => {
     const { store } = makeStore();
-    const project = store.updateProject("cwd:%2Ftmp%2Fproject-gsap", { name: "project-gsap" });
+    const project = store.updateProject("cwd:%2Ftmp%2Fproject-codia", { name: "project-codia" });
 
     expect(project).toMatchObject({
-      id: "cwd:%2Ftmp%2Fproject-gsap",
-      name: "project-gsap",
+      id: "cwd:%2Ftmp%2Fproject-codia",
+      name: "project-codia",
       folderId: null,
       order: 0,
     });

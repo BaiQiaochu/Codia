@@ -35,8 +35,8 @@ try {
   let context;
   if (desktop) {
     const desktopHome = createIsolatedE2EHome({ mockBaseUrl: runtime.mock.baseUrl });
-    fs.copyFileSync(path.join(runtime.home, 'agents/gsap/config.yaml'), path.join(desktopHome, 'agents/gsap/config.yaml'));
-    const env = { ...process.env, GSAP_HOME: desktopHome, GSAP_DEV_HOME: desktopHome, GSAP_E2E: '1', GSAP_PORT: '0', GSAP_LAUNCH_NODE: process.execPath, GSAP_DESKTOP_SERVER_MODE: 'source', VITE_DEV_URL: runtime.baseUrl };
+    fs.copyFileSync(path.join(runtime.home, 'agents/codia/config.yaml'), path.join(desktopHome, 'agents/codia/config.yaml'));
+    const env = { ...process.env, CODIA_HOME: desktopHome, CODIA_DEV_HOME: desktopHome, CODIA_E2E: '1', CODIA_PORT: '0', CODIA_LAUNCH_NODE: process.execPath, CODIA_DESKTOP_SERVER_MODE: 'source', VITE_DEV_URL: runtime.baseUrl };
     delete env.ELECTRON_RUN_AS_NODE;
     electron = await _electron.launch({ executablePath: createRequire(import.meta.url)('electron'), args: ['.', '--dev'], cwd: root, env, timeout: 60000 });
     for (const stream of [electron.process().stdout, electron.process().stderr]) stream?.on('data', data => { desktopLogs += String(data); });
@@ -78,9 +78,9 @@ try {
     });
   });
   await page.evaluate(async () => {
-    const { gsapFetch } = await import('/react/hooks/use-gsap-fetch.ts');
+    const { codiaFetch } = await import('/react/hooks/use-codia-fetch.ts');
     const { loadAgents } = await import('/react/stores/agent-actions.ts');
-    const response = await gsapFetch('/api/agents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 'review-helper', name: '审阅伙伴', yuan: 'gsap' }) });
+    const response = await codiaFetch('/api/agents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 'review-helper', name: '审阅伙伴', yuan: 'codia' }) });
     if (!response.ok) throw new Error(await response.text());
     await loadAgents();
   });
@@ -91,7 +91,7 @@ try {
       const { switchTab } = await import('/react/components/channels/tab-router.ts');
       const { createNewSession } = await import('/react/stores/session-actions.ts');
       const { useStore } = await import('/react/stores/index.ts');
-      switchTab('chat'); useStore.setState({ selectedAgentId: 'gsap' }); await createNewSession();
+      switchTab('chat'); useStore.setState({ selectedAgentId: 'codia' }); await createNewSession();
     });
     await page.locator('[aria-label="Codia 小豆蔻"]').waitFor();
   };
@@ -106,7 +106,7 @@ try {
       await menu.waitFor();
       assert.equal(await menu.getByRole('tab', { name: '助手', exact: true }).getAttribute('aria-selected'), 'true');
       await menu.getByRole('option', { name: /审阅伙伴/ }).click();
-      assert.equal(await page.evaluate(async () => ((s) => s.selectedAgentId || s.currentAgentId)((await import('/react/stores/index.ts')).useStore.getState())), 'gsap');
+      assert.equal(await page.evaluate(async () => ((s) => s.selectedAgentId || s.currentAgentId)((await import('/react/stores/index.ts')).useStore.getState())), 'codia');
     }
     await editor().click(); await page.keyboard.press('End');
     await page.keyboard.insertText(`SMOKE_${id}：${id === 'workflow' ? '收集进展后生成周报' : '请完成当前任务'}`);
@@ -125,9 +125,9 @@ try {
       if (id === 'agents') await page.getByText('审阅伙伴 · 协作完成', { exact: true }).waitFor();
       const history = await page.evaluate(async () => {
         const { useStore } = await import('/react/stores/index.ts');
-        const { gsapFetch } = await import('/react/hooks/use-gsap-fetch.ts');
+        const { codiaFetch } = await import('/react/hooks/use-codia-fetch.ts');
         const path = useStore.getState().currentSessionPath;
-        return (await gsapFetch(`/api/sessions/messages?path=${encodeURIComponent(path)}`)).json();
+        return (await codiaFetch(`/api/sessions/messages?path=${encodeURIComponent(path)}`)).json();
       });
       const users = history.messages.filter(m => m.role === 'user');
       assert.equal(users.length, 1, 'one user bubble for a review round');

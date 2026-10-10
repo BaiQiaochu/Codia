@@ -5,14 +5,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["desktop/src/react/*"],
-      "@g-sap/plugin-components": ["packages/plugin-components/src/index.ts"],
-      "@g-sap/plugin-protocol": ["packages/plugin-protocol/src/index.ts"],
-      "@g-sap/plugin-runtime": ["packages/plugin-runtime/src/index.ts"],
-      "@g-sap/plugin-sdk": ["packages/plugin-sdk/src/index.ts"],
-      "@hana/plugin-components": ["packages/plugin-components/src/index.ts"],
-      "@hana/plugin-protocol": ["packages/plugin-protocol/src/index.ts"],
-      "@hana/plugin-runtime": ["packages/plugin-runtime/src/index.ts"],
-      "@hana/plugin-sdk": ["packages/plugin-sdk/src/index.ts"]
+      "@codia/plugin-components": ["packages/plugin-components/src/index.ts"],
+      "@codia/plugin-protocol": ["packages/plugin-protocol/src/index.ts"],
+      "@codia/plugin-runtime": ["packages/plugin-runtime/src/index.ts"],
+      "@codia/plugin-sdk": ["packages/plugin-sdk/src/index.ts"]
     }
   },
   "include": [
@@ -24,10 +20,10 @@
   "exclude": [
     "node_modules",
     "desktop/dist-renderer",
-    "openhanako-main1.6",
-    "openhanako-main1.6/**",
-    "openhanako-*",
-    "openhanako-*/**",
+    "codia-main1.6",
+    "codia-main1.6/**",
+    "codia-*",
+    "codia-*/**",
     "desktop/src/**/__tests__/**",
     "desktop/src/**/*.test.ts",
     "desktop/src/**/*.test.tsx"

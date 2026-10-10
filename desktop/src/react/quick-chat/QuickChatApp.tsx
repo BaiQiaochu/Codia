@@ -116,7 +116,7 @@ function acceptQuickChatServerMessage(msg: QuickChatServerMessage, sessionPath: 
 }
 
 function quickChatDesktopApi() {
-  return window.gsap || window.platform || window.hana || null;
+  return window.codia || window.platform || window.codia || null;
 }
 
 export function QuickChatApp() {
@@ -314,7 +314,7 @@ export function QuickChatApp() {
         if (!preferred) {
           useStore.setState({
             agentName: healthData.agent || '助手',
-            agentYuan: 'gsap',
+            agentYuan: 'codia',
           });
         }
         applyRuntimePermissionMode(resolveQuickChatPermissionMode(permissionData));
@@ -660,7 +660,7 @@ export function QuickChatApp() {
   return (
     <div
       className={classNames(styles.host, expanded && styles.expanded)}
-      data-byoung-chat-color-scope=""
+      data-codia-chat-color-scope=""
       onDrop={handleDrop}
       onDragOver={(event) => event.preventDefault()}
     >

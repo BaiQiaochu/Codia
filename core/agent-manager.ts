@@ -47,7 +47,7 @@ function writeStartupError(startupLog, message) {
 
 function normalizeYuanType(yuan) {
   const raw = String(yuan || "").trim();
-  if (!raw) return "gsap";
+  if (!raw) return "codia";
   return raw;
 }
 
@@ -189,7 +189,7 @@ export class AgentManager {
       id: agentId,
       name,
       agentName: name,
-      yuan: tombstone.yuan || cfg.agent?.yuan || "gsap",
+      yuan: tombstone.yuan || cfg.agent?.yuan || "codia",
       deletedAt: tombstone.deletedAt || null,
     };
   }
@@ -556,7 +556,7 @@ export class AgentManager {
     if (!configSeed || typeof configSeed !== "object" || Array.isArray(configSeed)) {
       throw new Error("Invalid config.example.yaml");
     }
-    const yuanType = assertKnownYuan(this._d.productDir, yuan || "gsap");
+    const yuanType = assertKnownYuan(this._d.productDir, yuan || "codia");
     const config = configSeed;
     config.agent = { ...(config.agent || {}), name: name.trim(), yuan: yuanType };
     config.desk = {
@@ -828,9 +828,9 @@ export class AgentManager {
     }
 
     await fsp.rm(agentDir, { recursive: true, force: true });
-    if (this._d.gsapHome) {
+    if (this._d.codiaHome) {
       try {
-        detachAgentFromBundles({ gsapHome: this._d.gsapHome }, agentId);
+        detachAgentFromBundles({ codiaHome: this._d.codiaHome }, agentId);
       } catch (err) {
         log.error(`Failed to detach agent from skill bundles (${agentId}): ${err.message}`);
       }

@@ -3,9 +3,9 @@ import { buildSkillInvocationNote, resolveSelectedSkillRecords } from "../server
 
 describe("chat skill invocation note", () => {
   it("turns selected skill badges into explicit SKILL.md instructions", () => {
-    const note = buildSkillInvocationNote(["user-guide", " user-guide ", "gsap-plugin-creator", ""], [
+    const note = buildSkillInvocationNote(["user-guide", " user-guide ", "codia-plugin-creator", ""], [
       { name: "user-guide", filePath: "C:\\skills\\user-guide\\SKILL.md", description: "User guide", source: "user" },
-      { name: "gsap-plugin-creator", filePath: "C:\\skills\\gsap-plugin-creator\\SKILL.md", description: "", source: "user" },
+      { name: "codia-plugin-creator", filePath: "C:\\skills\\codia-plugin-creator\\SKILL.md", description: "", source: "user" },
     ]);
 
     expect(note).toContain("<available_skills>");
@@ -34,7 +34,7 @@ describe("chat skill invocation note", () => {
           {
             name: "wall-of-sighs",
             description: "Process emotional overload before action.",
-            baseDir: "C:\\Users\\ghost\\.gsap\\skills\\wall-of-sighs",
+            baseDir: "C:\\Users\\ghost\\.codia\\skills\\wall-of-sighs",
             source: "user",
             enabled: true,
           },
@@ -46,7 +46,7 @@ describe("chat skill invocation note", () => {
 
     expect(records[0]).toMatchObject({
       name: "wall-of-sighs",
-      filePath: "C:\\Users\\ghost\\.gsap\\skills\\wall-of-sighs\\SKILL.md",
+      filePath: "C:\\Users\\ghost\\.codia\\skills\\wall-of-sighs\\SKILL.md",
       description: "Process emotional overload before action.",
     });
     expect(records[1]).toMatchObject({ name: "missing", filePath: "" });

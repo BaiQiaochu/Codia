@@ -5,10 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SessionConfirmationBlock } from '../../stores/chat-types';
 import { SessionConfirmationPrompt } from '../../components/input/SessionConfirmationPrompt';
 
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 function makeToolApprovalBlock(): SessionConfirmationBlock {
@@ -18,7 +18,7 @@ function makeToolApprovalBlock(): SessionConfirmationBlock {
     kind: 'tool_action_approval',
     surface: 'input',
     status: 'pending',
-    title: '允许 G-SAP 执行这次操作',
+    title: '允许 Codia 执行这次操作',
     body: 'This action may change local or external state.',
     subject: {
       label: 'write',
@@ -34,7 +34,7 @@ function makeToolApprovalBlock(): SessionConfirmationBlock {
 
 describe('SessionConfirmationPrompt', () => {
   beforeEach(() => {
-    gsapFetchMock.mockImplementation(async (url: string) => ({
+    codiaFetchMock.mockImplementation(async (url: string) => ({
       ok: true,
       json: async () => (url.includes('/api/session-permission-mode') ? { ok: true, mode: 'operate' } : { ok: true }),
     }));
@@ -59,7 +59,7 @@ describe('SessionConfirmationPrompt', () => {
   it('renders tool approval as a split consent button with a no-ask option', async () => {
     render(<SessionConfirmationPrompt block={makeToolApprovalBlock()} />);
 
-    expect(screen.getByText('允许 G-SAP 执行这次操作')).toBeTruthy();
+    expect(screen.getByText('允许 Codia 执行这次操作')).toBeTruthy();
     expect(screen.getByText('write')).toBeTruthy();
     expect(screen.getByText('path: E:\\workspace\\SKILL.md')).toBeTruthy();
 
@@ -67,10 +67,10 @@ describe('SessionConfirmationPrompt', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: '本对话不再询问' }));
 
     await waitFor(() => {
-      expect(gsapFetchMock).toHaveBeenCalledWith('/api/session-permission-mode', expect.objectContaining({
+      expect(codiaFetchMock).toHaveBeenCalledWith('/api/session-permission-mode', expect.objectContaining({
         method: 'POST',
       }));
-      expect(gsapFetchMock).toHaveBeenCalledWith('/api/confirm/confirm-tool-1', expect.objectContaining({
+      expect(codiaFetchMock).toHaveBeenCalledWith('/api/confirm/confirm-tool-1', expect.objectContaining({
         method: 'POST',
       }));
     });

@@ -17,7 +17,7 @@ afterEach(() => {
 });
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-openai-media-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-openai-media-"));
   tempDirs.push(dir);
   return dir;
 }

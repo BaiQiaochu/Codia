@@ -363,7 +363,7 @@ export class PluginManager {
       return;
     }
 
-    // All G-SAP plugins: declarative contributions
+    // All Codia plugins: declarative contributions
     await this._loadTools(entry);
     await this._loadSkillPaths(entry);
     await this._loadCommands(entry);
@@ -462,7 +462,7 @@ export class PluginManager {
         const { ctx: runtimeCtx } = normalizeToolRuntimeContext(signalOrRuntimeCtx, piCtx);
         const sessionPath = runtimeCtx?.sessionPath || getToolSessionPath(runtimeCtx) || null;
         const mergedCtx = sessionPath ? { ...runtimeCtx, sessionPath } : runtimeCtx;
-        const raw = toolDef.invocationStyle === "pi_tool" || toolDef.metadata?.hanaInvocationStyle === "pi_tool"
+        const raw = toolDef.invocationStyle === "pi_tool" || toolDef.metadata?.codiaInvocationStyle === "pi_tool"
           ? origExecute.length >= 5
             ? await origExecute(toolCallId, params, signalOrRuntimeCtx, onUpdate, mergedCtx)
             : await origExecute(toolCallId, params, mergedCtx)
@@ -594,8 +594,8 @@ export class PluginManager {
       c.set("pluginCtx", ctx);
       const request = c.env?.pluginRouteRequest || null;
       const agentId = request?.agentId
-        || c.req.header("X-GSAP-Agent-Id")
-        || c.req.header("X-gsap-Agent-Id")
+        || c.req.header("X-CODIA-Agent-Id")
+        || c.req.header("X-codia-Agent-Id")
         || null;
       c.set("agentId", agentId);
       c.set("pluginRequestContext", createPluginRouteRequestContext({
@@ -629,8 +629,8 @@ export class PluginManager {
               c.set("pluginCtx", ctx);
               const request = c.env?.pluginRouteRequest || null;
               const agentId = request?.agentId
-                || c.req.header("X-GSAP-Agent-Id")
-                || c.req.header("X-gsap-Agent-Id")
+                || c.req.header("X-CODIA-Agent-Id")
+                || c.req.header("X-codia-Agent-Id")
                 || null;
               c.set("agentId", agentId);
               c.set("pluginRequestContext", createPluginRouteRequestContext({

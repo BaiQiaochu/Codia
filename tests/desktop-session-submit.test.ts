@@ -14,8 +14,8 @@ describe("submitDesktopSessionMessage", () => {
   });
 
   function makeSessionPath() {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-long-context-"));
-    const sessionPath = path.join(tmpDir, "agents", "gsap", "sessions", "main.jsonl");
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-long-context-"));
+    const sessionPath = path.join(tmpDir, "agents", "codia", "sessions", "main.jsonl");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(sessionPath, "{}\n");
     return sessionPath;
@@ -40,15 +40,12 @@ describe("submitDesktopSessionMessage", () => {
       sessionPath: "/tmp/session.jsonl",
       text: "first",
     });
-    await Promise.resolve();
+    await vi.waitFor(() => expect(engine.promptSession).toHaveBeenCalledTimes(1));
 
     const second = submitDesktopSessionMessage(engine, {
       sessionPath: "/tmp/session.jsonl",
       text: "second",
     });
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
 
     expect(engine.promptSession).toHaveBeenCalledTimes(1);
     releaseFirstPrompt();
@@ -201,7 +198,7 @@ describe("submitDesktopSessionMessage", () => {
     const promptSession = vi.fn(async () => {});
     const session = {
       subscribe: vi.fn(() => vi.fn()),
-      sessionManager: { getCwd: vi.fn(() => "E:/G-sap") },
+      sessionManager: { getCwd: vi.fn(() => "E:/Codia") },
     };
     const workspaceTool = {
       id: "research",
@@ -319,7 +316,7 @@ describe("submitDesktopSessionMessage", () => {
       createdAt: 1,
     }));
     const engine = {
-      gsapHome: tmpDir,
+      codiaHome: tmpDir,
       ensureSessionLoaded: vi.fn(async () => session),
       promptSession,
       isSessionStreaming: vi.fn(() => false),

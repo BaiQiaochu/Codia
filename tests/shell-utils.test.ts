@@ -64,9 +64,9 @@ describe("shell-utils", () => {
     })).toBe("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
   });
 
-  it("keeps GSAP_POWERSHELL above automatic pwsh detection", () => {
+  it("keeps CODIA_POWERSHELL above automatic pwsh detection", () => {
     expect(resolveWin32DefaultPowerShellExecutable({
-      GSAP_POWERSHELL: "E:\\Tools\\pwsh-custom.exe",
+      CODIA_POWERSHELL: "E:\\Tools\\pwsh-custom.exe",
       SystemRoot: "C:\\Windows",
     }, {
       spawn: () => { throw new Error("automatic detection should not run"); },

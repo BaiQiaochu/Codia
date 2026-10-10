@@ -12,9 +12,9 @@ describe("workflow sandbox", () => {
 
   it("支持 export default async function 形态：解构注入的 host API，函数返回值即结果", async () => {
     const host = { greet: (n) => `hi ${n}` };
-    const script = META + `export default async function({ greet }) { return await greet('hana'); }`;
+    const script = META + `export default async function({ greet }) { return await greet('codia'); }`;
     const { result } = await runWorkflowScript(script, host);
-    expect(result).toBe("hi hana");
+    expect(result).toBe("hi codia");
   });
 
   it("支持 export default 箭头函数形态", async () => {
@@ -34,8 +34,8 @@ describe("workflow sandbox", () => {
 
   it("脚本能 await 注入的 host 函数", async () => {
     const host = { greet: async (n) => `hi ${n}` };
-    const { result } = await runWorkflowScript(META + `return await greet('hana')`, host);
-    expect(result).toBe("hi hana");
+    const { result } = await runWorkflowScript(META + `return await greet('codia')`, host);
+    expect(result).toBe("hi codia");
   });
 
   it("脚本拿不到 require / process（沙箱隔离）", async () => {

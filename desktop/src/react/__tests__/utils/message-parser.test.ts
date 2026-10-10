@@ -29,7 +29,7 @@ describe('parseMoodFromContent', () => {
     const input = '<mood>feeling good</mood>\n\nSome text here.';
     const result = parseMoodFromContent(input);
     expect(result.mood).toBe('feeling good');
-    expect(result.yuan).toBe('gsap');
+    expect(result.yuan).toBe('codia');
     expect(result.text).toBe('Some text here.');
   });
 
@@ -56,11 +56,11 @@ describe('parseMoodFromContent', () => {
     expect(result.text).toBe('Visible.');
   });
 
-  it('parses <MOD> as a MOOD-compatible gsap block', () => {
+  it('parses <MOD> as a MOOD-compatible codia block', () => {
     const input = '<MOD>hidden mod</MOD>\nVisible.';
     const result = parseMoodFromContent(input);
     expect(result.mood).toBe('hidden mod');
-    expect(result.yuan).toBe('gsap');
+    expect(result.yuan).toBe('codia');
     expect(result.text).toBe('Visible.');
   });
 
@@ -68,7 +68,7 @@ describe('parseMoodFromContent', () => {
     const input = '<MOOD>hidden mood</MOOD>\nVisible.';
     const result = parseMoodFromContent(input);
     expect(result.mood).toBe('hidden mood');
-    expect(result.yuan).toBe('gsap');
+    expect(result.yuan).toBe('codia');
     expect(result.text).toBe('Visible.');
   });
 
@@ -158,12 +158,12 @@ describe('parseUserAttachments', () => {
   });
 
   it('解析内部 attached_image 标记为图片引用，并从正文隐藏', () => {
-    const input = '[attached_image: /Users/test/.hanako/attachments/upload-abc.png]\n(看图)';
+    const input = '[attached_image: /Users/test/.codia/attachments/upload-abc.png]\n(看图)';
     const result = parseUserAttachments(input);
 
     expect(result.text).toBe('(看图)');
     expect(result.attachedImages).toEqual([{
-      path: '/Users/test/.hanako/attachments/upload-abc.png',
+      path: '/Users/test/.codia/attachments/upload-abc.png',
       name: 'upload-abc.png',
     }]);
   });
@@ -178,12 +178,12 @@ describe('parseUserAttachments', () => {
   });
 
   it('parses internal attached_video markers and hides them from text', () => {
-    const input = '[attached_video: /Users/test/.gsap/attachments/clip.mp4]\nwatch this';
+    const input = '[attached_video: /Users/test/.codia/attachments/clip.mp4]\nwatch this';
     const result = parseUserAttachments(input);
 
     expect(result.text).toBe('watch this');
     expect(result.attachedVideos).toEqual([{
-      path: '/Users/test/.gsap/attachments/clip.mp4',
+      path: '/Users/test/.codia/attachments/clip.mp4',
       name: 'clip.mp4',
     }]);
   });
@@ -280,8 +280,8 @@ describe('extractToolDetail', () => {
 });
 
 describe('moodLabel', () => {
-  it('gsap 返回 MOOD', () => {
-    expect(moodLabel('gsap')).toContain('MOOD');
+  it('codia 返回 MOOD', () => {
+    expect(moodLabel('codia')).toContain('MOOD');
   });
 
   it('butter 返回 PULSE', () => {

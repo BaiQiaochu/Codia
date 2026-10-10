@@ -52,8 +52,8 @@ type GrantInput = Partial<GrantRecord> & {
   now?: string;
 };
 
-export function ensureGrantRegistry(gsapHome: string, { now = new Date().toISOString() }: { now?: string } = {}) {
-  const filePath = grantRegistryPath(gsapHome);
+export function ensureGrantRegistry(codiaHome: string, { now = new Date().toISOString() }: { now?: string } = {}) {
+  const filePath = grantRegistryPath(codiaHome);
   const existing = readJsonIfPresent(filePath, GRANTS_FILE);
   if (existing) {
     validateGrantRegistry(existing, GRANTS_FILE);
@@ -64,14 +64,14 @@ export function ensureGrantRegistry(gsapHome: string, { now = new Date().toISOSt
   return registry;
 }
 
-export function loadGrantRegistry(gsapHome: string) {
-  ensureGrantRegistry(gsapHome);
-  return validateGrantRegistry(readJsonRequired(grantRegistryPath(gsapHome), GRANTS_FILE), GRANTS_FILE);
+export function loadGrantRegistry(codiaHome: string) {
+  ensureGrantRegistry(codiaHome);
+  return validateGrantRegistry(readJsonRequired(grantRegistryPath(codiaHome), GRANTS_FILE), GRANTS_FILE);
 }
 
-export function createGrant(gsapHome: string, input: GrantInput = {}) {
+export function createGrant(codiaHome: string, input: GrantInput = {}) {
   const now = input.now || new Date().toISOString();
-  const registry = loadGrantRegistry(gsapHome);
+  const registry = loadGrantRegistry(codiaHome);
   const grant = normalizeGrantRecord({
     schemaVersion: SCHEMA_VERSION,
     grantId: input.grantId || `grant_${crypto.randomUUID()}`,
@@ -86,13 +86,13 @@ export function createGrant(gsapHome: string, input: GrantInput = {}) {
   }, "grant");
   registry.grants.push(grant);
   registry.updatedAt = now;
-  persistGrantRegistry(gsapHome, registry);
+  persistGrantRegistry(codiaHome, registry);
   return clonePlain(grant);
 }
 
-export function findActiveGrantsForPrincipal(gsapHome: string, principalId: string, { now = new Date().toISOString() }: { now?: string } = {}) {
+export function findActiveGrantsForPrincipal(codiaHome: string, principalId: string, { now = new Date().toISOString() }: { now?: string } = {}) {
   if (!isNonEmptyString(principalId)) return [];
-  const registry = loadGrantRegistry(gsapHome);
+  const registry = loadGrantRegistry(codiaHome);
   let changed = false;
   const active = [];
   for (const grant of registry.grants) {
@@ -105,31 +105,31 @@ export function findActiveGrantsForPrincipal(gsapHome: string, principalId: stri
       active.push(clonePlain(grant));
     }
   }
-  if (changed) persistGrantRegistry(gsapHome, registry);
+  if (changed) persistGrantRegistry(codiaHome, registry);
   return active;
 }
 
-export function revokeGrant(gsapHome: string, grantId: string, { now = new Date().toISOString() }: { now?: string } = {}) {
+export function revokeGrant(codiaHome: string, grantId: string, { now = new Date().toISOString() }: { now?: string } = {}) {
   assertNonEmptyString(grantId, "grantId");
-  const registry = loadGrantRegistry(gsapHome);
+  const registry = loadGrantRegistry(codiaHome);
   const grant = registry.grants.find((item) => item.grantId === grantId);
   if (!grant) throw new Error(`grant not found: ${grantId}`);
   grant.status = "revoked";
   grant.revokedAt = now;
   grant.updatedAt = now;
   registry.updatedAt = now;
-  persistGrantRegistry(gsapHome, registry);
+  persistGrantRegistry(codiaHome, registry);
   return clonePlain(grant);
 }
 
-export function persistGrantRegistry(gsapHome: string, registry: GrantRegistry) {
+export function persistGrantRegistry(codiaHome: string, registry: GrantRegistry) {
   validateGrantRegistry(registry, GRANTS_FILE);
-  writeJsonAtomic(grantRegistryPath(gsapHome), registry);
+  writeJsonAtomic(grantRegistryPath(codiaHome), registry);
 }
 
-export function grantRegistryPath(gsapHome: string) {
-  if (!isNonEmptyString(gsapHome)) throw new Error("gsapHome required");
-  return path.join(gsapHome, SECURITY_DIR, GRANTS_FILE);
+export function grantRegistryPath(codiaHome: string) {
+  if (!isNonEmptyString(codiaHome)) throw new Error("codiaHome required");
+  return path.join(codiaHome, SECURITY_DIR, GRANTS_FILE);
 }
 
 function createEmptyGrantRegistry(now: string): GrantRegistry {

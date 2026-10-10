@@ -12,7 +12,7 @@ vi.mock("../lib/debug-log.js", () => ({
 }));
 
 function mktemp() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-router-trigger-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-router-trigger-"));
 }
 
 describe("ChannelRouter trigger lifecycle", () => {

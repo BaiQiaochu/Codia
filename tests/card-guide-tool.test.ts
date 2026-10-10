@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createCardGuideTool } from "../lib/tools/card-guide-tool.ts";
 
-describe("hana_card_guide compatibility tool", () => {
-  it("keeps the legacy SDK tool name while returning G-SAP card guidance", async () => {
+describe("codia_card_guide compatibility tool", () => {
+  it("keeps the legacy SDK tool name while returning Codia card guidance", async () => {
     const tool = createCardGuideTool();
 
-    expect(tool.name).toBe("hana_card_guide");
-    expect(tool.label).toContain("G-SAP");
+    expect(tool.name).toBe("codia_card_guide");
+    expect(tool.label).toContain("Codia");
     expect(tool.parameters.properties.modules).toBeDefined();
 
     const result = await tool.execute("call_1", {});

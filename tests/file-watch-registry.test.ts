@@ -99,7 +99,7 @@ describe("file-watch-registry", () => {
 
   it("keeps notifying the same file after atomic replacement", async () => {
     vi.useRealTimers();
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-file-watch-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-file-watch-"));
     const filePath = path.join(dir, "note.md");
     fs.writeFileSync(filePath, "one\n", "utf-8");
 

@@ -48,7 +48,7 @@ const MALFORMED_PROVIDER_CONFIG = "malformed_provider_config";
 const INVALID_MODELS_CONFIG = "invalid_models_config";
 const DELETED_PROVIDERS_KEY = "_deleted_providers";
 const PROVIDER_RUNTIME_META_KEYS = new Set(["_config_error"]);
-const THINKING_LEVEL_VALUES = new Set(["auto", "off", "low", "medium", "high", "xhigh"]);
+const THINKING_LEVEL_VALUES = new Set(["auto", "off", "low", "medium", "high", "xhigh", "max"]);
 const MEDIA_USER_CONFIG_KEYS = {
   imageGeneration: "image_generation",
   videoGeneration: "video_generation",
@@ -340,6 +340,37 @@ function normalizeUserMediaModels(providerId, userConfig, capabilityName, declar
   return result;
 }
 
+function normalizeInlineMediaModels(providerId, userConfig, capabilityName, declaredModels, entry) {
+  const expectedType = modelTypeForMediaCapability(capabilityName);
+  if (!expectedType || !Array.isArray(userConfig?.models)) return [];
+  const declaredById = new Map(declaredModels.map((model) => [model.id, model]));
+  const result = [];
+  const seen = new Set();
+  for (const raw of userConfig.models) {
+    if (getModelType(providerId, raw) !== expectedType) continue;
+    const id = getModelId(raw);
+    if (!id || seen.has(id)) continue;
+    const fallback = declaredById.get(id)
+      || { protocolId: inferMediaProtocolId(providerId, capabilityName, id, providerProtocolContext(entry)) || entry?.runtime?.protocolId };
+    const model = normalizeMediaModel(raw, fallback);
+    if (!model) continue;
+    seen.add(model.id);
+    result.push(model);
+  }
+  return result;
+}
+
+function mergeMediaModelGroups(...groups) {
+  const byId = new Map();
+  for (const group of groups) {
+    for (const model of group || []) {
+      if (!model?.id) continue;
+      byId.set(model.id, { ...(byId.get(model.id) || {}), ...model });
+    }
+  }
+  return [...byId.values()];
+}
+
 function getUserMediaConfig(userConfig, capabilityName) {
   const snake = capabilityName;
   const camel = capabilityKey(capabilityName);
@@ -530,7 +561,7 @@ const BUILTIN_PLUGINS = [
 // ── ProviderRegistry ─────────────────────────────────────────────────────────
 
 export class ProviderRegistry {
-  declare _gsapHome: string;
+  declare _codiaHome: string;
   declare _catalog: ProviderCatalogStore;
   declare _localProviderPlugins: LocalProviderPluginStore;
   declare _builtinPlugins: Map<string, any>;
@@ -542,11 +573,11 @@ export class ProviderRegistry {
   declare _authJsonMtime: number;
 
   /**
- * @param {string} gsapHome - 用户数据根目录（-~/.gsap-dev- */
-  constructor(gsapHome) {
-    this._gsapHome = gsapHome;
-    this._catalog = new ProviderCatalogStore(gsapHome);
-    this._localProviderPlugins = new LocalProviderPluginStore(gsapHome);
+ * @param {string} codiaHome - 用户数据根目录（-~/.codia-dev- */
+  constructor(codiaHome) {
+    this._codiaHome = codiaHome;
+    this._catalog = new ProviderCatalogStore(codiaHome);
+    this._localProviderPlugins = new LocalProviderPluginStore(codiaHome);
  /** @type {Map<string, ProviderPlugin>} id -plugin */
     this._plugins = new Map();
     this._builtinPlugins = new Map();
@@ -705,7 +736,7 @@ export class ProviderRegistry {
         if (Object.keys(overrides).length === 0) {
           delete cfg.models.overrides;
         }
-        const header = "# G-SAP Agent 配置\n# 由设置页面管理，手动编辑也可以\n\n";
+        const header = "# Codia Agent 配置\n# 由设置页面管理，手动编辑也可以\n\n";
         const yamlStr = header + YAML.dump(cfg, { indent: 2, lineWidth: -1, sortKeys: false, quotingType: '"', forceQuotes: false });
         fs.writeFileSync(cfgPath, yamlStr, "utf-8");
       }
@@ -717,7 +748,7 @@ export class ProviderRegistry {
     }
   }
 
- /** -_gsapHome 直接-added-models.yaml（mtime 缓存，文件未变时跳过磁盘读取-*/
+ /** -_codiaHome 直接-added-models.yaml（mtime 缓存，文件未变时跳过磁盘读取-*/
   _loadAddedModels() {
     try {
       const catalog = this._catalog.load();
@@ -733,7 +764,7 @@ export class ProviderRegistry {
     }
   }
 
- /** -providers 对象写入 _gsapHome/added-models.yaml */
+ /** -providers 对象写入 _codiaHome/added-models.yaml */
   _saveAddedModels(providers, meta: AnyRecord = {}) {
     this._catalog.saveProviders(stripProviderRuntimeMetaMap(providers), meta);
     this._addedModelsCache = null;
@@ -870,11 +901,9 @@ export class ProviderRegistry {
     const declared = entry.capabilities?.media?.[key]?.models || [];
     const userConfig = this._loadAddedModels()[providerId] || {};
     const userModels = normalizeUserMediaModels(providerId, userConfig, capability, declared, entry);
-    if (hasUserMediaModelList(userConfig, capability)) return userModels;
-    const byId = new Map();
-    for (const model of declared) byId.set(model.id, model);
-    for (const model of userModels) byId.set(model.id, { ...(byId.get(model.id) || {}), ...model });
-    return [...byId.values()];
+    const inlineModels = normalizeInlineMediaModels(providerId, userConfig, capability, declared, entry);
+    const baseModels = hasUserMediaModelList(userConfig, capability) ? [] : declared;
+    return mergeMediaModelGroups(baseModels, userModels, inlineModels);
   }
 
   getRegisteredMediaModels(providerId, capability) {
@@ -884,7 +913,9 @@ export class ProviderRegistry {
     const key = capabilityKey(capability);
     const declared = entry.capabilities?.media?.[key]?.models || [];
     const userConfig = this._loadAddedModels()[providerId] || {};
-    return normalizeUserMediaModels(providerId, userConfig, capability, declared, entry);
+    const userModels = normalizeUserMediaModels(providerId, userConfig, capability, declared, entry);
+    const inlineModels = normalizeInlineMediaModels(providerId, userConfig, capability, declared, entry);
+    return mergeMediaModelGroups(userModels, inlineModels);
   }
 
   getMediaCredentialLanes(providerId, capability = "image_generation") {
@@ -1057,7 +1088,7 @@ export class ProviderRegistry {
     const userConfig = this._loadAddedModels();
     if (!Object.prototype.hasOwnProperty.call(userConfig, providerId)) return;
     delete userConfig[providerId];
-    const existing = safeReadYAMLSync(path.join(this._gsapHome, "added-models.yaml"), {}, YAML) || {};
+    const existing = safeReadYAMLSync(path.join(this._codiaHome, "added-models.yaml"), {}, YAML) || {};
     const deletedProviders = normalizeDeletedProviders(existing[DELETED_PROVIDERS_KEY]);
     if (!deletedProviders.includes(providerId)) deletedProviders.push(providerId);
     this._saveAddedModels(userConfig, { deletedProviders });
@@ -1159,7 +1190,7 @@ export class ProviderRegistry {
    */
   _readOAuthEntry(authJsonKey) {
     try {
-      const authPath = path.join(this._gsapHome, "auth.json");
+      const authPath = path.join(this._codiaHome, "auth.json");
  // mtime 缓存：auth.json 只在 OAuth 回调写入时变-
       const mtime = fs.statSync(authPath).mtimeMs;
       if (!this._authJsonCache || mtime !== this._authJsonMtime) {
@@ -1471,7 +1502,7 @@ export class ProviderRegistry {
       validateProviderModels(providerId, nextProvider.models, { baseUrl: nextProvider.base_url });
     }
     userConfig[providerId] = nextProvider;
-    const existing = safeReadYAMLSync(path.join(this._gsapHome, "added-models.yaml"), {}, YAML) || {};
+    const existing = safeReadYAMLSync(path.join(this._codiaHome, "added-models.yaml"), {}, YAML) || {};
     const deletedProviders = normalizeDeletedProviders(existing[DELETED_PROVIDERS_KEY])
       .filter((id) => id !== providerId);
     this._saveAddedModels(userConfig, { deletedProviders });

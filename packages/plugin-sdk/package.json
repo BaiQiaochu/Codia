@@ -1,5 +1,5 @@
 {
-  "name": "@g-sap/plugin-sdk",
+  "name": "@codia/plugin-sdk",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -19,6 +19,6 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@g-sap/plugin-protocol": "0.0.0"
+    "@codia/plugin-protocol": "0.0.0"
   }
 }

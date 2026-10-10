@@ -15,7 +15,7 @@ import {
 } from "../lib/experiments/registry.js";
 
 function makePrefs() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-experiments-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-experiments-"));
   const userDir = path.join(root, "user");
   const agentsDir = path.join(root, "agents");
   fs.mkdirSync(userDir, { recursive: true });
@@ -24,7 +24,7 @@ function makePrefs() {
 }
 
 function makePrefsWithPreferences(preferences) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-experiments-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-experiments-"));
   const userDir = path.join(root, "user");
   const agentsDir = path.join(root, "agents");
   fs.mkdirSync(userDir, { recursive: true });

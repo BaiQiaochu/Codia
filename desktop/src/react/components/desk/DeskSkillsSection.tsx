@@ -4,11 +4,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useStore } from '../../stores';
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { skillDisplayName } from '../../utils/skill-display';
 import s from './Desk.module.css';
 
-const DESK_SKILLS_KEY = 'gsap-desk-skills-collapsed';
+const DESK_SKILLS_KEY = 'codia-desk-skills-collapsed';
 
 export function DeskSkillsSection() {
   const skills = useStore(s => s.deskSkills);
@@ -27,7 +27,7 @@ export function DeskSkillsSection() {
       const requestAgentId = agentId;
       const requestSessionPath = snapshot.currentSessionPath || null;
 
-      const res = await gsapFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}&runtime=1`);
+      const res = await codiaFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}&runtime=1`);
       const data = await res.json();
       if (data.error) return;
 
@@ -91,7 +91,7 @@ export function DeskSkillsSection() {
 
     try {
       // Re-fetch the current agent skill list before writing the enabled set.
-      const freshRes = await gsapFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}&runtime=1`);
+      const freshRes = await codiaFetch(`/api/skills?agentId=${encodeURIComponent(agentId)}&runtime=1`);
       const freshData = await freshRes.json();
       if (freshData.error) throw new Error(freshData.error);
       if (!sessionUnchanged()) return;
@@ -101,7 +101,7 @@ export function DeskSkillsSection() {
         .filter(s => s.enabled && s.managedBy !== 'workspace')
         .map(s => s.name);
 
-      await gsapFetch(`/api/agents/${agentId}/skills`, {
+      await codiaFetch(`/api/agents/${agentId}/skills`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: enabledList }),
@@ -141,7 +141,7 @@ export function DeskSkillsSection() {
               )}
               <button
                 type="button"
-                className={`gsap-toggle mini${sk.enabled ? ' on' : ''}`}
+                className={`codia-toggle mini${sk.enabled ? ' on' : ''}`}
                 disabled={sk.managedBy === 'workspace'}
                 onClick={() => toggleSkill(sk.name, !sk.enabled)}
               />

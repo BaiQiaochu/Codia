@@ -133,7 +133,8 @@
     "searchFailed": "検索に失敗しました",
     "projects": {
       "newFolder": "新規フォルダ"
-    }
+    },
+    "automationRecords": "自動化履歴"
   },
   "session": {
     "pin": "ピン留め",
@@ -314,10 +315,13 @@
     "removeRecentWorkspace": "最近のワークスペースを削除",
     "planMode": "アクセスモード",
     "accessMode": "セッションのアクセスモード",
-    "autoMode": "自動モード",
-    "operateMode": "自動操作",
-    "askMode": "操作前に確認",
-    "readOnlyMode": "読み取り専用モード",
+    "autoMode": "承認を任せる",
+    "autoModeDescription": "リスクが検出された操作のみ承認を求めます",
+    "operateMode": "フルアクセス",
+    "operateModeDescription": "インターネットとパソコン上のすべてのファイルへ制限なくアクセスします",
+    "askMode": "承認を求める",
+    "askModeDescription": "外部ファイルの編集やインターネット利用時は常に確認します",
+    "readOnlyMode": "承認を求める",
     "accessModeLocked": "現在アクセスモードを変更できません",
     "confirmMoreOptions": "その他の確認オプション",
     "noAskThisConversation": "このチャットでは今後確認しない",
@@ -381,9 +385,53 @@
       "tab": {
         "files": "ファイル",
         "sessions": "会話",
-        "agents": "エージェント"
+        "agents": "エージェント",
+        "all": "すべて"
       },
-      "empty": "一致する項目はありません"
+      "empty": "一致する項目はありません",
+      "group": {
+        "agents": "エージェント",
+        "sessions": "会話",
+        "images": "画像",
+        "files": "ファイル"
+      }
+    },
+    "addMenu": "追加",
+    "add": {
+      "title": "追加",
+      "file": "ファイル",
+      "fileDetail": "コンピューターからファイルを選択",
+      "folder": "フォルダー",
+      "folderDetail": "作業フォルダーを追加",
+      "link": "リンク",
+      "linkDetail": "メッセージに URL を追加",
+      "plugins": "プラグイン",
+      "pluginsDetail": "有効なプラグインを使用",
+      "skills": "スキル",
+      "skillCount": "利用可能なスキル: {count}",
+      "tools": "ツール",
+      "toolsDetail": "このタスクのツールを選択",
+      "addLink": "リンクを追加",
+      "linkAddress": "リンク先",
+      "confirm": "追加",
+      "back": "戻る",
+      "selectSkills": "スキルを選択",
+      "selectPlugins": "プラグインを選択",
+      "selectTools": "ツールを選択",
+      "searchSkills": "スキルを検索",
+      "searchPlugins": "プラグインを検索",
+      "normalChat": "通常のチャット",
+      "normalChatDetail": "専用ツールを使用しない",
+      "loadingPlugins": "プラグインを読み込み中…",
+      "noSkills": "一致するスキルはありません",
+      "noPlugins": "有効なプラグインはありません"
+    },
+    "slash": {
+      "title": "コマンドとスキル",
+      "group": {
+        "commands": "コマンド",
+        "skills": "スキル"
+      }
     }
   },
   "slash": {
@@ -459,25 +507,25 @@
   },
   "yuan": {
     "types": {
-      "gsap": {
+      "codia": {
         "name": "バランス",
         "label": "表現と実行のバランスを保つ",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "butter": {
         "name": "感情",
         "label": "感情の文脈をより重視",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "ming": {
         "name": "理性",
         "label": "より冷静で分析的",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "kong": {
         "name": "オリジナル",
         "label": "モデル本来のスタイル",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       }
     },
     "title": "元",
@@ -781,6 +829,8 @@
       "me": "自分",
       "providers": "プロバイダー",
       "experiments": "実験",
+      "context": "コンテキスト",
+      "computerUse": "コンピューター操作",
       "models": "モデル",
       "memory": "記憶",
       "work": "ワークスペース",
@@ -1186,7 +1236,10 @@
       "apiKey": "API Key",
       "addBtn": "追加",
       "empty": "プロバイダーはまだ登録されていません",
-      "fetchModels": "モデルを取得",
+      "fetchModels": "モデルをスキャン",
+      "modelManagement": "モデル管理",
+      "manualAddModel": "手動で追加",
+      "searchOrSelectModel": "スキャン済みモデルを検索または選択…",
       "delete": "プロバイダーを削除",
       "modelCount": "{n} モデル",
       "fetchSuccess": "{name} から {n} モデルを取得しました",
@@ -1767,7 +1820,7 @@
       "light": "ライト",
       "dark": "ダーク",
       "sakura": "コラボレーション・ティール",
-      "gsap": "インスティテューショナル・ティール",
+      "codia": "インスティテューショナル・ティール",
       "mobile": "モバイル",
       "desktop": "デスクトップ",
       "mobileTitle": "モバイルレイアウト",
@@ -1806,7 +1859,7 @@
       "permissionMode": "権限モード",
       "permissionModeDesc": "ソーシャルプラットフォーム経由のセッションで許可する操作を制御します",
       "permissionModeAuto": "自動レビュー",
-      "permissionModeOperate": "自動操作",
+      "permissionModeOperate": "フルアクセス",
       "permissionModeReadOnly": "読み取り専用",
       "receiptEnabled": "返信前の通知",
       "receiptEnabledDesc": "メッセージ受信後、返信前に「受信済み・返信中」の短い通知を送信します",
@@ -2238,8 +2291,8 @@
     "error": "エラーが発生しました。もう一度お試しください。"
   },
   "activity": {
-    "title": "アクティビティ",
-    "empty": "アクティビティはまだありません。巡回やスケジュールタスクの実行結果がここに表示されます。",
+    "title": "自動化履歴",
+    "empty": "自動化履歴はまだありません。巡回、スケジュールタスク、サブエージェント、バックグラウンド自動処理がここに表示されます。",
     "back": "戻る",
     "heartbeat": "定期巡回",
     "subagent": "サブエージェントタスク",
@@ -2826,7 +2879,7 @@
       "channelDesc": "チャンネル名（read/post の場合必須）",
       "contentDesc": "メッセージ内容（post の場合必須）",
       "nameDesc": "新しいチャンネル名（create の場合必須）",
-      "membersDesc": "メンバーリスト（create の場合必須）、例：[\"gsap\", \"butter\"]",
+      "membersDesc": "メンバーリスト（create の場合必須）、例：[\"codia\", \"butter\"]",
       "introDesc": "チャンネルの紹介（create の場合オプション）",
       "countDesc": "読み取るメッセージ数（read の場合オプション、デフォルト 20）"
     },
@@ -3329,9 +3382,21 @@
     }
   },
   "processFold": {
-    "summary": "✨ {name} がしばらく動き回りました",
+    "summary": "実行状況",
+    "running": "{name} を実行中",
+    "completed": "{n} 件完了",
     "tools": "{n} 個のツール",
     "thinking": "{n} 回の思考",
+    "files": "{n} 個のファイル",
+    "duration": "所要時間 {value}",
+    "action": {
+      "write": "ファイルを更新中",
+      "read": "プロジェクトを検索中",
+      "command": "チェックを実行中",
+      "agent": "アシスタントを調整中",
+      "integration": "連携を使用中",
+      "tool": "{name} を使用中"
+    },
     "unsuccessful": "{n} 回の試行が未成功"
   },
   "settings.work.heartbeatOperationalNotice": "巡回はバックグラウンドでツールを実行し、ワークスペースのファイルにアクセスすることがあります。無人実行を任せられる Agent にだけ有効化してください。",

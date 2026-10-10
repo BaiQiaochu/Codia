@@ -13,7 +13,7 @@ describe("approval review context", () => {
   });
 
   it("extracts a compact visible transcript from the current session file", () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-approval-review-context-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-approval-review-context-"));
     const sessionPath = path.join(tmpDir, "session.jsonl");
     fs.writeFileSync(sessionPath, [
       JSON.stringify({ type: "session", id: "sess_1" }),
@@ -42,7 +42,7 @@ describe("approval review context", () => {
     const context = buildApprovalReviewContext({
       sessionPath,
       source: { cwd: tmpDir, workspaceFolders: [tmpDir] },
-      ctx: { agentId: "gsap" },
+      ctx: { agentId: "codia" },
     });
 
     expect(context.visibleTranscript).toEqual([

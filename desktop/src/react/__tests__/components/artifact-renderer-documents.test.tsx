@@ -9,13 +9,13 @@ import { ArtifactRenderer } from '../../components/preview/PreviewRenderer';
 import type { Artifact, PlatformApi } from '../../types';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
   openFilePreview: vi.fn(),
   refreshPreviewItemsFromFile: vi.fn(async () => undefined),
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: mocks.gsapFetch,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: mocks.codiaFetch,
 }));
 
 vi.mock('../../utils/file-preview', () => ({
@@ -72,7 +72,7 @@ describe('ArtifactRenderer document previews', () => {
     window.platform = {
       openFile: vi.fn(),
     } as unknown as PlatformApi;
-    mocks.gsapFetch.mockReset();
+    mocks.codiaFetch.mockReset();
     mocks.openFilePreview.mockReset();
     mocks.refreshPreviewItemsFromFile.mockClear();
   });
@@ -299,7 +299,7 @@ describe('ArtifactRenderer document previews', () => {
 
   it('registers HTML artifacts through the isolated preview route instead of srcDoc', async () => {
     const htmlContent = '<script src="https://cdn.tailwindcss.com"></script><div class="text-red-500">Hello</div>';
-    mocks.gsapFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+    mocks.codiaFetch.mockResolvedValueOnce(new Response(JSON.stringify({
       previewUrl: 'http://127.0.0.1:14500/preview/html/pv_123?previewToken=preview_only_token',
     }), {
       status: 200,
@@ -315,7 +315,7 @@ describe('ArtifactRenderer document previews', () => {
       ext: 'html',
     }} />);
 
-    expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/preview/html', {
+    expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/preview/html', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -339,7 +339,7 @@ describe('ArtifactRenderer document previews', () => {
 
   it.each(['docx', 'xlsx'] as const)('registers %s document HTML through the isolated preview route', async (type) => {
     const htmlContent = '<img src=x onerror="window.__owned = true"><table><tr><td>Cell</td></tr></table>';
-    mocks.gsapFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+    mocks.codiaFetch.mockResolvedValueOnce(new Response(JSON.stringify({
       previewUrl: 'http://127.0.0.1:14500/preview/html/pv_doc?previewToken=preview_only_token',
     }), {
       status: 200,
@@ -355,7 +355,7 @@ describe('ArtifactRenderer document previews', () => {
       ext: type,
     }} />);
 
-    expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/preview/html', {
+    expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/preview/html', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -450,7 +450,7 @@ describe('ArtifactRenderer document previews', () => {
       watchFile: vi.fn(),
       unwatchFile: vi.fn(),
     } as unknown as PlatformApi;
-    mocks.gsapFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+    mocks.codiaFetch.mockResolvedValueOnce(new Response(JSON.stringify({
       ok: true,
       cover: { image: '文本附件/demo-cover.png' },
     }), {
@@ -481,7 +481,7 @@ describe('ArtifactRenderer document previews', () => {
     fireEvent.drop(cover!, { dataTransfer });
 
     await waitFor(() => {
-      expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/desk/beautify/cover/apply', expect.objectContaining({
+      expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/desk/beautify/cover/apply', expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
           filePath: '/tmp/workspace/demo.md',
@@ -503,7 +503,7 @@ describe('ArtifactRenderer document previews', () => {
       watchFile: vi.fn(),
       unwatchFile: vi.fn(),
     } as unknown as PlatformApi;
-    mocks.gsapFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+    mocks.codiaFetch.mockResolvedValueOnce(new Response(JSON.stringify({
       ok: true,
       cover: { image: '文本附件/demo-cover.png' },
     }), {
@@ -530,7 +530,7 @@ describe('ArtifactRenderer document previews', () => {
     fireEvent.drop(host!, { dataTransfer, clientY: 12 });
 
     await waitFor(() => {
-      expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/desk/beautify/cover/apply', expect.objectContaining({
+      expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/desk/beautify/cover/apply', expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
           filePath: '/tmp/workspace/demo.md',

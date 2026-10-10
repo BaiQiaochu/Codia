@@ -8,7 +8,7 @@ const deskFullPathMock = vi.fn((name: string) => `/desk/${name}`);
 const deskCreateMindmapFromDocumentMock = vi.fn(async (..._args: unknown[]) => true);
 const deskMoveFilesMock = vi.fn(async (..._args: unknown[]) => {});
 const deskRemoveFileMock = vi.fn(async (..._args: unknown[]) => {});
-const gsapFetchMock = vi.fn((..._args: unknown[]) => undefined);
+const codiaFetchMock = vi.fn((..._args: unknown[]) => undefined);
 const openFilePreviewMock = vi.fn((..._args: unknown[]) => undefined);
 
 let storeState = {
@@ -36,8 +36,8 @@ vi.mock('../../stores/desk-actions', () => ({
   deskRemoveFile: (...args: unknown[]) => deskRemoveFileMock(...args),
 }));
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 vi.mock('../../utils/file-preview', () => ({
@@ -52,7 +52,7 @@ describe('DeskFileItem', () => {
     deskCreateMindmapFromDocumentMock.mockReset();
     deskMoveFilesMock.mockReset();
     deskRemoveFileMock.mockReset();
-    gsapFetchMock.mockReset();
+    codiaFetchMock.mockReset();
     openFilePreviewMock.mockReset();
     (window as typeof window & { t?: (key: string, vars?: Record<string, unknown>) => string }).t = (key, vars) =>
       vars?.n ? `${key}:${vars.n}` : key;
@@ -202,6 +202,6 @@ describe('DeskFileItem', () => {
     await waitFor(() => {
       expect(deskMoveFilesMock).toHaveBeenCalledWith(['a.txt'], 'folder');
     });
-    expect(gsapFetchMock).not.toHaveBeenCalled();
+    expect(codiaFetchMock).not.toHaveBeenCalled();
   });
 });

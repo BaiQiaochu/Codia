@@ -6,8 +6,6 @@ import registerTaskRoutes from "../plugins/image-gen/routes/tasks.js";
 
 async function flushBackgroundSubmits() {
   await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
 }
 
 function makeFailedTask(overrides = {}) {

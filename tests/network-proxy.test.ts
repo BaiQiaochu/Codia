@@ -59,7 +59,7 @@ describe("network proxy config", () => {
     expect(resolveProxyForUrl("http://127.42.0.9:1455/api/health", manual)).toBe("");
     expect(resolveProxyForUrl("http://[::1]:1455/api/health", manual)).toBe("");
     expect(resolveProxyForUrl("http://0.0.0.0:1455/api/health", manual)).toBe("http://127.0.0.1:7890");
-    expect(resolveProxyForUrl("https://gsap.company.example/api/health", manual)).toBe("http://127.0.0.1:7890");
+    expect(resolveProxyForUrl("https://codia.company.example/api/health", manual)).toBe("http://127.0.0.1:7890");
   });
 
   it("forces local bypass entries into Electron and env proxy rules", () => {

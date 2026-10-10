@@ -24,7 +24,7 @@ describe("workspace persistence GC", () => {
   });
 
   function makeRoot() {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-workspace-gc-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-workspace-gc-"));
     tempRoots.push(root);
     return root;
   }
@@ -60,7 +60,7 @@ describe("workspace persistence GC", () => {
   });
 
   it("keeps paths when stat reports temporary access failure", () => {
-    const blockedWorkspace = path.join(os.tmpdir(), `gsap-blocked-${Date.now()}`);
+    const blockedWorkspace = path.join(os.tmpdir(), `codia-blocked-${Date.now()}`);
     const status = classifyWorkspacePathForGc(blockedWorkspace, {
       statSync: () => {
         throw Object.assign(new Error("permission denied"), { code: "EACCES" });

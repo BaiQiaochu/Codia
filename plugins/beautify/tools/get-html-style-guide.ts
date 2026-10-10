@@ -12,7 +12,7 @@ import {
 import { isBeautifyEnabledForAgentConfig } from "../lib/availability.ts";
 
 export const name = "get-html-style-guide";
-export const description = "Read the G-SAP Beautify style guide for full-page HTML before generating unstylized web pages, reports, dashboards, or typeset articles.";
+export const description = "Read the Codia Beautify style guide for full-page HTML before generating unstylized web pages, reports, dashboards, or typeset articles.";
 
 export const promptGuidelines = [
   "Call beautify_get-html-style-guide before generating full-page HTML when the user has not supplied a brand or style.",

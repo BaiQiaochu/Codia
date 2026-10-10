@@ -9,8 +9,8 @@ import {
   PLUGIN_UI_CAPABILITY,
   PLUGIN_UI_PROTOCOL,
   PLUGIN_UI_PROTOCOL_VERSION,
-} from '@g-sap/plugin-protocol';
-import { createGsapPluginSdk, GsapPluginError } from '@g-sap/plugin-sdk';
+} from '@codia/plugin-protocol';
+import { createCodiaPluginSdk, CodiaPluginError } from '@codia/plugin-sdk';
 
 function makeParentWindow() {
   return { postMessage: vi.fn() } as unknown as Window & { postMessage: ReturnType<typeof vi.fn> };
@@ -32,7 +32,7 @@ function makeTargetWindow(href: string) {
 describe('plugin SDK', () => {
   it('posts ready and resize as versioned plugin UI events', () => {
     const parentWindow = makeParentWindow();
-    const sdk = createGsapPluginSdk({
+    const sdk = createCodiaPluginSdk({
       parentWindow,
       targetWindow: window,
       targetOrigin: 'http://127.0.0.1:3210',
@@ -46,7 +46,7 @@ describe('plugin SDK', () => {
       protocol: PLUGIN_UI_PROTOCOL,
       version: PLUGIN_UI_PROTOCOL_VERSION,
       kind: 'event',
-      type: 'gsap.ready',
+      type: 'codia.ready',
     }, 'http://127.0.0.1:3210');
     expect(parentWindow.postMessage).toHaveBeenNthCalledWith(2, {
       protocol: PLUGIN_UI_PROTOCOL,
@@ -59,7 +59,7 @@ describe('plugin SDK', () => {
 
   it('resolves host requests only from the configured parent window and origin', async () => {
     const parentWindow = makeParentWindow();
-    const sdk = createGsapPluginSdk({
+    const sdk = createCodiaPluginSdk({
       parentWindow,
       targetWindow: window,
       targetOrigin: 'http://127.0.0.1:3210',
@@ -117,9 +117,9 @@ describe('plugin SDK', () => {
     await expect(pending).resolves.toEqual({ ok: true });
   });
 
-  it('rejects host request errors with a typed GsapPluginError', async () => {
+  it('rejects host request errors with a typed CodiaPluginError', async () => {
     const parentWindow = makeParentWindow();
-    const sdk = createGsapPluginSdk({
+    const sdk = createCodiaPluginSdk({
       parentWindow,
       targetWindow: window,
       targetOrigin: 'http://127.0.0.1:3210',
@@ -146,16 +146,16 @@ describe('plugin SDK', () => {
     }));
 
     await expect(pending).rejects.toMatchObject({
-      name: 'GsapPluginError',
+      name: 'CodiaPluginError',
       code: 'CAPABILITY_DENIED',
       message: 'Capability denied.',
       details: { capability: 'external.open' },
-    } satisfies Partial<GsapPluginError>);
+    } satisfies Partial<CodiaPluginError>);
   });
 
   it('wraps toast.show as a typed host request helper', async () => {
     const parentWindow = makeParentWindow();
-    const sdk = createGsapPluginSdk({
+    const sdk = createCodiaPluginSdk({
       parentWindow,
       targetWindow: window,
       targetOrigin: 'http://127.0.0.1:3210',
@@ -191,7 +191,7 @@ describe('plugin SDK', () => {
 
   it('wraps external.open string input as a typed host request helper', async () => {
     const parentWindow = makeParentWindow();
-    const sdk = createGsapPluginSdk({
+    const sdk = createCodiaPluginSdk({
       parentWindow,
       targetWindow: window,
       targetOrigin: 'http://127.0.0.1:3210',
@@ -227,7 +227,7 @@ describe('plugin SDK', () => {
 
   it('wraps clipboard.writeText string input as a typed host request helper', async () => {
     const parentWindow = makeParentWindow();
-    const sdk = createGsapPluginSdk({
+    const sdk = createCodiaPluginSdk({
       parentWindow,
       targetWindow: window,
       targetOrigin: 'http://127.0.0.1:3210',
@@ -263,22 +263,22 @@ describe('plugin SDK', () => {
 
   it('resolves plugin asset URLs from the current iframe route', () => {
     const parentWindow = makeParentWindow();
-    const targetWindow = makeTargetWindow('https://gsap.example/api/plugins/demo-plugin/page?gsap-host-origin=https%3A%2F%2Fgsap.example');
-    const sdk = createGsapPluginSdk({
+    const targetWindow = makeTargetWindow('https://codia.example/api/plugins/demo-plugin/page?codia-host-origin=https%3A%2F%2Fcodia.example');
+    const sdk = createCodiaPluginSdk({
       parentWindow,
       targetWindow,
-      targetOrigin: 'https://gsap.example',
+      targetOrigin: 'https://codia.example',
     });
 
-    expect(sdk.assets.url('dist/app.js')).toBe('https://gsap.example/api/plugins/demo-plugin/assets/dist/app.js');
-    expect(sdk.assets.url('/images/logo.svg')).toBe('https://gsap.example/api/plugins/demo-plugin/assets/images/logo.svg');
+    expect(sdk.assets.url('dist/app.js')).toBe('https://codia.example/api/plugins/demo-plugin/assets/dist/app.js');
+    expect(sdk.assets.url('/images/logo.svg')).toBe('https://codia.example/api/plugins/demo-plugin/assets/images/logo.svg');
   });
 
   it('rejects unsafe plugin asset URL inputs', () => {
-    const sdk = createGsapPluginSdk({
+    const sdk = createCodiaPluginSdk({
       parentWindow: makeParentWindow(),
-      targetWindow: makeTargetWindow('https://gsap.example/api/plugins/demo/page'),
-      targetOrigin: 'https://gsap.example',
+      targetWindow: makeTargetWindow('https://codia.example/api/plugins/demo/page'),
+      targetOrigin: 'https://codia.example',
     });
 
     for (const unsafePath of ['../secret.js', 'dist\\app.js', 'https://evil.test/app.js', '', './app.js']) {
@@ -287,14 +287,14 @@ describe('plugin SDK', () => {
   });
 
   it('resolves same-origin plugin API URLs from the current iframe route', () => {
-    const sdk = createGsapPluginSdk({
+    const sdk = createCodiaPluginSdk({
       parentWindow: makeParentWindow(),
-      targetWindow: makeTargetWindow('https://gsap.example/api/plugins/demo-plugin/page?gsap-host-origin=https%3A%2F%2Fgsap.example'),
-      targetOrigin: 'https://gsap.example',
+      targetWindow: makeTargetWindow('https://codia.example/api/plugins/demo-plugin/page?codia-host-origin=https%3A%2F%2Fcodia.example'),
+      targetOrigin: 'https://codia.example',
     });
 
-    expect(sdk.api.url('api/translate')).toBe('https://gsap.example/api/plugins/demo-plugin/api/translate');
-    expect(sdk.api.url('/api/translate?mode=fast')).toBe('https://gsap.example/api/plugins/demo-plugin/api/translate?mode=fast');
+    expect(sdk.api.url('api/translate')).toBe('https://codia.example/api/plugins/demo-plugin/api/translate');
+    expect(sdk.api.url('/api/translate?mode=fast')).toBe('https://codia.example/api/plugins/demo-plugin/api/translate?mode=fast');
   });
 
   it('attaches the plugin surface session header for plugin API fetches', async () => {
@@ -303,10 +303,10 @@ describe('plugin SDK', () => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     }));
-    const sdk = createGsapPluginSdk({
+    const sdk = createCodiaPluginSdk({
       parentWindow,
-      targetWindow: makeTargetWindow('https://gsap.example/api/plugins/demo-plugin/page?pluginSurfaceSession=session-1'),
-      targetOrigin: 'https://gsap.example',
+      targetWindow: makeTargetWindow('https://codia.example/api/plugins/demo-plugin/page?pluginSurfaceSession=session-1'),
+      targetOrigin: 'https://codia.example',
       fetchImpl,
     });
 
@@ -318,7 +318,7 @@ describe('plugin SDK', () => {
 
     await expect(response.json()).resolves.toEqual({ ok: true });
     expect(fetchImpl).toHaveBeenCalledOnce();
-    expect(fetchImpl.mock.calls[0][0]).toBe('https://gsap.example/api/plugins/demo-plugin/api/translate');
+    expect(fetchImpl.mock.calls[0][0]).toBe('https://codia.example/api/plugins/demo-plugin/api/translate');
     const init = fetchImpl.mock.calls[0][1] as RequestInit;
     expect(init.method).toBe('POST');
     expect(new Headers(init.headers).get('Content-Type')).toBe('application/json');
@@ -326,10 +326,10 @@ describe('plugin SDK', () => {
   });
 
   it('rejects unsafe plugin API paths and missing surface sessions before fetch', async () => {
-    const sdk = createGsapPluginSdk({
+    const sdk = createCodiaPluginSdk({
       parentWindow: makeParentWindow(),
-      targetWindow: makeTargetWindow('https://gsap.example/api/plugins/demo/page'),
-      targetOrigin: 'https://gsap.example',
+      targetWindow: makeTargetWindow('https://codia.example/api/plugins/demo/page'),
+      targetOrigin: 'https://codia.example',
       fetchImpl: vi.fn(),
     });
 

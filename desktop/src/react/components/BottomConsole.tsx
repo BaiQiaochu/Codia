@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from '../stores';
 
-type ConsoleKind = 'powershell' | 'gsapctl';
+type ConsoleKind = 'powershell' | 'codiactl';
 type ConsolePanel = 'problems' | 'output' | 'debug' | 'terminal' | 'ports';
 
 type ConsoleLine = {
@@ -60,7 +60,7 @@ const FALLBACK_TEXT: Record<string, string> = {
 };
 
 function defaultCommand(kind: ConsoleKind) {
-  return kind === 'gsapctl' ? 'health' : 'Get-Location';
+  return kind === 'codiactl' ? 'health' : 'Get-Location';
 }
 
 function tt(key: string) {
@@ -70,11 +70,11 @@ function tt(key: string) {
 
 function publishRecentTerminalOutput(lines: ConsoleLine[]): void {
   const text = lines
-    .map((line) => `${line.kind === 'gsapctl' ? 'agent-cli' : 'PS'}> ${line.command}\n${line.output || `(exit ${line.code})`}`)
+    .map((line) => `${line.kind === 'codiactl' ? 'agent-cli' : 'PS'}> ${line.command}\n${line.output || `(exit ${line.code})`}`)
     .join('\n\n')
     .slice(-4000);
-  (window as typeof window & { __GSAP_RECENT_TERMINAL_OUTPUT__?: string }).__GSAP_RECENT_TERMINAL_OUTPUT__ = text;
-  window.dispatchEvent(new CustomEvent('gsap-terminal-output', { detail: { text } }));
+  (window as typeof window & { __CODIA_RECENT_TERMINAL_OUTPUT__?: string }).__CODIA_RECENT_TERMINAL_OUTPUT__ = text;
+  window.dispatchEvent(new CustomEvent('codia-terminal-output', { detail: { text } }));
 }
 
 function problemFromLine(line: ConsoleLine): ProblemItem {
@@ -94,7 +94,7 @@ function problemFromLine(line: ConsoleLine): ProblemItem {
   return {
     id: line.id,
     source: line.command,
-    location: line.kind === 'gsapctl' ? 'Agent CLI' : 'PowerShell',
+    location: line.kind === 'codiactl' ? 'Agent CLI' : 'PowerShell',
     message: firstLine,
     code: `exit ${line.code}`,
   };
@@ -228,12 +228,12 @@ export function BottomConsole({ open: controlledOpen, onOpenChange }: BottomCons
         const nextKind = detail.kind || 'powershell';
         setKind(nextKind);
         setCommand(detail.command);
-        showPanel(detail.panel || (nextKind === 'gsapctl' ? 'terminal' : 'output'));
+        showPanel(detail.panel || (nextKind === 'codiactl' ? 'terminal' : 'output'));
         void runCommand(nextKind, detail.command, detail.label || detail.command);
       }
     };
-    window.addEventListener('gsap-console-action', onAction);
-    return () => window.removeEventListener('gsap-console-action', onAction);
+    window.addEventListener('codia-console-action', onAction);
+    return () => window.removeEventListener('codia-console-action', onAction);
   }, [open, runCommand, runDebug, setConsoleOpen, showPanel]);
 
   if (!available) return null;
@@ -313,7 +313,7 @@ export function BottomConsole({ open: controlledOpen, onOpenChange }: BottomCons
                 <div className="bottom-console-empty">{tt('console.empty')}</div>
               ) : visibleLines.map((line) => (
                 <div key={line.id} className="bottom-console-entry">
-                  <div className="bottom-console-command">{line.kind === 'gsapctl' ? 'agent-cli' : 'PS'}&gt; {line.command}</div>
+                  <div className="bottom-console-command">{line.kind === 'codiactl' ? 'agent-cli' : 'PS'}&gt; {line.command}</div>
                   <pre className={line.ok ? '' : 'error'}>{line.output || `(exit ${line.code})`}</pre>
                 </div>
               ))}
@@ -329,12 +329,12 @@ export function BottomConsole({ open: controlledOpen, onOpenChange }: BottomCons
               >
                 <div className="bottom-console-switch" role="tablist" aria-label={tt('console.title')}>
                   <button type="button" className={kind === 'powershell' ? 'active' : ''} onClick={() => switchKind('powershell')}>PowerShell</button>
-                  <button type="button" className={kind === 'gsapctl' ? 'active' : ''} onClick={() => switchKind('gsapctl')}>Agent CLI</button>
+                  <button type="button" className={kind === 'codiactl' ? 'active' : ''} onClick={() => switchKind('codiactl')}>Agent CLI</button>
                 </div>
                 <input
                   value={command}
                   onChange={(e) => setCommand(e.target.value)}
-                  placeholder={kind === 'gsapctl' ? 'health' : 'Get-ChildItem'}
+                  placeholder={kind === 'codiactl' ? 'health' : 'Get-ChildItem'}
                 />
                 <button type="submit" disabled={running || !command.trim()}>{running ? tt('console.runningShort') : tt('console.run')}</button>
               </form>

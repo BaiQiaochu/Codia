@@ -12,7 +12,7 @@ describe('onboarding debranding', () => {
     for (const filePath of localeFiles) {
       const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
       const onboardingCopy = JSON.stringify(data.onboarding);
-      expect(onboardingCopy).not.toMatch(/Hana|Hanako|Butter|Kong|Ming|Hermes|OH-WorkSpace/i);
+      expect(onboardingCopy).not.toMatch(/Codia|Codia|Butter|Kong|Ming|Hermes|OH-WorkSpace/i);
     }
   });
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSettingsStore } from '../store';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { autoSaveConfig, t } from '../helpers';
 import { loadSettingsConfig } from '../actions';
 import { getDesktopApi } from '../../utils/desktop-api';
@@ -221,7 +221,7 @@ export function GeneralSettingsSections({ showStartup = true, showAutoLaunch = t
 
   useEffect(() => {
     let alive = true;
-    gsapFetch('/api/preferences/quick-chat')
+    codiaFetch('/api/preferences/quick-chat')
       .then(res => res.json())
       .then((data) => {
         if (alive) setQuickChatPrefs(normalizeQuickChatPreferences(data?.quickChat));
@@ -236,7 +236,7 @@ export function GeneralSettingsSections({ showStartup = true, showAutoLaunch = t
 
   useEffect(() => {
     let alive = true;
-    gsapFetch('/api/preferences/notifications')
+    codiaFetch('/api/preferences/notifications')
       .then(res => res.json())
       .then((data) => {
         if (alive) setNotificationPrefs(normalizeNotificationPreferences(data?.notifications));
@@ -258,7 +258,7 @@ export function GeneralSettingsSections({ showStartup = true, showAutoLaunch = t
     setQuickChatPrefs(next);
     setQuickChatSaving(true);
     try {
-      const res = await gsapFetch('/api/preferences/quick-chat', {
+      const res = await codiaFetch('/api/preferences/quick-chat', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ quickChat: next }),
@@ -277,7 +277,7 @@ export function GeneralSettingsSections({ showStartup = true, showAutoLaunch = t
     } catch (err: any) {
       setQuickChatPrefs(previous);
       try {
-        await gsapFetch('/api/preferences/quick-chat', {
+        await codiaFetch('/api/preferences/quick-chat', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ quickChat: previous }),
@@ -360,7 +360,7 @@ export function GeneralSettingsSections({ showStartup = true, showAutoLaunch = t
     setNotificationPrefs(next);
     setNotificationSaving(true);
     try {
-      const res = await gsapFetch('/api/preferences/notifications', {
+      const res = await codiaFetch('/api/preferences/notifications', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notifications: next }),

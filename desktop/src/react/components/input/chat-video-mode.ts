@@ -1,4 +1,4 @@
-import { gsapFetch } from '../../hooks/use-gsap-fetch';
+import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { ensureSession, loadSessions } from '../../stores/session-actions';
 import { useStore } from '../../stores';
 import { sessionScopedValue } from '../../stores/session-slice';
@@ -124,11 +124,11 @@ export async function submitChatVideoGeneration({
   appendUserPrompt(sessionPath, prompt);
 
   try {
-    const res = await gsapFetch('/api/plugins/image-gen/generate-video', {
+    const res = await codiaFetch('/api/plugins/image-gen/generate-video', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-gsap-Session-Path': sessionPath,
+        'X-codia-Session-Path': sessionPath,
       },
       body: JSON.stringify({
         prompt,

@@ -17,7 +17,6 @@ describe('session-selectors', () => {
     };
 
     expect(selectSelectedIdsBySession(state, '/missing')).toBe(EMPTY_SELECTED_IDS);
-    expect(selectSelectedIdsBySession(state, '/missing')).toBe(EMPTY_SELECTED_IDS);
     expect(selectSelectedIdsBySession(state, '')).toBe(EMPTY_SELECTED_IDS);
   });
 

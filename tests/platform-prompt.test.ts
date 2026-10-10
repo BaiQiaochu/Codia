@@ -9,12 +9,12 @@ describe("getPlatformPromptNote", () => {
     const out = getPlatformPromptNote({
       ...baseOpts,
       platform: "darwin",
-      cwd: "/workspace/project-gsap",
+      cwd: "/workspace/project-codia",
       env: { SHELL: "/bin/zsh" },
     });
     expect(out).toContain("<environment_context>");
     expect(out).toContain("<platform>darwin</platform>");
-    expect(out).toContain("<cwd>/workspace/project-gsap</cwd>");
+    expect(out).toContain("<cwd>/workspace/project-codia</cwd>");
     expect(out).toContain("<shell>zsh</shell>");
     expect(out).toContain("<os>TestOS 1.2.3</os>");
     expect(out).toContain(`<sandbox_mode>${SANDBOX_MODE_LABEL}</sandbox_mode>`);
@@ -26,12 +26,12 @@ describe("getPlatformPromptNote", () => {
     const out = getPlatformPromptNote({
       ...baseOpts,
       platform: "linux",
-      cwd: "/workspace/project-gsap",
+      cwd: "/workspace/project-codia",
       env: {},
     });
     expect(out).toContain("<platform>linux</platform>");
     expect(out).toContain("<shell>bash</shell>");
-    expect(out).toContain("<cwd>/workspace/project-gsap</cwd>");
+    expect(out).toContain("<cwd>/workspace/project-codia</cwd>");
   });
 
   it("emits PowerShell as the Windows native shell", () => {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { streamBufferManager } from '../../hooks/use-stream-buffer';
+import { streamBufferManager, streamFlushIntervalForLength } from '../../hooks/use-stream-buffer';
 import { useStore } from '../../stores';
 import type { ContentBlock } from '../../stores/chat-types';
 
@@ -22,6 +22,11 @@ function getToolGroups(): Array<Extract<ContentBlock, { type: 'tool_group' }>> {
 }
 
 describe('streamBufferManager thinking streaming', () => {
+  it('reduces update frequency as streamed replies grow without dropping the final flush', () => {
+    expect(streamFlushIntervalForLength(1_000)).toBeLessThan(streamFlushIntervalForLength(40_000));
+    expect(streamFlushIntervalForLength(40_000)).toBeLessThan(streamFlushIntervalForLength(600_000));
+  });
+
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-05-16T00:00:00Z'));
@@ -32,7 +37,7 @@ describe('streamBufferManager thinking streaming', () => {
       },
       sessions: [],
       agents: [],
-      agentYuan: 'gsap',
+      agentYuan: 'codia',
       runtimeTimelineByTrace: {},
       runtimeTimelineTraceIdsBySession: {},
       runtimeDiagnosticsById: {},
@@ -157,7 +162,7 @@ describe('streamBufferManager thinking streaming', () => {
         '`office-documents` skill... wait, did the system prompt say only use specific tools?',
         'Actually, many environments handle `.docx` through a backend reader.',
         'Current files:',
-        '1. C:\\Users\\root\\.gsap\\uploads\\test.xlsx',
+        '1. C:\\Users\\root\\.codia\\uploads\\test.xlsx',
         'I will attempt to read both now using their verified paths.',
       ].join('\n'),
     });
@@ -559,7 +564,7 @@ describe('streamBufferManager thinking streaming', () => {
         status: 'success',
         sourceKind: 'tool',
         sourceLabel: 'image generation',
-        text: 'G-SAP received a result from image generation',
+        text: 'Codia received a result from image generation',
         detailMarkdown: 'Generated files:\n- visual.png (image)',
       };
 
@@ -637,7 +642,7 @@ describe('streamBufferManager thinking streaming', () => {
           status: 'success',
           sourceKind: 'tool',
           sourceLabel: 'image generation',
-          text: 'G-SAP received a result from image generation',
+          text: 'Codia received a result from image generation',
           detailMarkdown: 'Generated files:\n- quiet.png',
         },
       });
@@ -711,7 +716,7 @@ describe('streamBufferManager thinking streaming', () => {
           status: 'failed',
           sourceKind: 'tool',
           sourceLabel: 'image generation',
-          text: 'G-SAP did not receive a result from image generation',
+          text: 'Codia did not receive a result from image generation',
           detailMarkdown: 'API error 524',
         },
       });
@@ -857,7 +862,7 @@ describe('streamBufferManager thinking streaming', () => {
           status: 'success',
           sourceKind: 'tool',
           sourceLabel: 'image generation',
-          text: 'G-SAP received a result from image generation',
+          text: 'Codia received a result from image generation',
           detailMarkdown: 'Generated files:\n- fantasy.png',
         },
       });
@@ -917,7 +922,7 @@ describe('streamBufferManager thinking streaming', () => {
           status: 'success',
           sourceKind: 'tool',
           sourceLabel: 'image generation',
-          text: 'G-SAP received a result from image generation',
+          text: 'Codia received a result from image generation',
           detailMarkdown: 'Generated files:\n- fantasy.png',
         },
       });
@@ -1023,7 +1028,7 @@ describe('streamBufferManager thinking streaming', () => {
           status: 'success',
           sourceKind: 'tool',
           sourceLabel: 'image generation',
-          text: 'G-SAP received a result from image generation',
+          text: 'Codia received a result from image generation',
           detailMarkdown: 'Generated files:\n- rainy-street.png',
         },
       });

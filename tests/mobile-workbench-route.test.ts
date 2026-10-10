@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { upsertStudioMount } from "../core/studio-mounts.js";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-mobile-workbench-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-mobile-workbench-"));
 }
 
 async function makeApp(engine) {
@@ -33,7 +33,7 @@ describe("mobile workbench route", () => {
     fs.writeFileSync(path.join(workspace, ".secret"), "hidden", "utf-8");
 
     const app = await makeApp({
-      gsapHome: path.join(tmpDir, "gsap-home"),
+      codiaHome: path.join(tmpDir, "codia-home"),
       deskCwd: workspace,
       homeCwd: workspace,
     });
@@ -48,38 +48,38 @@ describe("mobile workbench route", () => {
     expect(JSON.stringify(data)).not.toContain(workspace);
   });
 
-  it("returns G-SAP mobile bootstrap metadata without leaking provider secrets", async () => {
+  it("returns Codia mobile bootstrap metadata without leaking provider secrets", async () => {
     tmpDir = makeTmpDir();
     const workspace = path.join(tmpDir, "workspace");
     fs.mkdirSync(workspace, { recursive: true });
 
     const app = await makeApp({
-      gsapHome: path.join(tmpDir, "gsap-home"),
-      userDir: path.join(tmpDir, "gsap-home", "user"),
-      agentDir: path.join(tmpDir, "gsap-home", "agents", "gsap"),
+      codiaHome: path.join(tmpDir, "codia-home"),
+      userDir: path.join(tmpDir, "codia-home", "user"),
+      agentDir: path.join(tmpDir, "codia-home", "agents", "codia"),
       deskCwd: workspace,
       homeCwd: workspace,
       getLocale: () => "zh-CN",
-      agentName: "G-SAP",
+      agentName: "Codia",
       userName: "Owner",
-      currentAgentId: "gsap",
+      currentAgentId: "codia",
       config: { cwd_history: [workspace] },
       agent: {
         config: {
-          agent: { yuan: "gsap" },
+          agent: { yuan: "codia" },
           providers: { openai: { api_key: "secret-key" } },
         },
       },
       listAgents: () => [{
-        id: "gsap",
-        name: "G-SAP",
-        yuan: "gsap",
+        id: "codia",
+        name: "Codia",
+        yuan: "codia",
         isPrimary: true,
         hasAvatar: false,
         homeFolder: workspace,
         chatModel: { id: "gpt-5.5", provider: "openai" },
       }],
-      getAppearance: () => ({ theme: "gsap-dark", serif: false }),
+      getAppearance: () => ({ theme: "codia-dark", serif: false }),
     });
 
     const res = await app.request("/api/mobile/bootstrap");
@@ -88,18 +88,18 @@ describe("mobile workbench route", () => {
     const data = await res.json();
     expect(data).toMatchObject({
       locale: "zh-CN",
-      agentName: "G-SAP",
+      agentName: "Codia",
       userName: "Owner",
-      currentAgentId: "gsap",
-      agentYuan: "gsap",
+      currentAgentId: "codia",
+      agentYuan: "codia",
       homeFolder: workspace,
       cwdHistory: [workspace],
-      appearance: { theme: "gsap-dark" },
+      appearance: { theme: "codia-dark" },
     });
     expect(data.agents).toEqual([{
-      id: "gsap",
-      name: "G-SAP",
-      yuan: "gsap",
+      id: "codia",
+      name: "Codia",
+      yuan: "codia",
       isPrimary: true,
       isCurrent: false,
       hasAvatar: false,
@@ -108,7 +108,7 @@ describe("mobile workbench route", () => {
       memoryMasterEnabled: true,
     }]);
     expect(JSON.stringify(data)).not.toContain("secret-key");
-    expect(JSON.stringify(data).toLowerCase()).not.toContain("hanako");
+    expect(JSON.stringify(data).toLowerCase()).toContain("codia");
   });
 
   it("uses a localized fallback user name for mobile bootstrap", async () => {
@@ -117,12 +117,12 @@ describe("mobile workbench route", () => {
     fs.mkdirSync(workspace, { recursive: true });
 
     const app = await makeApp({
-      gsapHome: path.join(tmpDir, "gsap-home"),
+      codiaHome: path.join(tmpDir, "codia-home"),
       deskCwd: workspace,
       homeCwd: workspace,
       getLocale: () => "zh-CN",
-      agentName: "G-SAP",
-      currentAgentId: "gsap",
+      agentName: "Codia",
+      currentAgentId: "codia",
     });
 
     const res = await app.request("/api/mobile/bootstrap");
@@ -140,7 +140,7 @@ describe("mobile workbench route", () => {
     fs.mkdirSync(workspace, { recursive: true });
     fs.writeFileSync(path.join(workspace, "粘贴图片.md"), "abcdef", "utf-8");
     const app = await makeApp({
-      gsapHome: path.join(tmpDir, "gsap-home"),
+      codiaHome: path.join(tmpDir, "codia-home"),
       deskCwd: workspace,
       homeCwd: workspace,
     });
@@ -162,11 +162,11 @@ describe("mobile workbench route", () => {
   it("safe-deletes mobile files into recoverable trash instead of hard removing bytes", async () => {
     tmpDir = makeTmpDir();
     const workspace = path.join(tmpDir, "workspace");
-    const gsapHome = path.join(tmpDir, "gsap-home");
+    const codiaHome = path.join(tmpDir, "codia-home");
     fs.mkdirSync(workspace, { recursive: true });
     fs.writeFileSync(path.join(workspace, "draft.txt"), "keep me recoverable", "utf-8");
     const app = await makeApp({
-      gsapHome,
+      codiaHome,
       deskCwd: workspace,
       homeCwd: workspace,
     });
@@ -182,7 +182,7 @@ describe("mobile workbench route", () => {
     expect(data).toMatchObject({ ok: true, action: "safeDelete" });
     expect(data.trashId).toMatch(/^trash_/);
     expect(fs.existsSync(path.join(workspace, "draft.txt"))).toBe(false);
-    const trashDir = path.join(gsapHome, "trash", "mobile-workbench", data.trashId);
+    const trashDir = path.join(codiaHome, "trash", "mobile-workbench", data.trashId);
     expect(fs.readFileSync(path.join(trashDir, "payload"), "utf-8")).toBe("keep me recoverable");
     expect(JSON.parse(fs.readFileSync(path.join(trashDir, "metadata.json"), "utf-8")))
       .toMatchObject({ originalName: "draft.txt", rootId: "default" });
@@ -193,7 +193,7 @@ describe("mobile workbench route", () => {
     const workspace = path.join(tmpDir, "workspace");
     fs.mkdirSync(workspace, { recursive: true });
     const app = await makeApp({
-      gsapHome: path.join(tmpDir, "gsap-home"),
+      codiaHome: path.join(tmpDir, "codia-home"),
       deskCwd: workspace,
       homeCwd: workspace,
     });
@@ -229,7 +229,7 @@ describe("mobile workbench route", () => {
       await next();
     });
     app.route("/api", createMobileWorkbenchRoute({
-      gsapHome: path.join(tmpDir, "gsap-home"),
+      codiaHome: path.join(tmpDir, "codia-home"),
       deskCwd: workspace,
       homeCwd: workspace,
       getRuntimeContext: () => ({
@@ -258,7 +258,7 @@ describe("mobile workbench route", () => {
   it("records a consumed write lease and security audit entry for scoped remote writes", async () => {
     tmpDir = makeTmpDir();
     const workspace = path.join(tmpDir, "workspace");
-    const gsapHome = path.join(tmpDir, "gsap-home");
+    const codiaHome = path.join(tmpDir, "codia-home");
     fs.mkdirSync(workspace, { recursive: true });
     const app = new Hono();
     const { createMobileWorkbenchRoute } = await import("../server/routes/mobile-workbench.js");
@@ -277,10 +277,10 @@ describe("mobile workbench route", () => {
       await next();
     });
     app.route("/api", createMobileWorkbenchRoute({
-      gsapHome,
+      codiaHome,
       deskCwd: workspace,
       homeCwd: workspace,
-      currentAgentId: "gsap",
+      currentAgentId: "codia",
       getRuntimeContext: () => ({
         serverId: "server_1",
         serverNodeId: "node_1",
@@ -299,7 +299,7 @@ describe("mobile workbench route", () => {
 
     expect(res.status).toBe(200);
     expect(fs.readFileSync(path.join(workspace, "remote.md"), "utf-8")).toBe("remote body");
-    const leases = JSON.parse(fs.readFileSync(path.join(gsapHome, "security", "execution-leases.json"), "utf-8"));
+    const leases = JSON.parse(fs.readFileSync(path.join(codiaHome, "security", "execution-leases.json"), "utf-8"));
     expect(leases.leases).toHaveLength(1);
     expect(leases.leases[0]).toMatchObject({
       status: "consumed",
@@ -307,7 +307,7 @@ describe("mobile workbench route", () => {
       sandboxProfile: "workspace_write",
       backupPolicy: "snapshot_before_write",
     });
-    const audit = fs.readFileSync(path.join(gsapHome, "logs", "security-audit.jsonl"), "utf-8")
+    const audit = fs.readFileSync(path.join(codiaHome, "logs", "security-audit.jsonl"), "utf-8")
       .trim()
       .split("\n")
       .map((line) => JSON.parse(line));
@@ -322,11 +322,11 @@ describe("mobile workbench route", () => {
     tmpDir = makeTmpDir();
     const workspace = path.join(tmpDir, "workspace");
     const mountRoot = path.join(tmpDir, "mounted-docs");
-    const gsapHome = path.join(tmpDir, "gsap-home");
+    const codiaHome = path.join(tmpDir, "codia-home");
     fs.mkdirSync(workspace, { recursive: true });
     fs.mkdirSync(mountRoot, { recursive: true });
     fs.writeFileSync(path.join(mountRoot, "mounted.md"), "mount body", "utf-8");
-    upsertStudioMount(gsapHome, {
+    upsertStudioMount(codiaHome, {
       mountId: "mount_docs",
       hostStudioId: "studio_1",
       sourceKind: "storage",
@@ -337,7 +337,7 @@ describe("mobile workbench route", () => {
       capabilities: ["list", "read", "write"],
     });
     const app = await makeApp({
-      gsapHome,
+      codiaHome,
       deskCwd: workspace,
       homeCwd: workspace,
       getRuntimeContext: () => ({

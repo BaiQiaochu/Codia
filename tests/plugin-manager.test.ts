@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 import { PluginManager } from "../core/plugin-manager.js";
 
-const tmpHome = path.join(os.tmpdir(), "gsap-pm-test-" + Date.now());
+const tmpHome = path.join(os.tmpdir(), "codia-pm-test-" + Date.now());
 const pluginsDir = path.join(tmpHome, "plugins");
 const dataDir = path.join(tmpHome, "plugin-data");
 const tsRuntimeIt = process.features?.typescript === "strip" ? it : it.skip;
@@ -96,7 +96,7 @@ describe("scan", () => {
       expect.objectContaining({
         id: "openclaw-voice",
         status: "incompatible",
-        error: expect.stringMatching(/G-SAP cannot install it directly/i),
+        error: expect.stringMatching(/Codia cannot install it directly/i),
       }),
     ]));
   });
@@ -173,7 +173,7 @@ describe("loadAll", () => {
     fs.writeFileSync(path.join(dir, "index.js"), `
       export default class ScopePlugin {
         async onload() {
-          globalThis.__gsapScopePluginLifecycle = {
+          globalThis.__codiaScopePluginLifecycle = {
             serverId: this.ctx.serverId,
             serverNodeId: this.ctx.serverNodeId,
             userId: this.ctx.userId,
@@ -207,7 +207,7 @@ describe("loadAll", () => {
     pm.scan();
     await pm.loadAll();
 
-    expect(globalThis.__gsapScopePluginLifecycle).toEqual({
+    expect(globalThis.__codiaScopePluginLifecycle).toEqual({
       serverId: "server_plugin",
       serverNodeId: "node_plugin",
       userId: "user_plugin",
@@ -226,7 +226,7 @@ describe("loadAll", () => {
       studioId: "studio_plugin",
       sessionPath: "/sessions/plugin-scope.jsonl",
     });
-    delete globalThis.__gsapScopePluginLifecycle;
+    delete globalThis.__codiaScopePluginLifecycle;
   });
 
   it("provides register() on instance and cleans up on unload", async () => {

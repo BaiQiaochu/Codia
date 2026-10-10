@@ -333,7 +333,7 @@ function buildBridgeStatus(engine: EngineLike, bridgeManager: BridgeManagerLike 
 }
 
 function buildAccessSnapshot(engine: EngineLike, canSeeLocalPaths: boolean, options: SettingsSnapshotOptions) {
-  if (!canSeeLocalPaths || !engine?.gsapHome) return null;
+  if (!canSeeLocalPaths || !engine?.codiaHome) return null;
   return createAccessSummary(
     engine,
     options.runtimeState || {},

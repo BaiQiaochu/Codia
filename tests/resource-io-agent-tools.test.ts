@@ -27,7 +27,7 @@ describe("ResourceIO agent tools", () => {
   });
 
   it("normalizes local path aliases before delegating write through the ResourceIO-backed tool", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-io-tools-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-io-tools-"));
     const execute = vi.fn(async (_toolCallId, params) => {
       fs.mkdirSync(path.dirname(params.path), { recursive: true });
       fs.writeFileSync(params.path, params.content, "utf-8");
@@ -67,7 +67,7 @@ describe("ResourceIO agent tools", () => {
   });
 
   it("routes local path file-tool writes through ResourceIO operations", async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-io-local-tool-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-io-local-tool-"));
     const resourceIO = {
       write: vi.fn(async () => ({
         changeType: "created",

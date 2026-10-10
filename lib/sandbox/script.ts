@@ -8,7 +8,7 @@ import path from "path";
 import os from "os";
 import crypto from "crypto";
 
-const PREFIX = ".gsap-sandbox-";
+const PREFIX = ".codia-sandbox-";
 
 function tempPath(ext) {
   const id = crypto.randomUUID().slice(0, 8);

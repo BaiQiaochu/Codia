@@ -18,7 +18,7 @@ import {
 let tmp;
 
 beforeEach(() => {
-  tmp = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-server-readiness-"));
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), "codia-server-readiness-"));
 });
 
 afterEach(() => {

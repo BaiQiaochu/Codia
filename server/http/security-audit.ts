@@ -22,7 +22,7 @@ export function recordSecurityAuditEvent(c, engine, {
   leaseId = null,
   errorCode = null,
 }: SecurityAuditPayload = {}) {
-  return appendSecurityAuditEvent(engine?.gsapHome || engine?.hanakoHome, {
+  return appendSecurityAuditEvent(engine?.codiaHome || engine?.codiaHome, {
     action,
     target,
     result,

@@ -444,7 +444,7 @@ describe("provider-compat/deepseek — apply 主流程接入 reasoning_content �
     expect(result.messages[0].content).toContain("Agent 身份“青岚”");
     expect(result.messages[0].content).toContain("花名册简介：沉静细腻的文学型助手");
     expect(result.messages[0].content).toContain("reasoning_content / thinking");
-    expect(result.messages[0].content).not.toContain("G-SAP DeepSeek roleplay reasoning patch");
+    expect(result.messages[0].content).not.toContain("Codia DeepSeek roleplay reasoning patch");
     expect(result.messages[2].content).toBe("第二条用户消息");
     expect(payload).toEqual(snapshot);
   });

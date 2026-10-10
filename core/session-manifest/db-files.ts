@@ -14,17 +14,17 @@ export function sanitizeSessionManifestFileSuffix(value: any) {
 }
 
 export function moveSessionManifestDbFilesAside(opts: any = {}) {
-  const inputHome = opts.gsapHome || opts.hanaHome;
-  if (!inputHome) throw new Error("moveSessionManifestDbFilesAside requires gsapHome");
+  const inputHome = opts.codiaHome || opts.codiaHome;
+  if (!inputHome) throw new Error("moveSessionManifestDbFilesAside requires codiaHome");
   if (!opts.suffix) throw new Error("moveSessionManifestDbFilesAside requires suffix");
-  const gsapHome = path.resolve(inputHome);
+  const codiaHome = path.resolve(inputHome);
   const suffix = sanitizeSessionManifestFileSuffix(opts.suffix);
   const moved = [];
 
   for (const fileName of SESSION_MANIFEST_DB_FILE_NAMES) {
-    const from = path.join(gsapHome, fileName);
+    const from = path.join(codiaHome, fileName);
     if (!fs.existsSync(from)) continue;
-    const to = path.join(gsapHome, `${fileName}.${suffix}`);
+    const to = path.join(codiaHome, `${fileName}.${suffix}`);
     if (fs.existsSync(to)) {
       throw new Error(`Session manifest database target already exists: ${to}`);
     }

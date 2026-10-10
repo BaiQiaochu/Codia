@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSettingsStore } from '../../store';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { t, API_FORMAT_OPTIONS } from '../../helpers';
 import { loadSettingsConfig } from '../../actions';
 import { SelectWidget } from '../../widgets/SelectWidget';
@@ -57,7 +57,7 @@ function AddProviderForm({ onDone }: { onDone: () => void }) {
     if (!u) { showToast(t('settings.providers.urlRequired'), 'error'); return; }
     try {
       const headers = parseProviderHeaderLines(headersText);
-      const res = await gsapFetch('/api/config', {
+      const res = await codiaFetch('/api/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -85,7 +85,6 @@ describe('ArtifactEditor markdown attachments', () => {
     await act(async () => {
       vi.advanceTimersByTime(700);
       await Promise.resolve();
-      await Promise.resolve();
     });
   }
 
@@ -96,7 +95,7 @@ describe('ArtifactEditor markdown attachments', () => {
       <ArtifactEditor
         ref={ref}
         content="original"
-        filePath="/tmp/gsap-note.md"
+        filePath="/tmp/codia-note.md"
         mode="markdown"
       />,
     );
@@ -108,7 +107,7 @@ describe('ArtifactEditor markdown attachments', () => {
         <ArtifactEditor
           ref={ref}
           content="external update"
-          filePath="/tmp/gsap-note.md"
+          filePath="/tmp/codia-note.md"
           fileVersion={{ mtimeMs: 2, size: 15, sha256: 'external' }}
           mode="markdown"
         />,
@@ -134,13 +133,12 @@ describe('ArtifactEditor markdown attachments', () => {
         <ArtifactEditor
           ref={ref}
           content={'alpha\nbeta'}
-          filePath="/tmp/gsap-note.md"
+          filePath="/tmp/codia-note.md"
           mode="markdown"
         />,
       );
 
       await act(async () => {
-        await Promise.resolve();
         await Promise.resolve();
       });
 
@@ -149,7 +147,6 @@ describe('ArtifactEditor markdown attachments', () => {
       visibilityState = 'visible';
       await act(async () => {
         document.dispatchEvent(new Event('visibilitychange'));
-        await Promise.resolve();
         await Promise.resolve();
       });
 
@@ -169,13 +166,12 @@ describe('ArtifactEditor markdown attachments', () => {
       <ArtifactEditor
         ref={ref}
         content={'alpha\nbeta'}
-        filePath="/tmp/gsap-note.md"
+        filePath="/tmp/codia-note.md"
         mode="markdown"
       />,
     );
 
     await act(async () => {
-      await Promise.resolve();
       await Promise.resolve();
     });
 
@@ -201,7 +197,7 @@ describe('ArtifactEditor markdown attachments', () => {
       <ArtifactEditor
         ref={ref}
         content="original"
-        filePath="/tmp/gsap-note.md"
+        filePath="/tmp/codia-note.md"
         fileVersion={fileVersion}
         mode="markdown"
         onContentChange={onContentChange}
@@ -219,7 +215,7 @@ describe('ArtifactEditor markdown attachments', () => {
     await flushSaveTimer();
 
     expect(platform.writeFileIfUnchanged).toHaveBeenCalledWith(
-      '/tmp/gsap-note.md',
+      '/tmp/codia-note.md',
       'user edit',
       fileVersion,
     );
@@ -272,7 +268,7 @@ describe('ArtifactEditor markdown attachments', () => {
       <ArtifactEditor
         ref={ref}
         content="abcdef"
-        filePath="/tmp/gsap-note.md"
+        filePath="/tmp/codia-note.md"
         mode="markdown"
       />,
     );
@@ -287,7 +283,7 @@ describe('ArtifactEditor markdown attachments', () => {
         <ArtifactEditor
           ref={ref}
           content="abcXYZdef"
-          filePath="/tmp/gsap-note.md"
+          filePath="/tmp/codia-note.md"
           mode="markdown"
         />,
       );
@@ -306,7 +302,7 @@ describe('ArtifactEditor markdown attachments', () => {
       <ArtifactEditor
         ref={ref}
         content="line 1\nline 2\nline 3"
-        filePath="/tmp/gsap-note.md"
+        filePath="/tmp/codia-note.md"
         mode="markdown"
       />,
     );
@@ -330,11 +326,10 @@ describe('ArtifactEditor markdown attachments', () => {
         <ArtifactEditor
           ref={ref}
           content="line 1\ninserted\nline 2\nline 3"
-          filePath="/tmp/gsap-note.md"
+          filePath="/tmp/codia-note.md"
           mode="markdown"
         />,
       );
-      await Promise.resolve();
       await Promise.resolve();
     });
 
@@ -363,7 +358,7 @@ describe('ArtifactEditor markdown attachments', () => {
       <ArtifactEditor
         ref={ref}
         content={saved}
-        filePath="/tmp/gsap-note.md"
+        filePath="/tmp/codia-note.md"
         fileVersion={loadedVersion}
         mode="markdown"
         onContentChange={onContentChange}
@@ -384,13 +379,12 @@ describe('ArtifactEditor markdown attachments', () => {
         <ArtifactEditor
           ref={ref}
           content={coverUpdated}
-          filePath="/tmp/gsap-note.md"
+          filePath="/tmp/codia-note.md"
           fileVersion={coverVersion}
           mode="markdown"
           onContentChange={onContentChange}
         />,
       );
-      await Promise.resolve();
       await Promise.resolve();
     });
 
@@ -409,7 +403,7 @@ describe('ArtifactEditor markdown attachments', () => {
     expect(onContentChange).toHaveBeenCalledWith(merged);
     await flushSaveTimer();
     expect(platform.writeFileIfUnchanged).toHaveBeenCalledWith(
-      '/tmp/gsap-note.md',
+      '/tmp/codia-note.md',
       merged,
       coverVersion,
     );
@@ -439,7 +433,7 @@ describe('ArtifactEditor markdown attachments', () => {
       <ArtifactEditor
         ref={ref}
         content="original"
-        filePath="/tmp/gsap-note.md"
+        filePath="/tmp/codia-note.md"
         fileVersion={loadedVersion}
         mode="markdown"
         onContentChange={onContentChange}
@@ -473,18 +467,16 @@ describe('ArtifactEditor markdown attachments', () => {
         version: firstVersion,
       });
       await Promise.resolve();
-      await Promise.resolve();
     });
 
     expect(platform.writeFileIfUnchanged).toHaveBeenCalledTimes(2);
     expect(platform.writeFileIfUnchanged).toHaveBeenLastCalledWith(
-      '/tmp/gsap-note.md',
+      '/tmp/codia-note.md',
       'second edit',
       firstVersion,
     );
 
     await act(async () => {
-      await Promise.resolve();
       await Promise.resolve();
     });
 
@@ -502,7 +494,7 @@ describe('ArtifactEditor markdown attachments', () => {
       <ArtifactEditor
         ref={ref}
         content="original"
-        filePath="/tmp/gsap-note.md"
+        filePath="/tmp/codia-note.md"
         fileVersion={loadedVersion}
         mode="markdown"
       />,
@@ -522,7 +514,7 @@ describe('ArtifactEditor markdown attachments', () => {
         <ArtifactEditor
           ref={ref}
           content="local edit"
-          filePath="/tmp/gsap-note.md"
+          filePath="/tmp/codia-note.md"
           fileVersion={loadedVersion}
           mode="markdown"
         />,
@@ -535,7 +527,7 @@ describe('ArtifactEditor markdown attachments', () => {
         <ArtifactEditor
           ref={ref}
           content="local edit"
-          filePath="/tmp/gsap-note.md"
+          filePath="/tmp/codia-note.md"
           fileVersion={caughtUpVersion}
           mode="markdown"
         />,
@@ -548,7 +540,7 @@ describe('ArtifactEditor markdown attachments', () => {
         <ArtifactEditor
           ref={ref}
           content="external update"
-          filePath="/tmp/gsap-note.md"
+          filePath="/tmp/codia-note.md"
           fileVersion={externalVersion}
           mode="markdown"
         />,
@@ -568,14 +560,14 @@ describe('ArtifactEditor markdown attachments', () => {
     const onNotice = vi.fn((event: Event) => {
       notices.push((event as CustomEvent).detail ?? {});
     });
-    window.addEventListener('gsap-inline-notice', onNotice);
+    window.addEventListener('codia-inline-notice', onNotice);
 
     try {
       const { rerender } = render(
         <ArtifactEditor
           ref={ref}
           content="original"
-          filePath="/tmp/gsap-note.md"
+          filePath="/tmp/codia-note.md"
           fileVersion={loadedVersion}
           mode="markdown"
           onContentChange={onContentChange}
@@ -596,7 +588,7 @@ describe('ArtifactEditor markdown attachments', () => {
           <ArtifactEditor
             ref={ref}
             content="external update"
-            filePath="/tmp/gsap-note.md"
+            filePath="/tmp/codia-note.md"
             fileVersion={externalVersion}
             mode="markdown"
             onContentChange={onContentChange}
@@ -610,7 +602,7 @@ describe('ArtifactEditor markdown attachments', () => {
       expect(onContentChange).toHaveBeenCalledTimes(2);
       expect(notices.some(notice => String(notice.text ?? '').includes('settings.fileChangedOnDisk'))).toBe(true);
     } finally {
-      window.removeEventListener('gsap-inline-notice', onNotice);
+      window.removeEventListener('codia-inline-notice', onNotice);
     }
   });
 
@@ -644,7 +636,6 @@ describe('ArtifactEditor markdown attachments', () => {
 
     await act(async () => {
       container.querySelector('.cm-content')?.dispatchEvent(paste);
-      await Promise.resolve();
       await Promise.resolve();
     });
 
@@ -691,7 +682,6 @@ describe('ArtifactEditor markdown attachments', () => {
 
     await act(async () => {
       container.querySelector('.cm-content')?.dispatchEvent(drop);
-      await Promise.resolve();
       await Promise.resolve();
     });
 

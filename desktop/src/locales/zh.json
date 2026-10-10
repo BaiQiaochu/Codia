@@ -133,7 +133,8 @@
     "searchFailed": "搜索失败",
     "projects": {
       "newFolder": "新建文件夹"
-    }
+    },
+    "automationRecords": "自动化记录"
   },
   "session": {
     "untitled": "新对话",
@@ -314,10 +315,13 @@
     "removeRecentWorkspace": "移除最近工作空间",
     "planMode": "权限模式",
     "accessMode": "会话权限模式",
-    "autoMode": "自动模式",
-    "operateMode": "自动操作",
-    "askMode": "操作前询问",
-    "readOnlyMode": "只读模式",
+    "autoMode": "帮我批准",
+    "autoModeDescription": "仅对检测到的风险操作请求批准",
+    "operateMode": "完全访问权限",
+    "operateModeDescription": "可不受限制地访问互联网和你电脑上的任何文件",
+    "askMode": "请求批准",
+    "askModeDescription": "编辑外部文件和使用互联网时始终询问",
+    "readOnlyMode": "请求批准",
     "accessModeLocked": "当前无法更改权限模式",
     "confirmMoreOptions": "更多确认选项",
     "noAskThisConversation": "本对话不再询问",
@@ -381,9 +385,53 @@
       "tab": {
         "files": "文件",
         "sessions": "对话",
-        "agents": "助手"
+        "agents": "助手",
+        "all": "全部"
       },
-      "empty": "没有匹配项"
+      "empty": "没有匹配项",
+      "group": {
+        "agents": "助手",
+        "sessions": "对话",
+        "images": "图片",
+        "files": "文件"
+      }
+    },
+    "addMenu": "添加",
+    "add": {
+      "title": "添加",
+      "file": "文件",
+      "fileDetail": "从电脑选择文件",
+      "folder": "文件夹",
+      "folderDetail": "添加一个工作文件夹",
+      "link": "链接",
+      "linkDetail": "把网页地址加入消息",
+      "plugins": "插件",
+      "pluginsDetail": "使用已启用的插件",
+      "skills": "技能",
+      "skillCount": "{count} 个可用技能",
+      "tools": "工具",
+      "toolsDetail": "选择当前任务工具",
+      "addLink": "添加链接",
+      "linkAddress": "链接地址",
+      "confirm": "添加",
+      "back": "返回",
+      "selectSkills": "选择技能",
+      "selectPlugins": "选择插件",
+      "selectTools": "选择工具",
+      "searchSkills": "搜索技能",
+      "searchPlugins": "搜索插件",
+      "normalChat": "普通聊天",
+      "normalChatDetail": "不使用专用工具",
+      "loadingPlugins": "正在加载插件…",
+      "noSkills": "没有匹配的技能",
+      "noPlugins": "没有已启用的插件"
+    },
+    "slash": {
+      "title": "命令与技能",
+      "group": {
+        "commands": "命令",
+        "skills": "技能"
+      }
     }
   },
   "slash": {
@@ -418,25 +466,25 @@
   },
   "yuan": {
     "types": {
-      "gsap": {
+      "codia": {
         "name": "均衡",
         "label": "表达与执行保持平衡",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "butter": {
         "name": "情感",
         "label": "更富有情绪感知",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "ming": {
         "name": "理性",
         "label": "更理性冷静",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "kong": {
         "name": "原始",
         "label": "模型原本的样子",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       }
     },
     "title": "元",
@@ -784,6 +832,8 @@
       "providers": "供应商",
       "media": "多媒体",
       "experiments": "实验",
+      "context": "上下文",
+      "computerUse": "计算机使用",
       "models": "模型",
       "memory": "记忆",
       "work": "工作空间",
@@ -1214,7 +1264,10 @@
       "headers": "请求头",
       "addBtn": "添加",
       "empty": "还没有注册供应商",
-      "fetchModels": "读取模型",
+      "fetchModels": "扫描模型",
+      "modelManagement": "模型管理",
+      "manualAddModel": "手动添加",
+      "searchOrSelectModel": "搜索或选择扫描到的模型……",
       "delete": "删除供应商",
       "modelCount": "{n} 个模型",
       "fetchSuccess": "{name} 获取了 {n} 个模型",
@@ -1794,7 +1847,7 @@
       "light": "浅色",
       "dark": "深色",
       "sakura": "协作青",
-      "gsap": "机构蓝绿",
+      "codia": "机构蓝绿",
       "mobile": "手机看",
       "desktop": "电脑看",
       "mobileTitle": "手机排版",
@@ -1848,7 +1901,7 @@
       "permissionMode": "权限模式",
       "permissionModeDesc": "控制社交平台会话通过 Agent 回复时可执行的操作",
       "permissionModeAuto": "自动审核",
-      "permissionModeOperate": "自动操作",
+      "permissionModeOperate": "完全访问权限",
       "permissionModeReadOnly": "只读",
       "receiptEnabled": "回复前提示",
       "receiptEnabledDesc": "收到消息后，先发送一条“已接收并正在回复”的提示",
@@ -2238,8 +2291,8 @@
     "error": "出现错误，请重试"
   },
   "activity": {
-    "title": "助手活动",
-    "empty": "暂无活动。巡检、定时任务和后台任务会显示在这里。",
+    "title": "自动化记录",
+    "empty": "暂无自动化记录。巡检、定时任务、子 Agent 与后台自动进程会显示在这里。",
     "back": "返回",
     "heartbeat": "定期巡检",
     "subagent": "子 Agent 任务",
@@ -2826,7 +2879,7 @@
       "channelDesc": "频道名称（read/post 时必填）",
       "contentDesc": "消息内容（post 时必填）",
       "nameDesc": "新频道名称（create 时必填）",
-      "membersDesc": "成员列表（create 时必填），如 [\"gsap\", \"butter\"]",
+      "membersDesc": "成员列表（create 时必填），如 [\"codia\", \"butter\"]",
       "introDesc": "频道介绍（create 时可选）",
       "countDesc": "读取消息条数（read 时可选，默认 20）"
     },
@@ -3329,9 +3382,21 @@
     }
   },
   "processFold": {
-    "summary": "✨ {name} 忙活了一阵子",
+    "summary": "执行过程",
+    "running": "正在执行 {name}",
+    "completed": "已完成 {n} 项",
     "tools": "{n} 个工具",
     "thinking": "{n} 次思考",
+    "files": "涉及 {n} 个文件",
+    "duration": "耗时 {value}",
+    "action": {
+      "write": "修改文件",
+      "read": "检索项目",
+      "command": "运行检查",
+      "agent": "协调助手",
+      "integration": "调用扩展",
+      "tool": "调用 {name}"
+    },
     "unsuccessful": "{n} 次尝试未成功"
   },
   "settings.work.heartbeatOperationalNotice": "巡检可能在后台运行工具并访问工作区文件。仅对你信任可无人值守执行的 Agent 开启。",

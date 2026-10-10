@@ -18,17 +18,6 @@ function on(channel, callback) {
   return () => ipcRenderer.removeListener(channel, handler);
 }
 
-function normalizeLocalServerPort(port) {
-  const value = String(port ?? "").trim();
-  return /^\d+$/.test(value) ? value : "";
-}
-
-async function resolveOcrAssetRoot() {
-  const port = normalizeLocalServerPort(await ipcRenderer.invoke("get-server-port"));
-  if (!port) throw new Error("OCR assets require the local server to be ready.");
-  return `http://127.0.0.1:${port}/ocr-runtime/`;
-}
-
 const api = {
   getServerPort: () => ipcRenderer.invoke("get-server-port"),
   getServerToken: () => ipcRenderer.invoke("get-server-token"),
@@ -102,7 +91,6 @@ const api = {
   onWorkspaceChanged: (callback) => on("workspace-changed", callback),
   readFileBase64: (filePath) => ipcRenderer.invoke("read-file-base64", filePath),
   getFileUrl: (filePath) => pathToFileUrl(filePath),
-  getOcrAssetRoot: () => resolveOcrAssetRoot(),
   readDocxHtml: (filePath) => ipcRenderer.invoke("read-docx-html", filePath),
   readXlsxHtml: (filePath) => ipcRenderer.invoke("read-xlsx-html", filePath),
   readDesignDocumentPreview: (filePath) => ipcRenderer.invoke("read-design-document-preview", filePath),
@@ -166,6 +154,5 @@ const api = {
   },
 };
 
-contextBridge.exposeInMainWorld("gsap", api);
+contextBridge.exposeInMainWorld("codia", api);
 contextBridge.exposeInMainWorld("platform", api);
-contextBridge.exposeInMainWorld("hana", api);

@@ -189,7 +189,6 @@ export class SkillManager {
 
   /**
   *
-  *
   * */
   computeDefaultEnabledForNewAgent() {
     return this._allSkills

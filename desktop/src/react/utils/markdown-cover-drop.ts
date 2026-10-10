@@ -72,7 +72,7 @@ function coverTargetInput(
 }
 
 function dispatchCoverDropNotice(text: string, type: 'success' | 'error' = 'success'): void {
-  window.dispatchEvent(new CustomEvent('gsap-inline-notice', {
+  window.dispatchEvent(new CustomEvent('codia-inline-notice', {
     detail: { text, type },
   }));
 }

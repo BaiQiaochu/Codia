@@ -1,6 +1,6 @@
-# G-SAP 插件
+# Codia 插件
 
-插件用于把外部能力接入 G-SAP，同时保持权限、资源、配置和运行时边界清晰。任何插件功能都必须同时经过 UI、后端 route、工具注册、模型可见工具和 license capability 的一致管控。
+插件用于把外部能力接入 Codia，同时保持权限、资源、配置和运行时边界清晰。任何插件功能都必须同时经过 UI、后端 route、工具注册、模型可见工具和 license capability 的一致管控。
 
 ## 目录结构
 
@@ -120,5 +120,5 @@ npm test -- tests/plugin-routes.test.ts tests/plugin-manager.test.ts tests/plugi
 ## Network And Iframe API
 
 - Backend plugin code must declare `network.fetch` and call `ctx.network.fetch`. The host enforces allowed hosts, methods, localhost policy, timeouts, and response byte limits.
-- Iframe UI should use `gsap.api.url` and `gsap.api.fetch` for its own plugin backend routes. The SDK adds the plugin surface session header automatically.
+- Iframe UI should use `codia.api.url` and `codia.api.fetch` for its own plugin backend routes. The SDK adds the plugin surface session header automatically.
 - Plugin assets may include web runtime files plus safe image, font, wasm, and video assets; keep secrets and source maps out of `assets/`.

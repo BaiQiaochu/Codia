@@ -181,7 +181,7 @@ function resolveSessionWorkspaceSelection(engine, body) {
   }
   try {
     const files = new MountAwareFileService({
-      gsapHome: engine.gsapHome || engine.hanakoHome || engine.homeDir,
+      codiaHome: engine.codiaHome || engine.codiaHome || engine.homeDir,
       defaultRoot: engine.defaultDeskCwd || engine.homeCwd || engine.deskCwd,
       studioId: engine.getRuntimeContext?.()?.studioId || null,
     });
@@ -267,7 +267,7 @@ function historyDeferredDeliveryId(message, sourceIndex) {
 }
 
 const TODO_COMPLETE_MESSAGE =
-  "[G-SAP Todo] The user marked the current todo list as completed and removed it from the session UI. Treat every item in that list as completed. Create a new todo list only if new work needs tracking.";
+  "[Codia Todo] The user marked the current todo list as completed and removed it from the session UI. Treat every item in that list as completed. Create a new todo list only if new work needs tracking.";
 
 export function createSessionsRoute(engine: any, hub: any = null) {
   const route = new Hono<any>();
@@ -1660,9 +1660,9 @@ export function createSessionsRoute(engine: any, hub: any = null) {
       const errDetail = `${err.message}\n${err.stack || ""}`;
       console.error("[sessions/switch] error:", errDetail);
       try {
-        if (engine.gsapHome) {
+        if (engine.codiaHome) {
           await fs.appendFile(
-            path.join(engine.gsapHome, "switch-error.log"),
+            path.join(engine.codiaHome, "switch-error.log"),
             `${new Date().toISOString()}\n${errDetail}\n---\n`,
           );
         }
@@ -2059,9 +2059,9 @@ function patchSessionFileLifecycleBlocks(blocks, engine, sessionPath) {
     if (!file && block.filePath && typeof engine?.getSessionFileByPath === "function") {
       file = engine.getSessionFileByPath(block.filePath, { sessionPath });
     }
-    if (!file && block.type === "screenshot" && block.base64 && engine?.gsapHome && typeof engine?.getSessionFileByPath === "function") {
+    if (!file && block.type === "screenshot" && block.base64 && engine?.codiaHome && typeof engine?.getSessionFileByPath === "function") {
       try {
-        const filePath = browserScreenshotPath(engine.gsapHome, sessionPath, {
+        const filePath = browserScreenshotPath(engine.codiaHome, sessionPath, {
           base64: block.base64,
           mimeType: block.mimeType,
         });

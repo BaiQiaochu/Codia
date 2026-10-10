@@ -6,9 +6,9 @@ const baseSession = {
   firstMessage: "",
   modified: new Date("2026-05-22T12:00:00.000Z"),
   messageCount: 3,
-  cwd: "/tmp/project-gsap",
-  agentId: "gsap",
-  agentName: "G-SAP",
+  cwd: "/tmp/project-codia",
+  agentId: "codia",
+  agentName: "Codia",
 };
 
 describe("session search", () => {
@@ -16,28 +16,28 @@ describe("session search", () => {
     const sessions = [
       {
         ...baseSession,
-        path: "/tmp/agents/gsap/sessions/title.jsonl",
+        path: "/tmp/agents/codia/sessions/title.jsonl",
         title: "media workflow notes",
         allMessagesText: "unrelated content",
       },
       {
         ...baseSession,
-        path: "/tmp/agents/gsap/sessions/body.jsonl",
+        path: "/tmp/agents/codia/sessions/body.jsonl",
         title: "daily notes",
         allMessagesText: "we discussed media workflow routing here",
       },
     ];
 
     expect(searchSessions(sessions, "media workflow", { phase: "title" }).map(r => r.path))
-      .toEqual(["/tmp/agents/gsap/sessions/title.jsonl"]);
+      .toEqual(["/tmp/agents/codia/sessions/title.jsonl"]);
     expect(searchSessions(sessions, "media workflow", { phase: "content" }).map(r => r.path))
-      .toEqual(["/tmp/agents/gsap/sessions/body.jsonl"]);
+      .toEqual(["/tmp/agents/codia/sessions/body.jsonl"]);
   });
 
   it("does not expose full message text in search results", () => {
     const sessions = [{
       ...baseSession,
-      path: "/tmp/agents/gsap/sessions/private.jsonl",
+      path: "/tmp/agents/codia/sessions/private.jsonl",
       title: "private",
       allMessagesText: "sensitive project token appears in this long body",
     }];
@@ -45,7 +45,7 @@ describe("session search", () => {
     const [result] = searchSessions(sessions, "project token", { phase: "content" });
 
     expect(result).toMatchObject({
-      path: "/tmp/agents/gsap/sessions/private.jsonl",
+      path: "/tmp/agents/codia/sessions/private.jsonl",
       matchKind: "content",
     });
     expect(result.snippet).toContain("project token");
@@ -55,12 +55,12 @@ describe("session search", () => {
   it("supports mixed Chinese and ASCII queries without requiring a native tokenizer", () => {
     const sessions = [{
       ...baseSession,
-      path: "/tmp/agents/gsap/sessions/a2a.jsonl",
+      path: "/tmp/agents/codia/sessions/a2a.jsonl",
       title: "round 4",
       allMessagesText: "昨天排查了 A2A通信 endpoint and session_search routing.",
     }];
 
     expect(searchSessions(sessions, "A2A通信记录", { phase: "content" }).map(r => r.path))
-      .toEqual(["/tmp/agents/gsap/sessions/a2a.jsonl"]);
+      .toEqual(["/tmp/agents/codia/sessions/a2a.jsonl"]);
   });
 });

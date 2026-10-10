@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
-const legacyBrandPattern = /\bG-SAP\b|\bGSAP\b|星河智域/u;
+const legacyBrandPattern = /OpenHanako|Hanako|G-SAP|GSAP|BYOUNG|baiyang/iu;
 
 function read(relativePath: string): string {
   return fs.readFileSync(path.join(root, relativePath), "utf-8");
@@ -74,8 +74,8 @@ describe("frontend debranding contract", () => {
       "desktop/src/react/utils/screenshot.ts",
       "desktop/src/lib/i18n.ts",
       "desktop/src/react/splash/SplashApp.tsx",
-      "desktop/src/screenshot-themes/gsap-brand.css",
-      "desktop/src/screenshot-themes/gsap-brand-desktop.css",
+      "desktop/src/screenshot-themes/codia-brand.css",
+      "desktop/src/screenshot-themes/codia-brand-desktop.css",
       "server/block-extractors.ts",
       "server/deferred-result-interlude.ts",
       "server/routes/chat.ts",
@@ -117,12 +117,12 @@ describe("frontend debranding contract", () => {
     expect(splash).not.toContain("#F4F0E4");
 
     for (const screenshotTheme of [
-      "desktop/src/screenshot-themes/gsap-brand.css",
-      "desktop/src/screenshot-themes/gsap-brand-desktop.css",
+      "desktop/src/screenshot-themes/codia-brand.css",
+      "desktop/src/screenshot-themes/codia-brand-desktop.css",
     ]) {
       const content = read(screenshotTheme);
       expect(content).toContain('content: "Codia"');
-      expect(content).toContain("--gsap-accent: #8C68B8");
+      expect(content).toContain("--codia-accent: #8C68B8");
       expect(content).not.toContain("#D8292F");
       expect(content).not.toContain("Songti SC");
     }
@@ -138,17 +138,17 @@ describe("frontend debranding contract", () => {
     const server = read("server/index.ts");
     expect(server).toContain("<title>本机 API 服务</title>");
     expect(server).toContain('appName: "Codia"');
-    expect(server).not.toContain("<title>G-SAP");
-    expect(server).not.toContain("<h1>G-SAP");
+    expect(server).not.toContain("<title>Codia");
+    expect(server).not.toContain("<h1>Codia");
 
     const plugins = read("server/routes/plugins.ts");
-    expect(plugins).not.toContain("G-SAP plugin compatibility");
-    expect(plugins).not.toContain("generated G-SAP page");
-    expect(plugins).not.toContain("installable by G-SAP");
+    expect(plugins).not.toContain("Codia plugin compatibility");
+    expect(plugins).not.toContain("generated Codia page");
+    expect(plugins).not.toContain("installable by Codia");
 
     expect(read("shared/default-workspace-constants.ts"))
-      .toContain('DEFAULT_WORKSPACE_DIRNAME = "BYOUNG-Workspace"');
+      .toContain('DEFAULT_WORKSPACE_DIRNAME = "Codia-Workspace"');
     expect(read("shared/workspace-output.cjs"))
-      .toContain('WORKSPACE_OUTPUT_ROOT_DIRNAME = "BYOUNG-Works"');
+      .toContain('WORKSPACE_OUTPUT_ROOT_DIRNAME = "Codia-Works"');
   });
 });

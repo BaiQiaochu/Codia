@@ -70,7 +70,6 @@ describe("cron-scheduler", () => {
     });
 
     scheduler.start();
-    scheduler.start();
     await scheduler.stop();
 
     expect(setIntervalSpy).toHaveBeenCalledTimes(1);

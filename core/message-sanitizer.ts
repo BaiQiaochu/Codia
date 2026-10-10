@@ -49,24 +49,33 @@ export function sanitizeMessagesForModel(messages, model) {
     if (!Array.isArray(msg.content)) return msg;
 
     let localStripped = 0;
+    let addedImagePlaceholder = false;
+    let addedVideoPlaceholder = false;
+    let addedAudioPlaceholder = false;
     const newContent = msg.content.map((block) => {
       if (!supportsImage && isImageLikeBlock(block)) {
         localStripped++;
         strippedImages++;
+        if (addedImagePlaceholder) return null;
+        addedImagePlaceholder = true;
         return { type: "text", text: IMAGE_PLACEHOLDER_TEXT };
       }
       if (!supportsVideo && isVideoLikeBlock(block)) {
         localStripped++;
         strippedVideos++;
+        if (addedVideoPlaceholder) return null;
+        addedVideoPlaceholder = true;
         return { type: "text", text: VIDEO_PLACEHOLDER_TEXT };
       }
       if (!supportsAudio && isAudioLikeBlock(block)) {
         localStripped++;
         strippedAudios++;
+        if (addedAudioPlaceholder) return null;
+        addedAudioPlaceholder = true;
         return { type: "text", text: AUDIO_PLACEHOLDER_TEXT };
       }
       return block;
-    });
+    }).filter((block) => block !== null);
 
     if (localStripped === 0) return msg;
     stripped += localStripped;

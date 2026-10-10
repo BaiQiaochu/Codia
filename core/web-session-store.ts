@@ -6,15 +6,15 @@ import { atomicWriteSync } from "../shared/safe-fs.ts";
 import { normalizePrincipal } from "./security-principal.ts";
 
 export const WEB_SESSIONS_FILE = "web-sessions.json";
-export const WEB_SESSION_COOKIE_NAME = "gsap_session";
+export const WEB_SESSION_COOKIE_NAME = "codia_session";
 
 const SCHEMA_VERSION = 1;
-const SECRET_PREFIX = "gsap_web_";
+const SECRET_PREFIX = "codia_web_";
 const SECRET_PREFIX_LENGTH = 18;
 const DEFAULT_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 
-export function ensureWebSessionRegistry(gsapHome, { now = new Date().toISOString() } = {}) {
-  const filePath = path.join(gsapHome, WEB_SESSIONS_FILE);
+export function ensureWebSessionRegistry(codiaHome, { now = new Date().toISOString() } = {}) {
+  const filePath = path.join(codiaHome, WEB_SESSIONS_FILE);
   const existing = readJsonIfPresent(filePath, WEB_SESSIONS_FILE);
   if (existing) {
     validateWebSessionRegistry(existing, WEB_SESSIONS_FILE);
@@ -24,14 +24,14 @@ export function ensureWebSessionRegistry(gsapHome, { now = new Date().toISOStrin
   return { created: [WEB_SESSIONS_FILE] };
 }
 
-export function loadWebSessionRegistry(gsapHome) {
-  ensureWebSessionRegistry(gsapHome);
-  const registry = readJsonRequired(path.join(gsapHome, WEB_SESSIONS_FILE), WEB_SESSIONS_FILE);
+export function loadWebSessionRegistry(codiaHome) {
+  ensureWebSessionRegistry(codiaHome);
+  const registry = readJsonRequired(path.join(codiaHome, WEB_SESSIONS_FILE), WEB_SESSIONS_FILE);
   return validateWebSessionRegistry(registry, WEB_SESSIONS_FILE);
 }
 
-export function createWebSession(gsapHome, input = {}) {
-  assertNonEmptyString(gsapHome, "gsapHome");
+export function createWebSession(codiaHome, input = {}) {
+  assertNonEmptyString(codiaHome, "codiaHome");
   if (!isPlainObject(input.principal)) throw new Error("principal required");
 
   const now = input.now || new Date().toISOString();
@@ -53,10 +53,10 @@ export function createWebSession(gsapHome, input = {}) {
     expiresAt: new Date(Date.parse(now) + ttlMs).toISOString(),
   };
 
-  const registry = loadWebSessionRegistry(gsapHome);
+  const registry = loadWebSessionRegistry(codiaHome);
   registry.sessions.push(session);
   registry.updatedAt = now;
-  persistWebSessionRegistry(gsapHome, registry);
+  persistWebSessionRegistry(codiaHome, registry);
   return {
     session: sanitizeSession(session),
     secret,
@@ -65,10 +65,10 @@ export function createWebSession(gsapHome, input = {}) {
   };
 }
 
-export function authenticateWebSession(gsapHome, cookieHeader, { now = new Date().toISOString() } = {}) {
+export function authenticateWebSession(codiaHome, cookieHeader, { now = new Date().toISOString() } = {}) {
   const secret = parseCookie(cookieHeader, WEB_SESSION_COOKIE_NAME);
   if (!isNonEmptyString(secret)) return null;
-  const registry = loadWebSessionRegistry(gsapHome);
+  const registry = loadWebSessionRegistry(codiaHome);
   const session = registry.sessions.find((item) => (
     item.status === "active"
     && isNonEmptyString(item.secretPrefix)
@@ -80,21 +80,21 @@ export function authenticateWebSession(gsapHome, cookieHeader, { now = new Date(
     session.status = "expired";
     session.updatedAt = now;
     registry.updatedAt = now;
-    persistWebSessionRegistry(gsapHome, registry);
+    persistWebSessionRegistry(codiaHome, registry);
     return null;
   }
 
   session.lastUsedAt = now;
   session.updatedAt = now;
   registry.updatedAt = now;
-  persistWebSessionRegistry(gsapHome, registry);
+  persistWebSessionRegistry(codiaHome, registry);
   return deepFreeze(clonePlain(session.principal));
 }
 
-export function revokeWebSession(gsapHome, cookieHeader, { now = new Date().toISOString() } = {}) {
+export function revokeWebSession(codiaHome, cookieHeader, { now = new Date().toISOString() } = {}) {
   const secret = parseCookie(cookieHeader, WEB_SESSION_COOKIE_NAME);
   if (!isNonEmptyString(secret)) return false;
-  const registry = loadWebSessionRegistry(gsapHome);
+  const registry = loadWebSessionRegistry(codiaHome);
   const session = registry.sessions.find((item) => (
     item.status === "active"
     && isNonEmptyString(item.secretPrefix)
@@ -106,7 +106,7 @@ export function revokeWebSession(gsapHome, cookieHeader, { now = new Date().toIS
   session.updatedAt = now;
   session.revokedAt = now;
   registry.updatedAt = now;
-  persistWebSessionRegistry(gsapHome, registry);
+  persistWebSessionRegistry(codiaHome, registry);
   return true;
 }
 
@@ -127,9 +127,9 @@ export function parseCookie(cookieHeader, name) {
   return null;
 }
 
-function persistWebSessionRegistry(gsapHome, registry) {
+function persistWebSessionRegistry(codiaHome, registry) {
   validateWebSessionRegistry(registry, WEB_SESSIONS_FILE);
-  writeJsonAtomic(path.join(gsapHome, WEB_SESSIONS_FILE), registry);
+  writeJsonAtomic(path.join(codiaHome, WEB_SESSIONS_FILE), registry);
 }
 
 function validateWebSessionRegistry(value, label) {

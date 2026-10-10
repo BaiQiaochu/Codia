@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { gsapFetch } from './use-gsap-fetch';
+import { codiaFetch } from './use-codia-fetch';
 import type { SettingsConfigPayload } from '../settings/shared-types';
 
 let configCache: SettingsConfigPayload | null = null;
@@ -15,7 +15,7 @@ export function invalidateConfigCache() {
 /** Fetch config with in-memory cache */
 export async function fetchConfig(): Promise<SettingsConfigPayload> {
   if (configCache && Date.now() - cacheTime < STALE_MS) return configCache;
-  const res = await gsapFetch('/api/config');
+  const res = await codiaFetch('/api/config');
   const data = await res.json() as SettingsConfigPayload;
   configCache = data;
   cacheTime = Date.now();

@@ -16,15 +16,13 @@ const defaultHardMaxBytes = {
   "surface-package": 512 * 1024 * 1024,
   "renderer-assets": 250 * 1024 * 1024,
   "server-bundle": 900 * 1024 * 1024,
-  "ocr-runtime": 120 * 1024 * 1024,
   "wasm-assets": 80 * 1024 * 1024,
 };
 
 const tracked = [
-  { id: "surface-package", path: "artifacts/g-sap-surfaces-${platform}-${arch}.zip", optional: true },
+  { id: "surface-package", path: "artifacts/codia-surfaces-${platform}-${arch}.zip", optional: true },
   { id: "renderer-assets", path: "desktop/dist-renderer", optional: true },
   { id: "server-bundle", path: "dist-server", optional: true },
-  { id: "ocr-runtime", path: "vendor/ocr-runtime", optional: true, largeResource: true },
   { id: "wasm-assets", path: "desktop/dist-renderer", optional: true, match: /\.(wasm|onnx)$/i, largeResource: true },
 ];
 

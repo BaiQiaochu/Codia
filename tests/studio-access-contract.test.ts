@@ -54,9 +54,9 @@ describe("studio access contract", () => {
     expect(grant.capabilities).toEqual(["chat", "resources.read", "files.read"]);
   });
 
-  it("keeps cloud ownership branded to G-SAP and validates platform accounts", () => {
+  it("keeps cloud ownership branded to Codia and validates platform accounts", () => {
     expect(getStudioConnectionProfile("cloud")).toMatchObject({
-      dataOwner: "gsap_cloud_studio",
+      dataOwner: "codia_cloud_studio",
       officialServiceKind: "cloud_studio",
       requiresPlatformAccount: true,
     });

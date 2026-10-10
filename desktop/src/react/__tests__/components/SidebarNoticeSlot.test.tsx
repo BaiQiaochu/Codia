@@ -16,9 +16,9 @@ const labels: Record<string, string> = {
   'settings.about.updateReadyInstall': 'v{version} ready to install',
   'settings.about.updateInstallManualHint': 'Install after clicking Restart to update',
   'settings.about.updateInstall': 'Restart to update',
-  'settings.about.updateInstalling': 'Installing update. G-SAP will restart automatically',
+  'settings.about.updateInstalling': 'Installing update. Codia will restart automatically',
   'settings.about.updateDiskSpace': 'Not enough disk space to download update',
-  'settings.about.updateNeedInstall': 'Please move G-SAP to the Applications folder first',
+  'settings.about.updateNeedInstall': 'Please move Codia to the Applications folder first',
   'settings.about.updateError': 'Update check failed',
   'window.close': 'Close',
 };

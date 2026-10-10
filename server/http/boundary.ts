@@ -7,8 +7,8 @@ export function createRequestContext(c, engine) {
   const authPrincipal = normalizePrincipal(readAuthPrincipal(c) || createAuthPrincipal(runtimeContext));
   const request = {
     method: c?.req?.method || "GET",
-    url: c?.req?.url || "http://gsap.local/",
-    path: safePathname(c?.req?.url || "http://gsap.local/"),
+    url: c?.req?.url || "http://codia.local/",
+    path: safePathname(c?.req?.url || "http://codia.local/"),
   };
   const requestContext = {
     request,
@@ -96,10 +96,10 @@ function createAuthPrincipal(runtimeContext) {
 function getActiveGrants(engine, authPrincipal) {
   if (!authPrincipal?.principalId) return [];
   const implicit = implicitPrincipalGrant(authPrincipal);
-  if (!engine?.gsapHome) return implicit ? [implicit] : [];
+  if (!engine?.codiaHome) return implicit ? [implicit] : [];
   try {
     return [
-      ...findActiveGrantsForPrincipal(engine.gsapHome, authPrincipal.principalId),
+      ...findActiveGrantsForPrincipal(engine.codiaHome, authPrincipal.principalId),
       ...(implicit ? [implicit] : []),
     ];
   } catch {

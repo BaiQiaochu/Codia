@@ -28,13 +28,13 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); disconnects.length = 0; });
 
 describe('CodiaLive2DMascot lifecycle', () => {
-  it('does not start by default, without an accepted export, or in GPU safe mode', () => {
+  it('does not start by default or without an accepted export, but still attempts Live2D in GPU safe mode', async () => {
     const { rerender } = render(<CodiaLive2DMascot fallback={<span>Fallback mascot</span>} assets={assets} />);
     rerender(<CodiaLive2DMascot fallback={<span>Fallback mascot</span>} enabled />);
     rerender(<CodiaLive2DMascot fallback={<span>Fallback mascot</span>} enabled assets={assets} gpuSafeMode />);
     rerender(<CodiaLive2DMascot fallback={<span>Fallback mascot</span>} enabled assets={assets} hardwareAccelerationEnabled={false} />);
-    expect(loadCodiaLive2D).not.toHaveBeenCalled();
-    expect(screen.getByText('Fallback mascot')).toBeVisible();
+    await waitFor(() => expect(loadCodiaLive2D).toHaveBeenCalledTimes(2));
+    expect(screen.getByText('Fallback mascot')).not.toBeVisible();
   });
   it('only labels a successful render live2d, pauses off-screen and releases on unmount', async () => {
     const { container, unmount } = render(<CodiaLive2DMascot fallback={<span>Fallback mascot</span>} enabled assets={assets} />);

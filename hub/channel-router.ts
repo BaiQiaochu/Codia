@@ -141,7 +141,7 @@ export class ChannelRouter {
     this._agentOrderCache = null; // { list: string[], ts: number }
   }
 
-  /** @returns {import('../core/engine.ts').GsapEngine} */
+  /** @returns {import('../core/engine.ts').CodiaEngine} */
   get _engine() { return this._hub.engine; }
 
   _getAgentInstance(agentId) {
@@ -797,7 +797,7 @@ export class ChannelRouter {
 
     const agentContext = agentInstance?.personality
       || [readFile(path.join(agentDir, "identity.md")),
-          readFile(path.join(engine.productDir, "yuan", `${cfg.agent?.yuan || "gsap"}.md`)),
+          readFile(path.join(engine.productDir, "yuan", `${cfg.agent?.yuan || "codia"}.md`)),
           readFile(path.join(agentDir, "ishiki.md"))].filter(Boolean).join("\n\n");
 
     // Memory and user profile can change at runtime; read them from disk.
@@ -1377,7 +1377,6 @@ export class ChannelRouter {
   }
 
   /**
-    *
     *
    */
   async _memorySummarize(agentId, channelName, payload) {

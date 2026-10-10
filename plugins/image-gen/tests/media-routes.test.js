@@ -8,7 +8,7 @@ import registerMediaRoutes from "../routes/media.js";
 let tempDirs = [];
 
 function makeApp(bus, extraCtx = {}) {
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-image-media-"));
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-image-media-"));
   tempDirs.push(dataDir);
   const app = new Hono();
   registerMediaRoutes(app, {

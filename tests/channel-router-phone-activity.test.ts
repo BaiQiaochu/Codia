@@ -32,7 +32,7 @@ describe("ChannelRouter phone activity delivery", () => {
   let tmpDir;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-phone-activity-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-phone-activity-"));
     runAgentPhoneSessionMock.mockClear();
     loadLocale("en");
   });
@@ -50,7 +50,7 @@ describe("ChannelRouter phone activity delivery", () => {
     fs.mkdirSync(agentDir, { recursive: true });
     fs.mkdirSync(userDir, { recursive: true });
     fs.mkdirSync(channelsDir, { recursive: true });
-    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: Nova\n  yuan: gsap\n", "utf-8");
+    fs.writeFileSync(path.join(agentDir, "config.yaml"), "agent:\n  name: Nova\n  yuan: codia\n", "utf-8");
 
     const activities = [];
     const router = new ChannelRouter({

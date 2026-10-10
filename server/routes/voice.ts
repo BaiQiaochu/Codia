@@ -117,7 +117,7 @@ async function transcribeWithSpeechRecognitionService(engine, audio, language) {
 
   const bytes = Buffer.from(await audio.arrayBuffer());
   if (bytes.length === 0) throw new Error("empty audio file");
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "gsap-voice-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "codia-voice-"));
   const ext = path.extname(audio.name || "") || ".audio";
   const tempPath = path.join(tempDir, `${randomUUID()}${ext}`);
   try {

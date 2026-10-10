@@ -3,7 +3,7 @@
   "id": "sdk-showcase",
   "name": "SDK Showcase",
   "version": "0.1.0",
-  "description": "Example plugin showing G-SAP SDK runtime, iframe, and component helpers.",
+  "description": "Example plugin showing Codia SDK runtime, iframe, and component helpers.",
   "minAppVersion": "0.159.0",
   "trust": "full-access",
   "ui": {

@@ -99,7 +99,7 @@ describe('MarkdownContent image preview', () => {
     const { MarkdownContent } = await import('../../components/chat/MarkdownContent');
 
     const { container } = render(
-      <MarkdownContent html={'<p><a href="C:%5CUsers%5Croce%5C.gsap%5Cagents%5Cgsap%5Clearned-skills%5Cskill-a%5CSKILL.md">$skill-link</a></p>'} />,
+      <MarkdownContent html={'<p><a href="C:%5CUsers%5Croce%5C.codia%5Cagents%5Ccodia%5Clearned-skills%5Cskill-a%5CSKILL.md">$skill-link</a></p>'} />,
     );
 
     const link = container.querySelector('a') as HTMLAnchorElement;
@@ -109,7 +109,7 @@ describe('MarkdownContent image preview', () => {
     expect(state.rightWorkspaceTab).toBe('workspace');
     expect(state.jianDrawerOpen).toBe(false);
     expect(openSkillViewer).toHaveBeenCalledWith({
-      skillPath: 'C:\\Users\\roce\\.gsap\\agents\\gsap\\learned-skills\\skill-a\\SKILL.md',
+      skillPath: 'C:\\Users\\roce\\.codia\\agents\\codia\\learned-skills\\skill-a\\SKILL.md',
     });
     expect(openExternal).not.toHaveBeenCalled();
     expect(openFile).not.toHaveBeenCalled();

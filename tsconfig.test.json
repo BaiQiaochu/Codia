@@ -10,14 +10,14 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["desktop/src/react/*"],
-      "@g-sap/plugin-components": ["packages/plugin-components/src/index.ts"],
-      "@g-sap/plugin-protocol": ["packages/plugin-protocol/src/index.ts"],
-      "@g-sap/plugin-runtime": ["packages/plugin-runtime/src/index.ts"],
-      "@g-sap/plugin-sdk": ["packages/plugin-sdk/src/index.ts"],
-      "@hana/plugin-components": ["packages/plugin-components/src/index.ts"],
-      "@hana/plugin-protocol": ["packages/plugin-protocol/src/index.ts"],
-      "@hana/plugin-runtime": ["packages/plugin-runtime/src/index.ts"],
-      "@hana/plugin-sdk": ["packages/plugin-sdk/src/index.ts"]
+      "@codia/plugin-components": ["packages/plugin-components/src/index.ts"],
+      "@codia/plugin-protocol": ["packages/plugin-protocol/src/index.ts"],
+      "@codia/plugin-runtime": ["packages/plugin-runtime/src/index.ts"],
+      "@codia/plugin-sdk": ["packages/plugin-sdk/src/index.ts"],
+      "@codia/plugin-components": ["packages/plugin-components/src/index.ts"],
+      "@codia/plugin-protocol": ["packages/plugin-protocol/src/index.ts"],
+      "@codia/plugin-runtime": ["packages/plugin-runtime/src/index.ts"],
+      "@codia/plugin-sdk": ["packages/plugin-sdk/src/index.ts"]
     }
   },
   "include": [
@@ -30,8 +30,8 @@
   ],
   "exclude": [
     "node_modules",
-    "openhanako-*",
-    "openhanako-*/**",
+    "codia-*",
+    "codia-*/**",
     "dist",
     "dist-server",
     "dist-server-bundle",

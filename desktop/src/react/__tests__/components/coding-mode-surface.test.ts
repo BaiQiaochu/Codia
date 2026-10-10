@@ -22,14 +22,14 @@ describe('removed Coding Mode surface contract', () => {
     expect(fs.existsSync(path.join(ROOT, 'components/HomeNavigationMenus.tsx'))).toBe(false);
     expect(app).not.toContain('ReaderSurface');
     expect(app).not.toContain('readerMode');
-    expect(app).not.toContain('GsapIdeSurface');
+    expect(app).not.toContain('CodiaIdeSurface');
     expect(app).not.toContain('codingMode');
   });
 
   it('does not ship Coding Mode React surfaces or VS Code runtime packaging', () => {
     const pkg = JSON.parse(readRoot('package.json'));
 
-    expect(fs.existsSync(path.join(ROOT, 'components/GsapIdeSurface.tsx'))).toBe(false);
+    expect(fs.existsSync(path.join(ROOT, 'components/CodiaIdeSurface.tsx'))).toBe(false);
     expect(fs.existsSync(path.join(ROOT, 'components/coding'))).toBe(false);
     expect(fs.existsSync(path.join(PROJECT_ROOT, 'desktop/vscode-runtime.cjs'))).toBe(false);
     expect(pkg.scripts['prepare:vscode-runtime']).toBeUndefined();
@@ -66,7 +66,7 @@ describe('removed Coding Mode surface contract', () => {
     const css = readRoot('desktop/src/styles.css');
 
     expect(css).not.toContain('body.coding-mode');
-    expect(css).not.toContain('.gsap-coding-surface');
+    expect(css).not.toContain('.codia-coding-surface');
     expect(css).not.toContain('.vscode-workbench-host');
     expect(css).not.toContain('.coding-extension-panel');
   });

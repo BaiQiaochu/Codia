@@ -17,7 +17,7 @@ describe('getUserAttachmentImageSrc', () => {
     const platform = { getFileUrl: vi.fn((p: string) => `file://${p}`) };
 
     expect(getUserAttachmentImageSrc({
-      path: '/Users/test/.hanako/attachments/upload-abc.png',
-    }, platform)).toBe('file:///Users/test/.hanako/attachments/upload-abc.png');
+      path: '/Users/test/.codia/attachments/upload-abc.png',
+    }, platform)).toBe('file:///Users/test/.codia/attachments/upload-abc.png');
   });
 });

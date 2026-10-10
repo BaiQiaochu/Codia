@@ -11,8 +11,6 @@ import {
 export { PluginSurfaceSessionError };
 export { PLUGIN_SURFACE_SESSION_HEADER, PLUGIN_SURFACE_SESSION_QUERY };
 
-const LEGACY_PLUGIN_SURFACE_SESSION_HEADER = "X-Hana-Plugin-Surface-Session";
-
 const CONNECTION_TRUST_STATES = Object.freeze({
   local: "local",
   lan: "lan",
@@ -24,19 +22,18 @@ export function authenticatePluginSurfaceRequest(c: any, engine: any, { connecti
   const pluginId = pluginIdFromProxyPath(routePath);
   if (!pluginId) return null;
   const token = c.req.header(PLUGIN_SURFACE_SESSION_HEADER)
-    || c.req.header(LEGACY_PLUGIN_SURFACE_SESSION_HEADER)
     || c.req.query(PLUGIN_SURFACE_SESSION_QUERY)
     || null;
   if (!token) return null;
-  const gsapHome = engine?.gsapHome || engine?.hanakoHome;
-  if (!gsapHome) {
+  const codiaHome = engine?.codiaHome || engine?.codiaHome;
+  if (!codiaHome) {
     throw new PluginSurfaceSessionError("plugin surface session storage unavailable", {
       code: "plugin_surface_session_unavailable",
       status: 500,
     });
   }
   const session = verifyPluginSurfaceSession({
-    gsapHome,
+    codiaHome,
     pluginId,
     token,
   });

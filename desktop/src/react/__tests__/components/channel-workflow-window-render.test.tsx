@@ -5,10 +5,10 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useStore } from '../../stores';
 
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 function workflowNodeTexts() {
@@ -28,8 +28,8 @@ describe('ChannelWorkflowWindow render', () => {
   beforeEach(() => {
     window.t = ((key: string) => key) as typeof window.t;
     window.localStorage.clear();
-    gsapFetchMock.mockReset();
-    gsapFetchMock.mockResolvedValue({
+    codiaFetchMock.mockReset();
+    codiaFetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
         channels: [{ id: 'company_channel', internalChannelId: 'ch_crew' }],
@@ -52,10 +52,10 @@ describe('ChannelWorkflowWindow render', () => {
         { sender: 'user', body: '开始', timestamp: '2026-05-30T12:00:00.000Z' },
       ],
       channelMembers: ['worker-1'],
-      agents: [{ id: 'worker-1', name: '工人A', yuan: 'gsap', isPrimary: false }],
+      agents: [{ id: 'worker-1', name: '工人A', yuan: 'codia', isPrimary: false }],
       userName: 'Boss',
       userAvatarUrl: '',
-      currentAgentId: 'gsap',
+      currentAgentId: 'codia',
       channelAgentActivities: {
         ch_crew: {
           'worker-1': [{
@@ -86,24 +86,24 @@ describe('ChannelWorkflowWindow render', () => {
 
     expect(screen.getByRole('dialog', { name: '工作流可视窗口' })).toBeInTheDocument();
     expect(screen.getByText('工作流画布')).toBeInTheDocument();
-    expect(screen.queryByText('G-SAP 工作流画布')).not.toBeInTheDocument();
+    expect(screen.queryByText('Codia 工作流画布')).not.toBeInTheDocument();
     expect(screen.getByText('频道输入')).toBeInTheDocument();
     expect(screen.getByText('调度器')).toBeInTheDocument();
 
     await waitFor(() => expect(screen.getByText('修复阅读器图片')).toBeInTheDocument());
     expect(workflowNodeTexts().some((text) => text.includes('工人A'))).toBe(true);
-    expect(gsapFetchMock).toHaveBeenCalledWith('/api/plugins/company/companies/default/status');
+    expect(codiaFetchMock).toHaveBeenCalledWith('/api/plugins/company/companies/default/status');
   });
 
   it('preserves editable workflow drafts when the channel task tree is empty', async () => {
-    gsapFetchMock.mockResolvedValue({
+    codiaFetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
         channels: [{ id: 'company_channel', internalChannelId: 'ch_crew' }],
         tasks: [],
       }),
     } as Response);
-    window.localStorage.setItem('gsap.channel.workflow.ch_crew', JSON.stringify({
+    window.localStorage.setItem('codia.channel.workflow.ch_crew', JSON.stringify({
       nodes: [{
         id: 'custom-node-1',
         title: '自定义任务 1',
@@ -119,13 +119,13 @@ describe('ChannelWorkflowWindow render', () => {
     render(<ChannelWorkflowWindow open onClose={vi.fn()} />);
 
     await waitFor(() => expect(screen.getByText('自定义任务 1')).toBeInTheDocument());
-    expect(window.localStorage.getItem('gsap.channel.workflow.ch_crew')).not.toBeNull();
+    expect(window.localStorage.getItem('codia.channel.workflow.ch_crew')).not.toBeNull();
     expect(screen.queryByText('暂无工作流任务')).not.toBeInTheDocument();
     expect(screen.getByText('频道输入')).toBeInTheDocument();
   });
 
   it('adds only one custom node and does not expand stale agent activity into workflow nodes', async () => {
-    gsapFetchMock.mockResolvedValue({
+    codiaFetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
         channels: [{ id: 'company_channel', internalChannelId: 'ch_crew' }],
@@ -145,11 +145,11 @@ describe('ChannelWorkflowWindow render', () => {
         kskooo: 'worker',
       },
       agents: [
-        { id: 'worker-a', name: '工人A', yuan: 'gsap', isPrimary: false },
-        { id: 'director-a', name: '总监A', yuan: 'gsap', isPrimary: false },
-        { id: 'admin-a', name: '管理员A', yuan: 'gsap', isPrimary: false },
-        { id: 'worker-b', name: '工人B', yuan: 'gsap', isPrimary: false },
-        { id: 'kskooo', name: 'kskooo', yuan: 'gsap', isPrimary: false },
+        { id: 'worker-a', name: '工人A', yuan: 'codia', isPrimary: false },
+        { id: 'director-a', name: '总监A', yuan: 'codia', isPrimary: false },
+        { id: 'admin-a', name: '管理员A', yuan: 'codia', isPrimary: false },
+        { id: 'worker-b', name: '工人B', yuan: 'codia', isPrimary: false },
+        { id: 'kskooo', name: 'kskooo', yuan: 'codia', isPrimary: false },
       ],
       channelAgentActivities: {
         ch_crew: Object.fromEntries(['worker-a', 'director-a', 'admin-a', 'worker-b', 'kskooo'].map((agentId) => [
@@ -195,11 +195,11 @@ describe('ChannelWorkflowWindow render', () => {
       selectedFolder: '',
       selectedWorkspaceMountId: '',
       agents: [
-        { id: 'worker-1', name: '工人A', yuan: 'gsap', isPrimary: false },
-        { id: 'worker-2', name: '工人B', yuan: 'gsap', isPrimary: false },
+        { id: 'worker-1', name: '工人A', yuan: 'codia', isPrimary: false },
+        { id: 'worker-2', name: '工人B', yuan: 'codia', isPrimary: false },
       ],
     } as never);
-    const draftKey = 'gsap.channel.workflow.draft.default';
+    const draftKey = 'codia.channel.workflow.draft.default';
     window.localStorage.setItem(draftKey, JSON.stringify({ nodes: [{
       id: 'custom-node-saved', title: '保存的独立任务', prompt: '草稿内容', agentId: 'worker-1', x: 312, y: 248,
     }], edges: [] }));
@@ -208,7 +208,7 @@ describe('ChannelWorkflowWindow render', () => {
     render(<ChannelWorkflowWindow open standalone pageMode onClose={vi.fn()} />);
 
     await waitFor(() => expect(screen.getByText('保存的独立任务')).toBeInTheDocument());
-    expect(gsapFetchMock).not.toHaveBeenCalled();
+    expect(codiaFetchMock).not.toHaveBeenCalled();
     expect(screen.getByRole('region', { name: '工作流页面' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '执行' }));
     expect(screen.getByRole('dialog', { name: '关联执行频道' })).toBeInTheDocument();
@@ -224,8 +224,8 @@ describe('ChannelWorkflowWindow render', () => {
             kind: 'workflow',
             status: 'running',
             sessionPath: 'channel:ch_crew',
-            agentId: 'gsap',
-            agentName: 'G-SAP',
+            agentId: 'codia',
+            agentName: 'Codia',
             summary: 'Launch workflow',
             childSessionPath: null,
             startedAt: Date.parse('2026-05-30T12:02:00.000Z'),
@@ -259,7 +259,7 @@ describe('ChannelWorkflowWindow render', () => {
   });
 
   it('never writes the previous workspace draft into the next workspace storage key', async () => {
-    const draftKey = (workspace: string) => `gsap.channel.workflow.draft.${workspace}`;
+    const draftKey = (workspace: string) => `codia.channel.workflow.draft.${workspace}`;
     const makeDraft = (workspace: string) => ({ nodes: [{
       id: `custom-node-${workspace}`, title: `Draft ${workspace}`, prompt: workspace,
       agentId: 'worker-1', x: 312, y: 248,
@@ -301,7 +301,7 @@ describe('ChannelWorkflowWindow render', () => {
   });
 
   it('previews, edits, and confirms a generated workflow template before changing the canvas', async () => {
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/workspace-tools/resolve') {
         return {
           ok: true,
@@ -323,7 +323,7 @@ describe('ChannelWorkflowWindow render', () => {
         json: async () => ({ channels: [], tasks: [] }),
       } as Response;
     });
-    window.localStorage.setItem('gsap.channel.workflow.ch_crew', JSON.stringify({
+    window.localStorage.setItem('codia.channel.workflow.ch_crew', JSON.stringify({
       nodes: [{ id: 'existing', title: '原有节点', prompt: '保留我', agentId: 'worker-1', x: 312, y: 248 }],
       edges: [],
     }));
@@ -344,11 +344,11 @@ describe('ChannelWorkflowWindow render', () => {
     await waitFor(() => expect(screen.getByText('收集团队进展')).toBeInTheDocument());
     expect(screen.getByText('原有节点')).toBeInTheDocument();
     expect(document.querySelectorAll('[data-workflow-edge-id]').length).toBeGreaterThan(0);
-    expect(gsapFetchMock).toHaveBeenCalledWith('/api/workspace-tools/resolve', expect.objectContaining({ method: 'POST' }));
+    expect(codiaFetchMock).toHaveBeenCalledWith('/api/workspace-tools/resolve', expect.objectContaining({ method: 'POST' }));
   });
 
   it('keeps the current canvas unchanged when template generation fails', async () => {
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/workspace-tools/resolve') {
         return {
           ok: false,
@@ -361,7 +361,7 @@ describe('ChannelWorkflowWindow render', () => {
         json: async () => ({ channels: [], tasks: [] }),
       } as Response;
     });
-    window.localStorage.setItem('gsap.channel.workflow.ch_crew', JSON.stringify({
+    window.localStorage.setItem('codia.channel.workflow.ch_crew', JSON.stringify({
       nodes: [{ id: 'safe', title: '安全节点', prompt: '保持不变', agentId: 'worker-1', x: 312, y: 248 }],
       edges: [],
     }));
@@ -369,8 +369,8 @@ describe('ChannelWorkflowWindow render', () => {
     const { ChannelWorkflowWindow } = await import('../../components/channels/ChannelWorkflowWindow');
     render(<ChannelWorkflowWindow open onClose={vi.fn()} />);
     await waitFor(() => expect(screen.getByText('安全节点')).toBeInTheDocument());
-    await waitFor(() => expect(window.localStorage.getItem('gsap.channel.workflow.ch_crew')).toContain('hiddenTimelineItemIds'));
-    const storedBeforeFailure = window.localStorage.getItem('gsap.channel.workflow.ch_crew');
+    await waitFor(() => expect(window.localStorage.getItem('codia.channel.workflow.ch_crew')).toContain('hiddenTimelineItemIds'));
+    const storedBeforeFailure = window.localStorage.getItem('codia.channel.workflow.ch_crew');
     fireEvent.click(screen.getByRole('button', { name: '生成模板' }));
     fireEvent.change(screen.getByLabelText('模板需求'), { target: { value: '生成循环流程' } });
     fireEvent.click(screen.getByRole('button', { name: '生成草稿' }));
@@ -378,12 +378,12 @@ describe('ChannelWorkflowWindow render', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('模板包含循环连线'));
     expect(screen.getByText('安全节点')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '确认应用' })).toBeDisabled();
-    expect(window.localStorage.getItem('gsap.channel.workflow.ch_crew')).toBe(storedBeforeFailure);
+    expect(window.localStorage.getItem('codia.channel.workflow.ch_crew')).toBe(storedBeforeFailure);
   });
 
   it('restores focus and ignores a stale template response after the generator is closed', async () => {
     let resolveTemplate: ((value: Response) => void) | null = null;
-    gsapFetchMock.mockImplementation(async (url: string) => {
+    codiaFetchMock.mockImplementation(async (url: string) => {
       if (url === '/api/workspace-tools/resolve') {
         return await new Promise<Response>((resolve) => { resolveTemplate = resolve; });
       }

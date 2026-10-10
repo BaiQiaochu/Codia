@@ -133,7 +133,8 @@
     "searchFailed": "搜尋失敗",
     "projects": {
       "newFolder": "新建資料夾"
-    }
+    },
+    "automationRecords": "自動化記錄"
   },
   "session": {
     "untitled": "新對話",
@@ -314,10 +315,13 @@
     "removeRecentWorkspace": "移除最近工作空間",
     "planMode": "權限模式",
     "accessMode": "會話權限模式",
-    "autoMode": "自動模式",
-    "operateMode": "自動操作",
-    "askMode": "操作前詢問",
-    "readOnlyMode": "唯讀模式",
+    "autoMode": "幫我批准",
+    "autoModeDescription": "僅對偵測到的風險操作請求批准",
+    "operateMode": "完全存取權限",
+    "operateModeDescription": "可不受限制地存取網際網路和你電腦上的任何檔案",
+    "askMode": "請求批准",
+    "askModeDescription": "編輯外部檔案和使用網際網路時一律詢問",
+    "readOnlyMode": "請求批准",
     "accessModeLocked": "目前無法更改權限模式",
     "confirmMoreOptions": "更多確認選項",
     "noAskThisConversation": "本對話不再詢問",
@@ -381,9 +385,53 @@
       "tab": {
         "files": "檔案",
         "sessions": "對話",
-        "agents": "助手"
+        "agents": "助手",
+        "all": "全部"
       },
-      "empty": "沒有符合項目"
+      "empty": "沒有符合項目",
+      "group": {
+        "agents": "助手",
+        "sessions": "對話",
+        "images": "圖片",
+        "files": "檔案"
+      }
+    },
+    "addMenu": "新增",
+    "add": {
+      "title": "新增",
+      "file": "檔案",
+      "fileDetail": "從電腦選擇檔案",
+      "folder": "資料夾",
+      "folderDetail": "加入工作資料夾",
+      "link": "連結",
+      "linkDetail": "將網址加入訊息",
+      "plugins": "外掛",
+      "pluginsDetail": "使用已啟用的外掛",
+      "skills": "技能",
+      "skillCount": "{count} 個可用技能",
+      "tools": "工具",
+      "toolsDetail": "選擇目前任務工具",
+      "addLink": "新增連結",
+      "linkAddress": "連結網址",
+      "confirm": "新增",
+      "back": "返回",
+      "selectSkills": "選擇技能",
+      "selectPlugins": "選擇外掛",
+      "selectTools": "選擇工具",
+      "searchSkills": "搜尋技能",
+      "searchPlugins": "搜尋外掛",
+      "normalChat": "一般聊天",
+      "normalChatDetail": "不使用專用工具",
+      "loadingPlugins": "正在載入外掛…",
+      "noSkills": "沒有符合的技能",
+      "noPlugins": "沒有已啟用的外掛"
+    },
+    "slash": {
+      "title": "命令與技能",
+      "group": {
+        "commands": "命令",
+        "skills": "技能"
+      }
     }
   },
   "slash": {
@@ -418,25 +466,25 @@
   },
   "yuan": {
     "types": {
-      "gsap": {
+      "codia": {
         "name": "均衡",
         "label": "表達與執行保持平衡",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "butter": {
         "name": "情感",
         "label": "更富有情緒感知",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "ming": {
         "name": "理性",
         "label": "更理性冷靜",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       },
       "kong": {
         "name": "原始",
         "label": "模型原本的樣子",
-        "avatar": "character-cards/gsap-default-avatar.png"
+        "avatar": "character-cards/codia-default-avatar.png"
       }
     },
     "title": "元",
@@ -781,6 +829,8 @@
       "me": "我",
       "providers": "供應商",
       "experiments": "實驗",
+      "context": "上下文",
+      "computerUse": "電腦使用",
       "models": "模型",
       "memory": "記憶",
       "work": "工作空間",
@@ -1186,7 +1236,10 @@
       "apiKey": "API Key",
       "addBtn": "新增",
       "empty": "還沒有註冊供應商",
-      "fetchModels": "讀取模型",
+      "fetchModels": "掃描模型",
+      "modelManagement": "模型管理",
+      "manualAddModel": "手動新增",
+      "searchOrSelectModel": "搜尋或選擇掃描到的模型……",
       "delete": "刪除供應商",
       "modelCount": "{n} 個模型",
       "fetchSuccess": "{name} 取得了 {n} 個模型",
@@ -1767,7 +1820,7 @@
       "light": "淺色",
       "dark": "深色",
       "sakura": "協作青",
-      "gsap": "機構藍綠",
+      "codia": "機構藍綠",
       "mobile": "手機看",
       "desktop": "電腦看",
       "mobileTitle": "手機排版",
@@ -1806,7 +1859,7 @@
       "permissionMode": "權限模式",
       "permissionModeDesc": "控制社交平台工作階段透過 Agent 回覆時可執行的操作",
       "permissionModeAuto": "自動審核",
-      "permissionModeOperate": "自動操作",
+      "permissionModeOperate": "完全存取權限",
       "permissionModeReadOnly": "唯讀",
       "receiptEnabled": "回覆前提示",
       "receiptEnabledDesc": "收到訊息後，先傳送一條「已接收並正在回覆」的提示",
@@ -2238,8 +2291,8 @@
     "error": "發生錯誤，請重試"
   },
   "activity": {
-    "title": "助手活動",
-    "empty": "暫時沒有活動記錄，日常巡檢或定時任務執行後會出現在這裡",
+    "title": "自動化記錄",
+    "empty": "暫無自動化記錄。巡檢、排程任務、子 Agent 與背景自動程序會顯示在這裡。",
     "back": "返回",
     "heartbeat": "日常巡檢",
     "subagent": "子 agent 任務",
@@ -2826,7 +2879,7 @@
       "channelDesc": "頻道名稱（read/post 時必填）",
       "contentDesc": "訊息內容（post 時必填）",
       "nameDesc": "新頻道名稱（create 時必填）",
-      "membersDesc": "成員列表（create 時必填），如 [\"gsap\", \"butter\"]",
+      "membersDesc": "成員列表（create 時必填），如 [\"codia\", \"butter\"]",
       "introDesc": "頻道介紹（create 時可選）",
       "countDesc": "讀取訊息筆數（read 時可選，預設 20）"
     },
@@ -3329,9 +3382,21 @@
     }
   },
   "processFold": {
-    "summary": "✨ {name}忙活了一陣子",
+    "summary": "執行過程",
+    "running": "正在執行 {name}",
+    "completed": "已完成 {n} 項",
     "tools": "{n} 個工具",
     "thinking": "{n} 次思考",
+    "files": "涉及 {n} 個檔案",
+    "duration": "耗時 {value}",
+    "action": {
+      "write": "修改檔案",
+      "read": "檢索專案",
+      "command": "執行檢查",
+      "agent": "協調助手",
+      "integration": "呼叫擴充",
+      "tool": "呼叫 {name}"
+    },
     "unsuccessful": "{n} 次嘗試未成功"
   },
   "settings.work.heartbeatOperationalNotice": "巡檢可能在背景執行工具並存取工作區檔案。僅對你信任可無人值守執行的 Agent 開啟。",

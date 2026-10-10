@@ -31,7 +31,7 @@ export function createResourcesRoute(engine) {
       const content = resolveResourceContent(engine, resourceId, requestContext);
       const studioId = content.resource?.studioId || requestContext.studioId;
       const issued = issueResourceTicket({
-        gsapHome: engine?.gsapHome,
+        codiaHome: engine?.codiaHome,
         resourceId,
         studioId,
         principalId: requestContext.principalId,
@@ -143,7 +143,7 @@ function serveResourceContent(c, engine, headOnly) {
 
 function resolveTicketContent(c, engine, resourceId, ticket) {
   verifyResourceTicket({
-    gsapHome: engine?.gsapHome,
+    codiaHome: engine?.codiaHome,
     ticket,
     resourceId,
   });

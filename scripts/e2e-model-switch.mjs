@@ -126,7 +126,7 @@ function killProcessTree(child) {
 }
 
 async function main() {
-  const remoteDebugPort = Number(process.env.GSAP_E2E_REMOTE_DEBUG_PORT || await getAvailablePort());
+  const remoteDebugPort = Number(process.env.CODIA_E2E_REMOTE_DEBUG_PORT || await getAvailablePort());
   const mockOpenAI = await startMockOpenAI({ reply: "E2E model response." });
   const e2eHome = createIsolatedE2EHome({ mockBaseUrl: mockOpenAI.baseUrl });
   const child = spawn(
@@ -135,10 +135,10 @@ async function main() {
     {
       cwd: ROOT,
       env: desktopLaunchEnv({
-        GSAP_HOME: e2eHome,
-        GSAP_E2E: "1",
-        GSAP_E2E_REMOTE_DEBUG_PORT: String(remoteDebugPort),
-        GSAP_DESKTOP_SERVER_MODE: "dist",
+        CODIA_HOME: e2eHome,
+        CODIA_E2E: "1",
+        CODIA_E2E_REMOTE_DEBUG_PORT: String(remoteDebugPort),
+        CODIA_DESKTOP_SERVER_MODE: "dist",
       }),
       stdio: ["ignore", "pipe", "pipe"],
     },
@@ -156,13 +156,13 @@ async function main() {
 
     await waitFor(
       async () => await cdp.evaluate(
-        "typeof window.__GSAP_RUNTIME_DIAGNOSTICS__ !== 'undefined' && window.__GSAP_E2E__?.appReady === true",
+        "typeof window.__CODIA_RUNTIME_DIAGNOSTICS__ !== 'undefined' && window.__CODIA_E2E__?.appReady === true",
       ),
       "renderer app ready",
       60000,
     );
 
-    const ensured = await cdp.evaluate("window.__GSAP_E2E__.ensureSession()");
+    const ensured = await cdp.evaluate("window.__CODIA_E2E__.ensureSession()");
     if (!ensured) {
       throw new Error("ensureSession failed");
     }
@@ -175,7 +175,7 @@ async function main() {
 
     const initialState = await waitFor(
       async () => {
-        const snapshot = await cdp.evaluate("window.__GSAP_E2E__.getStateSnapshot()");
+        const snapshot = await cdp.evaluate("window.__CODIA_E2E__.getStateSnapshot()");
         return snapshot.currentSessionPath ? snapshot : null;
       },
       "currentSessionPath after ensureSession",
@@ -194,8 +194,8 @@ async function main() {
       throw new Error("current model unavailable");
     }
 
-    await cdp.evaluate(`window.__GSAP_E2E__.setStore(${toExpr({ pendingNewSession: true, welcomeVisible: true })})`);
-    const healedState = await cdp.evaluate("window.__GSAP_E2E__.refreshModels()");
+    await cdp.evaluate(`window.__CODIA_E2E__.setStore(${toExpr({ pendingNewSession: true, welcomeVisible: true })})`);
+    const healedState = await cdp.evaluate("window.__CODIA_E2E__.refreshModels()");
     const healOk = healedState.currentSessionPath === sessionPath
       && healedState.pendingNewSession === false
       && healedState.welcomeVisible === false;
@@ -216,7 +216,7 @@ async function main() {
         },
       };
     } else {
-      await cdp.evaluate(`window.__GSAP_E2E__.setStore(${toExpr({ pendingNewSession: true })})`);
+      await cdp.evaluate(`window.__CODIA_E2E__.setStore(${toExpr({ pendingNewSession: true })})`);
 
       await cdp.evaluate(`(() => {
         const pill = document.querySelector('button[class*="model-pill"]');
@@ -242,11 +242,11 @@ async function main() {
         return true;
       })()`);
       await sleep(1000);
-      lastStateSnapshot = await cdp.evaluate("window.__GSAP_E2E__.getStateSnapshot()");
+      lastStateSnapshot = await cdp.evaluate("window.__CODIA_E2E__.getStateSnapshot()");
 
       const switchedState = await waitFor(
         async () => {
-          const snapshot = await cdp.evaluate("window.__GSAP_E2E__.getStateSnapshot()");
+          const snapshot = await cdp.evaluate("window.__CODIA_E2E__.getStateSnapshot()");
           lastStateSnapshot = snapshot;
           const sessionModel = snapshot.sessionModelsByPath?.[snapshot.currentSessionPath || ""] || null;
           if (!sessionModel) return null;

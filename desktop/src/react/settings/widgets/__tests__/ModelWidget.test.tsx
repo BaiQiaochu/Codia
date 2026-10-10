@@ -8,11 +8,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ModelWidget } from '../ModelWidget';
 
 const mocks = vi.hoisted(() => ({
-  gsapFetch: vi.fn(),
+  codiaFetch: vi.fn(),
 }));
 
 vi.mock('../../api', () => ({
-  gsapFetch: (...args: unknown[]) => mocks.gsapFetch(...args),
+  codiaFetch: (...args: unknown[]) => mocks.codiaFetch(...args),
 }));
 
 const t = (key: string) => ({
@@ -47,7 +47,7 @@ describe('ModelWidget', () => {
   });
 
   it('opens the model popup from a body portal and selects a vision model', async () => {
-    mocks.gsapFetch.mockResolvedValue({
+    mocks.codiaFetch.mockResolvedValue({
       json: async () => ({
         models: [
           { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai', input: ['text', 'image'], vision: true },
@@ -66,7 +66,7 @@ describe('ModelWidget', () => {
       />,
     );
 
-    await waitFor(() => expect(mocks.gsapFetch).toHaveBeenCalledWith('/api/models?include=vision'));
+    await waitFor(() => expect(mocks.codiaFetch).toHaveBeenCalledWith('/api/models?include=vision'));
     fireEvent.click(screen.getByRole('button', { name: /Select model/ }));
 
     await waitFor(() => expect(document.body.querySelector('[data-mdw-popup]')).toBeTruthy());
@@ -82,7 +82,7 @@ describe('ModelWidget', () => {
   });
 
   it('trims custom provider/id input before selecting', async () => {
-    mocks.gsapFetch.mockResolvedValue({
+    mocks.codiaFetch.mockResolvedValue({
       json: async () => ({ models: [] }),
     });
     const onSelect = vi.fn();
@@ -101,7 +101,7 @@ describe('ModelWidget', () => {
   it('positions the popup with a top coordinate when it opens above the trigger', async () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: 600 });
-    mocks.gsapFetch.mockResolvedValue({
+    mocks.codiaFetch.mockResolvedValue({
       json: async () => ({
         models: [
           { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai' },

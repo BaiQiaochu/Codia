@@ -48,7 +48,7 @@ let _updateState = {
 };
 
 function getUpdateFeedUrl() {
-  return String(process.env.GSAP_UPDATE_FEED_URL || "").trim();
+  return String(process.env.CODIA_UPDATE_FEED_URL || "").trim();
 }
 
 function isUpdateFeedConfigured() {
@@ -447,13 +447,12 @@ function initAutoUpdater(mainWindow, {
   shutdownServer,
   setIsUpdating,
   appHome,
-  gsapHome,
-  hanakoHome,
+  codiaHome,
 } = {}) {
   _mainWindow = mainWindow;
   void shutdownServer;
   _setIsUpdating = setIsUpdating;
-  _appHome = appHome || gsapHome || hanakoHome;
+  _appHome = appHome || codiaHome || codiaHome;
 
   registerIpcHandlers();
 

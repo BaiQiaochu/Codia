@@ -1,15 +1,15 @@
-# G-SAP Plugin SDK
+# Codia Plugin SDK
 
-This document describes the source-level SDK pieces used by built-in and external plugins. Public documentation uses G-SAP names; existing internal package scopes may remain as compatibility aliases until the TypeScript and package rename migration is complete.
+This document describes the source-level SDK pieces used by built-in and external plugins. Public documentation uses Codia names; existing internal package scopes may remain as compatibility aliases until the TypeScript and package rename migration is complete.
 
 ## Packages
 
 The SDK is split into four workspace packages:
 
-- `@g-sap/plugin-protocol` (`packages/plugin-protocol`): shared protocol constants and message shapes for iframe/host communication.
-- `@g-sap/plugin-sdk` (`packages/plugin-sdk`): browser-side iframe helpers for host handshake, asset URLs, same-origin plugin API calls, resize, toast, external links, clipboard, and raw host requests.
-- `@g-sap/plugin-runtime` (`packages/plugin-runtime`): Node-side helpers for tools, lifecycle plugins, EventBus handlers, network fetch capability, SessionFile media details, providers, tasks, and request-pipeline extensions.
-- `@g-sap/plugin-components` (`packages/plugin-components`): React primitives and styles for plugin iframe UI.
+- `@codia/plugin-protocol` (`packages/plugin-protocol`): shared protocol constants and message shapes for iframe/host communication.
+- `@codia/plugin-sdk` (`packages/plugin-sdk`): browser-side iframe helpers for host handshake, asset URLs, same-origin plugin API calls, resize, toast, external links, clipboard, and raw host requests.
+- `@codia/plugin-runtime` (`packages/plugin-runtime`): Node-side helpers for tools, lifecycle plugins, EventBus handlers, network fetch capability, SessionFile media details, providers, tasks, and request-pipeline extensions.
+- `@codia/plugin-components` (`packages/plugin-components`): React primitives and styles for plugin iframe UI.
 
 Run this after SDK changes:
 
@@ -60,13 +60,13 @@ Tools that return files should register them through the host SessionFile/resour
 Common iframe capability requests:
 
 ```ts
-gsap.ready();
-gsap.ui.resize({ height: 360 });
-await gsap.toast.show({ message: "完成" });
-await gsap.external.open({ url: "https://example.com" });
-await gsap.clipboard.writeText({ text: "copied" });
-const imageUrl = gsap.assets.url("images/example.png");
-const apiResp = await gsap.api.fetch("api/translate", {
+codia.ready();
+codia.ui.resize({ height: 360 });
+await codia.toast.show({ message: "完成" });
+await codia.external.open({ url: "https://example.com" });
+await codia.clipboard.writeText({ text: "copied" });
+const imageUrl = codia.assets.url("images/example.png");
+const apiResp = await codia.api.fetch("api/translate", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ text: "hello" })
@@ -91,7 +91,7 @@ Backend plugin code must use `ctx.network.fetch` for outbound HTTP calls. It is 
 }
 ```
 
-Iframe code should use `gsap.api.url()` or `gsap.api.fetch()` for same-origin plugin route calls. `gsap.api.fetch()` automatically sends the plugin surface session header; do not call `/api/plugins/...` by hand from iframe UI.
+Iframe code should use `codia.api.url()` or `codia.api.fetch()` for same-origin plugin route calls. `codia.api.fetch()` automatically sends the plugin surface session header; do not call `/api/plugins/...` by hand from iframe UI.
 
 ## Provider Helpers
 

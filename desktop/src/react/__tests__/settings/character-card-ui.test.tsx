@@ -10,7 +10,7 @@ import { useSettingsStore } from '../../settings/store';
 
 type MockResponse = { json: () => Promise<unknown> };
 
-const gsapFetchMock = vi.fn(async (_url: string, _opts?: RequestInit): Promise<MockResponse> => ({
+const codiaFetchMock = vi.fn(async (_url: string, _opts?: RequestInit): Promise<MockResponse> => ({
   json: async () => ({ ok: true }),
 }));
 const switchToAgentMock = vi.fn(async (..._args: unknown[]) => {});
@@ -18,8 +18,8 @@ const settingsChangedMock = vi.fn();
 const showToastMock = vi.fn();
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: (url: string, opts?: RequestInit) => gsapFetchMock(url, opts),
-  gsapUrl: (path: string) => path,
+  codiaFetch: (url: string, opts?: RequestInit) => codiaFetchMock(url, opts),
+  codiaUrl: (path: string) => path,
   yuanFallbackAvatar: (yuan: string) => `/fallback-${yuan}.png`,
 }));
 
@@ -27,8 +27,8 @@ vi.mock('../../settings/helpers', () => ({
   t: (key: string, params?: Record<string, string>) => {
     if (key === 'yuan.types') {
       return {
-        gsap: { label: 'G-SAP Balance' },
-        ming: { label: 'G-SAP Rational' },
+        codia: { label: 'Codia Balance' },
+        ming: { label: 'Codia Rational' },
       };
     }
     if (key === 'settings.agent.created') return `${params?.name || ''} created`;
@@ -42,7 +42,7 @@ vi.mock('../../settings/actions', () => ({
 
 describe('professional assistant creation UI', () => {
   beforeEach(() => {
-    gsapFetchMock.mockReset();
+    codiaFetchMock.mockReset();
     switchToAgentMock.mockReset();
     settingsChangedMock.mockReset();
     showToastMock.mockReset();
@@ -64,7 +64,7 @@ describe('professional assistant creation UI', () => {
   });
 
   it('keeps the fast assistant creation path when no character card is selected', async () => {
-    gsapFetchMock.mockResolvedValueOnce({
+    codiaFetchMock.mockResolvedValueOnce({
       json: async () => ({ id: 'agent-a', name: 'Ada' }),
     });
 
@@ -72,7 +72,7 @@ describe('professional assistant creation UI', () => {
     render(<AgentCreateOverlay />);
 
     act(() => {
-      window.dispatchEvent(new Event('gsap-show-agent-create'));
+      window.dispatchEvent(new Event('codia-show-agent-create'));
     });
 
     fireEvent.change(screen.getByPlaceholderText('settings.agent.namePlaceholder'), {
@@ -81,9 +81,9 @@ describe('professional assistant creation UI', () => {
     fireEvent.click(screen.getByText('settings.agent.confirm'));
 
     await waitFor(() => expect(switchToAgentMock).toHaveBeenCalledWith('agent-a'));
-    expect(gsapFetchMock).toHaveBeenCalledWith('/api/agents', expect.objectContaining({
+    expect(codiaFetchMock).toHaveBeenCalledWith('/api/agents', expect.objectContaining({
       method: 'POST',
-      body: JSON.stringify({ name: 'Ada', yuan: 'gsap', homeFolder: 'E:/workspace/current' }),
+      body: JSON.stringify({ name: 'Ada', yuan: 'codia', homeFolder: 'E:/workspace/current' }),
     }));
     expect(settingsChangedMock).toHaveBeenCalledWith('agent-created', {
       agentId: 'agent-a',
@@ -96,11 +96,11 @@ describe('professional assistant creation UI', () => {
     render(<AgentCreateOverlay />);
 
     act(() => {
-      window.dispatchEvent(new Event('gsap-show-agent-create'));
+      window.dispatchEvent(new Event('codia-show-agent-create'));
     });
 
     expect(document.querySelector('input[type="file"]')).toBeNull();
     expect(screen.queryByText(/角色卡/)).not.toBeInTheDocument();
-    expect(gsapFetchMock.mock.calls.some(([url]) => String(url).startsWith('/api/character-cards'))).toBe(false);
+    expect(codiaFetchMock.mock.calls.some(([url]) => String(url).startsWith('/api/character-cards'))).toBe(false);
   });
 });

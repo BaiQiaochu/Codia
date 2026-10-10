@@ -1,40 +1,40 @@
 // @ts-nocheck
 import { afterEach, describe, expect, it, vi } from "vitest";
 import path from "path";
-import { GsapEngine } from "../core/engine.js";
+import { CodiaEngine } from "../core/engine.js";
 import { SettingsManager } from "../lib/pi-sdk/index.js";
 
-describe("GsapEngine resource loader options", () => {
+describe("CodiaEngine resource loader options", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("uses explicit G-SAP-owned Pi SDK cwd, agentDir, and in-memory Pi settings", () => {
+  it("uses explicit Codia-owned Pi SDK cwd, agentDir, and in-memory Pi settings", () => {
     const settings = { kind: "in-memory-settings" };
     const inMemory = vi.spyOn(SettingsManager, "inMemory").mockReturnValue(settings);
-    const engine = Object.create(GsapEngine.prototype);
-    engine.gsapHome = "/gsap-home";
+    const engine = Object.create(CodiaEngine.prototype);
+    engine.codiaHome = "/codia-home";
     engine._agentMgr = {
       activeAgentId: "agent-a",
       agent: {
-        agentDir: "/gsap-home/agents/agent-a",
+        agentDir: "/codia-home/agents/agent-a",
         systemPrompt: "agent prompt",
       },
     };
     engine.getHomeCwd = vi.fn(() => "/workspace-a");
 
-    const options = engine._createResourceLoaderOptions("/gsap-home/skills");
+    const options = engine._createResourceLoaderOptions("/codia-home/skills");
 
     expect(options).toMatchObject({
-      cwd: path.join("/gsap-home", ".pi", "project"),
-      agentDir: path.join("/gsap-home", ".pi", "agent"),
+      cwd: path.join("/codia-home", ".pi", "project"),
+      agentDir: path.join("/codia-home", ".pi", "agent"),
       settingsManager: settings,
       noContextFiles: true,
       noExtensions: true,
       noSkills: true,
       noPromptTemplates: true,
       noThemes: true,
-      additionalSkillPaths: ["/gsap-home/skills"],
+      additionalSkillPaths: ["/codia-home/skills"],
     });
     expect(options.agentsFilesOverride()).toEqual({ agentsFiles: [] });
     expect(options.systemPromptOverride()).toBe("agent prompt");
@@ -44,12 +44,12 @@ describe("GsapEngine resource loader options", () => {
   });
 
   it("respects explicit permission mode overrides when building tools", async () => {
-    const engine = Object.create(GsapEngine.prototype);
-    engine.gsapHome = "/gsap-home";
+    const engine = Object.create(CodiaEngine.prototype);
+    engine.codiaHome = "/codia-home";
     engine._agentMgr = {
       agent: {
         id: "agent-a",
-        agentDir: "/gsap-home/agents/agent-a",
+        agentDir: "/codia-home/agents/agent-a",
         tools: [],
       },
     };

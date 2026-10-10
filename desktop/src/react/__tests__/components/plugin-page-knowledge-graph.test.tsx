@@ -69,7 +69,7 @@ describe('knowledge graph plugin page sandbox behavior', () => {
     const src = iframe.getAttribute('src') || '';
     expect(src).toContain('http://127.0.0.1:3210/api/plugins/knowledge-graph/page?token=desktop-token');
     expect(src).toContain('agentId=agent-1');
-    expect(src).toContain('gsap-theme=warm-paper');
+    expect(src).toContain('codia-theme=warm-paper');
   });
 
   it('does not grant modal permission to normal plugin pages', async () => {

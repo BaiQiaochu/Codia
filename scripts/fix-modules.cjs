@@ -52,7 +52,7 @@ exports.default = async function (context) {
         "Contents", "Resources")
     : path.join(context.appOutDir, "resources");
   if (platformName === "mac") {
-    const computerUseHelper = path.join(resourcesDir, "computer-use", "macos", "gsap-computer-use-helper");
+    const computerUseHelper = path.join(resourcesDir, "computer-use", "macos", "codia-computer-use-helper");
     if (!fs.existsSync(computerUseHelper)) {
       throw new Error(
         `[fix-modules] Computer Use helper missing from macOS app resources: ${computerUseHelper}. ` +

@@ -187,7 +187,7 @@ function killProcessTree(child) {
 
 async function waitForAssistantReply(cdp, sessionPath, baselineAssistantCount, timeoutMs = 90000) {
   return await waitFor(async () => {
-    const items = await cdp.evaluate(`window.__GSAP_E2E__.getSessionMessages(${toExpr(sessionPath)})`);
+    const items = await cdp.evaluate(`window.__CODIA_E2E__.getSessionMessages(${toExpr(sessionPath)})`);
     const assistants = (items || [])
       .filter((item) => item?.type === "message" && item.data?.role === "assistant")
       .map((item) => item.data);
@@ -200,10 +200,10 @@ async function waitForAssistantReply(cdp, sessionPath, baselineAssistantCount, t
 }
 
 async function main() {
-  const remoteDebugPort = Number(process.env.GSAP_E2E_REMOTE_DEBUG_PORT || await getAvailablePort());
+  const remoteDebugPort = Number(process.env.CODIA_E2E_REMOTE_DEBUG_PORT || await getAvailablePort());
   const mockOpenAI = await startMockOpenAI({ reply: "E2E vision reply received." });
   const e2eHome = createIsolatedE2EHome({ mockBaseUrl: mockOpenAI.baseUrl });
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-e2e-image-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-e2e-image-"));
   const pngPath = path.join(tempDir, "drag-sample.png");
   const svgPath = path.join(tempDir, "drag-vector.svg");
 
@@ -217,10 +217,10 @@ async function main() {
   const child = spawn(launch.command, launch.args, {
     cwd: launch.cwd,
     env: desktopLaunchEnv({
-      GSAP_HOME: e2eHome,
-      GSAP_E2E: "1",
-      GSAP_E2E_REMOTE_DEBUG_PORT: String(remoteDebugPort),
-      GSAP_DESKTOP_SERVER_MODE: "dist",
+      CODIA_HOME: e2eHome,
+      CODIA_E2E: "1",
+      CODIA_E2E_REMOTE_DEBUG_PORT: String(remoteDebugPort),
+      CODIA_DESKTOP_SERVER_MODE: "dist",
     }),
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -245,32 +245,32 @@ async function main() {
 
     await waitFor(
       async () => await cdp.evaluate(
-        "typeof window.__GSAP_RUNTIME_DIAGNOSTICS__ !== 'undefined' && window.__GSAP_E2E__?.appReady === true",
+        "typeof window.__CODIA_RUNTIME_DIAGNOSTICS__ !== 'undefined' && window.__CODIA_E2E__?.appReady === true",
       ),
       "renderer e2e helper",
       60000,
     );
-    await cdp.evaluate("window.__GSAP_E2E__.ensureSession()").catch(() => false);
+    await cdp.evaluate("window.__CODIA_E2E__.ensureSession()").catch(() => false);
     const inputHelperReady = await waitFor(
-      async () => await cdp.evaluate("typeof window.__GSAP_E2E__.setInputText === 'function'"),
+      async () => await cdp.evaluate("typeof window.__CODIA_E2E__.setInputText === 'function'"),
       "input helper",
       15000,
     ).then(() => true).catch(() => false);
 
-    await cdp.evaluate("window.__GSAP_E2E__.clearAttachedFiles()");
+    await cdp.evaluate("window.__CODIA_E2E__.clearAttachedFiles()");
 
-    const dragPng = await cdp.evaluate(`window.__GSAP_E2E__.attachFilesFromPaths([${toExpr(pngPath)}])`);
-    await cdp.evaluate("window.__GSAP_E2E__.clearAttachedFiles()");
-    const dragSvg = await cdp.evaluate(`window.__GSAP_E2E__.attachFilesFromPaths([${toExpr(svgPath)}])`);
-    await cdp.evaluate("window.__GSAP_E2E__.clearAttachedFiles()");
+    const dragPng = await cdp.evaluate(`window.__CODIA_E2E__.attachFilesFromPaths([${toExpr(pngPath)}])`);
+    await cdp.evaluate("window.__CODIA_E2E__.clearAttachedFiles()");
+    const dragSvg = await cdp.evaluate(`window.__CODIA_E2E__.attachFilesFromPaths([${toExpr(svgPath)}])`);
+    await cdp.evaluate("window.__CODIA_E2E__.clearAttachedFiles()");
 
-    const pasted = await cdp.evaluate(`window.__GSAP_E2E__.addImageAttachment(${toExpr({
+    const pasted = await cdp.evaluate(`window.__CODIA_E2E__.addImageAttachment(${toExpr({
       name: "pasted-shot.png",
       base64Data: PNG_BASE64,
       mimeType: "image/png",
     })})`);
 
-    const stateBefore = await cdp.evaluate("window.__GSAP_E2E__.getStateSnapshot()");
+    const stateBefore = await cdp.evaluate("window.__CODIA_E2E__.getStateSnapshot()");
     const sessionPath = stateBefore.currentSessionPath || null;
     const localizedNoVision = await cdp.evaluate("window.t('input.textModelImageBlocked') || window.t('error.modelNoVision')");
 
@@ -288,26 +288,26 @@ async function main() {
     if (!inputHelperReady) {
       noVisionStatus = { ok: false, skipped: true, reason: "chat input area not mounted in E2E window" };
     } else {
-      await cdp.evaluate("window.__GSAP_E2E__.clearAttachedFiles()");
-      await cdp.evaluate(`window.__GSAP_E2E__.setStore(${toExpr({
+      await cdp.evaluate("window.__CODIA_E2E__.clearAttachedFiles()");
+      await cdp.evaluate(`window.__CODIA_E2E__.setStore(${toExpr({
         models: noVisionModel,
         sessionModelsByPath: noVisionSessionModels,
       })})`);
-      await cdp.evaluate(`window.__GSAP_E2E__.addImageAttachment(${toExpr({
+      await cdp.evaluate(`window.__CODIA_E2E__.addImageAttachment(${toExpr({
         name: "blocked.png",
         base64Data: PNG_BASE64,
         mimeType: "image/png",
       })})`);
-      await cdp.evaluate("window.__GSAP_E2E__.clickSendButton()");
+      await cdp.evaluate("window.__CODIA_E2E__.clickSendButton()");
       noVisionNotice = await waitFor(
         async () => {
-          const text = await cdp.evaluate("window.__GSAP_E2E__.getInlineNoticeText()");
+          const text = await cdp.evaluate("window.__CODIA_E2E__.getInlineNoticeText()");
           return text && text.includes(localizedNoVision) ? text : null;
         },
         "no-vision notice",
         10000,
       );
-      blockedAttachments = await cdp.evaluate("window.__GSAP_E2E__.getStateSnapshot().attachedFiles");
+      blockedAttachments = await cdp.evaluate("window.__CODIA_E2E__.getStateSnapshot().attachedFiles");
       noVisionStatus = {
         ok: !!noVisionNotice && Array.isArray(blockedAttachments) && blockedAttachments.length === 1,
         skipped: false,
@@ -315,29 +315,29 @@ async function main() {
       };
     }
 
-    await cdp.evaluate(`window.__GSAP_E2E__.setStore(${toExpr({
+    await cdp.evaluate(`window.__CODIA_E2E__.setStore(${toExpr({
       models: originalModels,
       sessionModelsByPath: originalSessionModels,
     })})`);
-    await cdp.evaluate("window.__GSAP_E2E__.clearAttachedFiles()");
+    await cdp.evaluate("window.__CODIA_E2E__.clearAttachedFiles()");
 
     let visionReply = null;
     let visionStatus = { ok: false, skipped: false, reason: "" };
 
-    const refreshedState = await cdp.evaluate("window.__GSAP_E2E__.getStateSnapshot()");
+    const refreshedState = await cdp.evaluate("window.__CODIA_E2E__.getStateSnapshot()");
     const targetSessionPath = refreshedState.currentSessionPath || null;
     const availableVisionModels = (refreshedState.models || []).filter((model) => model.vision === true);
 
     if (!inputHelperReady) {
       visionStatus = { ok: false, skipped: true, reason: "chat input area not mounted in E2E window" };
     } else if (!targetSessionPath) {
-      const created = await cdp.evaluate("window.__GSAP_E2E__.ensureSession()");
+      const created = await cdp.evaluate("window.__CODIA_E2E__.ensureSession()");
       if (!created) {
         visionStatus = { ok: false, skipped: true, reason: "no current session and ensureSession failed" };
       }
     }
 
-    const stateForVision = await cdp.evaluate("window.__GSAP_E2E__.getStateSnapshot()");
+    const stateForVision = await cdp.evaluate("window.__CODIA_E2E__.getStateSnapshot()");
     const finalSessionPath = stateForVision.currentSessionPath || null;
 
     if (!visionStatus.skipped) {
@@ -348,10 +348,10 @@ async function main() {
       } else {
         const chosenModel = availableVisionModels.find((model) => model.isCurrent) || availableVisionModels[0];
         try {
-          await cdp.evaluate(`window.__GSAP_E2E__.switchModel(${toExpr(chosenModel.id)}, ${toExpr(chosenModel.provider)}, ${toExpr(finalSessionPath)})`);
+          await cdp.evaluate(`window.__CODIA_E2E__.switchModel(${toExpr(chosenModel.id)}, ${toExpr(chosenModel.provider)}, ${toExpr(finalSessionPath)})`);
           await waitFor(
             async () => await cdp.evaluate(`(() => {
-              const state = window.__GSAP_E2E__.getStateSnapshot();
+              const state = window.__CODIA_E2E__.getStateSnapshot();
               const sessionModel = state.sessionModelsByPath?.[${toExpr(finalSessionPath)}];
               const current = (state.models || []).find((model) => model.isCurrent);
               return sessionModel?.id === ${toExpr(chosenModel.id)}
@@ -369,17 +369,17 @@ async function main() {
     }
 
     if (!visionStatus.skipped && finalSessionPath) {
-      const baselineItems = await cdp.evaluate(`window.__GSAP_E2E__.getSessionMessages(${toExpr(finalSessionPath)})`);
+      const baselineItems = await cdp.evaluate(`window.__CODIA_E2E__.getSessionMessages(${toExpr(finalSessionPath)})`);
       const baselineAssistantCount = (baselineItems || []).filter((item) => item?.type === "message" && item.data?.role === "assistant").length;
 
-      await cdp.evaluate("window.__GSAP_E2E__.clearAttachedFiles()");
-      await cdp.evaluate(`window.__GSAP_E2E__.addImageAttachment(${toExpr({
+      await cdp.evaluate("window.__CODIA_E2E__.clearAttachedFiles()");
+      await cdp.evaluate(`window.__CODIA_E2E__.addImageAttachment(${toExpr({
         name: "vision-check.png",
         base64Data: PNG_BASE64,
         mimeType: "image/png",
       })})`);
-      await cdp.evaluate(`window.__GSAP_E2E__.setInputText(${toExpr("请简短描述这张图片。")})`);
-      await cdp.evaluate("window.__GSAP_E2E__.clickSendButton()");
+      await cdp.evaluate(`window.__CODIA_E2E__.setInputText(${toExpr("请简短描述这张图片。")})`);
+      await cdp.evaluate("window.__CODIA_E2E__.clickSendButton()");
 
       try {
         visionReply = await waitForAssistantReply(cdp, finalSessionPath, baselineAssistantCount, 90000);
@@ -394,12 +394,12 @@ async function main() {
     let runtimeDiagnostics = null;
     let runtimeDiagnosticsError = null;
     try {
-      finalState = await cdp.evaluate("window.__GSAP_E2E__.getStateSnapshot()");
+      finalState = await cdp.evaluate("window.__CODIA_E2E__.getStateSnapshot()");
     } catch (error) {
       finalStateError = error?.message || String(error);
     }
     try {
-      runtimeDiagnostics = await cdp.evaluate("window.__GSAP_E2E__.callApi('/api/diagnostics/runtime')");
+      runtimeDiagnostics = await cdp.evaluate("window.__CODIA_E2E__.callApi('/api/diagnostics/runtime')");
     } catch (error) {
       runtimeDiagnosticsError = error?.message || String(error);
     }
@@ -476,7 +476,7 @@ async function main() {
     killProcessTree(child);
     try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch {}
     await mockOpenAI.close().catch(() => {});
-    if (process.env.GSAP_E2E_KEEP_HOME === "1") {
+    if (process.env.CODIA_E2E_KEEP_HOME === "1") {
       console.log(`[e2e-image-input] preserved ${e2eHome}`);
     } else {
       removeE2EHome(e2eHome);

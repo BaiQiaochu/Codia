@@ -53,11 +53,11 @@ Fallback-only docs/resources for CLI mode:
 Local post-processing helper:
 - `$CODEX_HOME/skills/.system/imagegen/scripts/remove_chroma_key.py`: removes a flat chroma-key background from a generated image and writes a PNG/WebP with alpha. Prefer auto-key sampling, soft matte, and despill for antialiased edges.
 
-G-SAP plugin integration notes:
+Codia plugin integration notes:
 - Use `toolCtx.stageFile({ sessionPath, filePath, label })` or the equivalent SessionFile path before returning generated media to the UI.
 - Use `stage_files` metadata when a workflow returns multiple generated artifacts that should be exposed together.
 - Use the media Provider Registry for image, video, speech, and music adapters instead of hard-coded provider branches.
-- Return background job updates with `<gsap-background-result>` blocks when a long-running generation completes outside the current turn.
+- Return background job updates with `<codia-background-result>` blocks when a long-running generation completes outside the current turn.
 - The CLI wrapper accepts `count`: concurrent generation count (1-4), and `images`: an ordered array of reference image paths for fallback workflows that explicitly use local CLI mode.
 
 ## When to use

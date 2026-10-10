@@ -9,7 +9,7 @@ describe("VisionContextInjector", () => {
   it("returns structured diagnostics instead of silently running blind when injection fails", async () => {
     const warn = vi.fn();
     const result = await runVisionContextInjection({
-      path: "gsap-test-vision-context-injection",
+      path: "codia-test-vision-context-injection",
       event: {
         messages: [
           { role: "user", content: "review the screenshot" },
@@ -34,7 +34,7 @@ describe("VisionContextInjector", () => {
     expect(result.diagnostics).toEqual([
       expect.objectContaining({
         code: VISION_CONTEXT_INJECTION_FAILED,
-        path: "gsap-test-vision-context-injection",
+        path: "codia-test-vision-context-injection",
         sessionPath: "/tmp/session.jsonl",
         targetModel: { id: "deepseek-chat", provider: "deepseek" },
         message: "vision model unavailable",

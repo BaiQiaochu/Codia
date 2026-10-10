@@ -16,14 +16,14 @@ describe("login item settings", () => {
   it("uses a dedicated login-start argument on Windows so startup can stay hidden", async () => {
     const { START_AT_LOGIN_ARG, getLoginItemOptions, wasLaunchedAtLogin } = await loadModule();
 
-    expect(getLoginItemOptions("win32", "C:\\Program Files\\G-SAP\\G-SAP.exe")).toEqual({
-      path: "C:\\Program Files\\G-SAP\\G-SAP.exe",
+    expect(getLoginItemOptions("win32", "C:\\Program Files\\Codia\\Codia.exe")).toEqual({
+      path: "C:\\Program Files\\Codia\\Codia.exe",
       args: [START_AT_LOGIN_ARG],
     });
-    expect(START_AT_LOGIN_ARG).toBe("--gsap-start-at-login");
+    expect(START_AT_LOGIN_ARG).toBe("--codia-start-at-login");
     expect(wasLaunchedAtLogin({
       platform: "win32",
-      argv: ["G-SAP.exe", START_AT_LOGIN_ARG],
+      argv: ["Codia.exe", START_AT_LOGIN_ARG],
       loginItemSettings: {},
     })).toBe(true);
   });
@@ -33,7 +33,7 @@ describe("login item settings", () => {
 
     expect(wasLaunchedAtLogin({
       platform: "darwin",
-      argv: ["G-SAP"],
+      argv: ["Codia"],
       loginItemSettings: { wasOpenedAtLogin: true },
     })).toBe(true);
   });
@@ -42,7 +42,7 @@ describe("login item settings", () => {
     const { getAutoLaunchStatus } = await loadModule();
     const app = createAppMock();
 
-    expect(getAutoLaunchStatus({ app, platform: "linux", argv: [], execPath: "/opt/G-SAP/gsap" })).toEqual({
+    expect(getAutoLaunchStatus({ app, platform: "linux", argv: [], execPath: "/opt/Codia/codia" })).toEqual({
       supported: false,
       openAtLogin: false,
       openedAtLogin: false,
@@ -59,17 +59,17 @@ describe("login item settings", () => {
       app,
       platform: "win32",
       argv: [],
-      execPath: "C:\\G-SAP\\G-SAP.exe",
+      execPath: "C:\\Codia\\Codia.exe",
       enabled: true,
     });
 
     expect(app.setLoginItemSettings).toHaveBeenCalledWith({
       openAtLogin: true,
-      path: "C:\\G-SAP\\G-SAP.exe",
+      path: "C:\\Codia\\Codia.exe",
       args: [START_AT_LOGIN_ARG],
     });
     expect(app.getLoginItemSettings).toHaveBeenCalledWith({
-      path: "C:\\G-SAP\\G-SAP.exe",
+      path: "C:\\Codia\\Codia.exe",
       args: [START_AT_LOGIN_ARG],
     });
     expect(status).toMatchObject({
@@ -80,7 +80,7 @@ describe("login item settings", () => {
     });
   });
 
-  it("moves an enabled legacy BYOUNG login item to Codia and retires the old entry", async () => {
+  it("moves an enabled legacy CODIA login item to Codia and retires the old entry", async () => {
     const { getAutoLaunchStatus, START_AT_LOGIN_ARG } = await loadModule();
     const app = {
       getLoginItemSettings: vi.fn()
@@ -104,7 +104,7 @@ describe("login item settings", () => {
     });
     expect(app.setLoginItemSettings).toHaveBeenNthCalledWith(2, {
       openAtLogin: false,
-      path: "C:\\Program Files\\Codia\\BYOUNG.exe",
+      path: "C:\\Program Files\\Codia\\CODIA.exe",
       args: [START_AT_LOGIN_ARG],
     });
     expect(status.openAtLogin).toBe(true);

@@ -23,7 +23,7 @@ describe("CheckpointStore", () => {
     fs.writeFileSync(srcFile, "const x = 1;\n");
 
     const id = await store.save({
-      sessionPath: "agents/hana/sessions/test",
+      sessionPath: "agents/codia/sessions/test",
       tool: "write",
       filePath: srcFile,
       maxSizeKb: 1024,

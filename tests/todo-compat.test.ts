@@ -23,7 +23,7 @@ describe("todo compatibility lifecycle", () => {
   });
 
   it("reads the debranded custom todo state message as a removal snapshot", () => {
-    expect(TODO_STATE_CUSTOM_TYPE).toBe("gsap.todo_state");
+    expect(TODO_STATE_CUSTOM_TYPE).toBe("codia.todo_state");
 
     const snapshot = extractLatestTodoSnapshot([{
       role: "custom",
@@ -51,10 +51,10 @@ describe("todo compatibility lifecycle", () => {
     }])).toEqual([]);
   });
 
-  it("keeps legacy Hana todo state messages readable without emitting the old brand", () => {
+  it("keeps legacy Codia todo state messages readable without emitting the old brand", () => {
     expect(extractLatestTodos([{
       role: "custom",
-      customType: "hana.todo_state",
+      customType: "codia.todo_state",
       details: {
         source: "user",
         removed: true,

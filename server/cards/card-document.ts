@@ -53,7 +53,7 @@ svg text { font-family: var(--font-serif); }
 ${code}
 <script>
 (function() {
-  var NS = 'gsap.card-resize';
+  var NS = 'codia.card-resize';
   var last = 0;
   function report() {
     var h = document.documentElement.scrollHeight;
@@ -66,7 +66,7 @@ ${code}
   else window.addEventListener('load', report);
   new ResizeObserver(function() { report(); }).observe(document.body);
   window.addEventListener('message', function(e) {
-    if (e.data === 'gsap.card-ping') {
+    if (e.data === 'codia.card-ping') {
       last = 0;
       report();
     }

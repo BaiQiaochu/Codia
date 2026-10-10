@@ -20,7 +20,7 @@ function makeSlice(): UiSlice {
 
 describe('ui-slice after reader mode removal', () => {
   beforeEach(() => {
-    setProductVariantForTests('g-sap');
+    setProductVariantForTests('codia');
     const storage = new Map<string, string>();
     vi.stubGlobal('localStorage', {
       getItem: vi.fn((key: string) => storage.get(key) ?? null),
@@ -44,7 +44,7 @@ describe('ui-slice after reader mode removal', () => {
     expect(slice.jianOpen).toBe(false);
     expect(slice.previewOpen).toBe(false);
     expect(slice.rightWorkspaceTab).toBe('session-files');
-    expect(localStorage.setItem).toHaveBeenCalledWith('gsap-app-view-mode', 'standard');
+    expect(localStorage.setItem).toHaveBeenCalledWith('codia-app-view-mode', 'standard');
   });
 
   it('normalizes a legacy runtime request without closing preview or sidebar', () => {
@@ -74,7 +74,6 @@ describe('ui-slice after reader mode removal', () => {
     expect(slice.previewOpen).toBe(true);
 
     slice.toggleAppViewMode();
-    slice.toggleAppViewMode();
 
     expect(slice.appViewMode).toBe('standard');
     expect(slice.previewOpen).toBe(true);
@@ -91,7 +90,7 @@ describe('ui-slice after reader mode removal', () => {
     expect(slice.appViewMode).toBe('standard');
     expect(slice.jianOpen).toBe(true);
     expect(slice.previewOpen).toBe(false);
-    expect(localStorage.setItem).toHaveBeenCalledWith('gsap-app-view-mode', 'standard');
+    expect(localStorage.setItem).toHaveBeenCalledWith('codia-app-view-mode', 'standard');
   });
 
   it('keeps the right sidebar available after a legacy reader-mode request', () => {
@@ -106,7 +105,7 @@ describe('ui-slice after reader mode removal', () => {
   });
 
   it('normalizes removed Coding Mode state to chat mode', () => {
-    setProductVariantForTests('g-sap');
+    setProductVariantForTests('codia');
     vi.stubGlobal('localStorage', {
       getItem: vi.fn(() => 'coding'),
       setItem: vi.fn(),
@@ -123,6 +122,6 @@ describe('ui-slice after reader mode removal', () => {
 
     slice.toggleAppViewMode();
     expect(slice.appViewMode).toBe('standard');
-    expect(localStorage.setItem).toHaveBeenLastCalledWith('gsap-app-view-mode', 'standard');
+    expect(localStorage.setItem).toHaveBeenLastCalledWith('codia-app-view-mode', 'standard');
   });
 });

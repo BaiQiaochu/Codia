@@ -6,7 +6,7 @@ import { BridgeManager } from "../lib/bridge/bridge-manager.js";
 function makeEngine() {
   return {
     agents: new Map(),
-    agentName: "G-SAP",
+    agentName: "Codia",
     setHubCallbacks: vi.fn(),
     setEventBus: vi.fn(),
     isSessionStreaming: vi.fn(() => false),
@@ -57,7 +57,7 @@ describe("company bridge text delivery", () => {
     const emit = vi.fn();
     const bridge = new BridgeManager({
       engine: {
-        agentName: "G-SAP",
+        agentName: "Codia",
         getAgent: vi.fn(() => ({ agentName: "项目经理" })),
       },
       hub: {

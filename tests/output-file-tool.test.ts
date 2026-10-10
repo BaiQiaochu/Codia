@@ -28,7 +28,7 @@ describe("stage_files tool", () => {
 
   it("registers staged files as session files while preserving legacy mediaUrls", async () => {
     loadLocale("en");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-stage-tool-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-stage-tool-"));
     const filePath = path.join(tmpDir, "out.txt");
     fs.writeFileSync(filePath, "ok");
     const sessionPath = "/sessions/s1.jsonl";
@@ -84,7 +84,7 @@ describe("stage_files tool", () => {
 
   it("delivers existing SessionFiles by fileId through the stage_files handoff", async () => {
     loadLocale("en");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-stage-fileid-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-stage-fileid-"));
     const sessionPath = "/sessions/s1.jsonl";
     const coverPath = path.join(tmpDir, "cover.png");
     const altPath = path.join(tmpDir, "alt.png");

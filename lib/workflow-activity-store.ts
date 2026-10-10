@@ -1,7 +1,7 @@
 // @ts-nocheck
 /**
   *
- * ActivityHub 是内存广播层，进程重启即清空，导致右侧卡（WorkflowCard / AgentActivityCard- * 重启消失。这-store -ActivityHub 标记为可持久的活动（workflow / workflow_agent / subagent- * -activity-hub.js -PERSISTABLE_KINDS）落盘（hanakoHome/workflow-activity.json），作为
+ * ActivityHub 是内存广播层，进程重启即清空，导致右侧卡（WorkflowCard / AgentActivityCard- * 重启消失。这-store -ActivityHub 标记为可持久的活动（workflow / workflow_agent / subagent- * -activity-hub.js -PERSISTABLE_KINDS）落盘（codiaHome/workflow-activity.json），作为
   *
  * 归属：每-entry 自带 sessionPath，按 path 存取（listBySession / removeBySession），
   * */

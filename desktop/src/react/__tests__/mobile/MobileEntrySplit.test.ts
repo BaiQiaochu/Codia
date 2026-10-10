@@ -25,7 +25,7 @@ describe('Mobile PWA entry split', () => {
     expect(entry).toContain("import('./react/mobile/MobileApp')");
     expect(entry).toContain('uploadBrowserFiles');
     expect(entry).toContain("'/api/upload-blob'");
-    expect(entry).not.toMatch(/Hana|Hanako|openhanako/i);
+    expect(entry).toMatch(/codia/i);
   });
 
   it('uses the neutral sans-serif theme contract in the mobile-specific CSS entry', () => {
@@ -34,8 +34,7 @@ describe('Mobile PWA entry split', () => {
     expect(css).not.toContain('new-warm-paper-fonts.css');
     expect(css).toMatch(/--font-serif:\s*var\(--font-ui\)/);
     expect(css).not.toContain('body.font-sans');
-    expect(css).toContain('.gsap-toggle');
-    expect(css).not.toContain('.hana-toggle');
+    expect(css).toContain('.codia-toggle');
   });
 
   it('keeps Mermaid source controls styled in the mobile markdown surface', () => {
@@ -66,7 +65,7 @@ describe('Mobile PWA entry split', () => {
     expect(source).not.toContain('autoRetry');
     expect(imports).not.toContain('../components/PreviewPanel');
     expect(imports).not.toContain('../components/shared/MediaViewer/MediaViewer');
-    expect(source).not.toMatch(/Hana|Hanako|openhanako/i);
+    expect(source).toMatch(/codia/i);
   });
 
   it('does not expose desktop settings entry points in the PWA shell', () => {
@@ -82,8 +81,8 @@ describe('Mobile PWA entry split', () => {
     expect(source).not.toContain("tr('settings.title'");
     expect(source).toContain('<WelcomeScreen enableSettings={false} />');
     expect(welcomeSource).toContain('enableSettings?: boolean');
-    expect(welcomeSource).toContain('{enableSettings && (');
-    expect(welcomeSource).toContain('className={styles.workspaceSettingsButton}');
+    expect(welcomeSource).not.toContain('{enableSettings && (');
+    expect(welcomeSource).not.toContain('className={styles.workspaceSettingsButton}');
   });
 
   it('uses Codia naming for the mobile HTML and manifest', () => {
@@ -99,14 +98,12 @@ describe('Mobile PWA entry split', () => {
     const app = readFileSync(path.join(process.cwd(), 'desktop/src/react/mobile/MobileApp.tsx'), 'utf8');
     const globals = readFileSync(path.join(process.cwd(), 'desktop/src/global.d.ts'), 'utf8');
 
-    expect(entry).toContain('gsap-mobile-update-available');
-    expect(entry).toContain('gsap-mobile-apply-update');
-    expect(entry).toContain('window.__gsapMobileUpdateAvailable = true');
-    expect(app).toContain('window.__gsapMobileUpdateAvailable === true');
-    expect(app).toContain('window.__gsapMobileUpdateAvailable = true');
-    expect(globals).toContain('__gsapMobileUpdateAvailable?: boolean');
-    expect(entry).not.toContain('__hanaMobileUpdateAvailable');
-    expect(app).not.toContain('__hanaMobileUpdateAvailable');
+    expect(entry).toContain('codia-mobile-update-available');
+    expect(entry).toContain('codia-mobile-apply-update');
+    expect(entry).toContain('window.__codiaMobileUpdateAvailable = true');
+    expect(app).toContain('window.__codiaMobileUpdateAvailable === true');
+    expect(app).toContain('window.__codiaMobileUpdateAvailable = true');
+    expect(globals).toContain('__codiaMobileUpdateAvailable?: boolean');
   });
 
   it('initializes authenticated PWA sessions from the mobile-safe bootstrap route', () => {

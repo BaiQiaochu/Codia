@@ -53,7 +53,7 @@ function writeDesktopSession(id, file = "session-1.jsonl") {
 }
 
 beforeEach(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-session-ops-"));
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-ops-"));
   agentsDir = path.join(tmpDir, "agents");
   agents = {
     a1: { id: "a1", sessionDir: sessionDirFor("a1") },

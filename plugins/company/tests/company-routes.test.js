@@ -68,7 +68,7 @@ async function json(app, pathName, init) {
 }
 
 beforeEach(() => {
-  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-company-"));
+  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-company-"));
 });
 
 afterEach(() => {

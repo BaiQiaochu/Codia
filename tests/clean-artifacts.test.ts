@@ -13,7 +13,7 @@ describe("artifacts cleanup", () => {
   });
 
   function makeArtifacts() {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-artifacts-clean-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-artifacts-clean-"));
     const artifactsDir = path.join(tempRoot, "artifacts");
     fs.mkdirSync(path.join(artifactsDir, "theme-screenshots"), { recursive: true });
     fs.mkdirSync(path.join(artifactsDir, "pwa-theme-behavior-screenshots"), { recursive: true });

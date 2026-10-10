@@ -208,7 +208,7 @@ function buildFixtureHtml(themeId) {
 <body class="no-paper-texture">
   <div class="audit-shell">
     <nav class="audit-nav" data-layout-box="settings-nav" data-audit-key="settings-nav">
-      <div class="audit-brand" data-contrast="strong" data-no-overflow>G-SAP</div>
+      <div class="audit-brand" data-contrast="strong" data-no-overflow>Codia</div>
       <button class="audit-nav-item active" data-contrast="badge" data-no-overflow>Settings</button>
       <button class="audit-nav-item" data-contrast="muted" data-no-overflow>Connectors</button>
       <button class="audit-nav-item" data-contrast="muted" data-no-overflow>Plugins</button>
@@ -239,7 +239,7 @@ function buildFixtureHtml(themeId) {
           </label>
           <label class="audit-field">
             <span data-contrast="strong">Workspace root</span>
-            <input value="E:\\GSAPmaim\\workspace" aria-label="Workspace root" />
+            <input value="E:\\CODIAmaim\\workspace" aria-label="Workspace root" />
           </label>
           <div class="audit-actions">
             <button class="audit-button primary" data-contrast="badge" data-no-overflow>Save</button>

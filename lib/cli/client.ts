@@ -7,7 +7,7 @@ import { normalizeApiPath } from "./runtime-paths.ts";
 
 export { parseOptionalJson } from "./json.ts";
 
-export class GsapClient {
+export class CodiaClient {
   constructor(info, opts) {
     this.info = info;
     this.token = info.token;

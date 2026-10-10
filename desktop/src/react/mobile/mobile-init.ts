@@ -1,6 +1,6 @@
 import { useStore } from '../stores';
 import { sessionScopedValue } from '../stores/session-slice';
-import { gsapFetch } from '../hooks/use-gsap-fetch';
+import { codiaFetch } from '../hooks/use-codia-fetch';
 import { applyAgentIdentity, loadAvatars } from '../stores/agent-actions';
 import { activateWorkspaceDesk } from '../stores/desk-actions';
 import { loadMessages } from '../stores/session-actions';
@@ -91,7 +91,7 @@ export async function initializeMobileRuntime(principal: MobilePrincipal): Promi
     welcomeVisible: true,
   });
 
-  const bootstrapRes = await gsapFetch('/api/mobile/bootstrap');
+  const bootstrapRes = await codiaFetch('/api/mobile/bootstrap');
   const bootstrap = await bootstrapRes.json() as MobileBootstrap;
   applySyncedAppearancePreferences(bootstrap.appearance);
   applyEditorTypography(bootstrap.editor);
@@ -120,7 +120,7 @@ export async function initializeMobileRuntime(principal: MobilePrincipal): Promi
     agents,
     currentAgentId: currentAgent?.id || bootstrap.currentAgentId || useStore.getState().currentAgentId,
     agentName: currentAgent?.name || bootstrap.agentName || '助手',
-    agentYuan: currentAgent?.yuan || bootstrap.agentYuan || 'gsap',
+    agentYuan: currentAgent?.yuan || bootstrap.agentYuan || 'codia',
     homeFolder,
     selectedFolder: homeFolder,
     cwdHistory: Array.isArray(bootstrap.cwdHistory) ? bootstrap.cwdHistory : [],
@@ -150,7 +150,7 @@ export async function loadMobileSessions({
 }: {
   selectFirst?: boolean;
 } = {}): Promise<Session[]> {
-  const res = await gsapFetch('/api/sessions');
+  const res = await codiaFetch('/api/sessions');
   const sessions = await res.json() as Session[];
   const next = Array.isArray(sessions) ? sessions : [];
   useStore.setState({ sessions: next });
@@ -217,7 +217,7 @@ export async function createMobileSession(): Promise<string | null> {
     body.agentId = state.selectedAgentId;
   }
 
-  const res = await gsapFetch('/api/sessions/new', {
+  const res = await codiaFetch('/api/sessions/new', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -285,7 +285,7 @@ async function activateMobileWelcomeDesk(): Promise<void> {
 function syncMobilePermissionMode(session: Pick<Session, 'permissionMode'> | null | undefined): void {
   const mode = session?.permissionMode;
   if (!isSessionPermissionMode(mode)) return;
-  window.dispatchEvent(new CustomEvent('gsap-plan-mode', {
+  window.dispatchEvent(new CustomEvent('codia-plan-mode', {
     detail: {
       enabled: mode === 'read_only',
       mode,
@@ -299,13 +299,13 @@ function isSessionPermissionMode(value: unknown): value is SessionPermissionMode
 
 function markMobileRuntimeReady(principal: MobilePrincipal): void {
   (window as Window & {
-    __GSAP_MOBILE_RUNTIME_READY__?: boolean;
-    __GSAP_MOBILE_PRINCIPAL__?: MobilePrincipal;
-  }).__GSAP_MOBILE_RUNTIME_READY__ = true;
+    __CODIA_MOBILE_RUNTIME_READY__?: boolean;
+    __CODIA_MOBILE_PRINCIPAL__?: MobilePrincipal;
+  }).__CODIA_MOBILE_RUNTIME_READY__ = true;
   (window as Window & {
-    __GSAP_MOBILE_RUNTIME_READY__?: boolean;
-    __GSAP_MOBILE_PRINCIPAL__?: MobilePrincipal;
-  }).__GSAP_MOBILE_PRINCIPAL__ = principal;
+    __CODIA_MOBILE_RUNTIME_READY__?: boolean;
+    __CODIA_MOBILE_PRINCIPAL__?: MobilePrincipal;
+  }).__CODIA_MOBILE_PRINCIPAL__ = principal;
 }
 
 async function rawJson<T>(path: string, options: RequestInit = {}): Promise<T> {

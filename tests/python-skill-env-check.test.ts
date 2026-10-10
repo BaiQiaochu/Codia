@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const skillCreatorCheck = path.join(repoRoot, "skills2set", "skill-creator", "scripts", "check_env.mjs");
-const pluginCreatorCheck = path.join(repoRoot, "skills2set", "gsap-plugin-creator", "scripts", "check_env.mjs");
+const pluginCreatorCheck = path.join(repoRoot, "skills2set", "codia-plugin-creator", "scripts", "check_env.mjs");
 
 function isolatedPathEnv(directory) {
   const env = { ...process.env, PATH: directory };
@@ -17,8 +17,8 @@ function isolatedPathEnv(directory) {
       delete env[key];
     }
   }
-  delete env.GSAP_SKILL_CREATOR_PYTHON;
-  delete env.GSAP_PLUGIN_CREATOR_PYTHON;
+  delete env.CODIA_SKILL_CREATOR_PYTHON;
+  delete env.CODIA_PLUGIN_CREATOR_PYTHON;
   return env;
 }
 
@@ -82,7 +82,7 @@ describe("skill-creator environment check", () => {
   });
 
   it("reports missing Python before running skill-creator scripts", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-skill-creator-env-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-skill-creator-env-"));
     roots.push(root);
 
     const result = runCheck(skillCreatorCheck, ["--capability", "quick-validate"], isolatedPathEnv(root));
@@ -95,13 +95,13 @@ describe("skill-creator environment check", () => {
   });
 
   it("reports PyYAML as a missing package for validation and packaging", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-skill-creator-env-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-skill-creator-env-"));
     roots.push(root);
     const fakePython = makeFakePython(root);
 
     const result = runCheck(skillCreatorCheck, ["--capability", "package-skill"], {
       ...isolatedPathEnv(root),
-      GSAP_SKILL_CREATOR_PYTHON: JSON.stringify([process.execPath, fakePython]),
+      CODIA_SKILL_CREATOR_PYTHON: JSON.stringify([process.execPath, fakePython]),
       FAKE_MISSING_PACKAGES: "pyyaml",
     });
 
@@ -114,13 +114,13 @@ describe("skill-creator environment check", () => {
   });
 
   it("reports missing Claude CLI for trigger eval runs", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-skill-creator-env-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-skill-creator-env-"));
     roots.push(root);
     const fakePython = makeFakePython(root);
 
     const result = runCheck(skillCreatorCheck, ["--capability", "run-eval"], {
       ...isolatedPathEnv(root),
-      GSAP_SKILL_CREATOR_PYTHON: JSON.stringify([process.execPath, fakePython]),
+      CODIA_SKILL_CREATOR_PYTHON: JSON.stringify([process.execPath, fakePython]),
     });
 
     expect(result.status).toBe(1);
@@ -132,7 +132,7 @@ describe("skill-creator environment check", () => {
   });
 });
 
-describe("gsap-plugin-creator environment check", () => {
+describe("codia-plugin-creator environment check", () => {
   const roots = [];
 
   afterEach(() => {
@@ -142,7 +142,7 @@ describe("gsap-plugin-creator environment check", () => {
   });
 
   it("reports missing Python before running plugin scaffold scripts", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-plugin-creator-env-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-creator-env-"));
     roots.push(root);
 
     const result = runCheck(pluginCreatorCheck, ["--capability", "scaffold"], isolatedPathEnv(root));
@@ -155,13 +155,13 @@ describe("gsap-plugin-creator environment check", () => {
   });
 
   it("passes plugin scaffold preflight with supported Python and no Python packages", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-plugin-creator-env-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-creator-env-"));
     roots.push(root);
     const fakePython = makeFakePython(root);
 
     const result = runCheck(pluginCreatorCheck, ["--capability", "scaffold"], {
       ...isolatedPathEnv(root),
-      GSAP_PLUGIN_CREATOR_PYTHON: JSON.stringify([process.execPath, fakePython]),
+      CODIA_PLUGIN_CREATOR_PYTHON: JSON.stringify([process.execPath, fakePython]),
     });
 
     expect(result.status).toBe(0);

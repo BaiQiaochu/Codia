@@ -177,7 +177,7 @@ function TreeDisclosureIcon({ expanded }: { expanded: boolean }) {
 }
 
 function dispatchDeskNotice(text: string): void {
-  window.dispatchEvent(new CustomEvent('gsap-inline-notice', {
+  window.dispatchEvent(new CustomEvent('codia-inline-notice', {
     detail: { text, type: 'error' },
   }));
 }
@@ -498,7 +498,7 @@ function TreeNode({
       files: draggedFiles,
     });
     e.currentTarget.addEventListener('dragend', () => clearAppFileDragPayload(payload.dragId), { once: true });
-    if (window.__GSAP_E2E__) return;
+    if (window.__CODIA_E2E__) return;
     e.preventDefault();
     const nativePaths = dragRows.map(row => row.nativePath).filter((path): path is string => !!path);
     if (nativePaths.length === dragRows.length && nativePaths.length > 0) {
@@ -741,8 +741,8 @@ export function DeskTree({
       if (!subdir) return;
       beginRename(subdir);
     };
-    window.addEventListener('gsap-desk-begin-rename', handler);
-    return () => window.removeEventListener('gsap-desk-begin-rename', handler);
+    window.addEventListener('codia-desk-begin-rename', handler);
+    return () => window.removeEventListener('codia-desk-begin-rename', handler);
   }, [beginRename]);
 
   const cancelRename = useCallback(() => {

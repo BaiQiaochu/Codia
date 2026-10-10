@@ -70,7 +70,7 @@ describe("design document preview parser", () => {
   let tmpDir;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-design-preview-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-design-preview-"));
   });
 
   afterEach(() => {
@@ -130,7 +130,7 @@ describe("design document preview parser", () => {
       JSON.stringify([{
         title: "Product roadmap",
         rootTopic: {
-          title: "G-SAP",
+          title: "Codia",
           children: {
             attached: [
               { title: "Reader" },
@@ -150,7 +150,7 @@ describe("design document preview parser", () => {
     });
     expect(preview.sections[0].items).toEqual([
       "Product roadmap",
-      "G-SAP",
+      "Codia",
       "  Reader",
       "  CAD",
       "    DXF",

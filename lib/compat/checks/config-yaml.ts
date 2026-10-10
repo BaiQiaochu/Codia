@@ -10,7 +10,7 @@ import fs from "fs";
 import path from "path";
 import { t } from "../../i18n.ts";
 
-export function checkConfigYaml({ agentDir, gsapHome: _gsapHome }) {
+export function checkConfigYaml({ agentDir, codiaHome: _codiaHome }) {
   const configPath = path.join(agentDir, "config.yaml");
   if (!fs.existsSync(configPath)) return;
 

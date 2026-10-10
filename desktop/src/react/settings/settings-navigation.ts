@@ -1,5 +1,7 @@
 import type { PluginSettingsTab } from './store';
 import { getNativeSettingsTabComponent } from './native-settings-tabs';
+import { normalizeSettingsRouteId } from './settings-route';
+export { normalizeSettingsRouteId } from './settings-route';
 
 export type SettingsCategoryId =
   | 'account-agent'
@@ -46,6 +48,7 @@ const BUILT_IN_CATEGORIES: SettingsCategory[] = [
     defaultTab: 'providers',
     modules: [
       { id: 'providers', key: 'settings.categories.modelServices', fallback: '模型服务' },
+      { id: 'context', key: 'settings.tabs.context', fallback: '上下文' },
       { id: 'media', key: 'settings.tabs.media', fallback: '多媒体' },
       { id: 'skills', key: 'settings.tabs.skills', fallback: '技能' },
     ],
@@ -72,7 +75,7 @@ const BUILT_IN_CATEGORIES: SettingsCategory[] = [
     defaultTab: 'security',
     modules: [
       { id: 'security', key: 'settings.tabs.security', fallback: '安全' },
-      { id: 'experiments', key: 'settings.tabs.experiments', fallback: '实验功能' },
+      { id: 'computer', key: 'settings.tabs.computerUse', fallback: '计算机使用' },
       { id: 'diagnostics', key: 'settings.tabs.diagnostics', fallback: '诊断' },
     ],
   },
@@ -91,9 +94,9 @@ const BUILT_IN_CATEGORIES: SettingsCategory[] = [
 ];
 
 export function normalizeSettingsModuleId(tab: string): string {
-  if (tab === 'general' || tab === 'interface') return 'about';
-  if (tab === 'plugin-marketplace') return 'plugins';
-  return tab;
+  const route = normalizeSettingsRouteId(tab);
+  if (route === 'plugin-marketplace') return 'plugins';
+  return route;
 }
 
 export function buildSettingsCategories(pluginSettingsTabs: PluginSettingsTab[] = []): SettingsCategory[] {

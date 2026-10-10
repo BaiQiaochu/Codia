@@ -10,9 +10,9 @@ vi.mock("../lib/sandbox/index.js", () => ({
   createSandboxedTools,
 }));
 
-const { GsapEngine } = await import("../core/engine.js");
+const { CodiaEngine } = await import("../core/engine.js");
 
-describe("GsapEngine.buildTools session external sandbox grants", () => {
+describe("CodiaEngine.buildTools session external sandbox grants", () => {
   let tempRoot;
 
   afterEach(() => {
@@ -22,13 +22,13 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
   });
 
   it("passes active session external files as read-only sandbox inputs", () => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-engine-sandbox-files-"));
-    const hanakoHome = path.join(tempRoot, "gsap-home");
-    const agentDir = path.join(hanakoHome, "agents", "hana");
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-engine-sandbox-files-"));
+    const codiaHome = path.join(tempRoot, "codia-home");
+    const agentDir = path.join(codiaHome, "agents", "codia");
     const workspace = path.join(tempRoot, "workspace");
     const externalFile = path.join(tempRoot, "outside", "brief.md");
     const workspaceFile = path.join(workspace, "owned.md");
-    const managedFile = path.join(hanakoHome, "session-files", "shot.png");
+    const managedFile = path.join(codiaHome, "session-files", "shot.png");
     for (const file of [externalFile, workspaceFile, managedFile]) {
       fs.mkdirSync(path.dirname(file), { recursive: true });
       fs.writeFileSync(file, "x");
@@ -36,9 +36,9 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
     fs.mkdirSync(agentDir, { recursive: true });
     const sessionPath = path.join(agentDir, "sessions", "one.jsonl");
 
-    const engine = Object.create(GsapEngine.prototype);
-    engine.hanakoHome = hanakoHome;
-    engine.getAgent = vi.fn(() => ({ id: "hana", agentDir, tools: [] }));
+    const engine = Object.create(CodiaEngine.prototype);
+    engine.codiaHome = codiaHome;
+    engine.getAgent = vi.fn(() => ({ id: "codia", agentDir, tools: [] }));
     engine._pluginManager = null;
     engine._prefs = { getFileBackup: () => ({ enabled: false }) };
     engine._readPreferences = () => ({ sandbox: true });
@@ -48,7 +48,7 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
     engine.registerSessionFile = vi.fn();
     engine.getVisionBridge = vi.fn(() => null);
     engine.isVisionAuxiliaryEnabled = vi.fn(() => false);
-    engine._agentMgr = { agent: { id: "hana", agentDir, tools: [] } };
+    engine._agentMgr = { agent: { id: "codia", agentDir, tools: [] } };
     engine.listSessionFiles = vi.fn(() => [
       { filePath: externalFile, realPath: fs.realpathSync(externalFile), storageKind: "external", status: "available" },
       { filePath: workspaceFile, realPath: fs.realpathSync(workspaceFile), storageKind: "external", status: "available" },
@@ -69,16 +69,16 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
   });
 
   it("passes the sandbox network preference as a dynamic sandbox option", () => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-engine-sandbox-network-"));
-    const hanakoHome = path.join(tempRoot, "gsap-home");
-    const agentDir = path.join(hanakoHome, "agents", "hana");
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-engine-sandbox-network-"));
+    const codiaHome = path.join(tempRoot, "codia-home");
+    const agentDir = path.join(codiaHome, "agents", "codia");
     const workspace = path.join(tempRoot, "workspace");
     fs.mkdirSync(agentDir, { recursive: true });
     fs.mkdirSync(workspace, { recursive: true });
 
-    const engine = Object.create(GsapEngine.prototype);
-    engine.hanakoHome = hanakoHome;
-    engine.getAgent = vi.fn(() => ({ id: "hana", agentDir, tools: [] }));
+    const engine = Object.create(CodiaEngine.prototype);
+    engine.codiaHome = codiaHome;
+    engine.getAgent = vi.fn(() => ({ id: "codia", agentDir, tools: [] }));
     engine._pluginManager = null;
     engine._prefs = { getFileBackup: () => ({ enabled: false }) };
     let prefs = { sandbox: true, sandbox_network: true };
@@ -89,7 +89,7 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
     engine.registerSessionFile = vi.fn();
     engine.getVisionBridge = vi.fn(() => null);
     engine.isVisionAuxiliaryEnabled = vi.fn(() => false);
-    engine._agentMgr = { agent: { id: "hana", agentDir, tools: [] } };
+    engine._agentMgr = { agent: { id: "codia", agentDir, tools: [] } };
     engine.listSessionFiles = vi.fn(() => []);
 
     engine.buildTools(workspace, [], {
@@ -107,18 +107,18 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
   });
 
   it("passes dynamic session-authorized folders into sandbox construction", () => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-engine-authorized-folders-"));
-    const hanakoHome = path.join(tempRoot, "gsap-home");
-    const agentDir = path.join(hanakoHome, "agents", "gsap");
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-engine-authorized-folders-"));
+    const codiaHome = path.join(tempRoot, "codia-home");
+    const agentDir = path.join(codiaHome, "agents", "codia");
     const workspace = path.join(tempRoot, "workspace");
     const authorized = path.join(tempRoot, "external-assets");
     fs.mkdirSync(agentDir, { recursive: true });
     fs.mkdirSync(workspace, { recursive: true });
     fs.mkdirSync(authorized, { recursive: true });
 
-    const engine = Object.create(GsapEngine.prototype);
-    engine.gsapHome = hanakoHome;
-    engine.getAgent = vi.fn(() => ({ id: "gsap", agentDir, tools: [] }));
+    const engine = Object.create(CodiaEngine.prototype);
+    engine.codiaHome = codiaHome;
+    engine.getAgent = vi.fn(() => ({ id: "codia", agentDir, tools: [] }));
     engine._pluginManager = null;
     engine._prefs = { getFileBackup: () => ({ enabled: false }) };
     engine._readPreferences = () => ({ sandbox: true });
@@ -128,7 +128,7 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
     engine.registerSessionFile = vi.fn();
     engine.getVisionBridge = vi.fn(() => null);
     engine.isVisionAuxiliaryEnabled = vi.fn(() => false);
-    engine._agentMgr = { agent: { id: "gsap", agentDir, tools: [] } };
+    engine._agentMgr = { agent: { id: "codia", agentDir, tools: [] } };
     engine.listSessionFiles = vi.fn(() => []);
 
     engine.buildTools(workspace, [], {
@@ -146,20 +146,20 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
   });
 
   it("keeps Windows restricted-token command sandbox networking enabled at the tool boundary", () => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-engine-win32-sandbox-network-"));
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-engine-win32-sandbox-network-"));
     const originalPlatform = process.platform;
     Object.defineProperty(process, "platform", { value: "win32", configurable: true });
 
     try {
-      const hanakoHome = path.join(tempRoot, "gsap-home");
-      const agentDir = path.join(hanakoHome, "agents", "hana");
+      const codiaHome = path.join(tempRoot, "codia-home");
+      const agentDir = path.join(codiaHome, "agents", "codia");
       const workspace = path.join(tempRoot, "workspace");
       fs.mkdirSync(agentDir, { recursive: true });
       fs.mkdirSync(workspace, { recursive: true });
 
-      const engine = Object.create(GsapEngine.prototype);
-      engine.hanakoHome = hanakoHome;
-      engine.getAgent = vi.fn(() => ({ id: "hana", agentDir, tools: [] }));
+      const engine = Object.create(CodiaEngine.prototype);
+      engine.codiaHome = codiaHome;
+      engine.getAgent = vi.fn(() => ({ id: "codia", agentDir, tools: [] }));
       engine._pluginManager = null;
       engine._prefs = { getFileBackup: () => ({ enabled: false }) };
       engine._readPreferences = () => ({ sandbox: true, sandbox_network: false });
@@ -169,7 +169,7 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
       engine.registerSessionFile = vi.fn();
       engine.getVisionBridge = vi.fn(() => null);
       engine.isVisionAuxiliaryEnabled = vi.fn(() => false);
-      engine._agentMgr = { agent: { id: "hana", agentDir, tools: [] } };
+      engine._agentMgr = { agent: { id: "codia", agentDir, tools: [] } };
       engine.listSessionFiles = vi.fn(() => []);
 
       engine.buildTools(workspace, [], {
@@ -185,12 +185,12 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
     }
   });
 
-  it("rejects disabling sandbox networking through GsapEngine on Windows", () => {
+  it("rejects disabling sandbox networking through CodiaEngine on Windows", () => {
     const originalPlatform = process.platform;
     Object.defineProperty(process, "platform", { value: "win32", configurable: true });
 
     try {
-      const engine = Object.create(GsapEngine.prototype);
+      const engine = Object.create(CodiaEngine.prototype);
       engine._prefs = {
         getSandboxNetwork: vi.fn(() => false),
         setSandboxNetwork: vi.fn(),
@@ -207,9 +207,9 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
   });
 
   it("includes inherited parent session files in read-only sandbox inputs", () => {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-engine-sandbox-parent-files-"));
-    const hanakoHome = path.join(tempRoot, "gsap-home");
-    const agentDir = path.join(hanakoHome, "agents", "hana");
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-engine-sandbox-parent-files-"));
+    const codiaHome = path.join(tempRoot, "codia-home");
+    const agentDir = path.join(codiaHome, "agents", "codia");
     const workspace = path.join(tempRoot, "workspace");
     const childExternal = path.join(tempRoot, "outside", "child.md");
     const parentExternal = path.join(tempRoot, "outside", "parent.md");
@@ -222,9 +222,9 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
     const childSessionPath = path.join(agentDir, "subagent-sessions", "child.jsonl");
     const parentSessionPath = path.join(agentDir, "sessions", "parent.jsonl");
 
-    const engine = Object.create(GsapEngine.prototype);
-    engine.hanakoHome = hanakoHome;
-    engine.getAgent = vi.fn(() => ({ id: "hana", agentDir, tools: [] }));
+    const engine = Object.create(CodiaEngine.prototype);
+    engine.codiaHome = codiaHome;
+    engine.getAgent = vi.fn(() => ({ id: "codia", agentDir, tools: [] }));
     engine._pluginManager = null;
     engine._prefs = { getFileBackup: () => ({ enabled: false }) };
     engine._readPreferences = () => ({ sandbox: true });
@@ -234,7 +234,7 @@ describe("GsapEngine.buildTools session external sandbox grants", () => {
     engine.registerSessionFile = vi.fn();
     engine.getVisionBridge = vi.fn(() => null);
     engine.isVisionAuxiliaryEnabled = vi.fn(() => false);
-    engine._agentMgr = { agent: { id: "hana", agentDir, tools: [] } };
+    engine._agentMgr = { agent: { id: "codia", agentDir, tools: [] } };
     engine.listSessionFiles = vi.fn((sessionPath) => {
       if (sessionPath === childSessionPath) {
         return [

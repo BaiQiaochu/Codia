@@ -19,7 +19,7 @@ function escJsString(value) {
     .replace(/\u2029/g, "\\u2029");
 }
 
-export function renderGraphHtml({ mode = "card", gsapCss = "", token = "" } = {}) {
+export function renderGraphHtml({ mode = "card", codiaCss = "", token = "" } = {}) {
   const isPage = mode === "page";
   const tokenLiteral = escJsString(token);
   const fixedWidth = 960;
@@ -32,7 +32,7 @@ export function renderGraphHtml({ mode = "card", gsapCss = "", token = "" } = {}
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-${gsapCss ? `<link rel="stylesheet" href="${escAttr(gsapCss)}">` : ""}
+${codiaCss ? `<link rel="stylesheet" href="${escAttr(codiaCss)}">` : ""}
 <title>知识图谱</title>
 <style>
 *{box-sizing:border-box}

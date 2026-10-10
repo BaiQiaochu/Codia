@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSettingsStore } from '../store';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { t } from '../helpers';
 import { getErrorMessage, type ImageGenConfigPayload } from '../shared-types';
 import { MediaProviderDetail } from './media/MediaProviderDetail';
@@ -212,7 +212,7 @@ export function MediaTab() {
     if (!activeAgentId || !serverPort) return;
     setImageConfigLoading(true);
     try {
-      const res = await gsapFetch(`/api/plugins/image-gen/providers?agentId=${activeAgentId}`);
+      const res = await codiaFetch(`/api/plugins/image-gen/providers?agentId=${activeAgentId}`);
       const data = await res.json();
       const nextProviders = data.providers || {};
       const nextProviderIds = Object.keys(nextProviders);
@@ -222,7 +222,7 @@ export function MediaTab() {
       setSelected(prev => (prev && nextProviders[prev] ? prev : nextProviderIds[0] || null));
       if (Object.keys(sanitized.updates).length > 0) {
         try {
-          await gsapFetch(`/api/plugins/image-gen/config?agentId=${activeAgentId}`, {
+          await codiaFetch(`/api/plugins/image-gen/config?agentId=${activeAgentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ values: sanitized.updates }),
@@ -245,7 +245,7 @@ export function MediaTab() {
     if (!serverPort) return;
     setSpeechConfigLoading(true);
     try {
-      const res = await gsapFetch('/api/speech-recognition/providers');
+      const res = await codiaFetch('/api/speech-recognition/providers');
       const data = await res.json();
       setSpeechProviders(data.providers || {});
       setSpeechConfig(mergeSpeechConfig({ enabled: false }, data.config || {}));
@@ -330,7 +330,7 @@ export function MediaTab() {
   const saveConfig = async (updates: Partial<ImageGenConfigPayload>) => {
     try {
       const agentId = useSettingsStore.getState().getSettingsAgentId();
-      await gsapFetch(`/api/plugins/image-gen/config?agentId=${agentId}`, {
+      await codiaFetch(`/api/plugins/image-gen/config?agentId=${agentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ values: updates }),
@@ -344,7 +344,7 @@ export function MediaTab() {
 
   const saveSpeechConfig = async (updates: SpeechConfigPatch) => {
     try {
-      const res = await gsapFetch('/api/speech-recognition/config', {
+      const res = await codiaFetch('/api/speech-recognition/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ values: updates }),
@@ -416,7 +416,7 @@ export function MediaTab() {
     // eslint-disable-next-line no-restricted-syntax -- Hidden anchor is the browser download trigger for this diagnostics JSON.
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = `gsap-media-diagnostics-${Date.now()}.json`;
+    anchor.download = `codia-media-diagnostics-${Date.now()}.json`;
     anchor.style.display = 'none';
     document.body.appendChild(anchor);
     anchor.click();

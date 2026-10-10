@@ -15,7 +15,7 @@ export interface SettingsModalState {
 export type AppViewMode = 'standard';
 type LegacyAppViewModeInput = AppViewMode | 'obsidian';
 
-const APP_VIEW_MODE_KEY = 'gsap-app-view-mode';
+const APP_VIEW_MODE_KEY = 'codia-app-view-mode';
 
 function readInitialAppViewMode(): AppViewMode {
   if (typeof localStorage === 'undefined') return 'standard';

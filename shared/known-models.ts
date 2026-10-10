@@ -2,7 +2,6 @@
  * known-models.ts -模型词典查询
  *
   *
-  *
   * */
 import { readFileSync } from "fs";
 import { fromRoot } from "./app-root.ts";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSettingsStore } from '../../store';
 import { t, lookupModelMeta, CONTEXT_PRESETS, OUTPUT_PRESETS } from '../../helpers';
-import { gsapFetch } from '../../api';
+import { codiaFetch } from '../../api';
 import { getErrorMessage } from '../../shared-types';
 import { ComboInput } from '../../widgets/ComboInput';
 import { Toggle } from '../../widgets/Toggle';
@@ -52,7 +52,7 @@ export function ModelEditPanel({ modelId, providerId, anchorEl, onClose, onRefre
     if (dirtyCapabilities.reasoning) entry.reasoning = reasoning;
 
     try {
-      await gsapFetch(`/api/providers/${encodeURIComponent(providerId)}/models/${encodeURIComponent(modelId)}`, {
+      await codiaFetch(`/api/providers/${encodeURIComponent(providerId)}/models/${encodeURIComponent(modelId)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(entry),

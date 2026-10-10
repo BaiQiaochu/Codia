@@ -20,7 +20,7 @@
  * - 最多 MAX_INSTANCES 个并发浏览器，超出时 LRU 淘汰最久未用的
  *
  * snapshot 实现：主进程通过 webContents.executeJavaScript() 遍历 DOM，
- * 给交互元素注入 data-gsap-ref 属性。
+ * 给交互元素注入 data-codia-ref 属性。
  */
 import crypto from "crypto";
 import os from "os";
@@ -44,9 +44,9 @@ const log = createModuleLogger("browser");
 // ── 单例 ──
 let _instance = null;
 
-// 冷保存文件：重启后恢复浏览器状态（由 setGsapHome 注入路径）
-let _gsapHome = null;
-const _coldStatePath = () => path.join(_gsapHome, "user", "browser-sessions.json");
+// 冷保存文件：重启后恢复浏览器状态（由 setCodiaHome 注入路径）
+let _codiaHome = null;
+const _coldStatePath = () => path.join(_codiaHome, "user", "browser-sessions.json");
 
 // 最大并发浏览器实例数
 const MAX_INSTANCES = 5;
@@ -189,14 +189,14 @@ export class BrowserManager {
 
   /**
    * 注入用户数据根目录（由入口在启动时调用）
-   * @param {string} home - engine.gsapHome
+   * @param {string} home - engine.codiaHome
    */
-  static setGsapHome(home) {
-    _gsapHome = home;
+  static setCodiaHome(home) {
+    _codiaHome = home;
   }
 
   static setAppHome(home) {
-    BrowserManager.setGsapHome(home);
+    BrowserManager.setCodiaHome(home);
   }
 
   static setSessionIdResolver(resolver) {

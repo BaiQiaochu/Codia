@@ -52,8 +52,8 @@ function isKongIncompatibleGeneratedPrompt(content, kind) {
     || normalized.includes("MOOD")
     || normalized.includes("意识流")
     || normalized.includes("stream-of-consciousness")
-    || normalized.includes("G-SAP Balance")
-    || normalized.includes("G-SAP 均衡")
+    || normalized.includes("Codia Balance")
+    || normalized.includes("Codia 均衡")
   );
 }
 
@@ -196,7 +196,7 @@ function resolveAgentInfo(engine, agentOrId) {
     agentDir,
     productDir: runtimeAgent?.productDir || engine.productDir,
     locale,
-    yuan: config?.agent?.yuan || "gsap",
+    yuan: config?.agent?.yuan || "codia",
     userName,
     agentName,
   };

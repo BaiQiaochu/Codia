@@ -6,7 +6,7 @@ import path from "path";
 import { resolveServerSpawnSpec } from "../cli/server-runner.ts";
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "gsap-cli-runner-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-cli-runner-"));
 }
 
 describe("CLI server runner", () => {
@@ -32,7 +32,7 @@ describe("CLI server runner", () => {
     expect(spec.args).toEqual([path.join(tmpDir, "server", "index.ts"), "--chat"]);
   });
 
-  it("runs the packaged bootstrap entry when GSAP_ROOT is available", () => {
+  it("runs the packaged bootstrap entry when CODIA_ROOT is available", () => {
     tmpDir = makeTmpDir();
     fs.mkdirSync(path.join(tmpDir, "bundle"), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, "bootstrap.js"), "", "utf-8");
@@ -40,13 +40,13 @@ describe("CLI server runner", () => {
 
     const spec = resolveServerSpawnSpec({
       projectRoot: "/source/project",
-      env: { GSAP_ROOT: tmpDir },
+      env: { CODIA_ROOT: tmpDir },
       extraArgs: [],
     });
 
     expect(spec.mode).toBe("packaged");
     expect(spec.args).toEqual([path.join(tmpDir, "bootstrap.js")]);
-    expect(spec.env.GSAP_ROOT).toBe(tmpDir);
-    expect(spec.env.GSAP_SERVER_ENTRY).toBe(path.join(tmpDir, "bundle", "index.js"));
+    expect(spec.env.CODIA_ROOT).toBe(tmpDir);
+    expect(spec.env.CODIA_SERVER_ENTRY).toBe(path.join(tmpDir, "bundle", "index.js"));
   });
 });

@@ -76,27 +76,27 @@ describe("plugin marketplace route", () => {
     expect(body.items[0].compatibility.reason).toMatch(/generated compatibility page/i);
   });
 
-  it("marks Marketplace entries with G-SAP compatibility metadata as installable", async () => {
+  it("marks Marketplace entries with Codia compatibility metadata as installable", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({
       ok: true,
       json: async () => ({
         results: [{
           extensions: [{
             extensionName: "tools",
-            displayName: "G-SAP Tools",
+            displayName: "Codia Tools",
             shortDescription: "Tools",
-            publisher: { publisherName: "gsap" },
-            tags: ["g-sap-plugin"],
+            publisher: { publisherName: "codia" },
+            tags: ["codia-plugin"],
             versions: [{ version: "0.1.0", files: [] }],
           }],
         }],
       }),
     })));
 
-    const res = await createApp().request("/api/plugins/marketplace/search?q=gsap");
+    const res = await createApp().request("/api/plugins/marketplace/search?q=codia");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.items[0].compatibility).toMatchObject({ kind: "gsap-plugin", installable: true });
+    expect(body.items[0].compatibility).toMatchObject({ kind: "codia-plugin", installable: true });
   });
 
   it("rejects marketplace entries that are not installable", async () => {
@@ -136,7 +136,7 @@ describe("plugin marketplace route", () => {
     expect(res.status).toBe(502);
     expect(engine.fetch).toHaveBeenCalledWith(
       "https://vscode.download.prss.microsoft.com/dbazure/download/stable/demo/plugin.vsix",
-      expect.objectContaining({ headers: { "User-Agent": "BYOUNG Plugin Store" } }),
+      expect.objectContaining({ headers: { "User-Agent": "CODIA Plugin Store" } }),
     );
   });
 
@@ -193,6 +193,6 @@ describe("plugin marketplace route", () => {
       runtime: "declarative-compat",
       vscode: { id: "pub.theme-demo" },
     });
-    expect(fs.existsSync(path.join(installedDir, "routes", "gsap-vscode-compat.cjs"))).toBe(true);
+    expect(fs.existsSync(path.join(installedDir, "routes", "codia-vscode-compat.cjs"))).toBe(true);
   });
 });

@@ -25,7 +25,7 @@ describe("AgentManager.createAgent yuan handling", () => {
   let manager;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-agent-create-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-agent-create-"));
     agentsDir = path.join(tempDir, "agents");
     userDir = path.join(tempDir, "user");
     channelsDir = path.join(tempDir, "channels");
@@ -103,7 +103,7 @@ describe("AgentManager.createAgent yuan handling", () => {
     await manager.createAgent({
       name: "Workspace Worker",
       id: "workspace-worker",
-      yuan: "gsap",
+      yuan: "codia",
       homeFolder: workspace,
     });
 

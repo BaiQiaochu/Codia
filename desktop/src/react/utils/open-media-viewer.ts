@@ -89,7 +89,10 @@ export function openMediaViewerFromContext(input: OpenInput): void {
   state.setMediaViewer({ files, currentId: startRef.id, origin });
 }
 
-function findMediaRefByStableIdentity(files: readonly FileRef[], input: OpenInput): FileRef | undefined {
+function findMediaRefByStableIdentity(
+  files: readonly FileRef[],
+  input: Pick<OpenInput, 'fileId' | 'filePath'>,
+): FileRef | undefined {
   if (input.fileId) {
     const byFileId = files.find(f => f.fileId === input.fileId);
     if (byFileId) return byFileId;
@@ -116,9 +119,12 @@ export function openMediaViewerForRef(ref: FileRef, opts: {
     ? selectSessionFiles(state, opts.sessionPath ?? '')
     : selectDeskFiles(state);
   const files = rawFiles.filter(f => isMediaKind(f.kind));
-  const match = files.find(f => f.id === ref.id);
+  const match = files.find(f => f.id === ref.id)
+    ?? findMediaRefByStableIdentity(files, { fileId: ref.fileId, filePath: ref.path });
   if (match) {
-    state.setMediaViewer({ files, currentId: ref.id, origin: opts.origin });
+    const selected = { ...match, previewUrl: ref.previewUrl || match.previewUrl };
+    const hydratedFiles = files.map(file => file.id === match.id ? selected : file);
+    state.setMediaViewer({ files: hydratedFiles, currentId: selected.id, origin: opts.origin });
   } else {
     state.setMediaViewer({ files: [ref], currentId: ref.id, origin: opts.origin });
   }

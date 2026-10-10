@@ -47,15 +47,15 @@ describe("PluginDevService", () => {
   let service;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-plugin-dev-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-plugin-dev-"));
     sourceRoot = path.join(tmpDir, "sources");
-    devPluginsDir = path.join(tmpDir, "gsap-home", "plugins-dev");
-    runDataDir = path.join(tmpDir, "gsap-home", "plugin-dev-runs");
+    devPluginsDir = path.join(tmpDir, "codia-home", "plugins-dev");
+    runDataDir = path.join(tmpDir, "codia-home", "plugin-dev-runs");
     fs.mkdirSync(sourceRoot, { recursive: true });
     syncPluginExtensions = vi.fn();
     pluginManager = new PluginManager({
       pluginsDirs: [devPluginsDir],
-      dataDir: path.join(tmpDir, "gsap-home", "plugin-data"),
+      dataDir: path.join(tmpDir, "codia-home", "plugin-data"),
       bus: makeBus(),
       preferencesManager: {
         getDisabledPlugins: () => [],

@@ -18,9 +18,9 @@ describe("desk cron route", () => {
     const cronStore = createCronStore();
     const app = new Hono();
     const engine = {
-      currentAgentId: "hana",
+      currentAgentId: "codia",
       getAgent: vi.fn(() => ({
-        id: "hana",
+        id: "codia",
         cronStore,
         deskDir: "",
       })),
@@ -54,9 +54,9 @@ describe("desk cron route", () => {
     const runAgentCronNow = vi.fn(async () => ({ status: "success" }));
     const app = new Hono();
     const engine = {
-      currentAgentId: "hana",
+      currentAgentId: "codia",
       getAgent: vi.fn(() => ({
-        id: "hana",
+        id: "codia",
         cronStore,
         deskDir: "",
       })),
@@ -75,7 +75,7 @@ describe("desk cron route", () => {
     });
 
     expect(res.status).toBe(200);
-    expect(runAgentCronNow).toHaveBeenCalledWith("hana", "job_1");
+    expect(runAgentCronNow).toHaveBeenCalledWith("codia", "job_1");
   });
 
   it("returns 400 for invalid cron expressions", async () => {
@@ -85,9 +85,9 @@ describe("desk cron route", () => {
     });
     const app = new Hono();
     const engine = {
-      currentAgentId: "hana",
+      currentAgentId: "codia",
       getAgent: vi.fn(() => ({
-        id: "hana",
+        id: "codia",
         cronStore,
         deskDir: "",
       })),

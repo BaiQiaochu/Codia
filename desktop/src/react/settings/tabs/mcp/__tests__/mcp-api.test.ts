@@ -4,10 +4,10 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 
 vi.mock('../../../api', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
 }));
 
 import { addMcpConnector, removeMcpConnector, setMcpEnabled } from '../mcp-api';
@@ -18,11 +18,11 @@ function jsonResponse(body: unknown): Response {
 
 function mockMcpResponses(...responses: Response[]) {
   const queue = [...responses];
-  gsapFetchMock.mockImplementation(() => Promise.resolve(queue.shift() ?? jsonResponse({ ok: true })));
+  codiaFetchMock.mockImplementation(() => Promise.resolve(queue.shift() ?? jsonResponse({ ok: true })));
 }
 
 afterEach(() => {
-  gsapFetchMock.mockReset();
+  codiaFetchMock.mockReset();
 });
 
 describe('mcp-api mutations', () => {
@@ -37,7 +37,7 @@ describe('mcp-api mutations', () => {
 
     await setMcpEnabled(true);
 
-    expect(gsapFetchMock).toHaveBeenCalledWith(
+    expect(codiaFetchMock).toHaveBeenCalledWith(
       '/api/plugins/mcp/settings/enabled',
       expect.objectContaining({ method: 'PUT' }),
     );
@@ -50,7 +50,7 @@ describe('mcp-api mutations', () => {
   });
 
   it('checks JSON errors for connector mutations too', async () => {
-    gsapFetchMock
+    codiaFetchMock
       .mockResolvedValueOnce(jsonResponse({ error: 'add failed' }))
       .mockResolvedValueOnce(jsonResponse({ error: 'remove failed' }));
 

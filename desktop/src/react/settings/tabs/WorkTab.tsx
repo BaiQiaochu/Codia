@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSettingsStore } from '../store';
 import { t, autoSaveConfig } from '../helpers';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { getErrorMessage, type SettingsConfigPayload } from '../shared-types';
 import { Toggle } from '../widgets/Toggle';
 import { AgentSelect } from './bridge/AgentSelect';
@@ -82,7 +82,7 @@ export function WorkTab() {
     setHbIntervalDraft(null);
 
     const ac = new AbortController();
-    gsapFetch(`/api/agents/${selectedAgentId}/config`, { signal: ac.signal })
+    codiaFetch(`/api/agents/${selectedAgentId}/config`, { signal: ac.signal })
       .then(r => r.json() as Promise<SettingsConfigPayload>)
       .then(data => {
         if (ac.signal.aborted) return;
@@ -109,7 +109,7 @@ export function WorkTab() {
     const agentId = selectedAgentIdRef.current;
     if (!agentId) return;
     try {
-      const res = await gsapFetch(`/api/agents/${agentId}/config`, {
+      const res = await codiaFetch(`/api/agents/${agentId}/config`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(patch),

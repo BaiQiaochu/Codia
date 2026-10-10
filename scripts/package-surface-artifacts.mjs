@@ -7,13 +7,13 @@ const ROOT = process.cwd();
 const args = new Set(process.argv.slice(2));
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const stageDir = path.join(ROOT, "artifacts", "surface-package");
-const outFile = path.join(ROOT, "artifacts", `g-sap-surfaces-${process.platform}-${process.arch}.zip`);
+const outFile = path.join(ROOT, "artifacts", `codia-surfaces-${process.platform}-${process.arch}.zip`);
 
 const entries = [
   { source: "desktop/dist-renderer", to: "desktop/dist-renderer" },
   { source: "dist-server-bundle/index.js", to: "server/index.js" },
   { source: "lib/cli", to: "lib/cli" },
-  { source: "scripts/gsapctl.mjs", to: "scripts/gsapctl.mjs" },
+  { source: "scripts/codiactl.mjs", to: "scripts/codiactl.mjs" },
   { source: "package.json", to: "package.json" },
 ];
 

@@ -10,9 +10,9 @@ import {
   clearConfigCache,
 } from "../lib/memory/config-loader.js";
 
-const tmpDir = path.join(os.tmpdir(), "gsap-test-config-" + Date.now());
+const tmpDir = path.join(os.tmpdir(), "codia-test-config-" + Date.now());
 const configPath = path.join(tmpDir, "config.yaml");
-const gsapHome = path.join(tmpDir, ".gsap");
+const codiaHome = path.join(tmpDir, ".codia");
 
 function writeYaml(obj) {
   fs.writeFileSync(configPath, YAML.dump(obj), "utf-8");
@@ -24,14 +24,14 @@ function readYaml() {
 
 beforeEach(() => {
   fs.mkdirSync(tmpDir, { recursive: true });
-  fs.mkdirSync(gsapHome, { recursive: true });
-  process.env.GSAP_HOME = gsapHome;
+  fs.mkdirSync(codiaHome, { recursive: true });
+  process.env.CODIA_HOME = codiaHome;
   clearConfigCache();
 });
 
 afterEach(() => {
   clearConfigCache();
-  delete process.env.GSAP_HOME;
+  delete process.env.CODIA_HOME;
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
@@ -81,7 +81,7 @@ describe("loadConfig", () => {
 
   it("loads only raw config.yaml values and ignores added-models.yaml", () => {
     fs.writeFileSync(
-      path.join(gsapHome, "added-models.yaml"),
+      path.join(codiaHome, "added-models.yaml"),
       YAML.dump({
         providers: {
           openai: {

@@ -12,7 +12,7 @@ const workflowPath = path.join(rootDir, ".github", "workflows", "build.yml");
 let tmpDir;
 
 function makeTmpDir() {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-mac-update-metadata-"));
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-mac-update-metadata-"));
   return tmpDir;
 }
 
@@ -26,17 +26,17 @@ function writeMacMetadata(artifactsDir, arch, { fileName = "latest-mac.yml" } = 
       version,
       files: [
         {
-          url: `G-SAP-${version}-macOS-${arch}.zip`,
+          url: `Codia-${version}-macOS-${arch}.zip`,
           sha512: `${arch}-zip-sha512`,
           size: arch === "arm64" ? 265_000_001 : 273_000_001,
         },
         {
-          url: `G-SAP-${version}-macOS-${arch}.dmg`,
+          url: `Codia-${version}-macOS-${arch}.dmg`,
           sha512: `${arch}-dmg-sha512`,
           size: arch === "arm64" ? 271_000_001 : 280_000_001,
         },
       ],
-      path: `G-SAP-${version}-macOS-${arch}.zip`,
+      path: `Codia-${version}-macOS-${arch}.zip`,
       sha512: `${arch}-zip-sha512`,
       releaseDate: "2026-05-09T12:52:00.000Z",
     }),
@@ -77,12 +77,12 @@ describe("macOS update metadata release contract", () => {
     const urls = merged.files.map((file) => file.url);
 
     expect(urls).toEqual([
-      "G-SAP-0.171.5-macOS-arm64.zip",
-      "G-SAP-0.171.5-macOS-arm64.dmg",
-      "G-SAP-0.171.5-macOS-x64.zip",
-      "G-SAP-0.171.5-macOS-x64.dmg",
+      "Codia-0.171.5-macOS-arm64.zip",
+      "Codia-0.171.5-macOS-arm64.dmg",
+      "Codia-0.171.5-macOS-x64.zip",
+      "Codia-0.171.5-macOS-x64.dmg",
     ]);
-    expect(merged.path).toBe("G-SAP-0.171.5-macOS-arm64.zip");
+    expect(merged.path).toBe("Codia-0.171.5-macOS-arm64.zip");
     expect(merged.sha512).toBe("arm64-zip-sha512");
   });
 
@@ -121,7 +121,7 @@ describe("macOS update metadata release contract", () => {
     const merged = mergeLatestMacWithoutYamlDependency(artifactsDir, outputPath, hookPath);
 
     expect(merged.files).toHaveLength(4);
-    expect(merged.path).toBe("G-SAP-0.171.5-macOS-arm64.zip");
+    expect(merged.path).toBe("Codia-0.171.5-macOS-arm64.zip");
   });
 
   it("routes the GitHub release workflow through the checked merge script", () => {

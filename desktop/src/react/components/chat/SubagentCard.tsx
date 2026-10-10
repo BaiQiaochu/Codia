@@ -5,7 +5,7 @@
 
 import { memo, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { subscribeStreamKey } from '../../services/stream-key-dispatcher';
-import { gsapFetch, gsapUrl } from '../../hooks/use-gsap-fetch';
+import { codiaFetch, codiaUrl } from '../../hooks/use-codia-fetch';
 import { useStore } from '../../stores';
 import { yuanFallbackAvatar } from '../../utils/agent-helpers';
 import { SubagentSessionPreview } from './SubagentSessionPreview';
@@ -59,7 +59,7 @@ export const SubagentCard = memo(function SubagentCard({ block }: SubagentCardPr
   const agent = agents?.find((a: any) => a.id === agentId);
   const fallbackAvatar = useMemo(() => yuanFallbackAvatar(agent?.yuan), [agent?.yuan]);
   const avatarSrc = (agent?.hasAvatar && agentId)
-    ? gsapUrl(`/api/agents/${agentId}/avatar?t=${agentId}`, { includeTokenQuery: true })
+    ? codiaUrl(`/api/agents/${agentId}/avatar?t=${agentId}`, { includeTokenQuery: true })
     : fallbackAvatar;
 
   // Sync block prop changes (from block_update patch)
@@ -130,7 +130,7 @@ export const SubagentCard = memo(function SubagentCard({ block }: SubagentCardPr
 
   const handleAbort = useCallback(async () => {
     try {
-      const res = await gsapFetch(`/api/task/${block.taskId}/abort`, { method: 'POST' });
+      const res = await codiaFetch(`/api/task/${block.taskId}/abort`, { method: 'POST' });
       if (res.ok) {
         setStatus('aborted');
         setDisplay(window.t?.('subagentAborted') || '已终止');

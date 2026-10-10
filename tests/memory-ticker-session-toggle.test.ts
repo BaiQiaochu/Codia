@@ -78,7 +78,7 @@ describe("memory ticker respects session-level memory toggle", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-memory-toggle-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-memory-toggle-"));
     fs.mkdirSync(path.join(tmpDir, "sessions"), { recursive: true });
     sessionPath = path.join(tmpDir, "sessions", "2026-03-12T15-47-53-568Z_test.jsonl");
     writeSession(sessionPath);

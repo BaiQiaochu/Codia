@@ -1,8 +1,8 @@
 export function isPwaRuntime(): boolean {
   if (typeof window === 'undefined') return false;
-  if ((window as typeof window & { __GSAP_PWA__?: unknown }).__GSAP_PWA__) return true;
+  if ((window as typeof window & { __CODIA_PWA__?: unknown }).__CODIA_PWA__) return true;
   try {
-    return (window.localStorage?.getItem('gsap-token') || '').startsWith('pwa.');
+    return (window.localStorage?.getItem('codia-token') || '').startsWith('pwa.');
   } catch {
     return false;
   }
@@ -11,7 +11,7 @@ export function isPwaRuntime(): boolean {
 export function readPwaAccessToken(): string {
   if (typeof window === 'undefined') return '';
   try {
-    const token = window.localStorage?.getItem('gsap-token') || '';
+    const token = window.localStorage?.getItem('codia-token') || '';
     return token.startsWith('pwa.') ? token : '';
   } catch {
     return '';

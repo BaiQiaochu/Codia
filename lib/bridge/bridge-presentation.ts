@@ -1,4 +1,4 @@
-export const FEISHU_CARDKIT_STREAM_ELEMENT_ID = "gsap_stream_markdown";
+export const FEISHU_CARDKIT_STREAM_ELEMENT_ID = "codia_stream_markdown";
 
 export type BridgePresentation = {
   kind: "bridge_presentation";

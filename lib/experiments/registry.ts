@@ -77,7 +77,7 @@ const DEFINITIONS = [
       whenStable: "Move to provider-level DeepSeek behavior settings if the patch improves mood and persona adherence without hurting task reliability.",
     },
     exitCriteria: [
-      "DeepSeek V4 keeps G-SAP mood and persona contracts more consistently in new sessions.",
+      "DeepSeek V4 keeps Codia mood and persona contracts more consistently in new sessions.",
       "The marker never appears in UI, JSONL history, restore output, memory extraction, or summaries.",
       "Code, tool-heavy, and utility chat tasks do not become noticeably more theatrical.",
     ],

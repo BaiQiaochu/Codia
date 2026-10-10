@@ -19,7 +19,7 @@ describe("websocket auth tickets", () => {
 
     const issued = service.issueTicket(principal, { connectionKind: "lan", path: "/ws" });
 
-    expect(issued.ticket).toMatch(/^gsap_ws_/);
+    expect(issued.ticket).toMatch(/^codia_ws_/);
     expect(issued.expiresAt).toBe("2026-06-20T00:00:30.000Z");
     expect(service.consumeTicket(issued.ticket, { connectionKind: "lan", path: "/ws" })).toMatchObject({
       kind: "device",
@@ -80,7 +80,7 @@ describe("websocket auth tickets", () => {
     const makeContext = () => ({
       req: {
         method: "GET",
-        url: `http://gsap.local/ws?wsTicket=${issued.ticket}`,
+        url: `http://codia.local/ws?wsTicket=${issued.ticket}`,
         header: () => null,
         query: (key: string) => (key === "wsTicket" ? issued.ticket : null),
       },

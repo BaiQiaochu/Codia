@@ -117,7 +117,7 @@ export function normalizeSharedModelsPatch(partial) {
 export class ConfigCoordinator {
   /**
    * @param {object} deps
-   * @param {string} deps.gsapHome
+   * @param {string} deps.codiaHome
    * @param {string} deps.agentsDir
  * @param {() => object} deps.getAgent - 当前焦点 agent
     *

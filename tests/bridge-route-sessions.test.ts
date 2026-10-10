@@ -1,4 +1,4 @@
-// Upstream reference test migrated and debranded; skipped until the matching G-SAP source contract is migrated.
+// Upstream reference test migrated and debranded; skipped until the matching Codia source contract is migrated.
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -9,7 +9,7 @@ import { createBridgeRoute } from "../server/routes/bridge.ts";
 let rootDir;
 
 function makeApp() {
-  const agentId = "hana";
+  const agentId = "codia";
   const sessionDir = path.join(rootDir, "agents", agentId, "sessions");
   const bridgeDir = path.join(sessionDir, "bridge");
   const sessionPath = path.join(bridgeDir, "owner", "tg-owner.jsonl");
@@ -29,7 +29,7 @@ function makeApp() {
     currentAgentId: agentId,
     getAgent: (id) => (id === agentId ? agent : null),
     getBridgeIndex: () => ({
-      "tg_dm_owner@hana": {
+      "tg_dm_owner@codia": {
         file: "owner/tg-owner.jsonl",
         name: "Owner",
         avatarUrl: "https://example.com/avatar.png",
@@ -48,7 +48,7 @@ function makeApp() {
 
 describe.skip("bridge sessions route", () => {
   beforeEach(() => {
-    rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-bridge-route-"));
+    rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-bridge-route-"));
   });
 
   afterEach(() => {
@@ -58,13 +58,13 @@ describe.skip("bridge sessions route", () => {
   it.skip("returns the resolved sessionPath for ChatTranscript hydration", async () => {
     const { app, sessionPath } = makeApp();
 
-    const res = await app.request("/api/bridge/sessions?platform=telegram&agentId=hana");
+    const res = await app.request("/api/bridge/sessions?platform=telegram&agentId=codia");
     const body = await res.json();
 
     expect(res.status).toBe(200);
     expect(body.sessions).toHaveLength(1);
     expect(body.sessions[0]).toMatchObject({
-      sessionKey: "tg_dm_owner@hana",
+      sessionKey: "tg_dm_owner@codia",
       file: "owner/tg-owner.jsonl",
       sessionPath,
       displayName: "Owner",
@@ -73,7 +73,7 @@ describe.skip("bridge sessions route", () => {
   });
 
   it.skip("marks QQ sessions as owner when configured owner matches a principal alias", async () => {
-    const agentId = "hana";
+    const agentId = "codia";
     const sessionDir = path.join(rootDir, "agents", agentId, "sessions");
     const bridgeDir = path.join(sessionDir, "bridge");
     const sessionPath = path.join(bridgeDir, "owner", "qq-owner.jsonl");
@@ -93,7 +93,7 @@ describe.skip("bridge sessions route", () => {
       currentAgentId: agentId,
       getAgent: (id) => (id === agentId ? agent : null),
       getBridgeIndex: () => ({
-        "qq_dm_c2c-openid@hana": {
+        "qq_dm_c2c-openid@codia": {
           file: "owner/qq-owner.jsonl",
           userId: "stable-user-id",
           chatId: "c2c-openid",
@@ -109,12 +109,12 @@ describe.skip("bridge sessions route", () => {
     const qqApp = new Hono();
     qqApp.route("/api", createBridgeRoute(engine, null));
 
-    const res = await qqApp.request("/api/bridge/sessions?platform=qq&agentId=hana");
+    const res = await qqApp.request("/api/bridge/sessions?platform=qq&agentId=codia");
     const body = await res.json();
 
     expect(res.status).toBe(200);
     expect(body.sessions[0]).toMatchObject({
-      sessionKey: "qq_dm_c2c-openid@hana",
+      sessionKey: "qq_dm_c2c-openid@codia",
       isOwner: true,
     });
   });

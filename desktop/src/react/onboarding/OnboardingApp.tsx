@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { TOTAL_STEPS } from './constants';
-import type { gsapFetch } from './onboarding-actions';
+import type { codiaFetch } from './onboarding-actions';
 import { LocaleStep } from './steps/LocaleStep';
 import { NameStep } from './steps/NameStep';
 import { ProviderStep } from './steps/ProviderStep';
@@ -34,7 +34,7 @@ export function OnboardingApp({ preview, skipToTutorial }: OnboardingAppProps) {
   const [toastMsg, setToastMsg] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const gsapFetch: gsapFetch = useCallback((path, opts = {}) => {
+  const codiaFetch: codiaFetch = useCallback((path, opts = {}) => {
     const headers: Record<string, string> = { ...(opts.headers as Record<string, string>) };
     if (serverToken) headers['Authorization'] = `Bearer ${serverToken}`;
     return fetch(`http://127.0.0.1:${serverPort}${path}`, { ...opts, headers });
@@ -117,12 +117,12 @@ export function OnboardingApp({ preview, skipToTutorial }: OnboardingAppProps) {
         ))}
       </div>
 
-      {step === 0 && <LocaleStep key={`step-0-${stepKey}`} preview={preview} gsapFetch={gsapFetch} avatarSrc={avatarSrc} initialLocale={locale} goToStep={goToStep} showError={showError} onLocaleChange={onLocaleChange} />}
-      {step === 1 && <NameStep key={`step-1-${stepKey}`} preview={preview} gsapFetch={gsapFetch} goToStep={goToStep} showError={showError} />}
-      {step === 2 && <ProviderStep key={`step-2-${stepKey}`} preview={preview} gsapFetch={gsapFetch} goToStep={goToStep} showError={showError} onProviderReady={onProviderReady} />}
-      {step === 3 && <ModelStep key={`step-3-${stepKey}`} preview={preview} gsapFetch={gsapFetch} providerName={providerName} providerUrl={providerUrl} providerApi={providerApi} apiKey={apiKey} goToStep={goToStep} showError={showError} />}
+      {step === 0 && <LocaleStep key={`step-0-${stepKey}`} preview={preview} codiaFetch={codiaFetch} avatarSrc={avatarSrc} initialLocale={locale} goToStep={goToStep} showError={showError} onLocaleChange={onLocaleChange} />}
+      {step === 1 && <NameStep key={`step-1-${stepKey}`} preview={preview} codiaFetch={codiaFetch} goToStep={goToStep} showError={showError} />}
+      {step === 2 && <ProviderStep key={`step-2-${stepKey}`} preview={preview} codiaFetch={codiaFetch} goToStep={goToStep} showError={showError} onProviderReady={onProviderReady} />}
+      {step === 3 && <ModelStep key={`step-3-${stepKey}`} preview={preview} codiaFetch={codiaFetch} providerName={providerName} providerUrl={providerUrl} providerApi={providerApi} apiKey={apiKey} goToStep={goToStep} showError={showError} />}
       {step === 4 && <ThemeStep key={`step-4-${stepKey}`} goToStep={goToStep} />}
-      {step === 5 && <WorkspaceStep key={`step-5-${stepKey}`} preview={preview} gsapFetch={gsapFetch} goToStep={goToStep} showError={showError} />}
+      {step === 5 && <WorkspaceStep key={`step-5-${stepKey}`} preview={preview} codiaFetch={codiaFetch} goToStep={goToStep} showError={showError} />}
       {step === 6 && <TutorialStep key={`step-6-${stepKey}`} preview={preview} showError={showError} />}
 
       {toastMsg && (

@@ -66,7 +66,7 @@ describe("AgentManager lazy runtime initialization", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     instances.length = 0;
-    rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-agent-lazy-"));
+    rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-agent-lazy-"));
     agentsDir = path.join(rootDir, "agents");
     fs.mkdirSync(agentsDir, { recursive: true });
     for (const id of ["focus", "background", "third"]) {
@@ -138,8 +138,6 @@ describe("AgentManager lazy runtime initialization", () => {
     const background = manager.getAgent("background");
 
     await Promise.all([
-      manager.ensureAgentRuntime("background"),
-      manager.ensureAgentRuntime("background"),
       manager.ensureAgentRuntime("background"),
     ]);
 

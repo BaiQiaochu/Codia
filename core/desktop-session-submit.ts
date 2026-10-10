@@ -153,7 +153,7 @@ export async function submitDesktopSessionMessage(engine, opts = {}) {
 
   if (displayAttachments?.length) {
     const registeredDisplay = registerDisplayAttachments({
-      gsapHome: engine.gsapHome,
+      codiaHome: engine.codiaHome,
       sessionPath,
       attachments: displayAttachments,
       registerSessionFile: engine.registerSessionFile?.bind(engine),
@@ -181,7 +181,7 @@ export async function submitDesktopSessionMessage(engine, opts = {}) {
 
   if (inboundFiles?.length) {
     const materialized = await materializeBridgeInboundFiles({
-      gsapHome: engine.gsapHome,
+      codiaHome: engine.codiaHome,
       sessionPath,
       files: inboundFiles,
       registerSessionFile: engine.registerSessionFile?.bind(engine),
@@ -202,7 +202,7 @@ export async function submitDesktopSessionMessage(engine, opts = {}) {
 
   const previousDisplayAttachmentCount = displayAttachments?.length || 0;
   const longContext = await materializeLongContextIfNeeded({
-    gsapHome: engine.gsapHome || engine.hanakoHome,
+    codiaHome: engine.codiaHome || engine.codiaHome,
     sessionPath,
     promptText,
     displayAttachments,
@@ -308,7 +308,7 @@ export async function submitDesktopSessionMessage(engine, opts = {}) {
 }
 
 async function materializeLongContextIfNeeded({
-  gsapHome,
+  codiaHome,
   sessionPath,
   promptText,
   displayAttachments,
@@ -318,11 +318,11 @@ async function materializeLongContextIfNeeded({
   if (text.length <= LONG_CONTEXT_CHAR_THRESHOLD) {
     return { promptText, displayAttachments };
   }
-  if (!gsapHome || typeof registerSessionFile !== "function") {
+  if (!codiaHome || typeof registerSessionFile !== "function") {
     return { promptText, displayAttachments };
   }
 
-  const dir = sessionFilesCacheDir(gsapHome, sessionPath);
+  const dir = sessionFilesCacheDir(codiaHome, sessionPath);
   await fs.mkdir(dir, { recursive: true });
   const filePath = path.join(dir, uniqueLongContextFilename());
   await fs.writeFile(filePath, text, "utf-8");
@@ -404,7 +404,7 @@ function queueVoiceInputTranscriptions({ speechRecognition, sessionPath, attachm
   }
 }
 
-function registerDisplayAttachments({ gsapHome, sessionPath, attachments, registerSessionFile }) {
+function registerDisplayAttachments({ codiaHome, sessionPath, attachments, registerSessionFile }) {
   const nextAttachments = [];
   const imageAttachmentPaths = [];
   const videoAttachmentPaths = [];
@@ -423,7 +423,7 @@ function registerDisplayAttachments({ gsapHome, sessionPath, attachments, regist
           filePath: next.path,
           label: next.name || path.basename(next.path),
           origin: originForDisplayAttachment(next),
-          storageKind: displayAttachmentStorageKind(gsapHome, next.path),
+          storageKind: displayAttachmentStorageKind(codiaHome, next.path),
           presentation: displayAttachmentPresentation(next),
           listed: listedForDisplayAttachment(next),
           waveform: next.waveform,
@@ -497,9 +497,9 @@ function originForDisplayAttachment(attachment) {
   return displayAttachmentPresentation(attachment) === "voice-input" ? "voice_input" : "user_attachment";
 }
 
-function displayAttachmentStorageKind(gsapHome, filePath) {
-  if (!gsapHome) return "external";
-  const root = path.resolve(gsapHome, "session-files");
+function displayAttachmentStorageKind(codiaHome, filePath) {
+  if (!codiaHome) return "external";
+  const root = path.resolve(codiaHome, "session-files");
   const target = path.resolve(filePath);
   const rel = path.relative(root, target);
   if (rel === "" || (rel && !rel.startsWith("..") && !path.isAbsolute(rel))) {

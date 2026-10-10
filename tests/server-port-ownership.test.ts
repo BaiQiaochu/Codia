@@ -14,7 +14,7 @@ describe("server transport ownership", () => {
     const bindIndex = source.indexOf("await bindServerTransportOwnership");
     expect(bindIndex).toBeGreaterThan(-1);
     expect(bindIndex).toBeLessThan(source.indexOf("ensureFirstRun("));
-    expect(bindIndex).toBeLessThan(source.indexOf("new GsapEngine("));
+    expect(bindIndex).toBeLessThan(source.indexOf("new CodiaEngine("));
     expect(bindIndex).toBeLessThan(source.indexOf("await engine.init("));
     expect(bindIndex).toBeLessThan(source.indexOf("await engine.initPlugins("));
     expect(bindIndex).toBeLessThan(source.indexOf("hub.initSchedulers()"));
@@ -62,16 +62,16 @@ describe("server transport ownership", () => {
       blocker.listen(0, "127.0.0.1", resolve as any);
     });
     const port = (blocker.address() as any).port;
-    const gsapHome = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-port-conflict-test-"));
+    const codiaHome = fs.mkdtempSync(path.join(os.tmpdir(), "codia-port-conflict-test-"));
     const child = spawn(process.execPath, ["server/bootstrap.ts"], {
       cwd: root,
       env: {
         ...process.env,
-        GSAP_HOME: gsapHome,
-        GSAP_PORT: String(port),
-        GSAP_ROOT: root,
-        GSAP_SERVER_ENTRY: path.join(root, "server", "index.ts"),
-        GSAP_CREATE_STARTUP_SESSION: "0",
+        CODIA_HOME: codiaHome,
+        CODIA_PORT: String(port),
+        CODIA_ROOT: root,
+        CODIA_SERVER_ENTRY: path.join(root, "server", "index.ts"),
+        CODIA_CREATE_STARTUP_SESSION: "0",
       },
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -93,10 +93,10 @@ describe("server transport ownership", () => {
       expect(result).toEqual({ code: 1, signal: null });
       expect(stderr).toContain("PORT_IN_USE");
       expect(stdout + stderr).not.toContain("ensureFirstRun");
-      expect(stdout + stderr).not.toContain("GsapEngine");
+      expect(stdout + stderr).not.toContain("CodiaEngine");
     } finally {
       blocker.close();
-      fs.rmSync(gsapHome, { recursive: true, force: true });
+      fs.rmSync(codiaHome, { recursive: true, force: true });
     }
     },
   );

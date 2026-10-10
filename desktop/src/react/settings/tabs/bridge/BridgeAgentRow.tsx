@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useSettingsStore } from '../../store';
-import { gsapUrl, yuanFallbackAvatar } from '../../api';
+import { codiaUrl, yuanFallbackAvatar } from '../../api';
 
 interface BridgeAgentRowProps {
   value: string | null;
@@ -33,7 +33,7 @@ export function BridgeAgentRow({ value, onChange }: BridgeAgentRowProps) {
       <div className="bridge-agent-row-list">
         {agents.map((agent) => {
           const selected = agent.id === value;
-          const fallback = yuanFallbackAvatar(agent.yuan || 'gsap');
+          const fallback = yuanFallbackAvatar(agent.yuan || 'codia');
           return (
             <button
               key={agent.id}
@@ -46,7 +46,7 @@ export function BridgeAgentRow({ value, onChange }: BridgeAgentRowProps) {
                 <img
                   className="bridge-agent-row-avatar"
                   draggable={false}
-                  src={agent.hasAvatar ? gsapUrl(`/api/agents/${agent.id}/avatar?t=${ts}`, { includeTokenQuery: true }) : fallback}
+                  src={agent.hasAvatar ? codiaUrl(`/api/agents/${agent.id}/avatar?t=${ts}`, { includeTokenQuery: true }) : fallback}
                   onError={(e) => {
                     const img = e.target as HTMLImageElement;
                     img.onerror = null;

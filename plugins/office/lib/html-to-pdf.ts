@@ -4,7 +4,7 @@ import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
 
-export const OFFICE_PDF_HELPER_FLAG = "--gsap-office-html-to-pdf";
+export const OFFICE_PDF_HELPER_FLAG = "--codia-office-html-to-pdf";
 
 const DEFAULT_TIMEOUT_MS = 60000;
 const DEFAULT_SETTLE_MS = 250;
@@ -33,22 +33,20 @@ function appendLimited(buffer, chunk) {
 
 function helperCommandForJob(jobPath, input: any = {}, env = process.env) {
   const execPath = input.helperExecPath
-    || env.GSAP_OFFICE_PDF_HELPER_EXEC
-    || env.HANA_OFFICE_PDF_HELPER_EXEC
-    || env.GSAP_DESKTOP_EXEC_PATH
-    || env.HANA_DESKTOP_EXEC_PATH;
+    || env.CODIA_OFFICE_PDF_HELPER_EXEC
+    || env.CODIA_DESKTOP_EXEC_PATH
+    || env.CODIA_DESKTOP_EXEC_PATH;
   if (!execPath) {
     throw new Error(
-      "Chromium PDF helper is unavailable. Start G-SAP Desktop, or set GSAP_OFFICE_PDF_HELPER_EXEC to an Electron executable.",
+      "Chromium PDF helper is unavailable. Start Codia Desktop, or set CODIA_OFFICE_PDF_HELPER_EXEC to an Electron executable.",
     );
   }
 
   const helperAppPath = input.helperAppPath
-    || env.GSAP_OFFICE_PDF_HELPER_APP_PATH
-    || env.HANA_OFFICE_PDF_HELPER_APP_PATH
-    || (env.GSAP_DESKTOP_IS_PACKAGED === "1" || env.HANA_DESKTOP_IS_PACKAGED === "1"
+    || env.CODIA_OFFICE_PDF_HELPER_APP_PATH
+    || (env.CODIA_DESKTOP_IS_PACKAGED === "1" || env.CODIA_DESKTOP_IS_PACKAGED === "1"
       ? null
-      : (env.GSAP_DESKTOP_APP_PATH || env.HANA_DESKTOP_APP_PATH));
+      : (env.CODIA_DESKTOP_APP_PATH || env.CODIA_DESKTOP_APP_PATH));
 
   const args = helperAppPath
     ? [helperAppPath, OFFICE_PDF_HELPER_FLAG, jobPath]
@@ -135,8 +133,7 @@ function buildJobPayload(input, htmlPath, outputPath) {
     landscape: input.landscape === true,
     margins: input.margins && typeof input.margins === "object" ? input.margins : undefined,
     allowJavaScript: input.allowJavaScript === true,
-    embedGsapFonts: input.embedGsapFonts !== false,
-    embedHanaFonts: input.embedHanaFonts,
+    embedCodiaFonts: input.embedCodiaFonts,
     settleMs: Number.isFinite(Number(input.settleMs)) ? Number(input.settleMs) : DEFAULT_SETTLE_MS,
   };
 }

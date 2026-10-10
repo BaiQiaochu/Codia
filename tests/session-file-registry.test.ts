@@ -17,7 +17,7 @@ describe("SessionFileRegistry", () => {
   });
 
   function ensureTempDir() {
-    if (!tmpDir) tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-session-file-"));
+    if (!tmpDir) tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-file-"));
     return tmpDir;
   }
 
@@ -30,7 +30,7 @@ describe("SessionFileRegistry", () => {
   }
 
   function makeSessionPath(name = "main.jsonl") {
-    const dir = path.join(ensureTempDir(), "agents", "hana", "sessions");
+    const dir = path.join(ensureTempDir(), "agents", "codia", "sessions");
     fs.mkdirSync(dir, { recursive: true });
     const sessionPath = path.join(dir, name);
     fs.writeFileSync(sessionPath, "{}\n");

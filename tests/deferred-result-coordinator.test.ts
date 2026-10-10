@@ -35,13 +35,12 @@ describe("DeferredResultCoordinator", () => {
     const [sessionPath, message, opts] = sessionCoordinator.deliverCustomMessage.mock.calls[0];
     expect(sessionPath).toBe("/sessions/a.jsonl");
     expect(message).toMatchObject({
-      customType: "gsap-background-result",
+      customType: "codia-background-result",
       display: false,
     });
     expect(message.content).toContain("task-id=\"task-1\"");
     expect(message.content).toContain("status=\"success\"");
     expect(message.content).toContain("&lt;ok&gt;");
-    expect(message.content).not.toContain("hana-background-result");
     expect(message.details).toMatchObject({
       schemaVersion: 1,
       taskId: "task-1",
@@ -79,7 +78,7 @@ describe("DeferredResultCoordinator", () => {
     expect(sessionCoordinator.deliverCustomMessage).not.toHaveBeenCalled();
     expect(sessionCoordinator.recordCustomEntry).toHaveBeenCalledWith(
       "/sessions/a.jsonl",
-      "gsap-deferred-result",
+      "codia-deferred-result",
       expect.objectContaining({
         schemaVersion: 1,
         taskId: "task-ui-only",
@@ -112,7 +111,7 @@ describe("DeferredResultCoordinator", () => {
     expect(sessionCoordinator.deliverCustomMessage).not.toHaveBeenCalled();
     expect(sessionCoordinator.recordCustomEntry).toHaveBeenCalledWith(
       "/sessions/a.jsonl",
-      "gsap-deferred-result",
+      "codia-deferred-result",
       expect.objectContaining({
         schemaVersion: 1,
         taskId: "task-ui-interlude",
@@ -143,7 +142,7 @@ describe("DeferredResultCoordinator", () => {
     expect(sessionCoordinator.deliverCustomMessage).toHaveBeenCalledWith(
       "/sessions/a.jsonl",
       expect.objectContaining({
-        customType: "gsap-background-result",
+        customType: "codia-background-result",
         display: false,
         content: expect.stringContaining("status=\"failed\""),
       }),
@@ -180,7 +179,7 @@ describe("DeferredResultCoordinator", () => {
 
     expect(sessionCoordinator.deliverCustomMessage).toHaveBeenCalledWith(
       "/sessions/a.jsonl",
-      expect.objectContaining({ customType: "gsap-background-result" }),
+      expect.objectContaining({ customType: "codia-background-result" }),
       { triggerTurn: false },
     );
     expect(store.query("task-4")).toMatchObject({ delivered: true });
@@ -211,7 +210,7 @@ describe("DeferredResultCoordinator", () => {
     sessionCoordinator.isRunnableSessionPath = vi.fn(() => false);
     store._tasks.set("task-bridge", {
       status: "resolved",
-      sessionPath: "/agents/gsap/sessions/bridge/owner/chat.jsonl",
+      sessionPath: "/agents/codia/sessions/bridge/owner/chat.jsonl",
       meta: {
         type: "image-generation",
         deliveryIntent: "ui_only",

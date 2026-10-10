@@ -7,7 +7,7 @@ import { runLocalCliMedia } from "../lib/local-cli-wrapper.ts";
 let tmpDir;
 
 beforeEach(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-cli-wrapper-"));
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-cli-wrapper-"));
 });
 
 afterEach(() => {

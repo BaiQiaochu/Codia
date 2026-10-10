@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createChannelTool } from "../lib/tools/channel-tool.js";
 
 function makeTempRoot() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-channel-tool-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-channel-tool-"));
   const channelsDir = path.join(root, "channels");
   const agentsDir = path.join(root, "agents");
   fs.mkdirSync(channelsDir, { recursive: true });

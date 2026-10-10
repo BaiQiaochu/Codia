@@ -4,7 +4,7 @@ import { extractGraphDocument, normalizeGraphData } from "../lib/graph-operation
 describe("graph-operations", () => {
   it("extracts English nodes and relations without sentence-level noise", () => {
     const result = extractGraphDocument(
-      "Alpha relates to Beta. G-SAP uses local knowledge graph source documents. SparkNoteAI inspired the graph data model rewrite.",
+      "Alpha relates to Beta. Codia uses local knowledge graph source documents. SparkNoteAI inspired the graph data model rewrite.",
       {
         title: "Conversation graph",
         sourceId: "demo-source",
@@ -14,10 +14,10 @@ describe("graph-operations", () => {
     const nodeNames = result.nodes.map((node) => node.name);
     expect(nodeNames).toContain("Alpha");
     expect(nodeNames).toContain("Beta");
-    expect(nodeNames).toContain("G-SAP");
+    expect(nodeNames).toContain("Codia");
     expect(nodeNames).toContain("SparkNoteAI");
     expect(nodeNames).not.toContain("Alpha relates to Beta");
-    expect(nodeNames).not.toContain("Beta. G-SAP");
+    expect(nodeNames).not.toContain("Beta. Codia");
     expect(result.edges).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -32,7 +32,7 @@ describe("graph-operations", () => {
 
   it("extracts Chinese hierarchical concepts and keeps source linkage", () => {
     const result = extractGraphDocument(
-      "知识图谱包括节点、关系和来源文档。SparkNoteAI 使用知识图谱模型。G-SAP 支持本地知识图谱页面。",
+      "知识图谱包括节点、关系和来源文档。SparkNoteAI 使用知识图谱模型。Codia 支持本地知识图谱页面。",
       {
         title: "知识图谱测试",
         sourceId: "note-1",
@@ -41,7 +41,7 @@ describe("graph-operations", () => {
 
     const nodeNames = result.nodes.map((node) => node.name);
     expect(nodeNames).toEqual(
-      expect.arrayContaining(["知识图谱", "节点", "关系", "来源文档", "SparkNoteAI", "G-SAP"]),
+      expect.arrayContaining(["知识图谱", "节点", "关系", "来源文档", "SparkNoteAI", "Codia"]),
     );
     expect(result.edges).toEqual(
       expect.arrayContaining([

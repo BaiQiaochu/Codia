@@ -8,7 +8,7 @@ import { createMediaRoute } from "../server/routes/media.ts";
 let tmpDir: string;
 
 beforeEach(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-media-compat-"));
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-media-compat-"));
 });
 
 afterEach(() => {

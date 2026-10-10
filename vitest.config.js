@@ -10,14 +10,14 @@ export default defineConfig({
   resolve: {
     preserveSymlinks: true,
     alias: {
-      "@g-sap/plugin-components": path.resolve(cwd, "packages/plugin-components/src/index.ts"),
-      "@g-sap/plugin-protocol": path.resolve(cwd, "packages/plugin-protocol/src/index.ts"),
-      "@g-sap/plugin-runtime": path.resolve(cwd, "packages/plugin-runtime/src/index.ts"),
-      "@g-sap/plugin-sdk": path.resolve(cwd, "packages/plugin-sdk/src/index.ts"),
-      "@hana/plugin-components": path.resolve(cwd, "packages/plugin-components/src/index.ts"),
-      "@hana/plugin-protocol": path.resolve(cwd, "packages/plugin-protocol/src/index.ts"),
-      "@hana/plugin-runtime": path.resolve(cwd, "packages/plugin-runtime/src/index.ts"),
-      "@hana/plugin-sdk": path.resolve(cwd, "packages/plugin-sdk/src/index.ts"),
+      "@codia/plugin-components": path.resolve(cwd, "packages/plugin-components/src/index.ts"),
+      "@codia/plugin-protocol": path.resolve(cwd, "packages/plugin-protocol/src/index.ts"),
+      "@codia/plugin-runtime": path.resolve(cwd, "packages/plugin-runtime/src/index.ts"),
+      "@codia/plugin-sdk": path.resolve(cwd, "packages/plugin-sdk/src/index.ts"),
+      "@codia/plugin-components": path.resolve(cwd, "packages/plugin-components/src/index.ts"),
+      "@codia/plugin-protocol": path.resolve(cwd, "packages/plugin-protocol/src/index.ts"),
+      "@codia/plugin-runtime": path.resolve(cwd, "packages/plugin-runtime/src/index.ts"),
+      "@codia/plugin-sdk": path.resolve(cwd, "packages/plugin-sdk/src/index.ts"),
     },
   },
   server: {
@@ -42,8 +42,8 @@ export default defineConfig({
       "**/dist-server-bundle/**",
       "**/dist-folder/**",
       "**/coverage/**",
-      "**/openhanako-0.*/**",
-      "**/openhanako-main1.6/**",
+      "**/codia-0.*/**",
+      "**/codia-main1.6/**",
       "**/hermes-agent-main/**",
     ],
     server: {

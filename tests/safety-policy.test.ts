@@ -5,8 +5,8 @@ function request(overrides = {}) {
   return {
     id: "approval-1",
     kind: "tool_action",
-    sessionPath: "/tmp/gsap/session.jsonl",
-    agentId: "gsap",
+    sessionPath: "/tmp/codia/session.jsonl",
+    agentId: "codia",
     toolName: "bash",
     actionName: "execute",
     params: { command: "git push origin main" },
@@ -47,8 +47,8 @@ describe("SafetyPolicy", () => {
       ruleIds: ["push-tags-blocked"],
     });
     expect(evaluateToolSafetyPolicy(request({
-      params: { command: "git -c user.name=gsap push --force-with-lease origin main" },
-      target: { type: "command", label: "git -c user.name=gsap push --force-with-lease origin main" },
+      params: { command: "git -c user.name=codia push --force-with-lease origin main" },
+      target: { type: "command", label: "git -c user.name=codia push --force-with-lease origin main" },
     }))).toMatchObject({
       action: "block",
       ruleIds: ["force-push-blocked"],

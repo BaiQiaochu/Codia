@@ -30,7 +30,7 @@ async function saveUploadedPackage(engine: any, file: UploadedPackageFile | null
   if (!file || typeof file.arrayBuffer !== "function") {
     throw new CharacterCardError("file is required");
   }
-  const uploadRoot = path.join(engine.gsapHome, ".ephemeral", "character-card-uploads");
+  const uploadRoot = path.join(engine.codiaHome, ".ephemeral", "character-card-uploads");
   await fsp.mkdir(uploadRoot, { recursive: true });
   const fileName = `${Date.now().toString(36)}-${safeUploadName(file.name)}`;
   const target = path.join(uploadRoot, fileName);

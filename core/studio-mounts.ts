@@ -7,13 +7,13 @@ export const STUDIO_MOUNTS_FILE = "studio-mounts.json";
 
 const SCHEMA_VERSION = 1;
 const SOURCE_KINDS = ["storage", "studio"];
-const STORAGE_PROVIDERS = ["local_fs", "webdav", "s3", "google_drive", "gsap_cloud"];
+const STORAGE_PROVIDERS = ["local_fs", "webdav", "s3", "google_drive", "codia_cloud"];
 const PRESENTATIONS = ["folder", "external_panel", "linked_studio"];
 const STATUSES = ["active", "disabled"];
 const CAPABILITIES = ["list", "read", "write", "watch", "materialize", "execute"];
 
-export function ensureStudioMountRegistry(gsapHome, { now = new Date().toISOString() } = {}) {
-  const filePath = path.join(gsapHome, STUDIO_MOUNTS_FILE);
+export function ensureStudioMountRegistry(codiaHome, { now = new Date().toISOString() } = {}) {
+  const filePath = path.join(codiaHome, STUDIO_MOUNTS_FILE);
   const current = readJsonIfPresent(filePath, STUDIO_MOUNTS_FILE);
   if (current) {
     validateStudioMountRegistry(current);
@@ -28,15 +28,15 @@ export function ensureStudioMountRegistry(gsapHome, { now = new Date().toISOStri
   return { created: [STUDIO_MOUNTS_FILE] };
 }
 
-export function loadStudioMountRegistry(gsapHome) {
-  ensureStudioMountRegistry(gsapHome);
-  const registry = readJsonRequired(path.join(gsapHome, STUDIO_MOUNTS_FILE), STUDIO_MOUNTS_FILE);
+export function loadStudioMountRegistry(codiaHome) {
+  ensureStudioMountRegistry(codiaHome);
+  const registry = readJsonRequired(path.join(codiaHome, STUDIO_MOUNTS_FILE), STUDIO_MOUNTS_FILE);
   validateStudioMountRegistry(registry);
   return registry;
 }
 
-export function upsertStudioMount(gsapHome, mount, { now = new Date().toISOString() } = {}) {
-  const registry = loadStudioMountRegistry(gsapHome);
+export function upsertStudioMount(codiaHome, mount, { now = new Date().toISOString() } = {}) {
+  const registry = loadStudioMountRegistry(codiaHome);
   const normalized = validateStudioMount({
     ...mount,
     schemaVersion: SCHEMA_VERSION,
@@ -56,19 +56,19 @@ export function upsertStudioMount(gsapHome, mount, { now = new Date().toISOStrin
   }
   registry.updatedAt = now;
   validateStudioMountRegistry(registry);
-  writeJsonAtomic(path.join(gsapHome, STUDIO_MOUNTS_FILE), registry);
+  writeJsonAtomic(path.join(codiaHome, STUDIO_MOUNTS_FILE), registry);
   return clonePlain(existingIndex >= 0 ? registry.mounts[existingIndex] : normalized);
 }
 
 export function disableStudioMount(
-  gsapHome,
+  codiaHome,
   mountId,
   options = {},
 ) {
   const { hostStudioId, now = new Date().toISOString() } = options;
   if (!isNonEmptyString(mountId)) throw new Error("mountId required");
   if (hostStudioId !== undefined && !isNonEmptyString(hostStudioId)) throw new Error("hostStudioId required");
-  const registry = loadStudioMountRegistry(gsapHome);
+  const registry = loadStudioMountRegistry(codiaHome);
   const existingIndex = registry.mounts.findIndex((item) =>
     item.mountId === mountId && (hostStudioId === undefined || item.hostStudioId === hostStudioId)
   );
@@ -80,13 +80,13 @@ export function disableStudioMount(
   };
   registry.updatedAt = now;
   validateStudioMountRegistry(registry);
-  writeJsonAtomic(path.join(gsapHome, STUDIO_MOUNTS_FILE), registry);
+  writeJsonAtomic(path.join(codiaHome, STUDIO_MOUNTS_FILE), registry);
   return clonePlain(registry.mounts[existingIndex]);
 }
 
-export function listStudioMountsForStudio(gsapHome, hostStudioId) {
+export function listStudioMountsForStudio(codiaHome, hostStudioId) {
   if (!isNonEmptyString(hostStudioId)) throw new Error("hostStudioId required");
-  const registry = loadStudioMountRegistry(gsapHome);
+  const registry = loadStudioMountRegistry(codiaHome);
   return registry.mounts
     .filter((mount) => mount.hostStudioId === hostStudioId)
     .map(clonePlain);

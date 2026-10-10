@@ -2,18 +2,17 @@
 import { existsSync as defaultExistsSync } from "fs";
 import path from "path";
 export {
-  buildWin32GsapWriteAclCleanupArgs,
+  buildWin32CodiaWriteAclCleanupArgs,
   buildWin32LegacyAclDiagnosticArgs,
   buildWin32LegacyProfileCleanupArgs,
 } from "./win32-legacy-maintenance.ts";
 
-export const WIN32_SANDBOX_HELPER_NAME = "gsap-win-sandbox.exe";
+export const WIN32_SANDBOX_HELPER_NAME = "codia-win-sandbox.exe";
 
 export function resourceSiblingDir(name, { env = process.env, resourcesPath = process.resourcesPath } = {}) {
   const candidates = [];
   if (resourcesPath) candidates.push(path.join(resourcesPath, name));
-  if (env.GSAP_ROOT) candidates.push(path.resolve(env.GSAP_ROOT, "..", name));
-  if (env.HANA_ROOT) candidates.push(path.resolve(env.HANA_ROOT, "..", name));
+  if (env.CODIA_ROOT) candidates.push(path.resolve(env.CODIA_ROOT, "..", name));
   return candidates.find((candidate) => defaultExistsSync(candidate)) || candidates[0] || null;
 }
 
@@ -25,11 +24,9 @@ export function resolveWin32SandboxHelper({
   existsSync = defaultExistsSync,
 } = {}) {
   const candidates = [
-    env.GSAP_WIN32_SANDBOX_HELPER,
-    env.HANA_WIN32_SANDBOX_HELPER,
+    env.CODIA_WIN32_SANDBOX_HELPER,
     resourcesPath ? path.join(resourcesPath, "sandbox", "windows", WIN32_SANDBOX_HELPER_NAME) : null,
-    env.GSAP_ROOT ? path.resolve(env.GSAP_ROOT, "..", "sandbox", "windows", WIN32_SANDBOX_HELPER_NAME) : null,
-    env.HANA_ROOT ? path.resolve(env.HANA_ROOT, "..", "sandbox", "windows", WIN32_SANDBOX_HELPER_NAME) : null,
+    env.CODIA_ROOT ? path.resolve(env.CODIA_ROOT, "..", "sandbox", "windows", WIN32_SANDBOX_HELPER_NAME) : null,
     path.join(cwd, "dist-sandbox", `win-${arch}`, WIN32_SANDBOX_HELPER_NAME),
   ].filter(Boolean);
 

@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const responses = new Map<string, unknown>();
 
 vi.mock('../../settings/api', () => ({
-  gsapFetch: vi.fn(async (url: string) => {
+  codiaFetch: vi.fn(async (url: string) => {
     if (!responses.has(url)) {
       throw new Error(`unexpected fetch: ${url}`);
     }
@@ -14,7 +14,7 @@ vi.mock('../../settings/api', () => ({
       json: async () => value,
     };
   }),
-  gsapUrl: (path: string) => path,
+  codiaUrl: (path: string) => path,
 }));
 
 describe('settings actions', () => {
@@ -26,9 +26,9 @@ describe('settings actions', () => {
       agents: [],
       currentAgentId: null,
       settingsAgentId: null,
-      agentName: 'G-SAP',
+      agentName: 'Codia',
       userName: 'User',
-      agentYuan: 'gsap',
+      agentYuan: 'codia',
       settingsConfig: null,
       globalModelsConfig: null,
       currentPins: [],
@@ -40,26 +40,26 @@ describe('settings actions', () => {
     const { useSettingsStore } = await import('../../settings/store');
 
     responses.set('/api/agents', {
-      agents: [{ id: 'gsap', name: 'G-SAP', yuan: 'ming', isPrimary: true }],
+      agents: [{ id: 'codia', name: 'Codia', yuan: 'ming', isPrimary: true }],
     });
-    responses.set('/api/agents/gsap/config', {
-      agent: { name: 'G-SAP', yuan: 'ming' },
+    responses.set('/api/agents/codia/config', {
+      agent: { name: 'Codia', yuan: 'ming' },
       user: { name: 'KSKOOO' },
       desk: { home_folder: 'E:/work' },
     });
-    responses.set('/api/agents/gsap/identity', { content: '# G-SAP\nKSKOOO personal assistant.' });
-    responses.set('/api/agents/gsap/ishiki', { content: '# Persona\nReason first.' });
-    responses.set('/api/agents/gsap/public-ishiki', { content: 'public' });
+    responses.set('/api/agents/codia/identity', { content: '# Codia\nKSKOOO personal assistant.' });
+    responses.set('/api/agents/codia/ishiki', { content: '# Persona\nReason first.' });
+    responses.set('/api/agents/codia/public-ishiki', { content: 'public' });
     responses.set('/api/user-profile', { content: 'user profile' });
-    responses.set('/api/agents/gsap/pinned', { pins: ['stable'] });
+    responses.set('/api/agents/codia/pinned', { pins: ['stable'] });
     responses.set('/api/preferences/models', { models: { utility: 'u' } });
-    responses.set('/api/agents/gsap/experience', new Error('gsapFetch /api/agents/gsap/experience: 403 experience is paused'));
+    responses.set('/api/agents/codia/experience', new Error('codiaFetch /api/agents/codia/experience: 403 experience is paused'));
 
     await loadSettingsConfig();
 
     const state = useSettingsStore.getState();
-    expect(state.currentAgentId).toBe('gsap');
-    expect(state.agentName).toBe('G-SAP');
+    expect(state.currentAgentId).toBe('codia');
+    expect(state.agentName).toBe('Codia');
     expect(state.userName).toBe('KSKOOO');
     expect(state.agentYuan).toBe('ming');
     expect(state.settingsConfig?._identity).toContain('KSKOOO personal assistant');

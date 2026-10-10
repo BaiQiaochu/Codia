@@ -19,7 +19,7 @@ import {
   generateImage,
   generateMedia,
   generateVideo,
-  GSAP_BUS_SKIP,
+  CODIA_BUS_SKIP,
   listUsageEntries,
   registerTask,
   requestBus,
@@ -28,15 +28,15 @@ import {
   subscribeUsageEvents,
   unscheduleTask,
   updateTask,
-} from '@g-sap/plugin-runtime';
+} from '@codia/plugin-runtime';
 
 describe('plugin runtime SDK', () => {
   it('types plugin contexts with the network.fetch runtime capability', () => {
     const source = fs.readFileSync(path.join(process.cwd(), 'packages', 'plugin-runtime', 'src', 'index.ts'), 'utf8');
 
-    expect(source).toContain('export interface GsapPluginNetwork');
+    expect(source).toContain('export interface CodiaPluginNetwork');
     expect(source).toContain('fetch(input:');
-    expect(source).toContain('network: GsapPluginNetwork');
+    expect(source).toContain('network: CodiaPluginNetwork');
   });
 
   it('defines tools with stable fields and default parameters', async () => {
@@ -52,7 +52,7 @@ describe('plugin runtime SDK', () => {
       description: 'Search things',
       parameters: { type: 'object', properties: {} },
     });
-    await expect(tool.execute({ query: 'hana' }, {} as any)).resolves.toBe('search:hana');
+    await expect(tool.execute({ query: 'codia' }, {} as any)).resolves.toBe('search:codia');
   });
 
   it('defines commands with stable slash fields', async () => {
@@ -194,7 +194,7 @@ describe('plugin runtime SDK', () => {
   });
 
   it('exports the shared EventBus SKIP symbol for chained handlers', () => {
-    expect(GSAP_BUS_SKIP).toBe(Symbol.for('gsap.event-bus.skip'));
+    expect(CODIA_BUS_SKIP).toBe(Symbol.for('codia.event-bus.skip'));
   });
 
   it('requests bus handlers through the context bus with explicit payload and options', async () => {
@@ -247,7 +247,7 @@ describe('plugin runtime SDK', () => {
   });
 
   it('lets SDK image generation helpers reach the image-gen plugin compatibility bridge', async () => {
-    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gsap-image-gen-compat-'));
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codia-image-gen-compat-'));
     const bus = new EventBus();
     const disposables: Array<() => void> = [];
     const adapter = {
@@ -291,7 +291,7 @@ describe('plugin runtime SDK', () => {
   });
 
   it('registers Agnes image and video adapters when image-gen starts', async () => {
-    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gsap-image-gen-agnes-'));
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codia-image-gen-agnes-'));
     const bus = new EventBus();
     const disposables: Array<() => void> = [];
     const plugin = new ImageGenPlugin();
@@ -318,7 +318,7 @@ describe('plugin runtime SDK', () => {
   });
 
   it('dispatches generic SDK media generation requests through the image-gen bridge', async () => {
-    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gsap-image-gen-generic-'));
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codia-image-gen-generic-'));
     const bus = new EventBus();
     const disposables: Array<() => void> = [];
     const adapter = {

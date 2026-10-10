@@ -1,8 +1,11 @@
-import type { StoreState } from './index';
 import { sessionScopedListIncludes, sessionScopedValue, type SessionLocatorState } from './session-slice';
 
-type SelectionState = SessionLocatorState & Pick<StoreState, 'selectedIdsBySession'>;
-type StreamingState = SessionLocatorState & Pick<StoreState, 'streamingSessions'>;
+type SelectionState = SessionLocatorState & {
+  selectedIdsBySession: Record<string, string[]>;
+};
+type StreamingState = SessionLocatorState & {
+  streamingSessions: string[];
+};
 
 export const EMPTY_SELECTED_IDS = Object.freeze([]) as readonly string[];
 export const EMPTY_STRING_ARRAY = Object.freeze([]) as unknown as string[];

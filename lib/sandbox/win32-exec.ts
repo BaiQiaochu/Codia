@@ -46,7 +46,7 @@ export interface Win32ExecFactoryOptions {
 
 let _cachedShell = null;
 
-const PROBE_TOKEN = "__gsap_probe_ok__";
+const PROBE_TOKEN = "__codia_probe_ok__";
 const PYTHON_COMMANDS = new Set(["python", "python.exe", "python3", "python3.exe"]);
 const NODE_COMMANDS = new Set(["node", "node.exe"]);
 const POWERSHELL_COMMANDS = new Set(["powershell", "powershell.exe", "pwsh", "pwsh.exe"]);
@@ -126,7 +126,7 @@ function getBundledShellCandidates(env = process.env, deps = {}) {
   const resolveResourceSibling = deps.resourceSiblingDir || ((name, options) => resourceSiblingDir(name, options));
   const exists = deps.exists || existsSync;
   if (resourcesPath) roots.push(joinPath(resourcesPath, "git"));
-  if (env.GSAP_ROOT) roots.push(resolveSibling(env.GSAP_ROOT, "..", "git"));
+  if (env.CODIA_ROOT) roots.push(resolveSibling(env.CODIA_ROOT, "..", "git"));
   const siblingGit = resolveResourceSibling("git", { env, resourcesPath });
   if (siblingGit) roots.push(siblingGit);
   roots.push(join(process.cwd(), "vendor", "git-portable"));
@@ -157,8 +157,7 @@ function getBundledShellCandidates(env = process.env, deps = {}) {
 function getBundledGitCandidates(env = process.env) {
   const roots = [];
   if (process.resourcesPath) roots.push(join(process.resourcesPath, "git"));
-  if (env.GSAP_ROOT) roots.push(resolveSibling(env.GSAP_ROOT, "..", "git"));
-  if (env.HANA_ROOT) roots.push(resolveSibling(env.HANA_ROOT, "..", "git"));
+  if (env.CODIA_ROOT) roots.push(resolveSibling(env.CODIA_ROOT, "..", "git"));
   const siblingGit = resourceSiblingDir("git", { env });
   if (siblingGit) roots.push(siblingGit);
   roots.push(join(process.cwd(), "vendor", "git-portable"));
@@ -220,7 +219,7 @@ function findGitRuntime({ env = process.env, bundledOnly = false } = {}) {
       "but resources/git/cmd/git.exe was not found. Rebuild the Windows package with vendor/git-portable."
     );
   }
-  throw new Error("[win32-exec] No usable git.exe found. Install Git for Windows or rebuild G-SAP with bundled PortableGit.");
+  throw new Error("[win32-exec] No usable git.exe found. Install Git for Windows or rebuild Codia with bundled PortableGit.");
 }
 
 function getAllShellCandidates({ preferBundled = true, bundledOnly = false, env = process.env } = {}) {
@@ -541,8 +540,8 @@ function isUsableCurrentNodeRuntime(executable) {
 
 function findNodeRuntimeOnPath(commandName, args, env) {
   const candidates = [];
-  if (env?.GSAP_DEV_NODE_BIN) {
-    candidates.push(executableInfoFromPath(env.GSAP_DEV_NODE_BIN, `GSAP_DEV_NODE_BIN (${env.GSAP_DEV_NODE_BIN})`, args));
+  if (env?.CODIA_DEV_NODE_BIN) {
+    candidates.push(executableInfoFromPath(env.CODIA_DEV_NODE_BIN, `CODIA_DEV_NODE_BIN (${env.CODIA_DEV_NODE_BIN})`, args));
   }
   if (isUsableCurrentNodeRuntime(process.execPath)) {
     candidates.push(executableInfoFromPath(process.execPath, `Current Node runtime (${process.execPath})`, args));
@@ -722,9 +721,9 @@ function sandboxIsEnabled(sandbox) {
 
 function prepareRuntimeForSandbox(runtimeInfo, sandbox, kind) {
   if (!sandboxIsEnabled(sandbox)) return runtimeInfo;
-  const gsapHome = sandbox.gsapHome || sandbox.hanakoHome || null;
-  if (!gsapHome) return runtimeInfo;
-  return prepareSandboxRuntime(runtimeInfo, { gsapHome, kind });
+  const codiaHome = sandbox.codiaHome || sandbox.codiaHome || null;
+  if (!codiaHome) return runtimeInfo;
+  return prepareSandboxRuntime(runtimeInfo, { codiaHome, kind });
 }
 
 function readOnlyRuntimeGrants(paths) {

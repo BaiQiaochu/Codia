@@ -13,7 +13,7 @@ describe("generateDescription", () => {
   it("returns a description within 100 chars", async () => {
     const result = await generateDescription(
       { utility: "test-model", api_key: "key", base_url: "http://test", api: "openai" },
-      "你是 G-SAP，一个温柔的助手...",
+      "你是 Codia，一个温柔的助手...",
       "zh",
     );
     expect(result).toBeTruthy();
@@ -34,7 +34,7 @@ describe("description hash logic", () => {
   it("writes description.md with sourceHash comment", async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "desc-test-"));
     const personality = "Test personality";
-    const yuan = "gsap";
+    const yuan = "codia";
     const hash = createHash("sha256").update(personality + "\n" + yuan).digest("hex");
 
     const descPath = path.join(tmpDir, "description.md");

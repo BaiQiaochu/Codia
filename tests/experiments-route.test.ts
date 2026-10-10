@@ -16,7 +16,7 @@ import {
 } from "../lib/memory/cache-snapshot-observation.js";
 
 function makeEngine() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-experiments-route-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-experiments-route-"));
   const agentsDir = path.join(root, "agents");
   const prefsState = {};
   return {
@@ -92,10 +92,10 @@ describe("experiments route", () => {
 
   it("stores observation under the agent experiment directory and requires agentId for reads", async () => {
     const { engine } = makeEngine();
-    const agentDir = engine.getAgentDir("gsap");
+    const agentDir = engine.getAgentDir("codia");
     writeCacheSnapshotObservation(agentDir, {
       version: 1,
-      agentId: "gsap",
+      agentId: "codia",
       sessionPath: "/tmp/session.jsonl",
       trigger: "threshold",
       createdAt: "2026-06-03T00:00:00.000Z",
@@ -116,11 +116,11 @@ describe("experiments route", () => {
     expect(missing.status).toBe(400);
     expect(missing.body.error).toMatch(/agentId/);
 
-    const ok = await routeFetch(route, "/experiments/memory/cache-snapshot-reflection/observation?agentId=gsap");
+    const ok = await routeFetch(route, "/experiments/memory/cache-snapshot-reflection/observation?agentId=codia");
     expect(ok.status).toBe(200);
     expect(ok.body.observation.memoryMdPreview).toContain("memory");
 
-    const deleted = await routeFetch(route, "/experiments/memory/cache-snapshot-reflection/observation?agentId=gsap", {
+    const deleted = await routeFetch(route, "/experiments/memory/cache-snapshot-reflection/observation?agentId=codia", {
       method: "DELETE",
     });
     expect(deleted.status).toBe(200);

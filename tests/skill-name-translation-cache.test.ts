@@ -29,7 +29,7 @@ function writeSkill(root, name, description) {
 }
 
 beforeEach(() => {
-  tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-skill-translation-cache-"));
+  tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-skill-translation-cache-"));
 });
 
 afterEach(() => {

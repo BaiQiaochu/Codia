@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useStore } from '../../stores';
 
-const gsapFetchMock = vi.fn();
+const codiaFetchMock = vi.fn();
 type WorkspacePreviewTestWindow = {
   t: (key: string) => string;
   platform: {
@@ -9,8 +9,8 @@ type WorkspacePreviewTestWindow = {
   };
 };
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: gsapFetchMock,
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: codiaFetchMock,
 }));
 
 function jsonResponse(body: unknown): Response {
@@ -20,7 +20,7 @@ function jsonResponse(body: unknown): Response {
 describe('workspace preview state restore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    gsapFetchMock.mockReset();
+    codiaFetchMock.mockReset();
     (globalThis as unknown as { window: WorkspacePreviewTestWindow }).window = {
       t: (key: string) => key,
       platform: {
@@ -53,7 +53,7 @@ describe('workspace preview state restore', () => {
   });
 
   it('hydrates persisted desk preview tabs with current file content', async () => {
-    gsapFetchMock.mockResolvedValueOnce(jsonResponse({
+    codiaFetchMock.mockResolvedValueOnce(jsonResponse({
       state: {
         deskExpandedPaths: ['src'],
         deskSelectedPath: 'src/App.tsx',

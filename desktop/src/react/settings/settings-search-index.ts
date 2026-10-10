@@ -128,7 +128,7 @@ const BUILT_IN_SETTINGS_SEARCH_ENTRIES: SettingsSearchEntry[] = [
     tabId: 'media',
     titleKey: 'settings.media.imageGeneration',
     pathKeys: ['settings.tabs.media'],
-    aliases: ['media', 'image generation', 'ocr', 'document image', 'cover image', 'speech recognition', 'audio'],
+    aliases: ['media', 'image generation', 'document image', 'cover image', 'speech recognition', 'audio'],
   },
   {
     id: 'sharing-output',
@@ -152,11 +152,18 @@ const BUILT_IN_SETTINGS_SEARCH_ENTRIES: SettingsSearchEntry[] = [
     aliases: ['plugin', 'plugins', 'marketplace', 'dev tools', 'full access'],
   },
   {
-    id: 'experiments-flags',
-    tabId: 'experiments',
-    titleKey: 'settings.tabs.experiments',
-    pathKeys: ['settings.tabs.experiments'],
-    aliases: ['experiment', 'beta', 'preview', 'computer use'],
+    id: 'context-management',
+    tabId: 'context',
+    titleKey: 'settings.tabs.context',
+    pathKeys: ['settings.tabs.context'],
+    aliases: ['context', 'compression', 'compaction', '上下文', '压缩'],
+  },
+  {
+    id: 'computer-use',
+    tabId: 'computer',
+    titleKey: 'settings.tabs.computerUse',
+    pathKeys: ['settings.tabs.computerUse'],
+    aliases: ['computer use', 'computer control', 'desktop control', '电脑控制', '计算机使用'],
   },
   {
     id: 'diagnostics-operations',

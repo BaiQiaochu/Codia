@@ -31,9 +31,9 @@ function atomicWriteJson(filePath, value) {
 }
 
 export class PluginInstallRecords {
-  constructor({ gsapHome }) {
-    if (!gsapHome) throw new Error("PluginInstallRecords requires gsapHome");
-    this._path = path.join(gsapHome, "plugin-installs.json");
+  constructor({ codiaHome }) {
+    if (!codiaHome) throw new Error("PluginInstallRecords requires codiaHome");
+    this._path = path.join(codiaHome, "plugin-installs.json");
   }
 
   _read() {

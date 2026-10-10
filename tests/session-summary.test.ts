@@ -20,7 +20,7 @@ import { callText } from "../core/llm-client.ts";
 
 describe("SessionSummaryManager._buildConversationText", () => {
   function createManager() {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-session-summary-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-summary-"));
     return {
       manager: new SessionSummaryManager(tmpDir),
       cleanup: () => fs.rmSync(tmpDir, { recursive: true, force: true }),
@@ -96,7 +96,7 @@ describe("SessionSummaryManager._buildConversationText", () => {
 
 describe("SessionSummaryManager.rollingSummary prompt contract", () => {
   function createManager() {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hana-session-summary-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-summary-"));
     return {
       manager: new SessionSummaryManager(tmpDir),
       cleanup: () => fs.rmSync(tmpDir, { recursive: true, force: true }),
@@ -143,21 +143,21 @@ describe("SessionSummaryManager.rollingSummary prompt contract", () => {
           memoryReflectionSnapshot: {
             version: 1,
             locale: "zh-CN",
-            agentName: "G-SAP",
+            agentName: "Codia",
             userName: "测试用户",
-            identityAndPersonality: "我是 G-SAP，偏文学但工程严谨。",
+            identityAndPersonality: "我是 Codia，偏文学但工程严谨。",
             userProfile: "用户叫测试用户。",
-            existingMemory: "用户长期关注 Project G-SAP 的记忆系统。",
+            existingMemory: "用户长期关注 Project Codia 的记忆系统。",
             roster: "同处于这个系统里的别的 Agent：Butter、Ming。",
           },
         },
       );
 
       const request = (callText as any).mock.calls.at(-1)[0];
-      expect(request.systemPrompt).toContain("你是 G-SAP");
+      expect(request.systemPrompt).toContain("你是 Codia");
       expect(request.systemPrompt).toContain("你正在整理自己刚刚经历的一段对话");
       expect(request.systemPrompt).toContain("## 你的身份与人格");
-      expect(request.systemPrompt).toContain("我是 G-SAP，偏文学但工程严谨。");
+      expect(request.systemPrompt).toContain("我是 Codia，偏文学但工程严谨。");
       expect(request.systemPrompt).toContain("## 主人设定");
       expect(request.systemPrompt).toContain("用户叫测试用户。");
       expect(request.systemPrompt).toContain("## 你已有的长期记忆");

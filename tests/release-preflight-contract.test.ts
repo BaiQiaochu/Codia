@@ -42,12 +42,11 @@ describe("release preflight contract", () => {
     expect(effectiveWindowsExtraResources).toEqual(expect.arrayContaining([
       expect.objectContaining({ from: "dist-server/${os}-${arch}/", to: "server/" }),
       expect.objectContaining({ from: "desktop/src/screenshot-themes/", to: "screenshot-themes/" }),
-      expect.objectContaining({ from: "vendor/ocr-runtime/", to: "ocr-runtime/" }),
       expect.objectContaining({ from: "vendor/git-portable", to: "git" }),
       expect.objectContaining({ from: "dist-sandbox/win-${arch}/", to: "sandbox/windows/" }),
     ]));
     expect(pkg.build.files).toEqual(expect.arrayContaining([
-      "scripts/gsapctl.mjs",
+      "scripts/codiactl.mjs",
       "lib/cli/**",
     ]));
 
@@ -120,15 +119,15 @@ describe("release preflight contract", () => {
     expect(winPackageScript).toContain("Test-PackagedRuntimeSmoke");
     expect(winPackageScript).toContain("desktop-e2e-packaged-smoke.mjs");
     expect(winPackageScript).toContain("packaged-runtime-smoke.mjs");
-    expect(winPackageScript).toContain("GSAP_E2E_DESKTOP_APP");
-    expect(winPackageScript).toContain("GSAP_PACKAGE_SMOKE_BASE_URL");
+    expect(winPackageScript).toContain("CODIA_E2E_DESKTOP_APP");
+    expect(winPackageScript).toContain("CODIA_PACKAGE_SMOKE_BASE_URL");
     expect(winPackageScript).toContain("patch-electron-builder-win-asar-integrity.cjs");
     const electronBuilderPatchScript = fs.readFileSync(path.join(root, "scripts", "patch-electron-builder-win-asar-integrity.cjs"), "utf-8");
-    expect(electronBuilderPatchScript).toContain("GSAP_WIN_ASAR_INTEGRITY_RETRY");
+    expect(electronBuilderPatchScript).toContain("CODIA_WIN_ASAR_INTEGRITY_RETRY");
     expect(electronBuilderPatchScript).toContain("retryWinAsarIntegrityMutation");
 
     const packagedSmokeScript = fs.readFileSync(path.join(root, "scripts", "packaged-runtime-smoke.mjs"), "utf-8");
-    expect(packagedSmokeScript).toContain("GSAP_PACKAGE_SMOKE_SCREENSHOTS");
+    expect(packagedSmokeScript).toContain("CODIA_PACKAGE_SMOKE_SCREENSHOTS");
     expect(packagedSmokeScript).toContain("/api/mobile/bootstrap");
     expect(packagedSmokeScript).toContain("/api/web-auth/login");
     expect(packagedSmokeScript).toContain("mobile-desktop-root");
@@ -147,39 +146,39 @@ describe("release preflight contract", () => {
 
   it("uses env-only remote debugging and a sanitized environment for packaged desktop E2E launches", async () => {
     const { desktopLaunchCommand, desktopLaunchEnv } = await import(pathToFileURL(path.join(root, "scripts", "e2e-desktop-launcher.mjs")).href);
-    const previous = process.env.GSAP_E2E_DESKTOP_APP;
-    const previousMode = process.env.GSAP_E2E_DESKTOP_MODE;
+    const previous = process.env.CODIA_E2E_DESKTOP_APP;
+    const previousMode = process.env.CODIA_E2E_DESKTOP_MODE;
     const previousElectronRunAsNode = process.env.ELECTRON_RUN_AS_NODE;
     const extraArgs = ["--remote-debugging-port=12345", "--remote-allow-origins=*"];
 
     try {
       process.env.ELECTRON_RUN_AS_NODE = "1";
-      delete process.env.GSAP_E2E_DESKTOP_APP;
-      delete process.env.GSAP_E2E_DESKTOP_MODE;
+      delete process.env.CODIA_E2E_DESKTOP_APP;
+      delete process.env.CODIA_E2E_DESKTOP_MODE;
       const source = desktopLaunchCommand(root, extraArgs);
       expect(source.mode).toBe("source");
       expect(source.args).toEqual(["scripts/launch.js", "electron", ...extraArgs]);
-      expect(desktopLaunchEnv({ GSAP_E2E: "1" }).ELECTRON_RUN_AS_NODE).toBeUndefined();
-      expect(desktopLaunchEnv({ GSAP_E2E: "1" }).GSAP_PORT).toBe("0");
-      expect(desktopLaunchEnv({ GSAP_E2E: "1", GSAP_PORT: "32123" }).GSAP_PORT).toBe("32123");
+      expect(desktopLaunchEnv({ CODIA_E2E: "1" }).ELECTRON_RUN_AS_NODE).toBeUndefined();
+      expect(desktopLaunchEnv({ CODIA_E2E: "1" }).CODIA_PORT).toBe("0");
+      expect(desktopLaunchEnv({ CODIA_E2E: "1", CODIA_PORT: "32123" }).CODIA_PORT).toBe("32123");
 
-      process.env.GSAP_E2E_DESKTOP_MODE = "built";
+      process.env.CODIA_E2E_DESKTOP_MODE = "built";
       const built = desktopLaunchCommand(root, extraArgs);
       expect(built.mode).toBe("built");
       expect(built.args).toEqual(["scripts/launch.js", "electron-built", ...extraArgs]);
 
-      const packagedApp = path.join(root, "dist", "G-SAP.exe");
-      process.env.GSAP_E2E_DESKTOP_APP = packagedApp;
+      const packagedApp = path.join(root, "dist", "Codia.exe");
+      process.env.CODIA_E2E_DESKTOP_APP = packagedApp;
       const packaged = desktopLaunchCommand(root, extraArgs);
       expect(packaged.mode).toBe("packaged");
       expect(packaged.command).toBe(packagedApp);
       expect(packaged.args).toEqual([]);
       expect(packaged.cwd).toBe(path.dirname(packagedApp));
     } finally {
-      if (previousMode === undefined) delete process.env.GSAP_E2E_DESKTOP_MODE;
-      else process.env.GSAP_E2E_DESKTOP_MODE = previousMode;
-      if (previous === undefined) delete process.env.GSAP_E2E_DESKTOP_APP;
-      else process.env.GSAP_E2E_DESKTOP_APP = previous;
+      if (previousMode === undefined) delete process.env.CODIA_E2E_DESKTOP_MODE;
+      else process.env.CODIA_E2E_DESKTOP_MODE = previousMode;
+      if (previous === undefined) delete process.env.CODIA_E2E_DESKTOP_APP;
+      else process.env.CODIA_E2E_DESKTOP_APP = previous;
       if (previousElectronRunAsNode === undefined) delete process.env.ELECTRON_RUN_AS_NODE;
       else process.env.ELECTRON_RUN_AS_NODE = previousElectronRunAsNode;
     }
@@ -195,7 +194,7 @@ describe("release preflight contract", () => {
         licenseRequired: false,
         features: ["full"],
       });
-      const config = fs.readFileSync(path.join(home, 'agents', 'gsap', 'config.yaml'), 'utf8');
+      const config = fs.readFileSync(path.join(home, 'agents', 'codia', 'config.yaml'), 'utf8');
       expect(config).toContain(path.join(home, 'workspace'));
       expect(fs.existsSync(path.join(home, 'workspace'))).toBe(true);
       expect(fs.existsSync(path.join(home, 'Desktop'))).toBe(true);

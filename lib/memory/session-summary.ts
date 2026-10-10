@@ -1,7 +1,6 @@
 // @ts-nocheck
 /**
   *
-  *
  * 摘要通过 rollingSummary() 滚动更新（覆盖式，非追加），
   *
   * */
@@ -609,7 +608,7 @@ ${roster}
 
 **事情经过一节**
 按时间顺序记录本 session 发生了什么，带 YYYY-MM-DD HH:MM 时间标注，抓重点脉络。工作相关内容只允许保留到大主题层级。
-工作内容可以写成“用户在讨论记忆系统”“用户在做 G-SAP”，不要写具体子问题、方案、文件、工具、命令、测试、执行步骤、检查顺序或协作偏好。
+工作内容可以写成“用户在讨论记忆系统”“用户在做 Codia”，不要写具体子问题、方案、文件、工具、命令、测试、执行步骤、检查顺序或协作偏好。
 字数要求：按实际信息量写，遵守本次摘要预算。三句话能说清的事不要写成一段。
 
 ## 规则
@@ -680,7 +679,7 @@ Word limit: follow the per-run summary budget. Keep it short if there's little i
 
 **Timeline section**
 Record what happened in this session in chronological order with YYYY-MM-DD HH:MM timestamps, capturing key points. Work-related content may only be kept at the broad-theme level.
-Work can be written as "the user discussed memory systems" or "the user worked on G-SAP"; do not record subproblems, proposals, files, tools, commands, tests, execution steps, validation order, or collaboration preferences.
+Work can be written as "the user discussed memory systems" or "the user worked on Codia"; do not record subproblems, proposals, files, tools, commands, tests, execution steps, validation order, or collaboration preferences.
 Word limit: follow the per-run summary budget. If three sentences suffice, don't write a paragraph.
 
 ## Rules

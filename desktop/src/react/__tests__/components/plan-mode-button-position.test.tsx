@@ -10,10 +10,13 @@ describe('PlanModeButton dropdown positioning', () => {
       innerWidth: 480,
       innerHeight: 220,
       t: (key: string) => ({
-        'input.autoMode': 'Auto review',
-        'input.operateMode': 'Operate directly',
-        'input.askMode': 'Ask before acting',
-        'input.readOnlyMode': 'Read-only mode',
+        'input.autoMode': 'Approve for me',
+        'input.autoModeDescription': 'Ask only for risky operations',
+        'input.operateMode': 'Full access',
+        'input.operateModeDescription': 'Access the internet and any file',
+        'input.askMode': 'Request approval',
+        'input.askModeDescription': 'Always ask before external changes',
+        'input.readOnlyMode': 'Request approval',
         'input.accessMode': 'Session access mode',
       } as Record<string, string>)[key] || key,
     });
@@ -38,9 +41,9 @@ describe('PlanModeButton dropdown positioning', () => {
   it('mounts the portal dropdown with coordinates immediately', () => {
     render(<PlanModeButton mode="auto" onChange={() => {}} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Auto review/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Approve for me/ }));
 
-    const dropdown = screen.getByText('Operate directly').closest('div');
+    const dropdown = screen.getByText('Full access').closest('div');
     expect(dropdown).toBeTruthy();
     expect(dropdown?.style.position).toBe('fixed');
     expect(dropdown?.style.top).not.toBe('');
@@ -53,7 +56,7 @@ describe('PlanModeButton dropdown positioning', () => {
 
     render(<PlanModeButton mode="auto" onChange={() => {}} />);
 
-    expect(screen.getByRole('button', { name: /自动模式/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /帮我批准/ })).toBeTruthy();
     expect(screen.queryByText('input.autoMode')).toBeNull();
   });
 });

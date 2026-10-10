@@ -30,7 +30,7 @@ describe('ChannelMessages scroll behavior', () => {
       channels: [{
         id: 'ch_crew',
         name: 'crew',
-        members: ['hanako'],
+        members: ['codia'],
         lastMessage: '',
         lastSender: '',
         lastTimestamp: '',
@@ -43,7 +43,7 @@ describe('ChannelMessages scroll behavior', () => {
       agents: [],
       userName: 'user',
       userAvatarUrl: '',
-      currentAgentId: 'hanako',
+      currentAgentId: 'codia',
     } as never);
   });
 
@@ -68,7 +68,7 @@ describe('ChannelMessages scroll behavior', () => {
       useStore.setState({
         channelMessages: [
           { sender: 'user', timestamp: '2026-05-07 17:00:00', body: 'old' },
-          { sender: 'hanako', timestamp: '2026-05-07 17:01:00', body: 'new reply' },
+          { sender: 'codia', timestamp: '2026-05-07 17:01:00', body: 'new reply' },
         ],
       } as never);
     });
@@ -93,7 +93,7 @@ describe('ChannelMessages scroll behavior', () => {
       useStore.setState({
         channelMessages: [
           { sender: 'user', timestamp: '2026-05-07 17:00:00', body: 'old' },
-          { sender: 'hanako', timestamp: '2026-05-07 17:01:00', body: 'new reply' },
+          { sender: 'codia', timestamp: '2026-05-07 17:01:00', body: 'new reply' },
         ],
       } as never);
     });
@@ -115,7 +115,7 @@ describe('ChannelMessages scroll behavior', () => {
     };
     useStore.setState({
       channelMessages: [{
-        sender: 'hanako',
+        sender: 'codia',
         timestamp: '2026-05-07 17:02:00',
         body: '| 文件 | 状态 |\n| --- | --- |\n| 图片 | 已生成 |',
         blocks: [

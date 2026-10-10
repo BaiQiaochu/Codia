@@ -1,6 +1,6 @@
 {
-  "storageKey": "gsap-theme",
-  "legacyStorageKey": "gsap-theme",
+  "storageKey": "codia-theme",
+  "legacyStorageKey": "codia-theme",
   "defaultTheme": "codia-lilac",
   "autoLightDefault": "codia-lilac",
   "autoDarkDefault": "codia-lilac",

@@ -16,10 +16,10 @@ describe("ResourceIO HTTP route", () => {
   });
 
   function makeApp() {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-io-route-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-io-route-"));
     const workspace = path.join(tmpDir, "workspace");
-    const gsapHome = path.join(tmpDir, "home");
-    const sessionPath = path.join(tmpDir, "agents", "gsap", "sessions", "main.jsonl");
+    const codiaHome = path.join(tmpDir, "home");
+    const sessionPath = path.join(tmpDir, "agents", "codia", "sessions", "main.jsonl");
     fs.mkdirSync(workspace, { recursive: true });
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.writeFileSync(path.join(workspace, "note.txt"), "hello resource io\n", "utf-8");
@@ -29,8 +29,8 @@ describe("ResourceIO HTTP route", () => {
     const watchRelease = vi.fn();
     const resourceIO = createSandboxResourceIO({
       cwd: workspace,
-      agentDir: path.join(tmpDir, "agents", "gsap"),
-      gsapHome,
+      agentDir: path.join(tmpDir, "agents", "codia"),
+      codiaHome,
       getSessionPath: () => sessionPath,
       emitEvent: (event, scopedSessionPath) => events.push({ ...event, scopedSessionPath }),
     });

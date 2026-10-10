@@ -30,11 +30,11 @@ export function sessionFileSidecarPath(sessionPath) {
   return `${sessionPath}.files.json`;
 }
 
-export function sessionFilesCacheDir(gsapHome, sessionRef) {
-  if (!gsapHome) throw new Error("gsapHome is required for session file cache");
+export function sessionFilesCacheDir(codiaHome, sessionRef) {
+  if (!codiaHome) throw new Error("codiaHome is required for session file cache");
   if (!sessionRef) throw new Error("sessionPath is required for session file cache");
   const hash = createHash("sha256").update(sessionFileOwnerKey(sessionRef)).digest("hex").slice(0, 24);
-  return path.join(gsapHome, "session-files", hash);
+  return path.join(codiaHome, "session-files", hash);
 }
 
 export function buildSessionFileSourceKey(namespace, parts = []) {

@@ -7,9 +7,9 @@ import { resolveAgent, resolveAgentStrict, AgentNotFoundError } from "../server/
 describe("session-equality: tool sessionPath 归属", () => {
   it("从 ctx.sessionManager.getSessionFile() 获取 sessionPath", () => {
     const ctx = {
-      sessionManager: { getSessionFile: () => "/agents/hana/sessions/abc.jsonl" },
+      sessionManager: { getSessionFile: () => "/agents/codia/sessions/abc.jsonl" },
     };
-    expect(getToolSessionPath(ctx)).toBe("/agents/hana/sessions/abc.jsonl");
+    expect(getToolSessionPath(ctx)).toBe("/agents/codia/sessions/abc.jsonl");
   });
 
   it("ctx 为 null 时返回 null（不 fallback）", () => {

@@ -12,7 +12,7 @@ import {
 const tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-build-server-deps-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-build-server-deps-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -26,7 +26,7 @@ afterEach(() => {
 describe("build-server external dependency packaging", () => {
   it("pins server externals and selected runtime transitives to the root lock versions", () => {
     const rootPkg = {
-      name: "g-sap",
+      name: "codia",
       version: "1.0.1",
       overrides: { axios: "^1.15.2" },
     };
@@ -43,12 +43,12 @@ describe("build-server external dependency packaging", () => {
       {
         rootLock,
         pinnedTransitiveDeps: ["lru-cache"],
-        packageName: "gsap-server",
+        packageName: "codia-server",
       },
     );
 
     expect(serverPkg).toEqual({
-      name: "gsap-server",
+      name: "codia-server",
       version: "1.0.1",
       type: "module",
       dependencies: {

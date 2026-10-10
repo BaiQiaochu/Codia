@@ -20,9 +20,9 @@ function retryHelperSource() {
   return `
 /** @internal */
 async function retryWinAsarIntegrityMutation(executablePath, action) {
-    // GSAP_WIN_ASAR_INTEGRITY_RETRY: Windows Defender and indexers can briefly lock the freshly
+    // CODIA_WIN_ASAR_INTEGRITY_RETRY: Windows Defender and indexers can briefly lock the freshly
     // renamed Electron executable before electron-builder writes INTEGRITY.
-    const maxAttempts = Number(process.env.GSAP_WIN_ASAR_INTEGRITY_RETRY || 12);
+    const maxAttempts = Number(process.env.CODIA_WIN_ASAR_INTEGRITY_RETRY || 12);
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
             return await action();
@@ -46,7 +46,7 @@ function patchElectronWinSource(source) {
   const normalized = normalizeNewlines(source);
   if (
     normalized.includes("retryWinAsarIntegrityMutation")
-    && normalized.includes("GSAP_WIN_ASAR_INTEGRITY_RETRY")
+    && normalized.includes("CODIA_WIN_ASAR_INTEGRITY_RETRY")
   ) {
     return { changed: false, source: normalized };
   }

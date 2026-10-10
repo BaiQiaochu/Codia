@@ -6,19 +6,19 @@ describe("OpenAI image resolution tiers", () => {
     expect(resolveOpenAiImageSize(
       { resolution: "4K", ratio: "16:9" },
       {},
-      { sourceName: "G-SAP image", flexible: true },
+      { sourceName: "Codia image", flexible: true },
     )).toBe("3840x2160");
 
     expect(resolveOpenAiImageSize(
       { resolution: "4k", ratio: "1:1" },
       {},
-      { sourceName: "G-SAP image", flexible: true },
+      { sourceName: "Codia image", flexible: true },
     )).toBe("2880x2880");
 
     expect(resolveOpenAiImageSize(
       { resolution: "2K", ratio: "3:2" },
       {},
-      { sourceName: "G-SAP image", flexible: true },
+      { sourceName: "Codia image", flexible: true },
     )).toBe("2048x1360");
   });
 
@@ -26,14 +26,14 @@ describe("OpenAI image resolution tiers", () => {
     expect(resolveOpenAiImageSize(
       { size: "2048*2048" },
       {},
-      { sourceName: "G-SAP image", flexible: true },
+      { sourceName: "Codia image", flexible: true },
     )).toBe("2048x2048");
 
     expect(() => resolveOpenAiImageSize(
       { size: "4096x4096" },
       {},
-      { sourceName: "G-SAP image", flexible: true },
-    )).toThrow(/G-SAP image size/i);
+      { sourceName: "Codia image", flexible: true },
+    )).toThrow(/Codia image size/i);
   });
 
   it("keeps older fixed-size OpenAI models on their standard size table", () => {
@@ -48,7 +48,7 @@ describe("OpenAI image resolution tiers", () => {
     expect(resolveOpenAiImageSize(
       { ratio: "21:9" },
       {},
-      { sourceName: "G-SAP image", flexible: true },
+      { sourceName: "Codia image", flexible: true },
     )).toBe("1536x1024");
   });
 
@@ -56,7 +56,7 @@ describe("OpenAI image resolution tiers", () => {
     expect(() => resolveOpenAiImageSize(
       { resolution: "2k", ratio: "5:4" },
       {},
-      { sourceName: "G-SAP image", flexible: true },
-    )).toThrow(/G-SAP image ratio/i);
+      { sourceName: "Codia image", flexible: true },
+    )).toThrow(/Codia image ratio/i);
   });
 });

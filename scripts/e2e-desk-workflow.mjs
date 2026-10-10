@@ -144,7 +144,7 @@ function writeYaml(filePath, data) {
 }
 
 function patchDeskHome(homeDir, deskHome) {
-  const configPath = path.join(homeDir, "agents", "gsap", "config.yaml");
+  const configPath = path.join(homeDir, "agents", "codia", "config.yaml");
   const raw = YAML.load(fs.readFileSync(configPath, "utf-8")) || {};
   raw.desk = {
     ...(raw.desk || {}),
@@ -155,7 +155,7 @@ function patchDeskHome(homeDir, deskHome) {
 }
 
 async function createWorkspaceFixture() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-e2e-desk-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-e2e-desk-"));
   const workspace1 = path.join(root, "workspace-one");
   const workspace2 = path.join(root, "workspace-two");
   fs.mkdirSync(workspace1, { recursive: true });
@@ -188,7 +188,7 @@ async function waitForDeskItem(cdp, name, timeoutMs = 20000) {
 }
 
 async function main() {
-  const remoteDebugPort = Number(process.env.GSAP_E2E_REMOTE_DEBUG_PORT || await getAvailablePort());
+  const remoteDebugPort = Number(process.env.CODIA_E2E_REMOTE_DEBUG_PORT || await getAvailablePort());
   const mockOpenAI = await startMockOpenAI({ reply: "Desk E2E reply." });
   const fixture = await createWorkspaceFixture();
   const e2eHome = createIsolatedE2EHome({ mockBaseUrl: mockOpenAI.baseUrl });
@@ -204,10 +204,10 @@ async function main() {
   const child = spawn(launch.command, launch.args, {
     cwd: launch.cwd,
     env: desktopLaunchEnv({
-      GSAP_HOME: e2eHome,
-      GSAP_E2E: "1",
-      GSAP_E2E_REMOTE_DEBUG_PORT: String(remoteDebugPort),
-      GSAP_DESKTOP_SERVER_MODE: "dist",
+      CODIA_HOME: e2eHome,
+      CODIA_E2E: "1",
+      CODIA_E2E_REMOTE_DEBUG_PORT: String(remoteDebugPort),
+      CODIA_DESKTOP_SERVER_MODE: "dist",
     }),
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -226,14 +226,14 @@ async function main() {
     stage("wait renderer ready");
     await waitFor(
       async () => await cdp.evaluate(
-        "typeof window.__GSAP_RUNTIME_DIAGNOSTICS__ !== 'undefined' && window.__GSAP_E2E__?.appReady === true",
+        "typeof window.__CODIA_RUNTIME_DIAGNOSTICS__ !== 'undefined' && window.__CODIA_E2E__?.appReady === true",
       ),
       "renderer app ready",
       60000,
     );
 
     stage("create session one");
-    const session1 = await cdp.evaluate(`window.__GSAP_E2E__.createSession({ cwd: ${workspace1Expr} })`);
+    const session1 = await cdp.evaluate(`window.__CODIA_E2E__.createSession({ cwd: ${workspace1Expr} })`);
     if (!session1?.ok || !session1.currentSessionPath) {
       throw new Error("failed to create initial desk session");
     }
@@ -252,7 +252,7 @@ async function main() {
     stage("wait preview");
     const openedPreview = await waitFor(
       async () => {
-        const preview = await cdp.evaluate("window.__GSAP_E2E__.getPreviewSnapshot()");
+        const preview = await cdp.evaluate("window.__CODIA_E2E__.getPreviewSnapshot()");
         return preview?.artifacts?.some((artifact) => artifact.title === "readme.md") ? preview : null;
       },
       "desk preview open",
@@ -298,7 +298,7 @@ async function main() {
     stage("wait mind map preview");
     const mindmapPreview = await waitFor(
       async () => {
-        const preview = await cdp.evaluate("window.__GSAP_E2E__.getPreviewSnapshot()");
+        const preview = await cdp.evaluate("window.__CODIA_E2E__.getPreviewSnapshot()");
         return preview?.artifacts?.some((artifact) => artifact.title === mindmapName && artifact.type === "design-document")
           ? preview
           : null;
@@ -381,7 +381,7 @@ async function main() {
     stage("wait drag move completed");
     await waitFor(
       async () => {
-        const snap = await cdp.evaluate("window.__GSAP_E2E__.getDeskSnapshot()");
+        const snap = await cdp.evaluate("window.__CODIA_E2E__.getDeskSnapshot()");
         return !snap?.deskFiles?.some((file) => file.name === "move-me.txt") ? snap : null;
       },
       "drag move completed",
@@ -422,7 +422,7 @@ async function main() {
     );
 
     stage("create session two");
-    const session2 = await cdp.evaluate(`window.__GSAP_E2E__.createSession({ cwd: ${workspace2Expr} })`);
+    const session2 = await cdp.evaluate(`window.__CODIA_E2E__.createSession({ cwd: ${workspace2Expr} })`);
     if (!session2?.ok || !session2.currentSessionPath) {
       throw new Error("failed to create second session");
     }
@@ -430,12 +430,12 @@ async function main() {
     stage("wait session two file");
     await waitForDeskItem(cdp, "second.txt");
     stage("switch back to session one");
-    await cdp.evaluate(`window.__GSAP_E2E__.switchSession(${JSON.stringify(session1.currentSessionPath)})`);
+    await cdp.evaluate(`window.__CODIA_E2E__.switchSession(${JSON.stringify(session1.currentSessionPath)})`);
 
     stage("wait session one restored");
     const switchedBack = await waitFor(
       async () => {
-        const snap = await cdp.evaluate("window.__GSAP_E2E__.getDeskSnapshot()");
+        const snap = await cdp.evaluate("window.__CODIA_E2E__.getDeskSnapshot()");
         return snap?.deskBasePath === fixture.workspace1
           && snap?.deskCurrentPath === ''
           ? snap
@@ -446,7 +446,7 @@ async function main() {
     );
 
     stage("install project skill");
-    const installSkill = await cdp.evaluate(`window.__GSAP_E2E__.installProjectSkill(${skillZipExpr}, ${workspace1Expr})`);
+    const installSkill = await cdp.evaluate(`window.__CODIA_E2E__.installProjectSkill(${skillZipExpr}, ${workspace1Expr})`);
     if (!installSkill?.ok) {
       throw new Error(`project skill install failed: ${installSkill?.error || 'unknown error'}`);
     }
@@ -462,7 +462,7 @@ async function main() {
     stage("wait cwd skill visible");
     await waitFor(
       async () => {
-        const snap = await cdp.evaluate("window.__GSAP_E2E__.getDeskSnapshot()");
+        const snap = await cdp.evaluate("window.__CODIA_E2E__.getDeskSnapshot()");
         return snap?.cwdSkills?.some((skill) => skill.name === 'sample-skill') ? snap : null;
       },
       "cwd skill visible",
@@ -509,9 +509,9 @@ async function main() {
         },
       },
       diagnostics: {
-        deskSnapshot: await cdp.evaluate("window.__GSAP_E2E__.getDeskSnapshot()"),
-        previewSnapshot: await cdp.evaluate("window.__GSAP_E2E__.getPreviewSnapshot()"),
-        stateSnapshot: await cdp.evaluate("window.__GSAP_E2E__.getStateSnapshot()"),
+        deskSnapshot: await cdp.evaluate("window.__CODIA_E2E__.getDeskSnapshot()"),
+        previewSnapshot: await cdp.evaluate("window.__CODIA_E2E__.getPreviewSnapshot()"),
+        stateSnapshot: await cdp.evaluate("window.__CODIA_E2E__.getStateSnapshot()"),
         stdoutTail: capturedStdout.slice(-4000),
         stderrTail: capturedStderr.slice(-4000),
       },
@@ -523,8 +523,8 @@ async function main() {
     let stateSnapshot = null;
     let deskSnapshot = null;
     try {
-      stateSnapshot = cdp ? await cdp.evaluate("window.__GSAP_E2E__?.getStateSnapshot?.()") : null;
-      deskSnapshot = cdp ? await cdp.evaluate("window.__GSAP_E2E__?.getDeskSnapshot?.()") : null;
+      stateSnapshot = cdp ? await cdp.evaluate("window.__CODIA_E2E__?.getStateSnapshot?.()") : null;
+      deskSnapshot = cdp ? await cdp.evaluate("window.__CODIA_E2E__?.getDeskSnapshot?.()") : null;
     } catch {}
     fs.writeFileSync(RESULT_PATH, JSON.stringify({
       ok: false,
@@ -547,7 +547,7 @@ async function main() {
     try { cdp?.close(); } catch {}
     killProcessTree(child);
     await mockOpenAI.close().catch(() => {});
-    if (process.env.GSAP_E2E_KEEP_HOME === "1") {
+    if (process.env.CODIA_E2E_KEEP_HOME === "1") {
       console.log(`[e2e-desk-workflow] preserved ${e2eHome}`);
     } else {
       removeE2EHome(e2eHome);

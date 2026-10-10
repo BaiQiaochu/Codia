@@ -11,7 +11,7 @@ import {
 const tempRoots = [];
 
 function makeTempHome() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-managed-config-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codia-managed-config-"));
   tempRoots.push(root);
   return root;
 }
@@ -23,20 +23,20 @@ afterEach(() => {
 });
 
 describe("managed agent config guard", () => {
-  it("recognizes direct agent config files under the G-SAP home", () => {
-    const gsapHome = makeTempHome();
-    const configPath = path.join(gsapHome, "agents", "worker-a", "config.yaml");
+  it("recognizes direct agent config files under the Codia home", () => {
+    const codiaHome = makeTempHome();
+    const configPath = path.join(codiaHome, "agents", "worker-a", "config.yaml");
 
-    expect(isManagedAgentConfigPath(configPath, { gsapHome })).toBe(true);
-    expect(isManagedAgentConfigPath(path.join(gsapHome, "agents", "worker-a", "memory.yaml"), { gsapHome })).toBe(false);
-    expect(isManagedAgentConfigPath(path.join(gsapHome, "agents", "worker-a", "nested", "config.yaml"), { gsapHome })).toBe(false);
+    expect(isManagedAgentConfigPath(configPath, { codiaHome })).toBe(true);
+    expect(isManagedAgentConfigPath(path.join(codiaHome, "agents", "worker-a", "memory.yaml"), { codiaHome })).toBe(false);
+    expect(isManagedAgentConfigPath(path.join(codiaHome, "agents", "worker-a", "nested", "config.yaml"), { codiaHome })).toBe(false);
   });
 
   it("blocks writes and deletes while allowing reads and unrelated files", () => {
-    const gsapHome = makeTempHome();
-    const guard = createManagedConfigWriteGuard({ gsapHome });
-    const configPath = path.join(gsapHome, "agents", "worker-a", "config.yaml");
-    const prefsPath = path.join(gsapHome, "prefs.json");
+    const codiaHome = makeTempHome();
+    const guard = createManagedConfigWriteGuard({ codiaHome });
+    const configPath = path.join(codiaHome, "agents", "worker-a", "config.yaml");
+    const prefsPath = path.join(codiaHome, "prefs.json");
 
     expect(guard(configPath, "read").allowed).toBe(true);
     expect(guard(configPath, "write").allowed).toBe(false);

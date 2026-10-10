@@ -80,6 +80,12 @@ const IMAGE_MODEL_ALIASES = {
     "1-mini": "gpt-image-1-mini",
     mini: "gpt-image-1-mini",
     "2": "gpt-image-2",
+    "2.5": "gpt-image-2.5-sunburst",
+    "2.5-sunburst": "gpt-image-2.5-sunburst",
+    sunburst: "gpt-image-2.5-sunburst",
+    "2.5-flare": "gpt-image-2.5-flare",
+    flare: "gpt-image-2.5-flare",
+    latest: "chatgpt-image-latest",
     dalle3: "dall-e-3",
     "dall-e-3": "dall-e-3",
   },
@@ -92,7 +98,14 @@ export function resolveKnownModelId(providerId, raw, type = "image") {
 
   if (catalog.some((model) => model?.id === value)) return value;
 
-  const alias = IMAGE_MODEL_ALIASES[providerId]?.[value.toLowerCase()];
+  const normalized = value.toLowerCase();
+  const catalogAlias = catalog.find((model) => (
+    Array.isArray(model?.aliases)
+    && model.aliases.some((alias) => String(alias).toLowerCase() === normalized)
+  ));
+  if (catalogAlias?.id) return catalogAlias.id;
+
+  const alias = IMAGE_MODEL_ALIASES[providerId]?.[normalized];
   if (alias && catalog.some((model) => model?.id === alias)) return alias;
 
   return value;
@@ -100,7 +113,9 @@ export function resolveKnownModelId(providerId, raw, type = "image") {
 
 export function isOpenAICompatibleApi(api = "") {
   const normalized = String(api || "").trim().toLowerCase();
-  return normalized === "openai-completions" || normalized === "openai";
+  return normalized === "openai-completions"
+    || normalized === "openai-responses"
+    || normalized === "openai";
 }
 
 export function normalizeProviderModels(models = [], fallbackType = null) {

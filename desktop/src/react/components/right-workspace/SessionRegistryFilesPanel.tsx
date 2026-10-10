@@ -10,10 +10,12 @@ import { isMarkdownFileName, isMediaKind } from '../../utils/file-kind';
 import { fileRefDownloadUrl, isWebRuntime, openFileRefPreview } from '../../utils/remote-file-preview';
 import { clearAppFileDragPayload, writeAppFileDragPayload } from '../../utils/app-file-drag';
 import { takeMarkdownFileScreenshot } from '../../utils/screenshot';
+import { resolveServerConnection } from '../../services/server-connection';
+import { resolveFileRefNativePath } from '../../services/resource-url';
 import styles from './RightWorkspacePanel.module.css';
 
 const EMPTY_FILES: readonly FileRef[] = Object.freeze([]);
-const SESSION_FILE_SORT_KEY = 'gsap-session-file-sort';
+const SESSION_FILE_SORT_KEY = 'codia-session-file-sort';
 const RUBBER_BAND_MIN = 4;
 
 type SessionFileSortMode = 'time-desc' | 'name-asc' | 'name-desc' | 'type-asc';
@@ -56,11 +58,18 @@ function canDragFile(file: FileRef): boolean {
 }
 
 function canUseFilePath(file: FileRef): boolean {
-  return !isWebRuntime() && !isExpired(file) && !!file.path;
+  return !isWebRuntime() && !isExpired(file) && !!nativePathForFile(file);
 }
 
 function canCopyFilePath(file: FileRef): boolean {
-  return !isWebRuntime() && !!file.path;
+  return !isWebRuntime() && !!nativePathForFile(file);
+}
+
+function nativePathForFile(file: FileRef): string | null {
+  const getState = (useStore as typeof useStore & {
+    getState?: () => Parameters<typeof resolveServerConnection>[0];
+  }).getState;
+  return resolveFileRefNativePath(file, getState ? resolveServerConnection(getState()) : null);
 }
 
 function canScreenshotShareFile(file: FileRef): boolean {
@@ -117,11 +126,11 @@ function sortSessionFiles(files: readonly FileRef[], mode: SessionFileSortMode):
 
 function pathBackedFiles(files: readonly FileRef[], opts: { requireAvailable?: boolean } = {}): FileRef[] {
   if (isWebRuntime()) return [];
-  return files.filter(file => !!file.path && (!opts.requireAvailable || !isExpired(file)));
+  return files.filter(file => !!nativePathForFile(file) && (!opts.requireAvailable || !isExpired(file)));
 }
 
 function copyPaths(files: readonly FileRef[]): void {
-  const paths = pathBackedFiles(files).map(file => file.path);
+  const paths = pathBackedFiles(files).map(nativePathForFile).filter((value): value is string => !!value);
   if (paths.length === 0) return;
   navigator.clipboard?.writeText?.(paths.join('\n')).catch(() => {});
 }
@@ -136,14 +145,37 @@ function previewFile(file: FileRef, sessionPath: string | null): void {
   });
 }
 
-function openFile(file: FileRef): void {
-  if (!canUseFilePath(file)) return;
-  window.platform?.openFile?.(file.path);
+function reportNativeFileActionError(message?: string): void {
+  const getState = (useStore as typeof useStore & {
+    getState?: () => { addToast?: (message: string, type: 'error', duration?: number) => void };
+  }).getState;
+  getState?.().addToast?.(
+    message || tr('rightWorkspace.sessionFiles.actions.openFailed'),
+    'error',
+    5000,
+  );
 }
 
-function revealFile(file: FileRef): void {
-  if (!canUseFilePath(file)) return;
-  window.platform?.showInFinder?.(file.path);
+async function openFile(file: FileRef): Promise<void> {
+  const nativePath = nativePathForFile(file);
+  if (!nativePath) return;
+  try {
+    const result = await window.platform?.openFile?.(nativePath);
+    if (result && !result.success) reportNativeFileActionError(result.message);
+  } catch (error) {
+    reportNativeFileActionError(error instanceof Error ? error.message : String(error));
+  }
+}
+
+async function revealFile(file: FileRef): Promise<void> {
+  const nativePath = nativePathForFile(file);
+  if (!nativePath) return;
+  try {
+    const result = await window.platform?.showInFinder?.(nativePath);
+    if (result && !result.success) reportNativeFileActionError(result.message);
+  } catch (error) {
+    reportNativeFileActionError(error instanceof Error ? error.message : String(error));
+  }
 }
 
 function screenshotShareFile(file: FileRef): void {
@@ -289,7 +321,7 @@ function SessionFileRow({
               aria-label={actionLabel('rightWorkspace.sessionFiles.actions.open', file)}
               title={actionLabel('rightWorkspace.sessionFiles.actions.open', file)}
               disabled={!canUsePath}
-              onClick={(event) => stopAction(event, () => openFile(file))}
+              onClick={(event) => stopAction(event, () => { void openFile(file); })}
             >
               <ActionIcon type="open" />
             </button>
@@ -300,7 +332,7 @@ function SessionFileRow({
               aria-label={actionLabel('rightWorkspace.sessionFiles.actions.reveal', file)}
               title={actionLabel('rightWorkspace.sessionFiles.actions.reveal', file)}
               disabled={!canUsePath}
-              onClick={(event) => stopAction(event, () => revealFile(file))}
+              onClick={(event) => stopAction(event, () => { void revealFile(file); })}
             >
               <ActionIcon type="reveal" />
             </button>
@@ -451,8 +483,8 @@ export function SessionRegistryFilesPanel() {
       items: [
         { label: tr('rightWorkspace.sessionFiles.actions.preview'), disabled: !canPreviewFile(file), action: () => previewFile(file, currentSessionPath) },
         ...(localPathActions ? [
-          { label: tr('rightWorkspace.sessionFiles.actions.open'), disabled: !canUseFilePath(file), action: () => openFile(file) },
-          { label: tr('rightWorkspace.sessionFiles.actions.reveal'), disabled: !canUseFilePath(file), action: () => revealFile(file) },
+          { label: tr('rightWorkspace.sessionFiles.actions.open'), disabled: !canUseFilePath(file), action: () => { void openFile(file); } },
+          { label: tr('rightWorkspace.sessionFiles.actions.reveal'), disabled: !canUseFilePath(file), action: () => { void revealFile(file); } },
           { label: tr('common.screenshotShare'), disabled: !screenshotFile, action: () => screenshotFile && screenshotShareFile(screenshotFile) },
         ] : []),
         {

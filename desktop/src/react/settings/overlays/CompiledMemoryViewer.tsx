@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSettingsStore } from '../store';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { t } from '../helpers';
 import { getErrorMessage, type TextContentPayload } from '../shared-types';
 import { renderMarkdown } from '../../utils/markdown';
@@ -16,15 +16,15 @@ export function CompiledMemoryViewer() {
 
   useEffect(() => {
     const handler = () => { setVisible(true); load(); };
-    window.addEventListener('gsap-view-compiled-memory', handler);
-    return () => window.removeEventListener('gsap-view-compiled-memory', handler);
+    window.addEventListener('codia-view-compiled-memory', handler);
+    return () => window.removeEventListener('codia-view-compiled-memory', handler);
   }, []);
 
   const load = async () => {
     setLoading(true);
     try {
       const aid = useSettingsStore.getState().getSettingsAgentId();
-      const res = await gsapFetch(`/api/memories/compiled?agentId=${aid}`);
+      const res = await codiaFetch(`/api/memories/compiled?agentId=${aid}`);
       const data = await res.json() as TextContentPayload;
       setContent(data.content || '');
     } catch (err: unknown) {
@@ -37,7 +37,7 @@ export function CompiledMemoryViewer() {
   const clearCompiled = async () => {
     try {
       const aid = useSettingsStore.getState().getSettingsAgentId();
-      await gsapFetch(`/api/memories/compiled?agentId=${aid}`, { method: 'DELETE' });
+      await codiaFetch(`/api/memories/compiled?agentId=${aid}`, { method: 'DELETE' });
       setContent('');
       useSettingsStore.getState().showToast(t('settings.memory.compiledCleared'), 'success');
     } catch (err: unknown) {

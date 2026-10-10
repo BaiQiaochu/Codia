@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSettingsStore } from '../store';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { t } from '../helpers';
 import { switchToAgent, loadSettingsConfig, loadAgents } from '../actions';
 import { getErrorMessage } from '../shared-types';
@@ -28,8 +28,8 @@ export function AgentDeleteOverlay() {
       setNameInput('');
       setVisible(true);
     };
-    window.addEventListener('gsap-show-agent-delete', handler);
-    return () => window.removeEventListener('gsap-show-agent-delete', handler);
+    window.addEventListener('codia-show-agent-delete', handler);
+    return () => window.removeEventListener('codia-show-agent-delete', handler);
   }, []);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export function AgentDeleteOverlay() {
         if (!other) throw new Error(t('settings.agent.lastAgent'));
         await switchToAgent(other.id);
       }
-      const res = await gsapFetch(`/api/agents/${targetId}`, { method: 'DELETE' });
+      const res = await codiaFetch(`/api/agents/${targetId}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       close();

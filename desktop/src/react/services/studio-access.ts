@@ -1,6 +1,11 @@
-import type { ServerConnection } from './server-connection';
+interface TrustCheckedConnection {
+  connectionId: string;
+  kind: 'local' | 'lan' | 'custom_remote' | 'relay' | 'cloud';
+  trustState: 'local' | 'lan' | 'tunnel' | 'cloud';
+  credentialKind: 'none' | 'loopback_token' | 'device_credential' | 'user_session';
+}
 
-export function validateStudioConnectionTrust(connection: ServerConnection): void {
+export function validateStudioConnectionTrust(connection: TrustCheckedConnection): void {
   if (!connection.connectionId) {
     throw new Error('server connection requires connectionId');
   }

@@ -7,7 +7,7 @@ export default [
   {
     ignores: [
       'node_modules/',
-      'openhanako-*/**',
+      'codia-*/**',
       'vendor/**',
       'artifacts/**',
       '**/dist/**',

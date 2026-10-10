@@ -55,7 +55,7 @@ export function ChannelHeader() {
   const focusWorkspaceSection = useCallback((section: 'info' | 'members') => {
     if (!currentChannel) return;
     toggleJianSidebar(true);
-    window.dispatchEvent(new CustomEvent(`gsap-channel-focus-${section}`, {
+    window.dispatchEvent(new CustomEvent(`codia-channel-focus-${section}`, {
       detail: { channelId: currentChannel },
     }));
   }, [currentChannel]);
@@ -67,10 +67,10 @@ export function ChannelHeader() {
   const handleCreateAgent = useCallback(() => {
     if (!currentChannel) return;
     toggleJianSidebar(true);
-    window.dispatchEvent(new CustomEvent('gsap-channel-open-agent-create', {
+    window.dispatchEvent(new CustomEvent('codia-channel-open-agent-create', {
       detail: { channelId: currentChannel },
     }));
-    window.dispatchEvent(new CustomEvent('gsap-channel-focus-members', {
+    window.dispatchEvent(new CustomEvent('codia-channel-focus-members', {
       detail: { channelId: currentChannel },
     }));
   }, [currentChannel]);
@@ -147,8 +147,8 @@ export function ChannelHeader() {
 
   useEffect(() => {
     const openWorkflow = () => setWorkflowOpen(true);
-    window.addEventListener('gsap-open-channel-workflow', openWorkflow);
-    return () => window.removeEventListener('gsap-open-channel-workflow', openWorkflow);
+    window.addEventListener('codia-open-channel-workflow', openWorkflow);
+    return () => window.removeEventListener('codia-open-channel-workflow', openWorkflow);
   }, []);
 
   useEffect(() => {
@@ -165,8 +165,8 @@ export function ChannelHeader() {
       if (detail.channelId && detail.channelId !== currentChannel) return;
       setWorkflowOpen(true);
     };
-    window.addEventListener('gsap-channel-workflow-add-resource', handleWorkflowResource);
-    return () => window.removeEventListener('gsap-channel-workflow-add-resource', handleWorkflowResource);
+    window.addEventListener('codia-channel-workflow-add-resource', handleWorkflowResource);
+    return () => window.removeEventListener('codia-channel-workflow-add-resource', handleWorkflowResource);
   }, [currentChannel, isDM]);
 
   return (

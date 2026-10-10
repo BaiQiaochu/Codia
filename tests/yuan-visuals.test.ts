@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { getYuanVisual, moodLabelForYuan, normalizeYuan } from "../shared/yuan-visuals.ts";
 
 describe("yuan visuals", () => {
-  const defaultAssistantAvatar = "character-cards/gsap-default-avatar.png";
+  const defaultAssistantAvatar = "character-cards/codia-default-avatar.png";
 
-  it("keeps G-SAP yuan visuals debranded", () => {
-    expect(getYuanVisual("gsap")).toMatchObject({
+  it("keeps Codia yuan visuals debranded", () => {
+    expect(getYuanVisual("codia")).toMatchObject({
       symbol: "\u2699",
       moodLabel: "MOOD",
       accent: "#537D96",
@@ -26,8 +26,8 @@ describe("yuan visuals", () => {
     expect(getYuanVisual("kong").avatar).toBe(defaultAssistantAvatar);
   });
 
-  it("falls back to gsap for unknown yuan values", () => {
-    expect(normalizeYuan("unknown")).toBe("gsap");
+  it("falls back to codia for unknown yuan values", () => {
+    expect(normalizeYuan("unknown")).toBe("codia");
     expect(moodLabelForYuan("unknown")).toBe("\u2699 MOOD");
   });
 });

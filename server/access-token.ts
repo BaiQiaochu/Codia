@@ -18,8 +18,8 @@ function extractAuthorizationToken(value) {
 
 function extractApiKeyHeader(getHeader) {
   return cleanToken(getHeader("x-api-key"))
-    || cleanToken(getHeader("x-gsap-api-key"))
-    || cleanToken(getHeader("x-gsap-api-key"));
+    || cleanToken(getHeader("x-codia-api-key"))
+    || cleanToken(getHeader("x-codia-api-key"));
 }
 
 function extractTokenFromSearchParams(params) {

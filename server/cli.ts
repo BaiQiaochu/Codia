@@ -306,7 +306,7 @@ ${c.bold}${t("cli.helpTitle")}${c.reset}
         const data = await api("/api/config");
         console.log(`\n${c.bold}${t("cli.currentConfig")}${c.reset}`);
         console.log(`  ${c.dim}Agent:${c.reset}  ${data.agent?.name || "Assistant"}`);
-        console.log(`  ${c.dim}Yuan:${c.reset}   ${data.agent?.yuan || "gsap"}`);
+        console.log(`  ${c.dim}Yuan:${c.reset}   ${data.agent?.yuan || "codia"}`);
         console.log(`  ${c.dim}User:${c.reset}   ${data.user?.name || "User"}`);
         console.log(`  ${c.dim}Locale:${c.reset} ${data.locale || "en"}`);
         console.log(`  ${c.dim}Model:${c.reset}  ${data.api?.model || t("cli.notSet")}`);

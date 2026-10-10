@@ -1,6 +1,6 @@
 # Provider 兼容层规范
 
-> 本目录是 G-SAP 的 provider-specific payload 兼容层。任何按 provider 分支处理请求体的代码都必须遵守本文件规则。
+> 本目录是 Codia 的 provider-specific payload 兼容层。任何按 provider 分支处理请求体的代码都必须遵守本文件规则。
 
 ## 核心纪律
 
@@ -71,7 +71,7 @@
 
 ## 输出预算策略
 
-`maxOutput` / `model.maxTokens` 在 G-SAP 数据层表示模型能力上限，不表示每次请求的默认输出长度。对于 OpenAI-compatible、Gemini、Mistral 等 output cap 可省略的 provider，兼容层会避免把 SDK 注入的隐式默认值误当成用户配置。
+`maxOutput` / `model.maxTokens` 在 Codia 数据层表示模型能力上限，不表示每次请求的默认输出长度。对于 OpenAI-compatible、Gemini、Mistral 等 output cap 可省略的 provider，兼容层会避免把 SDK 注入的隐式默认值误当成用户配置。
 
 1. chat 请求中，如果 payload 的 output cap 等于 SDK 从 `model.maxTokens` 推导出的隐式默认值，则移除该字段，让供应商默认策略生效。
 2. utility 请求由具体任务决定预算。标题、健康检查、记忆摘要等任务需要限制长度时必须显式传入 `maxTokens`。
@@ -80,7 +80,7 @@
 
 ## 音频输入 Transport
 
-G-SAP 内部用 `{ type: "audio", data, mimeType }` 表示当前轮音频。UI、SessionFile、历史恢复、附件、压缩与缓存逻辑只处理这一种内部语义，不按 provider 写分支。
+Codia 内部用 `{ type: "audio", data, mimeType }` 表示当前轮音频。UI、SessionFile、历史恢复、附件、压缩与缓存逻辑只处理这一种内部语义，不按 provider 写分支。
 
 出站请求分两步：
 

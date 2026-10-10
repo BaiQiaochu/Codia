@@ -4,7 +4,7 @@ param(
   [string]$ProductNameOverride = "",
   [string]$AppIdOverride = "",
   [string]$IconSourceOverride = "",
-  [string]$ProductVariant = "g-sap",
+  [string]$ProductVariant = "codia",
   [switch]$SkipTests,
   [switch]$SkipSmoke,
   [switch]$NoInstaller,
@@ -193,7 +193,7 @@ function Set-PackageVersion {
 
   $script = @'
 const fs = require("fs");
-const version = process.env.GSAP_PACKAGE_VERSION;
+const version = process.env.CODIA_PACKAGE_VERSION;
 const rootPackageKey = String();
 for (const file of ["package.json", "package-lock.json"]) {
   if (!fs.existsSync(file)) continue;
@@ -206,15 +206,15 @@ for (const file of ["package.json", "package-lock.json"]) {
 
   Push-Location $Root
   try {
-    $env:GSAP_PACKAGE_VERSION = $TargetVersion
-    $scriptPath = Join-Path $env:TEMP ("gsap-set-package-version-" + [guid]::NewGuid().ToString("N") + ".cjs")
+    $env:CODIA_PACKAGE_VERSION = $TargetVersion
+    $scriptPath = Join-Path $env:TEMP ("codia-set-package-version-" + [guid]::NewGuid().ToString("N") + ".cjs")
     Write-Utf8NoBomFile -Path $scriptPath -Value $script
     Invoke-Step "node" @($scriptPath)
   } finally {
     if ($scriptPath -and (Test-Path -LiteralPath $scriptPath)) {
       Remove-Item -LiteralPath $scriptPath -Force -ErrorAction SilentlyContinue
     }
-    Remove-Item Env:\GSAP_PACKAGE_VERSION -ErrorAction SilentlyContinue
+    Remove-Item Env:\CODIA_PACKAGE_VERSION -ErrorAction SilentlyContinue
     Pop-Location
   }
 }
@@ -347,9 +347,9 @@ function Test-PortableServer {
 
   $resources = Join-Path $PortableDir "resources"
   $serverRoot = Join-Path $resources "server"
-  $exe = Join-Path $serverRoot "gsap-server.exe"
+  $exe = Join-Path $serverRoot "codia-server.exe"
   $bootstrap = Join-Path $serverRoot "bootstrap.js"
-  $smokeHome = Join-Path $env:TEMP ("gsap-package-smoke-" + [guid]::NewGuid().ToString("N"))
+  $smokeHome = Join-Path $env:TEMP ("codia-package-smoke-" + [guid]::NewGuid().ToString("N"))
   $stdoutLog = Join-Path $smokeHome "stdout.log"
   $stderrLog = Join-Path $smokeHome "stderr.log"
   $process = $null
@@ -377,11 +377,9 @@ function Test-PortableServer {
     $psi.RedirectStandardError = $true
     $psi.StandardOutputEncoding = [System.Text.Encoding]::UTF8
     $psi.StandardErrorEncoding = [System.Text.Encoding]::UTF8
-    $psi.EnvironmentVariables["GSAP_HOME"] = $smokeHome
-    $psi.EnvironmentVariables["GSAP_ROOT"] = $serverRoot
-    $psi.EnvironmentVariables["GSAP_ROOT"] = $serverRoot
-    $psi.EnvironmentVariables["GSAP_SERVER_ENTRY"] = Join-Path $serverRoot "bundle\index.js"
-    $psi.EnvironmentVariables["GSAP_SERVER_ENTRY"] = Join-Path $serverRoot "bundle\index.js"
+    $psi.EnvironmentVariables["CODIA_HOME"] = $smokeHome
+    $psi.EnvironmentVariables["CODIA_ROOT"] = $serverRoot
+    $psi.EnvironmentVariables["CODIA_SERVER_ENTRY"] = Join-Path $serverRoot "bundle\index.js"
 
     $pathEntries = @(
       (Join-Path $resources "git\mingw64\bin"),
@@ -488,22 +486,22 @@ function Test-PackagedRuntimeSmoke {
     throw "Missing packaged runtime smoke script: $script"
   }
 
-  $previousBaseUrl = $env:GSAP_PACKAGE_SMOKE_BASE_URL
-  $previousToken = $env:GSAP_PACKAGE_SMOKE_TOKEN
+  $previousBaseUrl = $env:CODIA_PACKAGE_SMOKE_BASE_URL
+  $previousToken = $env:CODIA_PACKAGE_SMOKE_TOKEN
   try {
-    $env:GSAP_PACKAGE_SMOKE_BASE_URL = $BaseUrl
-    $env:GSAP_PACKAGE_SMOKE_TOKEN = $Token
+    $env:CODIA_PACKAGE_SMOKE_BASE_URL = $BaseUrl
+    $env:CODIA_PACKAGE_SMOKE_TOKEN = $Token
     Invoke-Step "node" @($script)
   } finally {
     if ([string]::IsNullOrEmpty($previousBaseUrl)) {
-      Remove-Item Env:\GSAP_PACKAGE_SMOKE_BASE_URL -ErrorAction SilentlyContinue
+      Remove-Item Env:\CODIA_PACKAGE_SMOKE_BASE_URL -ErrorAction SilentlyContinue
     } else {
-      $env:GSAP_PACKAGE_SMOKE_BASE_URL = $previousBaseUrl
+      $env:CODIA_PACKAGE_SMOKE_BASE_URL = $previousBaseUrl
     }
     if ([string]::IsNullOrEmpty($previousToken)) {
-      Remove-Item Env:\GSAP_PACKAGE_SMOKE_TOKEN -ErrorAction SilentlyContinue
+      Remove-Item Env:\CODIA_PACKAGE_SMOKE_TOKEN -ErrorAction SilentlyContinue
     } else {
-      $env:GSAP_PACKAGE_SMOKE_TOKEN = $previousToken
+      $env:CODIA_PACKAGE_SMOKE_TOKEN = $previousToken
     }
   }
 }
@@ -522,8 +520,8 @@ function Test-PrePackageHealth {
 function Test-SourceTreeConsistency {
   param([string]$Root)
 
-  if ($env:GSAP_ALLOW_DIRTY_SOURCE_TREE -eq "1") {
-    Write-Warning "Skipping source tree consistency audit because GSAP_ALLOW_DIRTY_SOURCE_TREE=1."
+  if ($env:CODIA_ALLOW_DIRTY_SOURCE_TREE -eq "1") {
+    Write-Warning "Skipping source tree consistency audit because CODIA_ALLOW_DIRTY_SOURCE_TREE=1."
     return
   }
 
@@ -568,7 +566,7 @@ const cssPath = "desktop\\dist-renderer\\styles.css";
 process.stdout.write(asar.extractFile(archive, cssPath).toString("utf8"));
 '@
 
-  $scriptPath = Join-Path $env:TEMP ("gsap-read-packaged-renderer-css-" + [guid]::NewGuid().ToString("N") + ".cjs")
+  $scriptPath = Join-Path $env:TEMP ("codia-read-packaged-renderer-css-" + [guid]::NewGuid().ToString("N") + ".cjs")
   try {
     Write-Utf8NoBomFile -Path $scriptPath -Value $script
     $output = & node $scriptPath $asarPath $Root 2>&1
@@ -663,15 +661,15 @@ function Test-PackagedDesktopE2E {
     throw "Unable to locate packaged desktop executable in $PortableDir"
   }
 
-  $previousApp = $env:GSAP_E2E_DESKTOP_APP
+  $previousApp = $env:CODIA_E2E_DESKTOP_APP
   try {
-    $env:GSAP_E2E_DESKTOP_APP = $appExe.FullName
+    $env:CODIA_E2E_DESKTOP_APP = $appExe.FullName
     Invoke-Step "node" @($script)
   } finally {
     if ([string]::IsNullOrEmpty($previousApp)) {
-      Remove-Item Env:\GSAP_E2E_DESKTOP_APP -ErrorAction SilentlyContinue
+      Remove-Item Env:\CODIA_E2E_DESKTOP_APP -ErrorAction SilentlyContinue
     } else {
-      $env:GSAP_E2E_DESKTOP_APP = $previousApp
+      $env:CODIA_E2E_DESKTOP_APP = $previousApp
     }
   }
 }
@@ -699,11 +697,11 @@ $installerPath = Join-Path $distDir "$productName-$packageVersion-Windows-$arch.
 $portableDir = Join-Path $distDir "$productName-$packageVersion-Windows-$arch-Portable-Folder"
 $lastPortableMarker = Join-Path $distDir ".last-portable-folder"
 
-$env:GSAP_PRODUCT_VARIANT = if ([string]::IsNullOrWhiteSpace($ProductVariant)) { "g-sap" } else { $ProductVariant }
+$env:CODIA_PRODUCT_VARIANT = if ([string]::IsNullOrWhiteSpace($ProductVariant)) { "codia" } else { $ProductVariant }
 
 Write-Host "product: $productName"
 Write-Host "version: $packageVersion"
-Write-Host "variant: $env:GSAP_PRODUCT_VARIANT"
+Write-Host "variant: $env:CODIA_PRODUCT_VARIANT"
 Write-Host "root:    $root"
 
 Write-Step "Cleaning temporary packaging outputs"
@@ -809,5 +807,5 @@ Write-Host ""
 Write-Host "Packaging completed." -ForegroundColor Green
 } finally {
   Restore-PackageJson -Root $root -Original $originalPackageJson
-  Remove-Item Env:\GSAP_PRODUCT_VARIANT -ErrorAction SilentlyContinue
+  Remove-Item Env:\CODIA_PRODUCT_VARIANT -ErrorAction SilentlyContinue
 }

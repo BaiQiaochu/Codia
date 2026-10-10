@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSettingsStore } from '../store';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { t, escapeHtml } from '../helpers';
 import { getErrorMessage } from '../shared-types';
 import styles from '../Settings.module.css';
@@ -22,15 +22,15 @@ export function MemoryViewer() {
 
   useEffect(() => {
     const handler = () => { setVisible(true); loadMemories(); };
-    window.addEventListener('gsap-view-memories', handler);
-    return () => window.removeEventListener('gsap-view-memories', handler);
+    window.addEventListener('codia-view-memories', handler);
+    return () => window.removeEventListener('codia-view-memories', handler);
   }, []);
 
   const loadMemories = async () => {
     setHtml(`<div class="memory-viewer-empty">${t('settings.memory.actions.importing')}</div>`);
     try {
       const aid = useSettingsStore.getState().getSettingsAgentId();
-      const res = await gsapFetch(`/api/memories?agentId=${aid}`);
+      const res = await codiaFetch(`/api/memories?agentId=${aid}`);
       const { memories } = await res.json() as MemoriesPayload;
 
       if (!memories || memories.length === 0) {

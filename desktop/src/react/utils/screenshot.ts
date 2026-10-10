@@ -44,7 +44,7 @@ function normalizeScreenshotResult(result: unknown): ScreenshotRenderResult {
 }
 
 function notifyScreenshot(text: string, type: 'success' | 'error', deskDir?: string, filePath?: string): void {
-  window.dispatchEvent(new CustomEvent('gsap-inline-notice', {
+  window.dispatchEvent(new CustomEvent('codia-inline-notice', {
     detail: { text, type, deskDir, filePath },
   }));
 }
@@ -195,8 +195,8 @@ export async function takeScreenshot(targetMessageId: string, sessionPath: strin
   }
   if (messages.length === 0) return;
 
-  const color = localStorage.getItem('gsap-screenshot-color') || 'gsap';
-  const width = localStorage.getItem('gsap-screenshot-width') || 'mobile';
+  const color = localStorage.getItem('codia-screenshot-color') || 'codia';
+  const width = localStorage.getItem('codia-screenshot-width') || 'mobile';
   const theme = buildThemeName(color, width);
 
   const t = window.t ?? ((p: string) => p);
@@ -248,8 +248,8 @@ export async function takeScreenshot(targetMessageId: string, sessionPath: strin
 }
 
 export async function takeArticleScreenshot(markdown: string, options: ArticleScreenshotOptions = {}): Promise<void> {
-  const color = localStorage.getItem('gsap-screenshot-color') || 'gsap';
-  const width = localStorage.getItem('gsap-screenshot-width') || 'mobile';
+  const color = localStorage.getItem('codia-screenshot-color') || 'codia';
+  const width = localStorage.getItem('codia-screenshot-width') || 'mobile';
   const theme = buildThemeName(color, width);
   const homeFolder = useStore.getState().homeFolder || null;
 

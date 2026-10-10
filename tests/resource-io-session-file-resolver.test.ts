@@ -33,8 +33,8 @@ describe("SessionFileResolverProvider", () => {
   });
 
   function setup() {
-    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-resource-session-file-"));
-    const sessionPath = path.join(tempRoot, "agents", "gsap", "sessions", "a.jsonl");
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-resource-session-file-"));
+    const sessionPath = path.join(tempRoot, "agents", "codia", "sessions", "a.jsonl");
     const filePath = path.join(tempRoot, "files", "note.md");
     fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
     fs.mkdirSync(path.dirname(filePath), { recursive: true });

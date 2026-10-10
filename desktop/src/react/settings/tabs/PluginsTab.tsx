@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSettingsStore } from '../store';
-import { gsapFetch } from '../api';
+import { codiaFetch } from '../api';
 import { t } from '../helpers';
 import { resolveBrowserFilePaths } from '../../utils/browser-file-paths';
 import { refreshPluginUI } from '../../stores/plugin-ui-actions';
@@ -219,7 +219,7 @@ export function PluginsTab() {
 
   const loadPlugins = useCallback(async () => {
     try {
-      const res = await gsapFetch('/api/plugins');
+      const res = await codiaFetch('/api/plugins');
       const data = await res.json();
       setPlugins(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -240,7 +240,7 @@ export function PluginsTab() {
 
   const loadPluginConfig = useCallback(async (plugin: PluginInfo) => {
     try {
-      const res = await gsapFetch(`/api/plugins/${encodeURIComponent(plugin.id)}/config`);
+      const res = await codiaFetch(`/api/plugins/${encodeURIComponent(plugin.id)}/config`);
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setConfigPlugin(plugin);
@@ -255,7 +255,7 @@ export function PluginsTab() {
   const loadDiagnostics = useCallback(async () => {
     setDiagnosticsLoading(true);
     try {
-      const res = await gsapFetch('/api/plugins/diagnostics');
+      const res = await codiaFetch('/api/plugins/diagnostics');
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setDiagnostics({
@@ -274,7 +274,7 @@ export function PluginsTab() {
   const loadPluginCapabilityMatrix = useCallback(async () => {
     setCapabilityMatrixLoading(true);
     try {
-      const res = await gsapFetch('/api/plugins/capability-matrix');
+      const res = await codiaFetch('/api/plugins/capability-matrix');
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setCapabilityMatrix({
@@ -301,7 +301,7 @@ export function PluginsTab() {
     const next = !pluginAllowFullAccess;
     set({ pluginAllowFullAccess: next });
     try {
-      const res = await gsapFetch('/api/plugins/settings', {
+      const res = await codiaFetch('/api/plugins/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ allow_full_access: next }),
@@ -320,7 +320,7 @@ export function PluginsTab() {
     const next = !pluginDevToolsEnabled;
     set({ pluginDevToolsEnabled: next });
     try {
-      const res = await gsapFetch('/api/plugins/settings', {
+      const res = await codiaFetch('/api/plugins/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plugin_dev_tools_enabled: next }),
@@ -336,7 +336,7 @@ export function PluginsTab() {
 
   const installFromPath = async (filePath: string) => {
     try {
-      const res = await gsapFetch('/api/plugins/install', {
+      const res = await codiaFetch('/api/plugins/install', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: filePath }),
@@ -374,7 +374,7 @@ export function PluginsTab() {
       plugin.id === id ? { ...plugin, status: enable ? 'loaded' : 'disabled' } : plugin
     )));
     try {
-      const res = await gsapFetch(`/api/plugins/${encodeURIComponent(id)}/enabled`, {
+      const res = await codiaFetch(`/api/plugins/${encodeURIComponent(id)}/enabled`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: enable }),
@@ -396,7 +396,7 @@ export function PluginsTab() {
     const msg = t('settings.plugins.deleteConfirm', { name: plugin.name });
     if (!confirm(msg)) return;
     try {
-      const res = await gsapFetch(`/api/plugins/${encodeURIComponent(plugin.id)}`, { method: 'DELETE' });
+      const res = await codiaFetch(`/api/plugins/${encodeURIComponent(plugin.id)}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       showToast(t('settings.autoSaved'), 'success');
@@ -424,7 +424,7 @@ export function PluginsTab() {
 
     setConfigSaving(true);
     try {
-      const res = await gsapFetch(`/api/plugins/${encodeURIComponent(configPlugin.id)}/config`, {
+      const res = await codiaFetch(`/api/plugins/${encodeURIComponent(configPlugin.id)}/config`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ values }),
@@ -597,7 +597,7 @@ export function PluginsTab() {
                           </svg>
                         </button>
                         <button type="button"
-                          className={`gsap-toggle${enabled ? ' on' : ''}`}
+                          className={`codia-toggle${enabled ? ' on' : ''}`}
                           disabled={restricted}
                           onClick={() => togglePlugin(plugin.id, !enabled)}
                         />
@@ -623,7 +623,7 @@ export function PluginsTab() {
           hint={t('settings.plugins.fullAccessDesc')}
           control={(
             <button type="button"
-              className={`gsap-toggle${pluginAllowFullAccess ? ' on' : ''}`}
+              className={`codia-toggle${pluginAllowFullAccess ? ' on' : ''}`}
               onClick={toggleFullAccess}
             />
           )}
@@ -633,7 +633,7 @@ export function PluginsTab() {
           hint={t('settings.plugins.devToolsDesc')}
           control={(
             <button type="button"
-              className={`gsap-toggle${pluginDevToolsEnabled ? ' on' : ''}`}
+              className={`codia-toggle${pluginDevToolsEnabled ? ' on' : ''}`}
               onClick={togglePluginDevTools}
             />
           )}
@@ -789,7 +789,7 @@ export function PluginsTab() {
               if (property.type === 'boolean') {
                 control = (
                   <button type="button"
-                    className={`gsap-toggle${value === true ? ' on' : ''}`}
+                    className={`codia-toggle${value === true ? ' on' : ''}`}
                     onClick={() => updateConfigDraft(key, value !== true)}
                   />
                 );

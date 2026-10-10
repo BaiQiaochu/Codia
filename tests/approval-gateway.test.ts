@@ -6,8 +6,8 @@ function request(overrides = {}) {
   return {
     id: "approval-1",
     kind: "tool_action",
-    sessionPath: "/tmp/gsap/session.jsonl",
-    agentId: "gsap",
+    sessionPath: "/tmp/codia/session.jsonl",
+    agentId: "codia",
     toolName: "write",
     actionName: "execute",
     params: { path: "notes.md" },
@@ -67,8 +67,8 @@ describe("ApprovalGateway", () => {
     });
     await expect(gateway.review(request({
       toolName: "bash",
-      params: { command: "git -c user.name=gsap push --force-with-lease origin main" },
-      target: { type: "command", label: "git -c user.name=gsap push --force-with-lease origin main" },
+      params: { command: "git -c user.name=codia push --force-with-lease origin main" },
+      target: { type: "command", label: "git -c user.name=codia push --force-with-lease origin main" },
     }))).resolves.toMatchObject({
       action: "hard_deny",
       reviewer: "policy",
@@ -202,7 +202,7 @@ describe("ApprovalGateway", () => {
       userIntentSummary: "Edit notes.md",
       explicitUserAuthorization: "",
       sessionPermissionMode: "auto",
-      trustEnvironment: { cwd: "/tmp/gsap", workspaceFolders: ["/tmp/gsap"] },
+      trustEnvironment: { cwd: "/tmp/codia", workspaceFolders: ["/tmp/codia"] },
       recentApprovalHistory: [],
     });
 

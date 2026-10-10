@@ -114,7 +114,7 @@ async function listStudioWorkspaces(engine: any, requestContext: any) {
   } catch (err: any) {
     if (!(err instanceof MountAwareFileError && (err as any).code === "no_workspace")) throw err;
   }
-  for (const mount of listStudioMountsForStudio(resolveGsapHome(engine), studioId)) {
+  for (const mount of listStudioMountsForStudio(resolveCodiaHome(engine), studioId)) {
     if (mount.status !== "active") continue;
     workspaces.push(workspaceFromMount(mount));
   }
@@ -138,7 +138,7 @@ async function createLocalPathWorkspace(engine: any, requestContext: any, body: 
     throw routeError("path must be an existing directory", "invalid_path", 400);
   }
 
-  const mount = upsertStudioMount(resolveGsapHome(engine), {
+  const mount = upsertStudioMount(resolveCodiaHome(engine), {
     mountId: localFsMountId(studioId, rootPath),
     hostStudioId: studioId,
     sourceKind: "storage",
@@ -154,13 +154,13 @@ async function createLocalPathWorkspace(engine: any, requestContext: any, body: 
 
 function disableLocalPathWorkspace(engine: any, requestContext: any, mountId: string) {
   const studioId = requireStudioId(requestContext);
-  const activeMount = listStudioMountsForStudio(resolveGsapHome(engine), studioId)
+  const activeMount = listStudioMountsForStudio(resolveCodiaHome(engine), studioId)
     .find((mount: any) => mount.mountId === mountId && mount.status === "active");
   if (!activeMount) throw routeError("workspace mount not found", "workspace_not_found", 404);
   if (activeMount.sourceKind !== "storage" || activeMount.provider !== "local_fs") {
     throw routeError("only local_fs workspace mounts can be removed here", "unsupported_workspace_mount", 400);
   }
-  return disableStudioMount(resolveGsapHome(engine), mountId, { hostStudioId: studioId });
+  return disableStudioMount(resolveCodiaHome(engine), mountId, { hostStudioId: studioId });
 }
 
 function authorizeStudioWorkspace(c: any, engine: any, capability: string) {
@@ -189,16 +189,15 @@ function authorizeStudioWorkspace(c: any, engine: any, capability: string) {
   };
 }
 
-function resolveGsapHome(engine: any) {
-  const legacyHomeKey = ["h", "ana", "koHome"].join("");
-  const gsapHome = engine?.gsapHome || engine?.[legacyHomeKey];
-  if (!gsapHome) throw new Error("engine.gsapHome required");
-  return gsapHome;
+function resolveCodiaHome(engine: any) {
+  const codiaHome = engine?.codiaHome;
+  if (!codiaHome) throw new Error("engine.codiaHome required");
+  return codiaHome;
 }
 
 function fileService(engine: any, requestContext: any) {
   return new MountAwareFileService({
-    gsapHome: resolveGsapHome(engine),
+    codiaHome: resolveCodiaHome(engine),
     defaultRoot: engine.defaultDeskCwd || engine.homeCwd || engine.deskCwd,
     studioId: requestContext?.studioId || engine.getRuntimeContext?.()?.studioId || null,
     createCheckpoint: typeof engine.createUserEditCheckpoint === "function"

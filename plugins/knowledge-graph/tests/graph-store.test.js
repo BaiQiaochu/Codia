@@ -7,7 +7,7 @@ import { GraphStore } from "../lib/graph-store.js";
 let tempDirs = [];
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-kg-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-kg-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -52,7 +52,7 @@ describe("GraphStore", () => {
     );
 
     store.flushSync();
-    expect(JSON.parse(fs.readFileSync(path.join(dir, "graph.json.gsap-watermark.json"), "utf8")).payload).toMatchObject({
+    expect(JSON.parse(fs.readFileSync(path.join(dir, "graph.json.codia-watermark.json"), "utf8")).payload).toMatchObject({
       product: "Codia",
       source: "knowledge_graph",
       filePath: path.join(dir, "graph.json"),

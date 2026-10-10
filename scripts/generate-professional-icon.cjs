@@ -148,10 +148,10 @@ function main() {
   const sharedPngTargets = [
     ICON_PATH,
     path.join(ASSETS_DIR, "codia", "codia-brand-emblem.png"),
-    path.join(ASSETS_DIR, "G-SAP.png"),
+    path.join(ASSETS_DIR, "codia.png"),
     path.join(ASSETS_DIR, "about-icon.png"),
-    path.join(CHARACTER_ASSETS_DIR, "gsap-default-avatar.png"),
-    path.join(CHARACTER_ASSETS_DIR, "gsap-emblem.png"),
+    path.join(CHARACTER_ASSETS_DIR, "codia-default-avatar.png"),
+    path.join(CHARACTER_ASSETS_DIR, "codia-emblem.png"),
     path.join(CHARACTER_ASSETS_DIR, "butter-emblem.png"),
     path.join(CHARACTER_ASSETS_DIR, "ming-emblem.png"),
     path.join(CHARACTER_ASSETS_DIR, "kong-emblem.png"),

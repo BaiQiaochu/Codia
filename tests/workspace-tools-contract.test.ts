@@ -55,14 +55,14 @@ describe("workspace tool contract", () => {
 
   it("combines visible UI context with workspace tool system context", () => {
     const turnContext = buildUiContextTurnContext({
-      currentViewed: "E:/G-sap/docs",
-      activeFile: "E:/G-sap/docs/plan.md",
+      currentViewed: "E:/Codia/docs",
+      activeFile: "E:/Codia/docs/plan.md",
       pinnedFiles: [],
       workspaceTool: { id: "documents", title: "ignored", description: "ignored" },
-    }, "E:/G-sap");
+    }, "E:/Codia");
 
     expect(turnContext?.system).toContain("Document Workspace is active");
-    expect(turnContext?.beforeUser).toContain("active_file: E:/G-sap/docs/plan.md");
+    expect(turnContext?.beforeUser).toContain("active_file: E:/Codia/docs/plan.md");
     expect(turnContext?.beforeUser).not.toContain("selected_workspace_tool");
     expect(turnContext?.metadata.workspaceTool).toMatchObject({
       id: "documents",

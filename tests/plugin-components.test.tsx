@@ -10,7 +10,7 @@ import {
   Button,
   CardShell,
   EmptyState,
-  GsapThemeProvider,
+  CodiaThemeProvider,
   IconButton,
   List,
   Select,
@@ -18,59 +18,59 @@ import {
   Switch,
   Textarea,
   TextInput,
-} from '@g-sap/plugin-components';
+} from '@codia/plugin-components';
 
 describe('plugin component SDK', () => {
   afterEach(() => {
     cleanup();
   });
 
-  it('renders plugin surfaces that inherit G-SAP theme variables by default', () => {
+  it('renders plugin surfaces that inherit Codia theme variables by default', () => {
     render(
-      <GsapThemeProvider>
+      <CodiaThemeProvider>
         <CardShell title="工具结果">正文</CardShell>
-      </GsapThemeProvider>,
+      </CodiaThemeProvider>,
     );
 
-    const root = screen.getByTestId('gsap-plugin-theme');
-    expect(root).toHaveClass('gsap-plugin-theme');
-    expect(root).toHaveAttribute('data-gsap-theme-mode', 'inherit');
-    expect(root).not.toHaveAttribute('data-gsap-theme');
-    expect(screen.getByText('工具结果')).toHaveClass('gsap-plugin-card-title');
+    const root = screen.getByTestId('codia-plugin-theme');
+    expect(root).toHaveClass('codia-plugin-theme');
+    expect(root).toHaveAttribute('data-codia-theme-mode', 'inherit');
+    expect(root).not.toHaveAttribute('data-codia-theme');
+    expect(screen.getByText('工具结果')).toHaveClass('codia-plugin-card-title');
     expect(screen.getByText('正文')).toBeInTheDocument();
   });
 
   it('applies named and custom theme tokens while leaving unspecified tokens to CSS fallback', () => {
     const { rerender } = render(
-      <GsapThemeProvider mode="gsap" theme="midnight">
+      <CodiaThemeProvider mode="codia" theme="midnight">
         <span>named</span>
-      </GsapThemeProvider>,
+      </CodiaThemeProvider>,
     );
 
-    let root = screen.getByTestId('gsap-plugin-theme');
-    expect(root).toHaveAttribute('data-gsap-theme-mode', 'gsap');
-    expect(root).toHaveAttribute('data-gsap-theme', 'midnight');
+    let root = screen.getByTestId('codia-plugin-theme');
+    expect(root).toHaveAttribute('data-codia-theme-mode', 'codia');
+    expect(root).toHaveAttribute('data-codia-theme', 'midnight');
     expect(root).toHaveStyle({
-      '--gsap-plugin-bg': '#3B4A54',
-      '--gsap-plugin-accent': '#C99AAF',
+      '--codia-plugin-bg': '#3B4A54',
+      '--codia-plugin-accent': '#C99AAF',
     });
 
     rerender(
-      <GsapThemeProvider mode="custom" theme={{ bg: '#111111', accent: '#88AAFF' }}>
+      <CodiaThemeProvider mode="custom" theme={{ bg: '#111111', accent: '#88AAFF' }}>
         <span>custom</span>
-      </GsapThemeProvider>,
+      </CodiaThemeProvider>,
     );
 
-    root = screen.getByTestId('gsap-plugin-theme');
-    expect(root).toHaveAttribute('data-gsap-theme-mode', 'custom');
+    root = screen.getByTestId('codia-plugin-theme');
+    expect(root).toHaveAttribute('data-codia-theme-mode', 'custom');
     expect(root).toHaveStyle({
-      '--gsap-plugin-bg': '#111111',
-      '--gsap-plugin-accent': '#88AAFF',
+      '--codia-plugin-bg': '#111111',
+      '--codia-plugin-accent': '#88AAFF',
     });
-    expect(root.style.getPropertyValue('--gsap-plugin-text')).toBe('');
+    expect(root.style.getPropertyValue('--codia-plugin-text')).toBe('');
   });
 
-  it('renders controlled controls with stable G-SAP component classes', () => {
+  it('renders controlled controls with stable Codia component classes', () => {
     const onButtonClick = vi.fn();
     const onTextChange = vi.fn();
     const onSwitchChange = vi.fn();
@@ -83,23 +83,23 @@ describe('plugin component SDK', () => {
         <IconButton label="刷新" onClick={onButtonClick}>
           R
         </IconButton>
-        <TextInput label="名称" value="hana" onChange={onTextChange} />
+        <TextInput label="名称" value="codia" onChange={onTextChange} />
         <Textarea label="备注" value="notes" onChange={onTextChange} />
         <Switch checked={false} onChange={onSwitchChange} label="启用" />
       </>,
     );
 
     const button = screen.getByRole('button', { name: '保存' });
-    expect(button).toHaveClass('gsap-plugin-button', 'gsap-plugin-button-primary');
+    expect(button).toHaveClass('codia-plugin-button', 'codia-plugin-button-primary');
     fireEvent.click(button);
     expect(onButtonClick).toHaveBeenCalledTimes(1);
 
-    expect(screen.getByRole('button', { name: '刷新' })).toHaveClass('gsap-plugin-icon-button');
-    expect(screen.getByLabelText('名称')).toHaveClass('gsap-plugin-input');
-    expect(screen.getByLabelText('备注')).toHaveClass('gsap-plugin-textarea');
+    expect(screen.getByRole('button', { name: '刷新' })).toHaveClass('codia-plugin-icon-button');
+    expect(screen.getByLabelText('名称')).toHaveClass('codia-plugin-input');
+    expect(screen.getByLabelText('备注')).toHaveClass('codia-plugin-textarea');
 
     const toggle = screen.getByRole('switch', { name: '启用' });
-    expect(toggle).toHaveClass('gsap-plugin-switch');
+    expect(toggle).toHaveClass('codia-plugin-switch');
     fireEvent.click(toggle);
     expect(onSwitchChange).toHaveBeenCalledWith(true);
   });
@@ -141,9 +141,9 @@ describe('plugin component SDK', () => {
       </CardShell>,
     );
 
-    expect(screen.getByText('同步')).toHaveClass('gsap-plugin-card-title');
-    expect(screen.getByText('目标')).toHaveClass('gsap-plugin-setting-label');
-    expect(screen.getByText('第一项')).toHaveClass('gsap-plugin-list-title');
-    expect(screen.getByText('暂无结果')).toHaveClass('gsap-plugin-empty-title');
+    expect(screen.getByText('同步')).toHaveClass('codia-plugin-card-title');
+    expect(screen.getByText('目标')).toHaveClass('codia-plugin-setting-label');
+    expect(screen.getByText('第一项')).toHaveClass('codia-plugin-list-title');
+    expect(screen.getByText('暂无结果')).toHaveClass('codia-plugin-empty-title');
   });
 });

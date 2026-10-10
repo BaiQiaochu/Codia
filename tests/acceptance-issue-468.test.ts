@@ -6,13 +6,13 @@
  *
  * 这套测试把 DeepSeek 思考模式协议的硬约束翻译成可执行断言，模拟 plan §Task 11 列举的 3 个
  * 真实触发场景的 payload 形态，并在场景 B 覆盖 pi-ai convertMessages 后的实际出站形态，
- * 验证 G-SAP 经过 normalizeProviderPayload 全链路后输出的
+ * 验证 Codia 经过 normalizeProviderPayload 全链路后输出的
  * payload 满足 DeepSeek server 端校验：
  *
  *   场景 A — V4-Pro 多轮 + 工具调用：assistant 历史每条带 tool_calls 的消息都必须有
  *           reasoning_content 字段
  *   场景 B — V4-Pro 切 V4-Flash 多轮：跨子版本切换后 transform-messages 把 thinking
- *           block 降级为 text，G-SAP 必须从 content 恢复 reasoning_content
+ *           block 降级为 text，Codia 必须从 content 恢复 reasoning_content
  *   场景 C — 切 thinking off：disable 路径不再强制 reasoning_content，避免关思考用户受影响
  *
  * 这套测试不依赖真实 DeepSeek API key，跑 npm test 即可验证 #468 不再 400。
@@ -61,7 +61,7 @@ describe("issue #468 验收 — DeepSeek 思考模式协议铁律", () => {
   describe("场景 A：V4-Pro 多轮 + 工具调用（issue 主体复现）", () => {
     it("第 2 轮请求：assistant 历史带 tool_calls + reasoning_content → 通过协议校验", () => {
       // 第 1 轮：用户问问题；DeepSeek 返回 reasoning_content + tool_calls
-      // 第 2 轮：用户继续追问；G-SAP 把第 1 轮 assistant 历史拼回去
+      // 第 2 轮：用户继续追问；Codia 把第 1 轮 assistant 历史拼回去
       const payload = {
         model: "deepseek-v4-pro",
         messages: [
@@ -162,7 +162,7 @@ describe("issue #468 验收 — DeepSeek 思考模式协议铁律", () => {
     it("用 V4-Flash 发请求，历史含 V4-Pro 时代降级的 thinking block → 全员补 reasoning_content", () => {
       // 模拟用户开了 V4-Pro 跑了一轮工具调用，切到 V4-Flash 继续。
       // pi-ai transform-messages 跨模型保护把 thinking block 降级为 text。
-      // 没有 G-SAP 恢复逻辑的话，新请求历史里有 tool_calls 但缺 reasoning_content，DeepSeek 拒收。
+      // 没有 Codia 恢复逻辑的话，新请求历史里有 tool_calls 但缺 reasoning_content，DeepSeek 拒收。
       const payload = {
         model: "deepseek-v4-flash",
         messages: [

@@ -5,7 +5,7 @@ import {
   modelSupportsAudioInput,
   modelSupportsDirectAudioInput,
   resolveModelAudioInputTransport,
-  withGsapAudioInputCompat,
+  withCodiaAudioInputCompat,
 } from "../shared/model-capabilities.ts";
 
 describe("model audio capabilities", () => {
@@ -51,13 +51,13 @@ describe("model audio capabilities", () => {
     expect(modelSupportsDirectAudioInput(model)).toBe(false);
   });
 
-  it("projects explicit G-SAP audio compatibility without mutating the source model", () => {
+  it("projects explicit Codia audio compatibility without mutating the source model", () => {
     const model = { id: "custom-audio", provider: "custom", compat: {} };
-    const projected = withGsapAudioInputCompat(model, true);
+    const projected = withCodiaAudioInputCompat(model, true);
 
     expect(projected).not.toBe(model);
-    expect(projected.compat.gsapAudioInput).toBe(true);
-    expect(model.compat.gsapAudioInput).toBeUndefined();
+    expect(projected.compat.codiaAudioInput).toBe(true);
+    expect(model.compat.codiaAudioInput).toBeUndefined();
     expect(resolveModelAudioInputTransport(projected)).toBe(MODEL_AUDIO_TRANSPORTS.UNSUPPORTED);
   });
 });

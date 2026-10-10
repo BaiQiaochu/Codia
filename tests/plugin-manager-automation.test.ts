@@ -10,7 +10,7 @@ let pluginsDir;
 let dataDir;
 
 beforeEach(() => {
-  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-pm-automation-"));
+  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "codia-pm-automation-"));
   pluginsDir = path.join(tmpHome, "plugins");
   dataDir = path.join(tmpHome, "plugin-data");
   fs.mkdirSync(pluginsDir, { recursive: true });

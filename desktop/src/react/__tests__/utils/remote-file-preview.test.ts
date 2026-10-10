@@ -2,15 +2,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FileRef } from '../../types/file-ref';
 
-const gsapFetchMock = vi.fn((..._args: unknown[]) => undefined);
-const gsapUrlMock = vi.fn((path: string) => `https://pwa.local${path}`);
+const codiaFetchMock = vi.fn((..._args: unknown[]) => undefined);
+const codiaUrlMock = vi.fn((path: string) => `https://pwa.local${path}`);
 const openPreviewMock = vi.fn((..._args: unknown[]) => undefined);
 const openMediaViewerForRefMock = vi.fn((..._args: unknown[]) => undefined);
 const openFilePreviewMock = vi.fn((..._args: unknown[]) => undefined);
 
-vi.mock('../../hooks/use-gsap-fetch', () => ({
-  gsapFetch: (...args: unknown[]) => gsapFetchMock(...args),
-  gsapUrl: (path: string) => gsapUrlMock(path),
+vi.mock('../../hooks/use-codia-fetch', () => ({
+  codiaFetch: (...args: unknown[]) => codiaFetchMock(...args),
+  codiaUrl: (path: string) => codiaUrlMock(path),
 }));
 
 vi.mock('../../stores/preview-actions', () => ({
@@ -75,7 +75,7 @@ describe('remote file preview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     document.documentElement.setAttribute('data-platform', 'web');
-    gsapFetchMock.mockResolvedValue(new Response('# Remote file'));
+    codiaFetchMock.mockResolvedValue(new Response('# Remote file'));
   });
 
   afterEach(() => {
@@ -88,7 +88,7 @@ describe('remote file preview', () => {
 
     await openFileRefPreview(remoteMarkdownRef(), { origin: 'session', sessionPath: '/s/a.jsonl' });
 
-    expect(gsapFetchMock).toHaveBeenCalledWith('/api/resources/res_sf_out/content');
+    expect(codiaFetchMock).toHaveBeenCalledWith('/api/resources/res_sf_out/content');
     expect(openPreviewMock).toHaveBeenCalledWith(expect.objectContaining({
       id: 'resource-res_sf_out',
       type: 'markdown',
@@ -134,7 +134,7 @@ describe('remote file preview', () => {
       },
     });
 
-    expect(gsapFetchMock).toHaveBeenCalledWith(
+    expect(codiaFetchMock).toHaveBeenCalledWith(
       `/api/workbench/content?mountId=root-a&subdir=docs&name=note.md&v=${encodeURIComponent(`${mtimeMs}-13`)}`,
     );
     expect(openPreviewMock).toHaveBeenCalledWith(expect.objectContaining({
@@ -156,7 +156,7 @@ describe('remote file preview', () => {
   });
 
   it('saves mobile workbench text through the remote action route', async () => {
-    gsapFetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
+    codiaFetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
       ok: true,
       version: { mtimeMs: 20, size: 7, sha256: 'next' },
     }), {
@@ -173,7 +173,7 @@ describe('remote file preview', () => {
       version: { mtimeMs: 10, size: 5 },
     }, 'updated', { mtimeMs: 10, size: 5 });
 
-    expect(gsapFetchMock).toHaveBeenCalledWith('/api/workbench/actions', expect.objectContaining({
+    expect(codiaFetchMock).toHaveBeenCalledWith('/api/workbench/actions', expect.objectContaining({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

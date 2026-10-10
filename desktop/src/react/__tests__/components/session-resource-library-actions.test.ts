@@ -16,7 +16,7 @@ describe('SessionResourceLibraryPanel actions', () => {
     expect(source).toContain("target: 'input'");
     expect(source).toContain("target: 'workflow'");
     expect(source).toContain("setCurrentTab('channels')");
-    expect(source).not.toContain('gsap-channel-workflow-add-resource');
+    expect(source).not.toContain('codia-channel-workflow-add-resource');
     expect(source).not.toContain('requestAnimationFrame');
   });
 });

@@ -516,7 +516,7 @@ describe("CompactionGuardExtension", () => {
         reasoning: true,
         contextWindow: 128_000,
       })).toMatchObject({
-        reasoning_effort: "high",
+        reasoning_effort: "low",
       });
     });
 

@@ -24,7 +24,7 @@ describe("SessionListProjectionCache", () => {
     } finally { await fs.rm(dir, { recursive: true, force: true }); }
   });
   it("projects session list rows from JSONL files and reuses unchanged projections", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "gsap-session-list-cache-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "codia-session-list-cache-"));
     try {
       const sessionPath = path.join(dir, "s1.jsonl");
       await fs.writeFile(sessionPath, [

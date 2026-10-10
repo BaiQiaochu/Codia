@@ -131,7 +131,7 @@ function buildPiSummaryPrompt({ preparation, customInstructions } = {}) {
   let basePrompt = preparation?.previousSummary
     ? PI_UPDATE_SUMMARIZATION_PROMPT
     : PI_SUMMARIZATION_PROMPT;
-  basePrompt = `G-SAP cache-preserving compaction\n\n${basePrompt}`;
+  basePrompt = `Codia cache-preserving compaction\n\n${basePrompt}`;
   if (customInstructions) {
     basePrompt = `${basePrompt}\n\nAdditional focus: ${customInstructions}`;
   }

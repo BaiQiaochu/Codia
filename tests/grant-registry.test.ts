@@ -13,7 +13,7 @@ describe("grant registry", () => {
 
   it("creates an empty registry for older data roots", async () => {
     const { ensureGrantRegistry } = await import("../core/grant-registry.js");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-grants-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-grants-"));
 
     const registry = ensureGrantRegistry(tmpDir);
 
@@ -27,7 +27,7 @@ describe("grant registry", () => {
       findActiveGrantsForPrincipal,
       revokeGrant,
     } = await import("../core/grant-registry.js");
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-grants-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-grants-"));
 
     const grant = createGrant(tmpDir, {
       principalId: "principal_device_1",

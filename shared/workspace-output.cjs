@@ -1,6 +1,6 @@
 const path = require("path");
 
-const WORKSPACE_OUTPUT_ROOT_DIRNAME = "BYOUNG-Works";
+const WORKSPACE_OUTPUT_ROOT_DIRNAME = "Codia-Works";
 
 const WINDOWS_RESERVED_CHARS = new Set(["<", ">", ":", "\"", "/", "\\", "|", "?", "*"]);
 const WINDOWS_RESERVED_DEVICE_NAMES = new Set([

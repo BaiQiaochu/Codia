@@ -11,7 +11,7 @@ import {
 import { loadLocale } from "../lib/i18n.ts";
 
 function mktemp() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "hana-experience-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "codia-experience-"));
 }
 
 describe("experience tools", () => {

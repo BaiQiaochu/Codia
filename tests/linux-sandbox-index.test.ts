@@ -48,10 +48,10 @@ describe("createSandboxedTools on Linux", () => {
   it("fails closed for bash when bwrap is unavailable while sandbox remains enabled", async () => {
     const { createSandboxedTools } = await import("../lib/sandbox/index.ts");
     const result = createSandboxedTools("/work", [], {
-      agentDir: "/hana/agents/hana",
+      agentDir: "/codia/agents/codia",
       workspace: "/work",
       workspaceFolders: [],
-      hanakoHome: "/hana",
+      codiaHome: "/codia",
       getSandboxEnabled: () => true,
     } as any);
 
@@ -65,10 +65,10 @@ describe("createSandboxedTools on Linux", () => {
   it("uses the direct bash fallback when the user explicitly disables sandbox", async () => {
     const { createSandboxedTools } = await import("../lib/sandbox/index.ts");
     const result = createSandboxedTools("/work", [], {
-      agentDir: "/hana/agents/hana",
+      agentDir: "/codia/agents/codia",
       workspace: "/work",
       workspaceFolders: [],
-      hanakoHome: "/hana",
+      codiaHome: "/codia",
       getSandboxEnabled: () => false,
     } as any);
 
@@ -81,15 +81,15 @@ describe("createSandboxedTools on Linux", () => {
   it("resolves read fileId through the current session before path guard and SDK execution", async () => {
     const { createSandboxedTools } = await import("../lib/sandbox/index.ts");
     const result = createSandboxedTools("/work", [], {
-      agentDir: "/hana/agents/hana",
+      agentDir: "/codia/agents/codia",
       workspace: "/work",
       workspaceFolders: [],
-      hanakoHome: "/hana",
+      codiaHome: "/codia",
       getSandboxEnabled: () => true,
-      getSessionPath: () => "/hana/agents/hana/sessions/main.jsonl",
+      getSessionPath: () => "/codia/agents/codia/sessions/main.jsonl",
       resolveSessionFile: vi.fn((fileId: any, options: any) => {
         expect(fileId).toBe("sf_cjk_digits");
-        expect(options).toEqual({ sessionPath: "/hana/agents/hana/sessions/main.jsonl" });
+        expect(options).toEqual({ sessionPath: "/codia/agents/codia/sessions/main.jsonl" });
         return {
           fileId,
           filePath: "/work/测试123/报告2026.txt",

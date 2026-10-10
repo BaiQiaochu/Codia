@@ -9,7 +9,7 @@ import { ModelManager } from "../core/model-manager.js";
 let tmpDir;
 
 beforeEach(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-model-manager-auth-"));
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-model-manager-auth-"));
 });
 
 afterEach(() => {
@@ -104,7 +104,7 @@ describe("ModelManager ModelRuntime credential ownership", () => {
       },
     });
 
-    const manager = new ModelManager({ gsapHome: tmpDir });
+    const manager = new ModelManager({ codiaHome: tmpDir });
     await manager.init();
     await manager.syncAndRefresh();
 
@@ -142,7 +142,7 @@ describe("ModelManager ModelRuntime credential ownership", () => {
       },
     });
 
-    const manager = new ModelManager({ gsapHome: tmpDir });
+    const manager = new ModelManager({ codiaHome: tmpDir });
     await manager.init();
     await manager.syncAndRefresh();
 
@@ -170,7 +170,7 @@ describe("ModelManager ModelRuntime credential ownership", () => {
         deepseek: deepseekProvider("public"),
       });
 
-      const manager = new ModelManager({ gsapHome: tmpDir });
+      const manager = new ModelManager({ codiaHome: tmpDir });
       await manager.init();
       await manager.syncAndRefresh();
 
@@ -189,7 +189,7 @@ describe("ModelManager ModelRuntime credential ownership", () => {
       chatgpt: chatgptProvider("sk-chatgpt-old"),
     });
 
-    const manager = new ModelManager({ gsapHome: tmpDir });
+    const manager = new ModelManager({ codiaHome: tmpDir });
     await manager.init();
     await manager.syncAndRefresh();
 
@@ -209,10 +209,10 @@ describe("ModelManager ModelRuntime credential ownership", () => {
   it("does not overwrite a real runtime API key with a projected runtime reference", async () => {
     writeAuth({});
     writeAddedModels({
-      chatgpt: chatgptProvider("gsap-runtime-api-key:chatgpt"),
+      chatgpt: chatgptProvider("codia-runtime-api-key:chatgpt"),
     });
 
-    const manager = new ModelManager({ gsapHome: tmpDir });
+    const manager = new ModelManager({ codiaHome: tmpDir });
     await manager.init();
     await manager.syncAndRefresh();
 
@@ -229,7 +229,7 @@ describe("ModelManager ModelRuntime credential ownership", () => {
       deepseek: deepseekProvider(undefined),
     });
 
-    const manager = new ModelManager({ gsapHome: tmpDir });
+    const manager = new ModelManager({ codiaHome: tmpDir });
     await manager.init();
     await manager.syncAndRefresh();
 
@@ -256,7 +256,7 @@ describe("ModelManager ModelRuntime credential ownership", () => {
       },
     });
 
-    const manager = new ModelManager({ gsapHome: tmpDir });
+    const manager = new ModelManager({ codiaHome: tmpDir });
     await manager.init();
     await manager.syncAndRefresh();
 
@@ -273,7 +273,7 @@ describe("ModelManager ModelRuntime credential ownership", () => {
       deepseek: deepseekProvider("sk-new-999c"),
     });
 
-    const manager = new ModelManager({ gsapHome: tmpDir });
+    const manager = new ModelManager({ codiaHome: tmpDir });
     await manager.init();
     await manager.syncAndRefresh();
 
@@ -290,7 +290,7 @@ describe("ModelManager ModelRuntime credential ownership", () => {
       deepseek: deepseekProvider(""),
     });
 
-    const manager = new ModelManager({ gsapHome: tmpDir });
+    const manager = new ModelManager({ codiaHome: tmpDir });
     await manager.init();
     await manager.syncAndRefresh();
 
@@ -309,7 +309,7 @@ describe("ModelManager ModelRuntime credential ownership", () => {
       deepseek: deepseekProvider("sk-new-999c"),
     });
 
-    const manager = new ModelManager({ gsapHome: tmpDir });
+    const manager = new ModelManager({ codiaHome: tmpDir });
     await manager.init();
     writeAuth({});
 
@@ -335,7 +335,7 @@ describe("ModelManager ModelRuntime credential ownership", () => {
       },
     });
 
-    const manager = new ModelManager({ gsapHome: tmpDir });
+    const manager = new ModelManager({ codiaHome: tmpDir });
     manager.providerRegistry.reload();
     manager._modelRuntime = {
       getModels: () => [{ id: "gpt-5.5", provider: "openai-codex-oauth" }],
@@ -368,7 +368,7 @@ describe("ModelManager ModelRuntime credential ownership", () => {
       },
     });
 
-    const manager = new ModelManager({ gsapHome: tmpDir });
+    const manager = new ModelManager({ codiaHome: tmpDir });
     manager.providerRegistry.reload();
     manager._modelRuntime = {
       getModels: () => [{ id: "gpt-5.5", provider: "openai-codex-oauth" }],

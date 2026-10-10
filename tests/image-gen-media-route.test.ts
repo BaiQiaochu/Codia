@@ -41,7 +41,7 @@ function makeAppWithBus(dataDir, request) {
 }
 
 function makeTempDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gsap-image-gen-route-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-image-gen-route-"));
   tempDirs.push(dir);
   return dir;
 }
