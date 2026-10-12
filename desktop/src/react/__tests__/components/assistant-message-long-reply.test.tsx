@@ -384,7 +384,7 @@ describe('AssistantMessage long reply rendering', () => {
     expect(expandedImage?.style.width).toBe('144%');
   });
 
-  it('renders media generation placeholders with stable cycling dots', async () => {
+  it('renders media generation placeholders with the animated visual treatment', async () => {
     const message: ChatMessage = {
       id: 'msg-media-placeholder',
       role: 'assistant',
@@ -409,7 +409,8 @@ describe('AssistantMessage long reply rendering', () => {
     );
 
     expect(screen.getByLabelText('Image generation...')).toBeTruthy();
-    expect(container.querySelector('[class*="mediaGenerationDots"]')).toBeTruthy();
+    expect(container.querySelector('[class*="mediaGenerationIconShell"]')).toBeTruthy();
+    expect(container.querySelector('[class*="mediaGenerationProgress"]')).toBeTruthy();
     expect(screen.getByText('Generate a clean product mockup')).toBeTruthy();
   });
 

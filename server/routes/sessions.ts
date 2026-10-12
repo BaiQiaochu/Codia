@@ -9,6 +9,30 @@ import { Hono } from "hono";
 import { routeError, strictJson } from "../hono-helpers.ts";
 import { t } from "../../lib/i18n.ts";
 import { extractBlocks, resolveMediaGenerationBlocks } from "../block-extractors.ts";
+
+function normalizeLegacyPluginPresentation(presentation: any, engine: any) {
+  if (!presentation || typeof presentation !== 'object' || Array.isArray(presentation)) return presentation;
+  if (Array.isArray(presentation.plugins) && presentation.plugins.length > 0) return presentation;
+  if (typeof presentation.text !== 'string' || !presentation.text.includes('$')) return presentation;
+
+  const installed = (engine?.pluginManager?.listPlugins?.() || [])
+    .filter((plugin: any) => plugin && !plugin.hidden && typeof plugin.id === 'string' && plugin.id.trim())
+    .sort((a: any, b: any) => b.id.length - a.id.length);
+  if (installed.length === 0) return presentation;
+
+  let text = presentation.text;
+  const plugins: Array<{ id: string; name: string }> = [];
+  for (const plugin of installed) {
+    const escapedId = plugin.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const token = new RegExp(`(^|\\s)\\$${escapedId}(?=\\s|$)`, 'g');
+    if (!token.test(text)) continue;
+    token.lastIndex = 0;
+    text = text.replace(token, '$1');
+    plugins.push({ id: plugin.id, name: String(plugin.name || plugin.id) });
+  }
+  if (plugins.length === 0) return presentation;
+  return { ...presentation, text: text.replace(/[ \t]{2,}/g, ' ').trim(), plugins };
+}
 import { BrowserManager } from "../../lib/browser/browser-manager.ts";
 import { replayLatestUserTurn } from "../../core/session-turn-actions.ts";
 import {
@@ -950,16 +974,19 @@ export function createSessionsRoute(engine: any, hub: any = null) {
       for (let sourceIndex = 0; sourceIndex < sourceMessages.length; sourceIndex += 1) {
         const m = sourceMessages[sourceIndex];
         if (m.role === "user") {
-          const { text, images } = extractTextContent(m.content);
+          const presentation = normalizeLegacyPluginPresentation(m.presentation, engine);
+          const extracted = extractTextContent(m.content);
+          const text = typeof presentation?.text === 'string' ? presentation.text : extracted.text;
+          const images = extracted.images;
           const visibleImages = filterUnreferencedInlineImages(text, images);
-          if (text || visibleImages.length || m.presentation) {
+          if (text || visibleImages.length || presentation) {
             allMessages.push({
               id: String(globalIdx++),
               sourceIndex,
               ...(m.id ? { entryId: m.id } : {}),
               role: "user",
-              ...(m.presentation ? Object.fromEntries(['attachments', 'skills', 'workspaceTool', 'quotedText', 'deskContext', 'quickAction', 'agentMentions', 'sessionRefs', 'agentReview', 'reviewSourceSessionId']
-                .filter(key => m.presentation[key] !== undefined).map(key => [key, m.presentation[key]])) : {}),
+              ...(presentation ? Object.fromEntries(['attachments', 'skills', 'plugins', 'workspaceTool', 'quotedText', 'deskContext', 'quickAction', 'agentMentions', 'sessionRefs', 'agentReview', 'reviewSourceSessionId']
+                .filter(key => presentation[key] !== undefined).map(key => [key, presentation[key]])) : {}),
               content: text,
               images: visibleImages.length ? visibleImages : undefined,
               ...(m.timestamp ? { timestamp: m.timestamp } : {}),

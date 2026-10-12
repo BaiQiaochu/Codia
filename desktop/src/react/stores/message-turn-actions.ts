@@ -31,6 +31,7 @@ export async function replayLatestUserMessage(
           quotedText: message.quotedText,
           attachments: message.attachments,
           skills: message.skills,
+          plugins: message.plugins,
           workspaceTool: message.workspaceTool,
           deskContext: message.deskContext ?? null,
         },

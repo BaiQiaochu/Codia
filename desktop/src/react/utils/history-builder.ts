@@ -33,6 +33,7 @@ export interface HistoryApiResponse {
     timestamp?: number | string | null;
     sourceIndex?: number;
     skills?: string[];
+    plugins?: ChatMessage['plugins'];
     attachments?: ChatMessage['attachments'];
     quickAction?: ChatMessage['quickAction'];
     agentMentions?: ChatMessage['agentMentions'];
@@ -385,6 +386,7 @@ export function buildItemsFromHistory(data: HistoryApiResponse): ChatListItem[] 
         deskContext: deskContext || undefined,
         quotedText: quotedText || undefined,
         skills: m.skills?.length ? m.skills : (skills.length ? skills : undefined),
+        plugins: m.plugins,
         timestamp,
       };
       items.push({ type: 'message', data: msg });

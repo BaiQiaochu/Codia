@@ -247,7 +247,14 @@
     "compacting": "上下文壓縮中",
     "visionAuxiliary": "輔助視覺",
     "fileExpired": "檔案已過期",
+    "messageReferences": "訊息引用",
     "messageUnavailable": "訊息暫時不可用",
+    "mediaGenerationStatus": {
+      "creatingImage": "正在生成圖片",
+      "creatingVideo": "正在生成影片",
+      "imageFailed": "圖片生成失敗",
+      "videoFailed": "影片生成失敗"
+    },
     "fileActions": {
       "preview": "預覽",
       "save": "儲存",

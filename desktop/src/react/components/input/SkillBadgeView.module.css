@@ -11,6 +11,7 @@
   border-radius: var(--radius-sm);
   line-height: 1.4;
   white-space: nowrap;
+  max-width: min(100%, 24rem);
   vertical-align: middle;
   user-select: none;
   margin-right: 0.3rem;
@@ -21,7 +22,8 @@
 }
 
 .name {
-  /* inherits color from .badge */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .remove {

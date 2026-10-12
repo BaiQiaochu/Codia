@@ -20,7 +20,7 @@ export interface EditorFileRef {
  * Walk TipTap JSON document, extract input badges and plain text.
  */
 export function serializeEditor(json: JSONContent): { text: string; skills: string[]; fileRefs: EditorFileRef[] } & ComposerReferences {
-  const references: ComposerReferences = { agentMentions: [], sessionRefs: [] };
+  const references: ComposerReferences = { agentMentions: [], sessionRefs: [], plugins: [] };
   const skills: string[] = [];
   const fileRefs: EditorFileRef[] = [];
   const textParts: string[] = [];
@@ -46,7 +46,10 @@ export function serializeEditor(json: JSONContent): { text: string; skills: stri
       return;
     }
     if (node.type === 'pluginBadge' && node.attrs?.id) {
-      textParts.push(`$${String(node.attrs.id)}`);
+      const id = String(node.attrs.id);
+      if (!references.plugins.some(plugin => plugin.id === id)) {
+        references.plugins.push({ id, name: String(node.attrs.name || id) });
+      }
       return;
     }
     if (node.type === 'fileBadge' && node.attrs) {

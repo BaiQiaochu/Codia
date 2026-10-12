@@ -207,6 +207,24 @@
     margin-bottom: 0;
 }
 
+.userMessageReferences {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    margin-bottom: var(--space-xs);
+}
+
+.userMessageReferences > span {
+    min-width: 0;
+    margin-right: 0;
+}
+
+.userMessageReferences:last-child {
+    margin-bottom: 0;
+}
+
 .messageUserEditing {
     width: min(520px, 78vw);
     max-width: 92%;
@@ -1410,71 +1428,238 @@
     max-width: 100%;
     aspect-ratio: 1 / 1;
     margin: var(--space-sm) 0;
-    padding: 0.3rem;
-    background: var(--bg-card, var(--bg));
-    border: 0.5px solid var(--border, rgba(0,0,0,0.08));
+    padding: 0.26rem;
+    background: color-mix(in srgb, var(--bg-card, var(--bg)) 94%, var(--accent));
+    border: 1px solid color-mix(in srgb, var(--accent) 15%, var(--border));
     border-radius: var(--radius-lg);
-    box-shadow: 0 1px 4px color-mix(in srgb, var(--shadow) 35%, transparent);
+    box-shadow:
+        0 1px 2px color-mix(in srgb, var(--shadow) 24%, transparent),
+        0 10px 28px color-mix(in srgb, var(--accent) 8%, transparent);
     overflow: hidden;
 }
 
 .mediaGenerationCardFailed {
     border-style: dashed;
+    background: var(--bg-card, var(--bg));
 }
 
 .mediaGenerationSurface {
     position: relative;
+    isolation: isolate;
     flex: 1;
     width: 100%;
     min-width: 0;
     min-height: 100%;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 1rem;
+    padding: clamp(1.25rem, 8%, 2rem);
     border-radius: calc(var(--radius-lg) - 0.35rem);
-    background: linear-gradient(180deg, var(--overlay-subtle), var(--overlay-light)), var(--bg-card, var(--bg));
+    background:
+        radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 52%),
+        color-mix(in srgb, var(--bg-card, var(--bg)) 96%, var(--accent));
     overflow: hidden;
+}
+
+.mediaGenerationSurface::before,
+.mediaGenerationSurface::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+}
+
+.mediaGenerationSurface::before {
+    z-index: -2;
+    width: 76%;
+    aspect-ratio: 1;
+    border-radius: 42% 58% 55% 45%;
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    filter: blur(30px);
+    opacity: 0.62;
+    animation: codia-media-ambient 7s var(--ease-standard, ease-in-out) infinite alternate;
+}
+
+.mediaGenerationSurface::after {
+    z-index: -1;
+    inset: -35% -65%;
+    background: linear-gradient(
+        112deg,
+        transparent 35%,
+        color-mix(in srgb, var(--bg-card, #fff) 72%, transparent) 46%,
+        color-mix(in srgb, var(--accent) 13%, transparent) 50%,
+        color-mix(in srgb, var(--bg-card, #fff) 66%, transparent) 54%,
+        transparent 65%
+    );
+    transform: translateX(-36%);
+    animation: codia-media-sweep 3.8s var(--ease-standard, ease-in-out) infinite;
+}
+
+.mediaGenerationFlow {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(circle at 21% 24%, color-mix(in srgb, var(--accent) 13%, transparent) 0 8%, transparent 28%),
+        radial-gradient(circle at 81% 72%, color-mix(in srgb, var(--accent-hover) 11%, transparent) 0 9%, transparent 31%);
+    animation: codia-media-flow 5.4s var(--ease-standard, ease-in-out) infinite alternate;
+}
+
+.mediaGenerationVisual {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+}
+
+.mediaGenerationHalo {
+    position: absolute;
+    inset: 0.32rem;
+    border-radius: 1.45rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+    background: color-mix(in srgb, var(--bg-card, #fff) 72%, transparent);
+    box-shadow:
+        0 0 0 0 color-mix(in srgb, var(--accent) 16%, transparent),
+        0 10px 30px color-mix(in srgb, var(--accent) 16%, transparent);
+    animation: codia-media-halo 2.8s var(--ease-standard, ease-in-out) infinite;
+}
+
+.mediaGenerationIconShell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 3.35rem;
+    height: 3.35rem;
+    color: color-mix(in srgb, var(--accent) 82%, var(--text));
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+    border-radius: 1.1rem;
+    background: color-mix(in srgb, var(--bg-card, #fff) 90%, transparent);
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, var(--bg-card, #fff) 86%, transparent),
+        0 8px 20px color-mix(in srgb, var(--shadow) 34%, transparent);
+    backdrop-filter: blur(14px);
+    animation: codia-media-icon 3.2s var(--ease-standard, ease-in-out) infinite;
+}
+
+.mediaGenerationSparkle {
+    position: absolute;
+    color: color-mix(in srgb, var(--accent) 88%, var(--bg-card, #fff));
+    filter: drop-shadow(0 2px 5px color-mix(in srgb, var(--accent) 35%, transparent));
+}
+
+.mediaGenerationSparklePrimary {
+    top: 0.08rem;
+    right: 0;
+    animation: codia-media-sparkle 2.4s var(--ease-standard, ease-in-out) infinite;
+}
+
+.mediaGenerationSparkleSecondary {
+    left: 0.12rem;
+    bottom: 0.72rem;
+    animation: codia-media-sparkle 2.4s 0.72s var(--ease-standard, ease-in-out) infinite;
 }
 
 .mediaGenerationText {
     position: relative;
     z-index: 1;
-    width: min(62%, 220px);
+    width: min(82%, 250px);
     min-width: 0;
     text-align: center;
 }
 
 .mediaGenerationTitle {
     color: var(--text);
-    font-size: 0.82rem;
-    line-height: 1.35;
-}
-
-.mediaGenerationDots {
-    display: inline-block;
-    min-width: 1.8em;
-    text-align: left;
-}
-
-.mediaGenerationDots::after {
-    content: '';
-    animation: codia-cycling-dots 1.4s steps(1, end) infinite;
+    font-size: 0.85rem;
+    font-weight: 590;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
 }
 
 .mediaGenerationPrompt {
-    margin-top: 0.22rem;
+    display: -webkit-box;
+    margin-top: 0.38rem;
     color: var(--text-muted);
-    font-size: 0.72rem;
-    line-height: 1.35;
-    white-space: nowrap;
+    font-size: 0.71rem;
+    line-height: 1.45;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
-@keyframes codia-cycling-dots {
-    0%, 100% { content: '.'; }
-    33% { content: '..'; }
-    66% { content: '...'; }
+.mediaGenerationProgress {
+    width: min(100%, 8.5rem);
+    height: 2px;
+    margin: 0.9rem auto 0;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 11%, var(--border));
+    overflow: hidden;
+}
+
+.mediaGenerationProgress > span {
+    display: block;
+    width: 44%;
+    height: 100%;
+    border-radius: inherit;
+    background: color-mix(in srgb, var(--accent) 82%, var(--text));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 46%, transparent);
+    animation: codia-media-progress 2.15s var(--ease-standard, ease-in-out) infinite;
+}
+
+@keyframes codia-media-ambient {
+    0% { transform: translate3d(-16%, -9%, 0) rotate(-8deg) scale(0.88); }
+    100% { transform: translate3d(16%, 10%, 0) rotate(13deg) scale(1.08); }
+}
+
+@keyframes codia-media-sweep {
+    0%, 16% { transform: translateX(-36%); opacity: 0; }
+    32% { opacity: 0.72; }
+    68% { opacity: 0.72; }
+    84%, 100% { transform: translateX(36%); opacity: 0; }
+}
+
+@keyframes codia-media-flow {
+    0% { transform: scale(0.96) rotate(-2deg); opacity: 0.6; }
+    100% { transform: scale(1.06) rotate(3deg); opacity: 1; }
+}
+
+@keyframes codia-media-halo {
+    0%, 100% { transform: scale(0.92); box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 16%, transparent), 0 10px 30px color-mix(in srgb, var(--accent) 14%, transparent); }
+    50% { transform: scale(1.04); box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent), 0 12px 36px color-mix(in srgb, var(--accent) 22%, transparent); }
+}
+
+@keyframes codia-media-icon {
+    0%, 100% { transform: translateY(1px) scale(0.97); }
+    50% { transform: translateY(-2px) scale(1.02); }
+}
+
+@keyframes codia-media-sparkle {
+    0%, 100% { transform: scale(0.65) rotate(-10deg); opacity: 0.32; }
+    48% { transform: scale(1.08) rotate(8deg); opacity: 1; }
+}
+
+@keyframes codia-media-progress {
+    0% { transform: translateX(-112%); }
+    50% { transform: translateX(64%); }
+    100% { transform: translateX(228%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mediaGenerationSurface::before,
+    .mediaGenerationSurface::after,
+    .mediaGenerationFlow,
+    .mediaGenerationHalo,
+    .mediaGenerationIconShell,
+    .mediaGenerationSparkle,
+    .mediaGenerationProgress > span {
+        animation: none;
+    }
+
+    .mediaGenerationProgress > span {
+        transform: translateX(64%);
+    }
 }
 
 /* ── 图片输出卡片 ── */

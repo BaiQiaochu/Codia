@@ -22,4 +22,13 @@ describe('structured task and mention badges', () => {
     expect(result.agentMentions).toEqual([{ agentId: 'helper', label: '辅助助手' }]);
     expect(result.sessionRefs).toEqual([{ sessionId: 'history', label: '讨论' }]);
   });
+  it('keeps plugin invocations structured and out of the visible message text', () => {
+    const result = serializeEditor({ type: 'doc', content: [{ type: 'paragraph', content: [
+      { type: 'pluginBadge', attrs: { id: 'company', name: '企业助手' } },
+      { type: 'text', text: '这个插件是做什么的？' },
+    ] }] });
+
+    expect(result.text).toBe('这个插件是做什么的？');
+    expect(result.plugins).toEqual([{ id: 'company', name: '企业助手' }]);
+  });
 });

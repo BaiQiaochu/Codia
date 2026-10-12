@@ -236,6 +236,7 @@ export async function submitDesktopSessionMessage(engine, opts = {}) {
       attachments: displayAttachments,
       quotedText: displayMessage?.quotedText,
       skills: displayMessage?.skills,
+      plugins: displayMessage?.plugins,
       workspaceTool: displayMessage?.workspaceTool,
       deskContext: displayMessage?.deskContext ?? null,
       source: displayMessage?.source || "desktop",

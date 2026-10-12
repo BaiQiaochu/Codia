@@ -247,7 +247,14 @@
     "compacting": "上下文压缩中",
     "visionAuxiliary": "辅助视觉",
     "fileExpired": "文件已过期",
+    "messageReferences": "消息引用",
     "messageUnavailable": "消息暂时不可用",
+    "mediaGenerationStatus": {
+      "creatingImage": "正在生成图片",
+      "creatingVideo": "正在生成视频",
+      "imageFailed": "图片生成失败",
+      "videoFailed": "视频生成失败"
+    },
     "fileActions": {
       "preview": "预览",
       "save": "保存",

@@ -247,7 +247,14 @@
     "compacting": "Compacting context",
     "visionAuxiliary": "Vision auxiliary",
     "fileExpired": "File expired",
+    "messageReferences": "Message references",
     "messageUnavailable": "Message is temporarily unavailable",
+    "mediaGenerationStatus": {
+      "creatingImage": "Creating image",
+      "creatingVideo": "Creating video",
+      "imageFailed": "Image generation failed",
+      "videoFailed": "Video generation failed"
+    },
     "fileActions": {
       "preview": "Preview",
       "save": "Save",

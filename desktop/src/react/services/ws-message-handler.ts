@@ -701,6 +701,7 @@ export function handleServerMessage(msg: any): void {
           attachments: msg.message.attachments,
           quotedText: msg.message.quotedText,
           skills: msg.message.skills?.length ? msg.message.skills : (envelopeSkills.length ? envelopeSkills : undefined),
+          plugins: msg.message.plugins,
           workspaceTool: msg.message.workspaceTool,
           quickAction: msg.message.quickAction,
           agentMentions: msg.message.agentMentions,

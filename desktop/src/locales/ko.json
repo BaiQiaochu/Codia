@@ -247,7 +247,14 @@
     "compacting": "컨텍스트 압축 중",
     "visionAuxiliary": "보조 시각",
     "fileExpired": "파일 만료됨",
+    "messageReferences": "메시지 참조",
     "messageUnavailable": "메시지를 일시적으로 사용할 수 없어요",
+    "mediaGenerationStatus": {
+      "creatingImage": "이미지 생성 중",
+      "creatingVideo": "동영상 생성 중",
+      "imageFailed": "이미지 생성 실패",
+      "videoFailed": "동영상 생성 실패"
+    },
     "fileActions": {
       "preview": "미리보기",
       "save": "저장",

@@ -255,6 +255,7 @@ export interface ChatMessage {
   quickAction?: ComposerReferences['quickAction'];
   agentMentions?: ComposerReferences['agentMentions'];
   sessionRefs?: ComposerReferences['sessionRefs'];
+  plugins?: ComposerReferences['plugins'];
   agentReview?: AgentReviewState;
   reviewSourceSessionId?: string;
   id: string;              // 服务端返回的稳定 ID（JSONL 行号）

@@ -21,6 +21,7 @@ import { extOfName, isImageOrSvgExt } from '../../utils/file-kind';
 import { getUserAttachmentImageSrc } from '../../utils/user-attachment-media';
 import { replayLatestUserMessage } from '../../stores/message-turn-actions';
 import { AgentAvatar, resolveAgentDisplayInfo } from '../../utils/agent-display';
+import { Plug } from '@phosphor-icons/react';
 import styles from './Chat.module.css';
 import badgeStyles from '../input/SkillBadgeView.module.css';
 
@@ -193,8 +194,10 @@ export const UserMessage = memo(function UserMessage({
   ] : [], [busy, canShowLatestActions, handleEdit, handleRegenerate, isStreaming, t]);
   const footerActions = editing ? editingActions : latestActions;
   const hasSkillBadges = !!message.skills?.length;
+  const hasPluginBadges = !!message.plugins?.length;
   const hasWorkspaceToolBadge = !!message.workspaceTool?.title;
-  const hasTextBubble = editing || !!message.textHtml || hasSkillBadges || hasWorkspaceToolBadge || !!message.quickAction || !!message.agentReview || !!message.reviewSourceSessionId || !!message.agentMentions?.length || !!message.sessionRefs?.length;
+  const hasReferenceBadges = hasSkillBadges || hasPluginBadges || hasWorkspaceToolBadge || !!message.quickAction || !!message.agentMentions?.length || !!message.sessionRefs?.length;
+  const hasTextBubble = editing || !!message.textHtml || hasReferenceBadges || !!message.agentReview || !!message.reviewSourceSessionId;
 
   return (
     <div className={`${styles.messageGroup} ${styles.messageGroupUser}${isSelected ? ` ${styles.messageGroupSelected}` : ''}`}
@@ -228,35 +231,45 @@ export const UserMessage = memo(function UserMessage({
       )}
       {hasTextBubble && (
         <div className={`${styles.message} ${styles.messageUser}${editing ? ` ${styles.messageUserEditing}` : ''}`}>
-          {message.workspaceTool?.title && (
-            <span
-              className={badgeStyles.badge}
-              style={{ cursor: 'default' }}
-              title={message.workspaceTool.description || message.workspaceTool.title}
-            >
-              <svg className={badgeStyles.icon} width="13" height="13" viewBox="0 0 16 16" fill="none"
-                stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 3h10v10H3z" />
-                <path d="M6 6h4" />
-                <path d="M6 10h3" />
-              </svg>
-              <span className={badgeStyles.name}>工具 {message.workspaceTool.title}</span>
-            </span>
+          {hasReferenceBadges && (
+            <div className={styles.userMessageReferences} aria-label={t('chat.messageReferences')}>
+              {message.workspaceTool?.title && (
+                <span
+                  className={badgeStyles.badge}
+                  style={{ cursor: 'default' }}
+                  title={message.workspaceTool.description || message.workspaceTool.title}
+                >
+                  <svg className={badgeStyles.icon} width="13" height="13" viewBox="0 0 16 16" fill="none"
+                    stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 3h10v10H3z" />
+                    <path d="M6 6h4" />
+                    <path d="M6 10h3" />
+                  </svg>
+                  <span className={badgeStyles.name}>工具 {message.workspaceTool.title}</span>
+                </span>
+              )}
+              {message.quickAction && <span className={badgeStyles.badge}>✧ {QUICK_ACTIONS[message.quickAction]?.title}</span>}
+              {message.agentMentions?.map(ref => <span key={ref.agentId} className={badgeStyles.badge}>@{ref.label}</span>)}
+              {message.sessionRefs?.map(ref => <span key={ref.sessionId} className={badgeStyles.badge}>@{ref.label}</span>)}
+              {message.skills?.map(skillName => (
+                <span key={skillName} className={badgeStyles.badge} style={{ cursor: 'default' }} title={skillName}>
+                  <svg className={badgeStyles.icon} width="13" height="13" viewBox="0 0 16 16" fill="none"
+                    stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round">
+                    <path d="M8 1 L9.5 6 L15 8 L9.5 10 L8 15 L6.5 10 L1 8 L6.5 6 Z" />
+                  </svg>
+                  <span className={badgeStyles.name}>{skillName}</span>
+                </span>
+              ))}
+              {message.plugins?.map(plugin => (
+                <span key={plugin.id} className={badgeStyles.badge} style={{ cursor: 'default' }} title={plugin.name || plugin.id}>
+                  <Plug className={badgeStyles.icon} size={13} weight="bold" aria-hidden="true" />
+                  <span className={badgeStyles.name}>{plugin.name || plugin.id}</span>
+                </span>
+              ))}
+            </div>
           )}
-          {message.quickAction && <span className={badgeStyles.badge}>✧ {QUICK_ACTIONS[message.quickAction]?.title}</span>}
-          {message.agentMentions?.map(ref => <span key={ref.agentId} className={badgeStyles.badge}>@{ref.label}</span>)}
-          {message.sessionRefs?.map(ref => <span key={ref.sessionId} className={badgeStyles.badge}>@{ref.label}</span>)}
           {message.agentReview && <AgentReviewCard review={message.agentReview} />}
           {message.reviewSourceSessionId && <AgentReviewCard sourceSessionId={message.reviewSourceSessionId} />}
-          {message.skills && message.skills.length > 0 && message.skills.map(skillName => (
-            <span key={skillName} className={badgeStyles.badge} style={{ cursor: 'default' }}>
-              <svg className={badgeStyles.icon} width="13" height="13" viewBox="0 0 16 16" fill="none"
-                stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round">
-                <path d="M8 1 L9.5 6 L15 8 L9.5 10 L8 15 L6.5 10 L1 8 L6.5 6 Z" />
-              </svg>
-              <span className={badgeStyles.name}>{skillName}</span>
-            </span>
-          ))}
           {editing ? (
             <textarea
               ref={textareaRef}
@@ -276,7 +289,7 @@ export const UserMessage = memo(function UserMessage({
               disabled={busy}
             />
           ) : (
-            message.textHtml && <MarkdownContent html={message.textHtml} linkContext={{ origin: 'session', sessionPath, messageId: message.id }} />
+            message.textHtml && <MarkdownContent className={styles.userText} html={message.textHtml} linkContext={{ origin: 'session', sessionPath, messageId: message.id }} />
           )}
         </div>
       )}

@@ -1,5 +1,6 @@
 import { Component, memo, useCallback, useEffect, useMemo, useRef, useState, type ErrorInfo, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type WheelEvent as ReactWheelEvent } from 'react';
 import { createPortal } from 'react-dom';
+import { ImageSquare, Sparkle, VideoCamera } from '@phosphor-icons/react';
 import { StreamingMarkdownContent } from './StreamingMarkdownContent';
 import { MoodBlock } from './MoodBlock';
 import { InvokeBlock } from './InvokeBlock';
@@ -435,22 +436,57 @@ const EXT_LABELS: Record<string, string> = {
 
 const MediaGenerationBlock = memo(function MediaGenerationBlock({ block }: { block: Extract<ContentBlock, { type: 'media_generation' }> }) {
   const failed = block.status === 'failed' || block.status === 'aborted';
-  const kindLabel = block.kind === 'video' ? 'Video' : 'Image';
-  const titleText = failed ? `${kindLabel} generation failed` : `${kindLabel} generation`;
+  const isVideo = block.kind === 'video';
+  const kindLabel = isVideo ? 'Video' : 'Image';
+  const titleText = failed
+    ? textWithFallback(
+      isVideo ? 'chat.mediaGenerationStatus.videoFailed' : 'chat.mediaGenerationStatus.imageFailed',
+      `${kindLabel} generation failed`,
+    )
+    : textWithFallback(
+      isVideo ? 'chat.mediaGenerationStatus.creatingVideo' : 'chat.mediaGenerationStatus.creatingImage',
+      `Creating ${kindLabel.toLowerCase()}`,
+    );
   const detail = failed
     ? (typeof block.reason === 'string' ? block.reason : '')
     : (typeof block.prompt === 'string' ? block.prompt : '');
+  const GenerationIcon = isVideo ? VideoCamera : ImageSquare;
 
   return (
-    <div className={`${styles.mediaGenerationCard}${failed ? ` ${styles.mediaGenerationCardFailed}` : ''}`}>
+    <div
+      className={`${styles.mediaGenerationCard}${failed ? ` ${styles.mediaGenerationCardFailed}` : ''}`}
+      aria-busy={!failed}
+    >
       <div className={styles.mediaGenerationSurface}>
+        {!failed && <div className={styles.mediaGenerationFlow} aria-hidden="true" />}
+        <div className={styles.mediaGenerationVisual} aria-hidden="true">
+          <div className={styles.mediaGenerationHalo} />
+          <div className={styles.mediaGenerationIconShell}>
+            <GenerationIcon size={26} weight="duotone" />
+          </div>
+          {!failed && (
+            <>
+              <Sparkle className={`${styles.mediaGenerationSparkle} ${styles.mediaGenerationSparklePrimary}`} size={15} weight="fill" />
+              <Sparkle className={`${styles.mediaGenerationSparkle} ${styles.mediaGenerationSparkleSecondary}`} size={9} weight="fill" />
+            </>
+          )}
+        </div>
         <div className={styles.mediaGenerationText}>
-          <div className={styles.mediaGenerationTitle} aria-label={failed ? titleText : `${titleText}...`}>
+          <div
+            className={styles.mediaGenerationTitle}
+            role="status"
+            aria-live="polite"
+            aria-label={failed ? titleText : `${kindLabel} generation...`}
+          >
             <span>{titleText}</span>
-            {!failed && <span className={styles.mediaGenerationDots} aria-hidden="true" />}
           </div>
           {detail && (
-            <div className={styles.mediaGenerationPrompt}>{detail}</div>
+            <div className={styles.mediaGenerationPrompt} title={detail}>{detail}</div>
+          )}
+          {!failed && (
+            <div className={styles.mediaGenerationProgress} aria-hidden="true">
+              <span />
+            </div>
           )}
         </div>
       </div>

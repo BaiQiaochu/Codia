@@ -79,6 +79,9 @@ export function serializeChatMessageForCopy(message: ChatMessage): string {
     if (Array.isArray(message.skills) && message.skills.length > 0) {
       parts.push(message.skills.join(' '));
     }
+    if (Array.isArray(message.plugins) && message.plugins.length > 0) {
+      parts.push(message.plugins.map(plugin => `$${plugin.id}`).join(' '));
+    }
     if (message.textHtml) {
       parts.push(htmlToText(message.textHtml));
     } else if (message.text) {

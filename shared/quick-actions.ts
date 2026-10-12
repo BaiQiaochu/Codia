@@ -12,6 +12,7 @@ export interface ComposerReferences {
   quickAction?: QuickActionId;
   agentMentions: Array<{ agentId: string; label: string }>;
   sessionRefs: Array<{ sessionId: string; label: string }>;
+  plugins: Array<{ id: string; name: string }>;
 }
 export interface AgentReviewState {
   requestId: string;

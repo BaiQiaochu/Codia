@@ -17,6 +17,7 @@ describe('InputArea prompt queue wiring', () => {
     expect(source).toContain('files: AttachedFile[]');
     expect(source).toContain('quotedSelections: QuotedSelection[]');
     expect(source).toContain('skills: string[]');
+    expect(source).toContain('draft.plugins.map');
     expect(source).toContain('workspaceTool: WorkspaceToolSelection | null');
     expect(source).toContain("if (item.workspaceTool?.title) parts.push(`工具 ${item.workspaceTool.title}`);");
     expect(source).toContain('const workspaceTool = useStore(s => s.workspaceTool);');
@@ -39,6 +40,7 @@ describe('InputArea prompt queue wiring', () => {
     expect(source).toContain('buildPromptWsMessage');
     expect(source).toContain('collectUiContext(useStore.getState(), { workspaceTool: draft.workspaceTool })');
     expect(source).toContain('workspaceTool: draft.workspaceTool || undefined');
+    expect(source).toContain('plugins: draft.plugins.length > 0');
     expect(source).toContain('const activeWorkspaceTool = workspaceTool ? { ...workspaceTool } : null;');
     expect(source).toContain('collectUiContext(useStore.getState(), { workspaceTool: activeWorkspaceTool })');
     expect(source).toContain("import { streamBufferManager } from '../hooks/use-stream-buffer';");

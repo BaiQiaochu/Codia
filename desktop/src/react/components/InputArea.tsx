@@ -195,6 +195,7 @@ function queuedPromptLabel(item: QueuedPrompt): string {
   if (item.docContext) parts.push('文档');
   if (item.quotedSelections.length > 0) parts.push(`引用 ${item.quotedSelections.length}`);
   if (item.skills.length > 0) parts.push(`技能 ${item.skills.length}`);
+  if (item.plugins.length > 0) parts.push(`插件 ${item.plugins.length}`);
   return parts.join(' · ');
 }
 
@@ -260,7 +261,8 @@ async function buildPromptWsMessage({
     f.isDirectory || (!isImageFile(f.name) && !(sendVideosNatively && isVideoFile(f.name)))
   ));
 
-  let finalText = draft.text;
+  const pluginInvocation = draft.plugins.map(plugin => `$${plugin.id}`).join(' ');
+  let finalText = [pluginInvocation, draft.text].filter(Boolean).join(' ');
   if (otherFiles.length > 0) {
     const fileBlock = otherFiles.map(f => {
       const label = f.fileId ? (f.name || f.path) : f.path;
@@ -334,6 +336,7 @@ async function buildPromptWsMessage({
       sessionRefs: draft.sessionRefs,
       clientMessageId: draft.clientMessageId,
       skills: draft.skills.length > 0 ? [...draft.skills] : undefined,
+      plugins: draft.plugins.length > 0 ? draft.plugins.map(plugin => ({ ...plugin })) : undefined,
       workspaceTool: draft.workspaceTool || undefined,
       quotedText: draft.quotedSelections.length > 0 ? draft.quotedSelections.map(q => q.text).join('\n\n') : undefined,
       attachments: allFiles.length > 0 ? allFiles.map(f => {
@@ -978,7 +981,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
     const inputFiles = mergeEditorFileRefs(attachedFiles, fileRefs);
     const draft = createPromptDraft(text, skills, inputFiles, references);
 
-    if (!draft.text && draft.files.length === 0 && !draft.docContext && draft.quotedSelections.length === 0 && draft.skills.length === 0 && !draft.workspaceTool && !draft.quickAction && !draft.agentMentions.length && !draft.sessionRefs.length) {
+    if (!draft.text && draft.files.length === 0 && !draft.docContext && draft.quotedSelections.length === 0 && draft.skills.length === 0 && draft.plugins.length === 0 && !draft.workspaceTool && !draft.quickAction && !draft.agentMentions.length && !draft.sessionRefs.length) {
       showSlashResult(t('input.queueEmpty'), 'error');
       return;
     }
@@ -1794,7 +1797,7 @@ function InputAreaInner({ cardRef, surface, visible }: InputAreaInnerProps) {
 
     const inputFiles = mergeEditorFileRefs(attachedFiles, fileRefs);
     const draft = createPromptDraft(text, selectedSkills, inputFiles, references);
-    if (!draft.text && draft.files.length === 0 && !draft.docContext && draft.quotedSelections.length === 0 && draft.skills.length === 0 && !draft.workspaceTool && !draft.quickAction && !draft.agentMentions.length && !draft.sessionRefs.length) return;
+    if (!draft.text && draft.files.length === 0 && !draft.docContext && draft.quotedSelections.length === 0 && draft.skills.length === 0 && draft.plugins.length === 0 && !draft.workspaceTool && !draft.quickAction && !draft.agentMentions.length && !draft.sessionRefs.length) return;
 
     if (activeChatVideoMode) {
       if (sending) return;

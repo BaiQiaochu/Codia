@@ -247,7 +247,14 @@
     "compacting": "コンテキスト圧縮中",
     "visionAuxiliary": "補助ビジョン",
     "fileExpired": "ファイル期限切れ",
+    "messageReferences": "メッセージの参照",
     "messageUnavailable": "メッセージは一時的に利用できません",
+    "mediaGenerationStatus": {
+      "creatingImage": "画像を生成中",
+      "creatingVideo": "動画を生成中",
+      "imageFailed": "画像の生成に失敗しました",
+      "videoFailed": "動画の生成に失敗しました"
+    },
     "fileActions": {
       "preview": "プレビュー",
       "save": "保存",

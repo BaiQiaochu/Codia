@@ -64,6 +64,15 @@ export function validateClientWsMessage(message) {
           if (id.length > 160 || (item.label !== undefined && (typeof item.label !== 'string' || item.label.length > 500))) throw new TypeError(`${field}: 引用无效`);
         }
       }
+      if (display.plugins !== undefined) {
+        if (!Array.isArray(display.plugins) || display.plugins.length > 16) throw new TypeError('plugins: 最多 16 项');
+        for (const plugin of display.plugins) {
+          assertObject(plugin, 'plugins', context);
+          const id = assertNonEmptyString(plugin.id, 'plugin.id', context);
+          const name = assertNonEmptyString(plugin.name, 'plugin.name', context);
+          if (id.length > 160 || name.length > 500) throw new TypeError('plugins: 引用无效');
+        }
+      }
       if (display.agentMentions?.length && (typeof display.clientMessageId !== 'string' || !display.clientMessageId || display.clientMessageId.length > 160)) throw new TypeError('审阅请求标识无效');
       if (display.quickAction !== undefined && !['ideas', 'code', 'workflow', 'agents'].includes(display.quickAction)) throw new TypeError('快捷任务无效');
     }
