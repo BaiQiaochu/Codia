@@ -75,7 +75,7 @@ Codia 提供 OpenAI、Anthropic、Gemini、DeepSeek、通义千问、火山引�
 
 ## 开始体验
 
-从 [最新正式版](https://github.com/BaiQiaochu/Codia/releases/latest) 下载适合你电脑的安装包。当前 `v0.3.1` 提供 Windows x64、Linux x64，以及 macOS Apple Silicon / Intel 版本；仓库当前需要获授权的 GitHub 账号访问。
+从 [最新正式版](https://github.com/BaiQiaochu/Codia/releases/latest) 下载适合你电脑的安装包。当前 `v0.3.2` 提供 Windows x64、Linux x64，以及 macOS Apple Silicon / Intel 版本；仓库当前需要获授权的 GitHub 账号访问。
 
 首次打开后，跟随引导连接模型、选择工作文件夹，就可以从一份资料、一个问题或一件想完成的小事开始。
 
