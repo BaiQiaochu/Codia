@@ -3404,6 +3404,21 @@
       "integration": "呼叫擴充",
       "tool": "呼叫 {name}"
     },
+    "showAll": "查看全部 {n} 個步驟",
+    "step": {
+      "reasoning": "整理思路",
+      "read": "讀取檔案",
+      "search": "搜尋專案",
+      "edit": "編輯檔案",
+      "command": "執行命令",
+      "image": "生成圖片",
+      "video": "生成影片",
+      "browser": "操作瀏覽器",
+      "agent": "協調子助手",
+      "automation": "執行自動化",
+      "plugin": "使用外掛 {name}",
+      "tool": "使用工具 {name}"
+    },
     "unsuccessful": "{n} 次嘗試未成功"
   },
   "settings.work.heartbeatOperationalNotice": "巡檢可能在背景執行工具並存取工作區檔案。僅對你信任可無人值守執行的 Agent 開啟。",

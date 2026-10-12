@@ -101,7 +101,7 @@ describe('process fold summary fallback', () => {
       .toEqual(malformedItems.map((item, index) => ({ type: 'source', item, originalIndex: index })));
   });
 
-  it('excludes card-backed tools from process fold stats', () => {
+  it('includes card-backed tools in process fold stats', () => {
     const items = [
       {
         type: 'message' as const,
@@ -156,7 +156,7 @@ describe('process fold summary fallback', () => {
     expect(rendered).toHaveLength(1);
     expect(rendered[0].type).toBe('process_fold');
     if (rendered[0].type === 'process_fold') {
-      expect(rendered[0].stats.toolCount).toBe(1);
+      expect(rendered[0].stats.toolCount).toBe(5);
     }
   });
 });

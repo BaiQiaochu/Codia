@@ -3404,6 +3404,21 @@
       "integration": "调用扩展",
       "tool": "调用 {name}"
     },
+    "showAll": "查看全部 {n} 步",
+    "step": {
+      "reasoning": "整理思路",
+      "read": "读取文件",
+      "search": "检索项目",
+      "edit": "编辑文件",
+      "command": "运行命令",
+      "image": "生成图片",
+      "video": "生成视频",
+      "browser": "操作浏览器",
+      "agent": "协调子助手",
+      "automation": "运行自动化",
+      "plugin": "使用插件 {name}",
+      "tool": "使用工具 {name}"
+    },
     "unsuccessful": "{n} 次尝试未成功"
   },
   "settings.work.heartbeatOperationalNotice": "巡检可能在后台运行工具并访问工作区文件。仅对你信任可无人值守执行的 Agent 开启。",

@@ -3449,6 +3449,21 @@
       "integration": "using an integration",
       "tool": "using {name}"
     },
+    "showAll": "Show all {n} steps",
+    "step": {
+      "reasoning": "Organized the approach",
+      "read": "Read files",
+      "search": "Searched the project",
+      "edit": "Edited files",
+      "command": "Ran a command",
+      "image": "Generated an image",
+      "video": "Generated a video",
+      "browser": "Used the browser",
+      "agent": "Coordinated an assistant",
+      "automation": "Ran an automation",
+      "plugin": "Used the {name} plugin",
+      "tool": "Used {name}"
+    },
     "unsuccessful": "{n} attempts not successful"
   },
   "mermaid": {

@@ -3404,6 +3404,21 @@
       "integration": "連携を使用中",
       "tool": "{name} を使用中"
     },
+    "showAll": "全 {n} ステップを表示",
+    "step": {
+      "reasoning": "考えを整理",
+      "read": "ファイルを読み取り",
+      "search": "プロジェクトを検索",
+      "edit": "ファイルを編集",
+      "command": "コマンドを実行",
+      "image": "画像を生成",
+      "video": "動画を生成",
+      "browser": "ブラウザを操作",
+      "agent": "サブアシスタントを調整",
+      "automation": "自動化を実行",
+      "plugin": "プラグイン {name} を使用",
+      "tool": "{name} を使用"
+    },
     "unsuccessful": "{n} 回の試行が未成功"
   },
   "settings.work.heartbeatOperationalNotice": "巡回はバックグラウンドでツールを実行し、ワークスペースのファイルにアクセスすることがあります。無人実行を任せられる Agent にだけ有効化してください。",

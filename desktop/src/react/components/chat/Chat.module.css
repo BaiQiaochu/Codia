@@ -2351,93 +2351,191 @@
     line-height: 1.62;
 }
 
-.processFoldMessage {
-    width: 100%;
+.processFoldTrace {
+    width: min(100%, 760px);
+    box-sizing: border-box;
+    margin: 2px 0 var(--space-sm);
+    padding: 4px 0 5px 13px;
+    border-left: 2px solid color-mix(in srgb, var(--codia-accent, var(--accent)) 42%, transparent);
+    color: var(--codia-text-muted);
 }
 
 .processFoldSummary {
-    width: 100%;
+    width: fit-content;
+    max-width: 100%;
     box-sizing: border-box;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 30px;
-    padding: 6px 10px;
-    border: 1px solid var(--codia-border, var(--border));
-    border-radius: var(--radius-sm);
-    background: var(--surface-raised);
-    color: var(--codia-text-muted);
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: var(--space-sm);
+    min-height: 26px;
+    padding: 2px 4px 6px 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
     font: inherit;
-    font-size: 0.78rem;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    text-align: left;
 }
 
-.processFoldSummary:hover {
-    background: var(--tool-bg);
-    color: var(--tool-text);
-    border-color: var(--codia-accent, var(--accent));
+.processFoldSummary:hover .processFoldTitleText,
+.processFoldSummary:focus-visible .processFoldTitleText {
+    color: var(--codia-text, var(--text));
 }
 
-.processFoldSummaryOpen {
-    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+.processFoldSummary:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--codia-accent, var(--accent)) 48%, transparent);
+    outline-offset: 3px;
+    border-radius: var(--radius-xs);
 }
 
 .processFoldTitle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    max-width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
     min-width: 0;
 }
 
 .processFoldTitleText {
-    min-width: 0;
-    overflow: hidden;
-    text-align: center;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: color-mix(in srgb, var(--codia-text, var(--text)) 78%, var(--codia-text-muted));
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.45;
+    transition: color 0.15s ease;
+}
+
+.processFoldMeta {
+    color: var(--codia-text-muted);
+    font-size: 0.72rem;
+    font-weight: 400;
+    line-height: 1.45;
 }
 
 .processFoldArrow {
     flex: 0 0 auto;
+    margin-top: 2px;
     color: var(--codia-text-muted);
-    font-size: 0.72rem;
-    transition: transform 0.15s ease;
+    transition: transform 0.18s ease;
 }
 
 .processFoldSummaryOpen .processFoldArrow {
-    transform: rotate(90deg);
+    transform: rotate(180deg);
 }
 
-.processFoldPanel {
-    width: 100%;
-    box-sizing: border-box;
-    margin: 0 0 var(--space-xs);
-    padding: var(--space-sm);
-    border: 1px solid var(--codia-border, var(--border));
-    border-top: 0;
-    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-    background: color-mix(in srgb, var(--surface-raised) 70%, transparent);
+.processFoldActivityList {
+    display: grid;
+    gap: 6px;
+    padding: 1px 5px 2px 0;
 }
 
-.processFoldMessage + .processFoldPanel {
-    margin-top: 0;
+.processFoldActivity {
+    display: grid;
+    grid-template-columns: 17px minmax(0, 1fr);
+    align-items: start;
+    gap: 6px;
+    min-width: 0;
+    color: color-mix(in srgb, var(--codia-text-muted) 92%, transparent);
+    font-size: 0.76rem;
+    line-height: 1.5;
 }
 
-.processFoldPanel .messageGroupAssistant {
-    margin-left: 0;
-    padding-left: 0;
-    animation: none;
+.processFoldActivityIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 18px;
+    color: color-mix(in srgb, var(--codia-accent, var(--accent)) 76%, var(--codia-text-muted));
 }
 
-.processFoldPanel .messageGroupAssistant + .messageGroupAssistant {
-    margin-top: var(--space-sm);
+.processFoldActivityFailed .processFoldActivityIcon,
+.processFoldActivityFailed .processFoldActivityLabel {
+    color: var(--danger, #b55c70);
 }
 
-.processFoldPanel .message {
+.processFoldActivityContent {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 6px;
+    min-width: 0;
+}
+
+.processFoldActivityLabel {
+    min-width: 0;
+    color: inherit;
+    overflow-wrap: anywhere;
+}
+
+.processFoldActivityDetail,
+.processFoldActivityDetailLink {
+    min-width: 0;
     max-width: 100%;
+    overflow: hidden;
+    color: color-mix(in srgb, var(--codia-text-muted) 72%, transparent);
+    font: inherit;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.7rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.processFoldActivityDetailLink {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.processFoldActivityDetailLink:hover,
+.processFoldActivityDetailLink:focus-visible {
+    color: var(--codia-accent, var(--accent));
+    text-decoration: underline;
+}
+
+.processFoldActivity:nth-last-child(n + 5) .processFoldActivityLabel {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.processFoldTraceOpen .processFoldActivityLabel {
+    display: inline;
+    overflow: visible;
+    -webkit-line-clamp: unset;
+}
+
+.processFoldMore {
+    justify-self: start;
+    margin: 1px 0 0 23px;
+    padding: 1px 0;
+    border: 0;
+    background: none;
+    color: var(--codia-accent, var(--accent));
+    font: inherit;
+    font-size: 0.72rem;
+    cursor: pointer;
+}
+
+.processFoldMore:hover,
+.processFoldMore:focus-visible {
+    text-decoration: underline;
+}
+
+.processFoldSpinner {
+    animation: processFoldSpin 0.9s linear infinite;
+}
+
+@keyframes processFoldSpin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .processFoldSpinner {
+        animation: none;
+    }
 }
 
 .subagentIcon {

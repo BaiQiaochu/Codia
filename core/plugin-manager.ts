@@ -139,6 +139,10 @@ function normalizePluginToolResult(raw, pluginId) {
   } else {
     result = { content: [{ type: "text", text: String(raw ?? "") }] };
   }
+  if (pluginId) {
+    result.details = result.details && typeof result.details === "object" ? result.details : {};
+    if (!result.details.pluginId) result.details.pluginId = pluginId;
+  }
   if (result.details?.card && pluginId && !result.details.card.pluginId) {
     result.details.card.pluginId = pluginId;
   }

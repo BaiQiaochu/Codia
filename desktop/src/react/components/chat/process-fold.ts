@@ -1,5 +1,4 @@
 import type { ChatListItem, ChatMessage, ContentBlock, ToolCall } from '../../stores/chat-types';
-import { isToolCallHiddenFromProcessUi } from '../../utils/tool-call-visibility';
 
 export interface ProcessFoldStats {
   toolCount: number;
@@ -36,7 +35,6 @@ export type TranscriptRenderItem = SourceTranscriptRenderItem | ProcessFoldRende
 export type ProcessFoldTranslator = (key: string, vars?: Record<string, string | number>) => string;
 
 const MIN_PROCESS_MESSAGES_TO_FOLD = 1;
-const PROCESS_NARRATION_TEXT_LIMIT = 100;
 
 function isAssistantMessage(item: ChatListItem): item is Extract<ChatListItem, { type: 'message' }> {
   return item.type === 'message' && item.data.role === 'assistant';
@@ -60,18 +58,20 @@ function visibleBlocks(message: ChatMessage): ContentBlock[] {
     .filter((block) => block.type !== 'session_confirmation' || block.surface !== 'input');
 }
 
-function isProcessBlock(block: ContentBlock): block is Extract<ContentBlock, { type: 'thinking' | 'tool_group' }> {
-  return block.type === 'thinking' || isRenderableToolGroupBlock(block);
+function isProcessBlock(block: ContentBlock): block is Extract<ContentBlock, { type: 'thinking' | 'tool_group' | 'mood' | 'invoke' }> {
+  return block.type === 'thinking'
+    || block.type === 'mood'
+    || block.type === 'invoke'
+    || isRenderableToolGroupBlock(block);
 }
 
-function isProcessNarrationBlock(block: ContentBlock): block is Extract<ContentBlock, { type: 'thinking' | 'tool_group' | 'text' }> {
-  return block.type === 'thinking' || isRenderableToolGroupBlock(block) || isRenderableTextBlock(block);
+function isProcessNarrationBlock(block: ContentBlock): block is Extract<ContentBlock, { type: 'thinking' | 'tool_group' | 'mood' | 'invoke' | 'text' }> {
+  return isProcessBlock(block) || isRenderableTextBlock(block);
 }
 
-function visibleToolCalls(block: Extract<ContentBlock, { type: 'tool_group' }>): ToolCall[] {
+function processToolCalls(block: Extract<ContentBlock, { type: 'tool_group' }>): ToolCall[] {
   return (Array.isArray(block.tools) ? block.tools : [])
-    .filter((tool) => !!tool && typeof tool === 'object' && typeof tool.name === 'string')
-    .filter((tool) => !isToolCallHiddenFromProcessUi(tool));
+    .filter((tool) => !!tool && typeof tool === 'object' && typeof tool.name === 'string');
 }
 
 export function isProcessOnlyAssistantMessage(message: ChatMessage): boolean {
@@ -110,15 +110,15 @@ function hasText(message: ChatMessage): boolean {
   return textBlocks(message).length > 0;
 }
 
-function isShortProcessNarrationMessage(message: ChatMessage): boolean {
+function isProcessNarrationMessage(message: ChatMessage): boolean {
   if (message.role !== 'assistant') return false;
   const blocks = visibleBlocks(message);
   if (blocks.length === 0 || !hasText(message)) return false;
   if (!blocks.every(isProcessNarrationBlock)) return false;
-  return messageTextLength(message) <= PROCESS_NARRATION_TEXT_LIMIT;
+  return messageTextLength(message) > 0;
 }
 
-function protectedFinalTextIndexes(items: ChatListItem[]): Set<number> {
+function protectedFinalTextIndexes(items: ChatListItem[], isStreaming: boolean): Set<number> {
   const protectedIndexes = new Set<number>();
   let latestAssistantTextIndex = -1;
 
@@ -137,17 +137,50 @@ function protectedFinalTextIndexes(items: ChatListItem[]): Set<number> {
     }
   }
 
-  if (latestAssistantTextIndex >= 0) protectedIndexes.add(latestAssistantTextIndex);
+  // During an active turn the latest text is still process narration. Once the
+  // turn settles, keep only the last assistant text message outside the trace as
+  // the final answer (including recovery/next-step instructions).
+  if (!isStreaming && latestAssistantTextIndex >= 0) protectedIndexes.add(latestAssistantTextIndex);
   return protectedIndexes;
 }
 
-function isFoldableProcessAssistantMessage(message: ChatMessage, isProtectedFinalText: boolean): boolean {
-  if (isProcessOnlyAssistantMessage(message)) return true;
-  if (isProtectedFinalText) {
-    const hasProcessActivity = visibleBlocks(message).some(isProcessBlock);
-    return hasProcessActivity && isShortProcessNarrationMessage(message);
+function processActivityByItem(items: ChatListItem[]): boolean[] {
+  const flags = Array.from({ length: items.length }, () => false);
+  let turnStart = 0;
+
+  const markTurn = (turnEnd: number) => {
+    let hasProcessActivity = false;
+    for (let index = turnStart; index < turnEnd; index += 1) {
+      const item = items[index];
+      if (!isAssistantMessage(item)) continue;
+      if (visibleBlocks(item.data).some(isProcessBlock)) {
+        hasProcessActivity = true;
+        break;
+      }
+    }
+    if (hasProcessActivity) {
+      for (let index = turnStart; index < turnEnd; index += 1) flags[index] = true;
+    }
+  };
+
+  for (let index = 0; index < items.length; index += 1) {
+    const item = items[index];
+    if (item.type !== 'message' || item.data.role !== 'user') continue;
+    markTurn(index);
+    turnStart = index + 1;
   }
-  return isShortProcessNarrationMessage(message);
+  markTurn(items.length);
+  return flags;
+}
+
+function isFoldableProcessAssistantMessage(
+  message: ChatMessage,
+  isProtectedFinalText: boolean,
+  turnHasProcessActivity: boolean,
+): boolean {
+  if (isProcessOnlyAssistantMessage(message)) return true;
+  if (isProtectedFinalText || !turnHasProcessActivity) return false;
+  return isProcessNarrationMessage(message);
 }
 
 function collectStats(messages: ProcessFoldMessage[]): ProcessFoldStats {
@@ -167,7 +200,7 @@ function collectStats(messages: ProcessFoldMessage[]): ProcessFoldStats {
         continue;
       }
       if (block.type !== 'tool_group') continue;
-      const tools = visibleToolCalls(block);
+      const tools = processToolCalls(block);
       toolCount += tools.length;
       completedCount += tools.filter((tool) => tool.done).length;
       runningCount += tools.filter((tool) => !tool.done).length;
@@ -221,11 +254,15 @@ export function buildTranscriptRenderItems(
 ): TranscriptRenderItem[] {
   const rendered: TranscriptRenderItem[] = [];
   const latestUserIndex = lastUserIndex(items);
-  const protectedTextIndexes = protectedFinalTextIndexes(items);
+  const protectedTextIndexes = protectedFinalTextIndexes(items, options.isStreaming);
+  const processActivityFlags = processActivityByItem(items);
 
   for (let i = 0; i < items.length;) {
     const item = items[i];
-    if (!isAssistantMessage(item) || !isFoldableProcessAssistantMessage(item.data, protectedTextIndexes.has(i))) {
+    if (
+      !isAssistantMessage(item)
+      || !isFoldableProcessAssistantMessage(item.data, protectedTextIndexes.has(i), processActivityFlags[i])
+    ) {
       rendered.push(sourceItem(item, i));
       i += 1;
       continue;
@@ -237,7 +274,11 @@ export function buildTranscriptRenderItems(
       const candidate = items[cursor];
       if (
         !isAssistantMessage(candidate)
-        || !isFoldableProcessAssistantMessage(candidate.data, protectedTextIndexes.has(cursor))
+        || !isFoldableProcessAssistantMessage(
+          candidate.data,
+          protectedTextIndexes.has(cursor),
+          processActivityFlags[cursor],
+        )
       ) {
         break;
       }
