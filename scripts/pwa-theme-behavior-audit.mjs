@@ -71,23 +71,23 @@ try {
 
   await page.evaluate(() => window.setTheme("workbench"));
   await expectPageState(page, {
-    surface: "mobile-theme-changed",
+    surface: "mobile-legacy-theme-normalized",
     titleIncludes: PWA_DISPLAY_NAME,
-    expectedTheme: "workbench",
-    expectedCss: registry.THEMES.workbench.cssPath,
-    expectedStoredTheme: "workbench",
+    expectedTheme: registry.DEFAULT_THEME,
+    expectedCss: registry.THEMES[registry.DEFAULT_THEME].cssPath,
+    expectedStoredTheme: registry.DEFAULT_THEME,
   });
-  await assertNoVisualBlockers(page, "mobile-theme-changed");
-  await captureBehaviorScreenshot(page, "mobile-theme-changed");
+  await assertNoVisualBlockers(page, "mobile-legacy-theme-normalized");
+  await captureBehaviorScreenshot(page, "mobile-legacy-theme-normalized");
 
   await page.goto(`${baseUrl}/settings/access`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("[data-surface=\"access-devices\"]");
   await expectPageState(page, {
     surface: "access-devices",
     titleIncludes: "Access & Devices",
-    expectedTheme: "workbench",
-    expectedCss: registry.THEMES.workbench.cssPath,
-    expectedStoredTheme: "workbench",
+    expectedTheme: registry.DEFAULT_THEME,
+    expectedCss: registry.THEMES[registry.DEFAULT_THEME].cssPath,
+    expectedStoredTheme: registry.DEFAULT_THEME,
   });
   const accessText = await page.locator("[data-surface=\"access-devices\"]").innerText();
   if (!accessText.includes("Access & Devices") || !accessText.includes("Access and device settings")) {
