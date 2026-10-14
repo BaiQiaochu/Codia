@@ -128,7 +128,7 @@ npm run check:local       # 本地检查，默认保留检查产物
 
 `start:built` 默认仍运行服务端源码；完整构建后可用 `CODIA_DESKTOP_SERVER_MODE=dist` 验证独立服务端。`npm run e2e:desktop-smoke` 使用隔离配置和本机模拟模型。完整说明见[贡献指南](CONTRIBUTING.md)。勿用 `git clean -fdx` 清理日常环境；它会删除被忽略的依赖、缓存和构建产物。
 
-源码发布使用 [GitHub 托管工作流](.github/workflows/build.yml)，不在本机编译客户端，也不上传本机构建产物。工作流为当前 `package.json` 版本创建草稿 Release，GitHub 会直接从对应提交生成 `Source code (zip)` 和 `Source code (tar.gz)`。默认保留草稿；只有主动勾选 `publish_release` 才会公开。
+源码发布不运行本地或 GitHub Actions 编译任务，也不上传本机构建产物。发布时直接让 GitHub Release 指向已经推送的版本提交，由 GitHub 自动生成 `Source code (zip)` 和 `Source code (tar.gz)`；桌面安装包不属于此源码发布流程。
 
 ## 目录
 
