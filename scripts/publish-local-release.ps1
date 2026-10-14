@@ -155,7 +155,16 @@ if (!(Test-Path -LiteralPath $installer)) { throw "Installer not found: $install
 if (!(Test-Path -LiteralPath $portableDir -PathType Container)) { throw "Portable folder not found: $portableDir" }
 
 Remove-Item -LiteralPath $portableZip -Force -ErrorAction SilentlyContinue
-Compress-Archive -Path (Join-Path $portableDir "*") -DestinationPath $portableZip -CompressionLevel Optimal
+$sevenZip = Join-Path $root "node_modules\7zip-bin\win\x64\7za.exe"
+if (!(Test-Path -LiteralPath $sevenZip)) {
+  throw "Local 7-Zip executable not found: $sevenZip. Run npm install before publishing."
+}
+Push-Location $portableDir
+try {
+  Invoke-CheckedCommand -FilePath $sevenZip -Arguments @("a", "-tzip", "-mx=5", "-y", $portableZip, "*")
+} finally {
+  Pop-Location
+}
 Remove-Item -LiteralPath $sourceZip -Force -ErrorAction SilentlyContinue
 Invoke-CheckedCommand -FilePath "git" -Arguments @("archive", "--format=zip", "--prefix=$productName-$Version/", "--output=$sourceZip", "HEAD")
 

@@ -137,6 +137,10 @@ describe("release preflight contract", () => {
     expect(winPackageScript).toContain('$psi.EnvironmentVariables["CODIA_PORT"] = "0"');
     expect(winPackageScript).toContain('@("playwright", "install", "chromium")');
 
+    const localReleaseScript = fs.readFileSync(path.join(root, "scripts", "publish-local-release.ps1"), "utf-8");
+    expect(localReleaseScript).toContain("node_modules\\7zip-bin\\win\\x64\\7za.exe");
+    expect(localReleaseScript).toContain('"-tzip"');
+
     const resolverStart = winPackageScript.indexOf("function Resolve-InstallerArtifactPath");
     const resolverEnd = winPackageScript.indexOf("\nfunction ConvertTo-RootRelativePath", resolverStart);
     const resolverBody = winPackageScript.slice(resolverStart, resolverEnd);
