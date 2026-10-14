@@ -23,10 +23,10 @@ export const markdownHighlight = HighlightStyle.define([
 
 export const codeHighlight = HighlightStyle.define([
   { tag: tags.keyword, color: '#8959a8' },
-  { tag: tags.string, color: '#718c00' },
+  { tag: tags.string, color: '#B975D6' },
   { tag: tags.comment, color: 'var(--text-muted)', fontStyle: 'italic' },
   { tag: tags.number, color: '#f5871f' },
-  { tag: tags.operator, color: '#3e999f' },
+  { tag: tags.operator, color: '#8059BF' },
   { tag: tags.definition(tags.variableName), color: '#4271ae' },
   { tag: tags.function(tags.variableName), color: '#4271ae' },
   { tag: tags.typeName, color: '#c82829' },

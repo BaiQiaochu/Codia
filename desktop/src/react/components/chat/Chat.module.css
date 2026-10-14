@@ -603,7 +603,7 @@
 }
 
 .moodWrapper[data-yuan="codia"] { --mood-accent: var(--accent); }
-.moodWrapper[data-yuan="butter"]  { --mood-accent: #5BA88C; }
+.moodWrapper[data-yuan="butter"]  { --mood-accent: var(--accent); }
 .moodWrapper[data-yuan="ming"]    { --mood-accent: #8BA4B4; }
 .moodWrapper[data-yuan="hermes"]  { --mood-accent: var(--accent); }
 

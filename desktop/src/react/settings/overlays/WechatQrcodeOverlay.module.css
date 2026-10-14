@@ -68,7 +68,7 @@
 }
 
 .statusText.success {
-  color: var(--color-ok, #5a9a6a);
+  color: var(--color-ok, var(--success, #8059BF));
 }
 
 .statusText.error {

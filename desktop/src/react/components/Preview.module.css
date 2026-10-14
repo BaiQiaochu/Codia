@@ -808,11 +808,11 @@
 
 .previewPanelBody :global(.preview-mindmap-canvas) {
     --preview-mindmap-branch-1: var(--accent);
-    --preview-mindmap-branch-2: color-mix(in srgb, var(--accent) 68%, #16a34a);
+    --preview-mindmap-branch-2: color-mix(in srgb, var(--accent) 68%, #8059BF);
     --preview-mindmap-branch-3: color-mix(in srgb, var(--accent) 58%, #f59f00);
     --preview-mindmap-branch-4: color-mix(in srgb, var(--accent) 52%, #d9480f);
     --preview-mindmap-branch-5: color-mix(in srgb, var(--accent) 64%, #7c3aed);
-    --preview-mindmap-branch-6: color-mix(in srgb, var(--accent) 62%, #0891b2);
+    --preview-mindmap-branch-6: color-mix(in srgb, var(--accent) 62%, #B975D6);
     position: relative;
     margin-top: var(--space-md);
     min-height: 360px;

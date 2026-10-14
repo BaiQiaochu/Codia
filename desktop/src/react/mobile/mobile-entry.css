@@ -1270,7 +1270,7 @@ body.obsidian-mode .sidebar-chat-content > [class*="section"] {
     transition: background 0.3s ease;
 }
 .sidebar-bridge-dot.connected {
-    background: color-mix(in srgb, var(--success, var(--green, #5a9)) 55%, transparent);
+    background: color-mix(in srgb, var(--success, var(--green, #8059BF)) 55%, transparent);
 }
 
 .browser-bg-bar {
@@ -3996,7 +3996,7 @@ body.resizing .jian-sidebar-inner {
 }
 .browser-floating-icon {
     flex-shrink: 0;
-    color: var(--accent, #6B8F71);
+    color: var(--accent, #A984E8);
     opacity: 0.8;
 }
 .browser-floating-text {
@@ -4149,7 +4149,7 @@ body.resizing .jian-sidebar-inner {
     transform: scale(1.3);
 }
 .onboarding-dot.done {
-    background: var(--green, #6b9);
+    background: var(--green, #8059BF);
 }
 
 /* Windows/Linux：无红绿灯，减少顶部 padding，取消 drag，改由 titlebar-minimal 承担拖拽 */
@@ -4386,7 +4386,7 @@ html[data-platform="linux"] .onboarding {
 .ob-status {
     font-size: 0.78rem;
 }
-.ob-status.success { color: var(--green, #6b9); }
+.ob-status.success { color: var(--green, #8059BF); }
 .ob-status.error { color: var(--coral, #c66); }
 .ob-status.loading { color: var(--text-muted); }
 

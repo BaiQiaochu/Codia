@@ -3,12 +3,12 @@
 
 :root {
   /* Solarized Base Colors */
-  --base03:  #002b36;
-  --base02:  #073642;
-  --base01:  #586e75;
-  --base00:  #657b83;
-  --base0:   #839496;
-  --base1:   #93a1a1;
+  --base03:  #21182E;
+  --base02:  #342A45;
+  --base01:  #594F69;
+  --base00:  #756A86;
+  --base0:   #8F839E;
+  --base1:   #A89BB8;
   --base2:   #eee8d5;
   --base3:   #F8F5ED;
   
@@ -19,8 +19,8 @@
   --magenta: #d33682;
   --violet:  #6c71c4;
   --blue:    #268bd2;
-  --cyan:    #2aa198;
-  --green:   #859900;
+  --cyan:    #A984E8;
+  --green:   #8059BF;
 }
 
 * {
@@ -37,7 +37,7 @@ body {
   font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "STSong", "Lora", "Georgia", serif;
   font-size: 1rem;
   line-height: 1.75;
-  color: #4a5d66;
+  color: #594F69;
   background-color: var(--base3);
   padding: 2rem 3rem;
   max-width: 800px;

@@ -1,6 +1,6 @@
 /*
  * Theme: Midnight Contrast
- * Higher-contrast blue-green surface with bright rose accents.
+ * Higher-contrast purple surface with bright rose accents.
  */
 
 [data-theme="midnight-contrast"] {
@@ -28,9 +28,9 @@
     --border-muted: rgba(230, 177, 196, 0.18);
     --shadow:       rgba(0, 0, 0, 0.44);
 
-    --green:        #A8DDAA;
-    --green-rgb:    168, 221, 170;
-    --success:      #A8DDAA;
+    --green:        #B89AF0;
+    --green-rgb:    184, 154, 240;
+    --success:      #B89AF0;
     --coral:        #F1BEAD;
     --danger:       #E28B8B;
     --danger-rgb:   226, 139, 139;

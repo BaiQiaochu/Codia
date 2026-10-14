@@ -29,9 +29,9 @@
     --border-muted: rgba(76, 48, 100, 0.12);
     --shadow:       rgba(76, 48, 100, 0.10);
 
-    --green:        #568267;
-    --green-rgb:    35, 121, 92;
-    --success:      #568267;
+    --green:        #8059BF;
+    --green-rgb:    128, 89, 191;
+    --success:      #8059BF;
     --coral:        #B97553;
     --danger:       #A94B62;
     --danger-rgb:   161, 61, 72;
@@ -53,6 +53,9 @@
     --attach-bg:    rgba(0, 0, 0, 0.05);
 
     --accent-rgb:   169, 132, 232;
+    --permission-auto: #8059BF;
+    --permission-auto-border: rgba(169, 132, 232, 0.34);
+    --permission-auto-bg: rgba(169, 132, 232, 0.08);
     --coral-rgb:    169, 101, 56;
     --overlay-subtle: rgba(76, 48, 100, 0.035);
     --overlay-light:  rgba(76, 48, 100, 0.065);

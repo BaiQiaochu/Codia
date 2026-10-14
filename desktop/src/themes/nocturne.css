@@ -11,26 +11,26 @@
     --bg-input:     #15181E;
     --bg-glass:     rgba(29, 34, 42, 0.92);
 
-    --accent:       #8EB8D8;
-    --accent-bg:    rgba(142, 184, 216, 0.13);
-    --accent-hover: #A7CCE5;
-    --accent-light: rgba(142, 184, 216, 0.13);
+    --accent:       #B89AF0;
+    --accent-bg:    rgba(184, 154, 240, 0.13);
+    --accent-hover: #CFB8F8;
+    --accent-light: rgba(184, 154, 240, 0.13);
     --accent-contrast: var(--bg-card);
 
     --text:         #E8EDF2;
     --text-light:   #B8C2CE;
     --text-muted:   #8995A4;
-    --text-link:    #A7CCE5;
+    --text-link:    #CFB8F8;
     --text-error:   #E08080;
 
-    --border:       rgba(142, 184, 216, 0.21);
+    --border:       rgba(184, 154, 240, 0.21);
     --border-light: rgba(255, 255, 255, 0.08);
-    --border-muted: rgba(142, 184, 216, 0.13);
+    --border-muted: rgba(184, 154, 240, 0.13);
     --shadow:       rgba(0, 0, 0, 0.42);
 
-    --green:        #86C99A;
-    --green-rgb:    134, 201, 154;
-    --success:      #86C99A;
+    --green:        #B89AF0;
+    --green-rgb:    184, 154, 240;
+    --success:      #B89AF0;
     --coral:        #D8A06A;
     --danger:       #E08080;
     --danger-rgb:   224, 128, 128;
@@ -45,13 +45,13 @@
     --mood-bg:      rgba(216, 160, 106, 0.10);
     --mood-text:    #E5B783;
     --mood-border:  rgba(216, 160, 106, 0.28);
-    --tool-bg:      rgba(142, 184, 216, 0.10);
+    --tool-bg:      rgba(184, 154, 240, 0.10);
     --tool-text:    #B8C2CE;
-    --user-bg:      rgba(142, 184, 216, 0.13);
+    --user-bg:      rgba(184, 154, 240, 0.13);
     --drop-overlay-bg: rgba(21, 24, 30, 0.90);
     --attach-bg:    rgba(255, 255, 255, 0.08);
 
-    --accent-rgb:   142, 184, 216;
+    --accent-rgb:   184, 154, 240;
     --coral-rgb:    216, 160, 106;
     --overlay-subtle: rgba(255, 255, 255, 0.04);
     --overlay-light:  rgba(255, 255, 255, 0.08);
@@ -67,15 +67,15 @@
     --tab-slider-bg: var(--overlay-strong);
     --tab-slider-shadow: none;
 
-    --focus-ring: #A7CCE5;
+    --focus-ring: #CFB8F8;
     --control-bg: #1D222A;
     --control-bg-hover: #272E38;
     --control-bg-active: #2E3742;
     --control-border: #354150;
     --control-text: #E8EDF2;
     --control-muted: #B8C2CE;
-    --primary-button-bg: #8EB8D8;
-    --primary-button-hover: #A7CCE5;
+    --primary-button-bg: #B89AF0;
+    --primary-button-hover: #CFB8F8;
     --primary-button-text: #111820;
     --danger-button-bg: #E08080;
     --danger-button-hover: #EE9A9A;

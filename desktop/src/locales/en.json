@@ -1896,8 +1896,8 @@
       "width": "Width",
       "light": "Light",
       "dark": "Dark",
-      "sakura": "Collaboration Teal",
-      "codia": "Institutional Teal",
+      "sakura": "Collaboration Lilac",
+      "codia": "Codia Lilac",
       "mobile": "Mobile",
       "desktop": "Desktop",
       "mobileTitle": "Mobile Layout",
@@ -3391,7 +3391,7 @@
       "volcengineAdapterName": "Volcengine Seedream"
     },
     "beautify": {
-      "coverStyleGuide": "Default Markdown cover visual guidelines:\n\n1. Art direction: modern institutional editorial design that feels clear, restrained, and credible; prefer authentic photography, abstract geometry, data, or collaboration scenes instead of anime key art by default.\n2. Color: build from cool white, graphite, and low-saturation teal; use accent color sparingly and preserve strong title contrast.\n3. Composition: follow a clear grid and information hierarchy, keep generous whitespace, and avoid piles of floating symbols.\n4. Content: extract one core idea from the article and express it through a scene, structure, or object rather than illustrating the summary word for word.\n5. Material: use clean digital surfaces by default; do not make rice paper, vintage print, warm yellow paper, or heavy grain the shared motif.\n6. Narrative: ground imagery in collaboration, research, engineering, or decision-making; avoid unmotivated fantasy and decorative sentimentality.\n7. Adaptation: light mode uses a cool white base with dark text; dark mode uses graphite with restrained highlights. Both must remain readable.\n8. Output: default to landscape 3:2; use a close landscape ratio only when the provider cannot produce 3:2, and never stretch the image.",
+      "coverStyleGuide": "Default Markdown cover visual guidelines:\n\n1. Art direction: modern institutional editorial design that feels clear, restrained, and credible; prefer authentic photography, abstract geometry, data, or collaboration scenes instead of anime key art by default.\n2. Color: build from cool white, graphite, and low-saturation lilac; use accent color sparingly and preserve strong title contrast.\n3. Composition: follow a clear grid and information hierarchy, keep generous whitespace, and avoid piles of floating symbols.\n4. Content: extract one core idea from the article and express it through a scene, structure, or object rather than illustrating the summary word for word.\n5. Material: use clean digital surfaces by default; do not make rice paper, vintage print, warm yellow paper, or heavy grain the shared motif.\n6. Narrative: ground imagery in collaboration, research, engineering, or decision-making; avoid unmotivated fantasy and decorative sentimentality.\n7. Adaptation: light mode uses a cool white base with dark text; dark mode uses graphite with restrained highlights. Both must remain readable.\n8. Output: default to landscape 3:2; use a close landscape ratio only when the provider cannot produce 3:2, and never stretch the image.",
       "themeTone": {
         "dark": "Dark theme: low illumination, restrained highlights, dark areas still preserving paper fiber and material layers.",
         "light": "Light theme: soft warm light, low contrast, clean whitespace, visible paper fiber."

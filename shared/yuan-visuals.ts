@@ -21,7 +21,7 @@ export const YUAN_VISUALS: Readonly<Record<string, Readonly<YuanVisual>>> = Obje
     yuan: "butter",
     symbol: "\u2665",
     moodLabel: "PULSE",
-    accent: "#5BA88C",
+    accent: "#A984E8",
     avatar: DEFAULT_ASSISTANT_AVATAR,
   }),
   ming: Object.freeze({

@@ -1,6 +1,6 @@
 /*
  * Theme: Midnight
- * Deep blue-green surface with soft rose accents.
+ * Deep purple surface with soft rose accents.
  */
 
 [data-theme="midnight"] {
@@ -28,9 +28,9 @@
     --border-muted: rgba(170, 121, 141, 0.12);
     --shadow:       rgba(0, 0, 0, 0.36);
 
-    --green:        #8CC790;
-    --green-rgb:    140, 199, 144;
-    --success:      #8CC790;
+    --green:        #B89AF0;
+    --green-rgb:    184, 154, 240;
+    --success:      #B89AF0;
     --coral:        #EAB2A0;
     --danger:       #C77070;
     --danger-rgb:   199, 112, 112;
@@ -46,7 +46,7 @@
     --mood-bg:      rgba(234, 178, 160, 0.08);
     --mood-text:    #EAB2A0;
     --mood-border:  rgba(234, 178, 160, 0.20);
-    --tool-bg:      rgba(67, 91, 102, 0.20);
+    --tool-bg:      rgba(128, 89, 191, 0.18);
     --tool-text:    #B7C5CE;
     --user-bg:      rgba(170, 121, 141, 0.10);
     --drop-overlay-bg: rgba(59, 74, 84, 0.85);

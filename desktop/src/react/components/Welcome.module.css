@@ -67,7 +67,7 @@
 .codiaQuickIcon { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: #705394; background: #f2eafd; font-size: 18px; }
 .codiaQuickCopy { display: flex; min-width: 0; flex-direction: column; }
 .codiaQuickGrid > button:nth-child(1) .codiaQuickIcon { color: #aa5c84; background: #f9e8f1; }
-.codiaQuickGrid > button:nth-child(3) .codiaQuickIcon { color: #6c866c; background: #eaf3e9; }
+.codiaQuickGrid > button:nth-child(3) .codiaQuickIcon { color: #8059BF; background: #F1E8FC; }
 .codiaQuickGrid > button:nth-child(4) .codiaQuickIcon { color: #a26e40; background: #fff1d9; }
 .codiaQuickGrid strong { color: #483954; font-size: 14px; font-weight: 600; }
 .codiaQuickGrid small { margin-top: 4px; color: #81768c; font-size: 12px; line-height: 1.4; }

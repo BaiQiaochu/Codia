@@ -11,26 +11,26 @@
     --bg-input:     #1B1D20;
     --bg-glass:     rgba(36, 39, 43, 0.92);
 
-    --accent:       #8BBFA4;
-    --accent-bg:    rgba(139, 191, 164, 0.13);
-    --accent-hover: #A3D0B8;
-    --accent-light: rgba(139, 191, 164, 0.13);
-    --accent-contrast: #17211D;
+    --accent:       #B89AF0;
+    --accent-bg:    rgba(184, 154, 240, 0.13);
+    --accent-hover: #CFB8F8;
+    --accent-light: rgba(184, 154, 240, 0.13);
+    --accent-contrast: #21182E;
 
     --text:         #E7EAED;
     --text-light:   #B9C1C8;
     --text-muted:   #919AA3;
-    --text-link:    #A3D0B8;
+    --text-link:    #CFB8F8;
     --text-error:   #E08787;
 
-    --border:       rgba(139, 191, 164, 0.21);
+    --border:       rgba(184, 154, 240, 0.21);
     --border-light: rgba(255, 255, 255, 0.07);
-    --border-muted: rgba(139, 191, 164, 0.13);
+    --border-muted: rgba(184, 154, 240, 0.13);
     --shadow:       rgba(0, 0, 0, 0.40);
 
-    --green:        #8BCB88;
-    --green-rgb:    139, 203, 136;
-    --success:      #8BCB88;
+    --green:        #B89AF0;
+    --green-rgb:    184, 154, 240;
+    --success:      #B89AF0;
     --coral:        #D7A45A;
     --danger:       #E08787;
     --danger-rgb:   224, 135, 135;
@@ -41,17 +41,17 @@
     --jian-note-bg: #30312A;
     --jian-note-border: rgba(215, 164, 90, 0.26);
 
-    --codia-text:    #DDECE5;
+    --codia-text:    #E8DDF7;
     --mood-bg:      rgba(215, 164, 90, 0.11);
     --mood-text:    #E0BD7B;
     --mood-border:  rgba(215, 164, 90, 0.28);
-    --tool-bg:      rgba(139, 191, 164, 0.10);
+    --tool-bg:      rgba(184, 154, 240, 0.10);
     --tool-text:    #B9C1C8;
-    --user-bg:      rgba(139, 191, 164, 0.12);
+    --user-bg:      rgba(184, 154, 240, 0.12);
     --drop-overlay-bg: rgba(27, 29, 32, 0.90);
     --attach-bg:    rgba(255, 255, 255, 0.07);
 
-    --accent-rgb:   139, 191, 164;
+    --accent-rgb:   184, 154, 240;
     --coral-rgb:    215, 164, 90;
     --overlay-subtle: rgba(255, 255, 255, 0.035);
     --overlay-light:  rgba(255, 255, 255, 0.07);
@@ -64,19 +64,19 @@
     --scrim: rgba(0, 0, 0, 0.42);
     --scrim-strong: rgba(0, 0, 0, 0.58);
     --scrim-contrast: #FFFFFF;
-    --tab-slider-bg: rgba(139, 191, 164, 0.13);
-    --tab-slider-shadow: inset 0 0 0 1px rgba(139, 191, 164, 0.17);
+    --tab-slider-bg: rgba(184, 154, 240, 0.13);
+    --tab-slider-shadow: inset 0 0 0 1px rgba(184, 154, 240, 0.17);
 
-    --focus-ring: #A3D0B8;
+    --focus-ring: #CFB8F8;
     --control-bg: #24272B;
     --control-bg-hover: #2D3236;
-    --control-bg-active: #343B36;
-    --control-border: #3A4347;
+    --control-bg-active: #37313F;
+    --control-border: #463D51;
     --control-text: #E7EAED;
     --control-muted: #B9C1C8;
-    --primary-button-bg: #8BBFA4;
-    --primary-button-hover: #A3D0B8;
-    --primary-button-text: #14211C;
+    --primary-button-bg: #B89AF0;
+    --primary-button-hover: #CFB8F8;
+    --primary-button-text: #21182E;
     --danger-button-bg: #E08787;
     --danger-button-hover: #ECA1A1;
     --danger-button-text: #241A1A;

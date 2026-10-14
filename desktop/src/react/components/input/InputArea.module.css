@@ -357,9 +357,9 @@
 }
 
 .plan-mode-auto {
-    color: var(--permission-auto, #2f855a);
-    border-color: var(--permission-auto-border, color-mix(in srgb, #2f855a 34%, transparent));
-    background: var(--permission-auto-bg, color-mix(in srgb, #2f855a 7%, var(--bg-card)));
+    color: var(--permission-auto, #8059BF);
+    border-color: var(--permission-auto-border, color-mix(in srgb, #A984E8 34%, transparent));
+    background: var(--permission-auto-bg, color-mix(in srgb, #A984E8 8%, var(--bg-card)));
 }
 
 .plan-mode-operate {
@@ -461,7 +461,7 @@
 }
 
 .context-ring[data-yuan="codia"] { --ring-fg: var(--accent); }
-.context-ring[data-yuan="butter"]  { --ring-fg: #5BA88C; }
+.context-ring[data-yuan="butter"]  { --ring-fg: var(--accent); }
 .context-ring[data-yuan="ming"]    { --ring-fg: #8BA4B4; }
 
 .context-ring-progress {
@@ -694,7 +694,7 @@
 }
 
 .plan-mode-option-auto {
-    color: var(--permission-auto, #2f855a);
+    color: var(--permission-auto, #8059BF);
 }
 
 .plan-mode-option-operate {
@@ -711,7 +711,7 @@
 
 .plan-mode-option-auto:hover,
 .plan-mode-option-auto.active {
-    color: var(--permission-auto, #2f855a);
+    color: var(--permission-auto, #8059BF);
 }
 
 .plan-mode-option-operate:hover,

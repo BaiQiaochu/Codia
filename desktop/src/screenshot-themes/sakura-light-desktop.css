@@ -2,14 +2,14 @@
 /* Design Philosophy: Sky blue serenity, cherry blossom warmth, soft white-pink text */
 
 :root {
-  --sakura-bg:     #8ABDCE;
+  --sakura-bg:     #A984E8;
   --sakura-text:   #FFF5F5;
   --sakura-heading: #FFF5F5;
   --sakura-muted:  rgba(255, 245, 245, 0.65);
   --sakura-border: rgba(255, 255, 255, 0.25);
   --sakura-quote:  rgba(255, 255, 255, 0.12);
-  --sakura-code-bg: rgba(0, 40, 60, 0.35);
-  --sakura-code-text: #E8F4F8;
+  --sakura-code-bg: rgba(52, 42, 69, 0.35);
+  --sakura-code-text: #F3EBFC;
   --sakura-link:   #FFF0F2;
   --sakura-strong: #FFF5F5;
   --sakura-brown:  #5C3317;
