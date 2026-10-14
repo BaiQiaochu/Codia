@@ -26,6 +26,8 @@ handoff-*.md
 
 # Build and packaging outputs
 dist/
+dist-folder/
+dist-repack/
 dist-license-server/
 dist-sandbox/
 dist-server/
