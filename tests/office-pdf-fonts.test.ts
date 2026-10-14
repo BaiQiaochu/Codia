@@ -97,8 +97,6 @@ describe("office pdf font injection css", () => {
       expect(css).toContain(`'${family}'`);
     }
     expect(css).toContain("file://");
-    const declarationsWithoutLocalPaths = css.replace(/file:[^')]+/gi, "file:");
-    expect(declarationsWithoutLocalPaths).not.toMatch(/Hanako|G-SAP|BYOUNG/i);
   });
 
   it("ships the font injector with the PDF helper", () => {

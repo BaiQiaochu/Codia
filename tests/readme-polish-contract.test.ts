@@ -24,9 +24,7 @@ describe("Codia README contract", () => {
     expect(readme).toContain('build:server');
     expect(readme).toContain('Agent 小队');
     expect(readme).toContain("工作流");
-    expect(readme).toContain('[许可证](LICENSE)');
-    expect(readme).toContain('[来源与修改说明](NOTICE)');
-    expect(readme).toContain('Apache-2.0');
+    expect(readme).toContain('项目许可证尚待选择');
     expect(readme).toContain('npm run start:local');
     expect(readme).toContain('npm run check:local');
     expect(readme).toContain('默认保留检查产物');

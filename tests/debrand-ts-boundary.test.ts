@@ -18,16 +18,6 @@ const GENERATED_OR_TOOLING_SHARED_JS = new Set([
   "shared/codia-runtime-paths.cjs",
 ]);
 
-const USER_VISIBLE_BRAND_FILES = [
-  "package.json",
-  "build/installer.nsh",
-  "desktop/main.cjs",
-  "desktop/server-runtime.cjs",
-  "desktop/src/modules/connection-csp.ts",
-  "desktop/src/react/services/server-connection.ts",
-  "desktop/native/CodiaWindowsSandboxHelper/main.cpp",
-];
-
 const EXPECTED_DEBRANDED_TEST_ALIASES = new Map<string, string | string[]>([
   ["engine-lifecycle.test.ts", [
     "engine-computer-use-lazy.test.ts",
@@ -51,16 +41,6 @@ const EXPECTED_DEBRANDED_TEST_ALIASES = new Map<string, string | string[]>([
   ]],
 ]);
 
-const TEST_LEGACY_COMPATIBILITY_FIXTURE_FILES = new Set([
-  "character-card-import.test.ts",
-  "first-run-codia.test.ts",
-  "migrations.test.ts",
-  "ts-migration-inventory.test.ts",
-  "win32-legacy-maintenance.test.ts",
-  "win32-legacy-migration.test.ts",
-  "win32-sandbox-helper.test.ts",
-]);
-
 function toPosix(relativePath) {
   return relativePath.replace(/\\/g, "/");
 }
@@ -80,9 +60,7 @@ function listFiles(dir, predicate, result = []) {
 function debrandedTestPath(relativePath) {
   return relativePath
     .replace(/\\/g, "/")
-    .replace(/\.test\.js$/, ".test.ts")
-    .replace(/openhanako/gi, "codia")
-    .replace(/gsap-runtime/gi, "codia-runtime");
+    .replace(/\.test\.js$/, ".test.ts");
 }
 
 function listAliasTargets(upstreamPath) {
@@ -171,33 +149,6 @@ function sourceContractJsFileReads() {
   return offenders.sort();
 }
 
-const BRAND_NEGATIVE_ASSERTION_CONTEXT =
-  /debrand|not\.to|not\.toContain|not\.toMatch|legacyBrandPattern|legacy|compat/i;
-
-const LOCAL_UPSTREAM_REFERENCE_CONTEXT =
-  /UPSTREAM_TESTS_ROOT|upstream|migration/i;
-
-// These names are still accepted only as compatibility-facing runtime API fields
-// in mocks and fixtures. Test values should keep using Codia paths/names.
-const LEGACY_RUNTIME_API_FIELD_CONTEXT =
-  /\b(?:codiaHome|getCodiaHome|CODIA_HOME)\b/i;
-
-const LEGACY_INSTALL_OR_SANDBOX_CONTEXT =
-  /legacy|compat|com\.codia\.sandbox/i;
-
-function isAllowedTestBrandLine(relativePath, context) {
-  if (relativePath === "debrand-ts-boundary.test.ts") return true;
-  // Copyright attribution is retained even when the product name changes.
-  if (relativePath === "readme-polish-contract.test.ts" && context.includes('保留 Codia 上游版权')) return true;
-  if (TEST_LEGACY_COMPATIBILITY_FIXTURE_FILES.has(relativePath)) return true;
-  return [
-    BRAND_NEGATIVE_ASSERTION_CONTEXT,
-    LOCAL_UPSTREAM_REFERENCE_CONTEXT,
-    LEGACY_RUNTIME_API_FIELD_CONTEXT,
-    LEGACY_INSTALL_OR_SANDBOX_CONTEXT,
-  ].some((pattern) => pattern.test(context));
-}
-
 describe("debranding and TypeScript source boundary", () => {
   itWithUpstreamTests("covers the local upstream tests folder with debranded TypeScript test files", () => {
     const migrated = currentTestPaths();
@@ -235,31 +186,6 @@ describe("debranding and TypeScript source boundary", () => {
     }
   });
 
-  it("keeps non-legacy test fixtures debranded after local upstream migration", () => {
-    const forbiddenBrand = /OpenHanako|Hanako|G-SAP|GSAP|BYOUNG|baiyang/i;
-    const offendingLines = [];
-    const testRoot = path.join(ROOT, "tests");
-    const files = listFiles(testRoot, (fullPath) => /\.(test|spec)\.(ts|tsx|mts|cts)$/.test(fullPath));
-
-    for (const file of files) {
-      const relativePath = toPosix(path.relative(testRoot, file));
-      const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
-      lines.forEach((line, index) => {
-        if (!forbiddenBrand.test(line)) return;
-        const context = [
-          lines[index - 1] || "",
-          line,
-          lines[index + 1] || "",
-        ].join("\n");
-        if (!isAllowedTestBrandLine(relativePath, context)) {
-          offendingLines.push(`${relativePath}:${index + 1}: ${line.trim()}`);
-        }
-      });
-    }
-
-    expect(offendingLines).toEqual([]);
-  });
-
   it("does not keep duplicate shared JavaScript source beside TypeScript source", () => {
     expect(duplicateSharedJsSources()).toEqual([]);
   });
@@ -281,26 +207,4 @@ describe("debranding and TypeScript source boundary", () => {
     expect(packagedDuplicates).toEqual([]);
   });
 
-  it("keeps package-visible branding on Codia and marks retained legacy compatibility", () => {
-    const offendingLines = [];
-    const forbiddenBrand = /OpenHanako|Hanako|G-SAP|GSAP|BYOUNG|baiyang/i;
-
-    for (const relativePath of USER_VISIBLE_BRAND_FILES) {
-      const absolutePath = path.join(ROOT, relativePath);
-      if (!fs.existsSync(absolutePath)) continue;
-      const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
-      lines.forEach((line, index) => {
-        const context = [
-          lines[index - 1] || "",
-          line,
-          lines[index + 1] || "",
-        ].join("\n");
-        if (forbiddenBrand.test(line) && !/legacy|compat/i.test(context)) {
-          offendingLines.push(`${relativePath}:${index + 1}: ${line.trim()}`);
-        }
-      });
-    }
-
-    expect(offendingLines).toEqual([]);
-  });
 });

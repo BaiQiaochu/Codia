@@ -10,6 +10,7 @@ export const SERVER_RELEASE_PRUNE_EXTENSIONS = new Set([
   ".ipdb",
   ".lib",
   ".pdb",
+  ".pyc",
 ]);
 
 export function pruneServerReleaseOutput(outDir, { logger = console } = {}) {
@@ -34,7 +35,10 @@ function walk(dir, stats) {
       continue;
     }
     if (!entry.isFile()) continue;
-    if (!SERVER_RELEASE_PRUNE_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) continue;
+    const extension = path.extname(entry.name).toLowerCase();
+    const isDependencyReadme = fullPath.split(path.sep).includes("node_modules")
+      && /^readme(?:[._-].*)?$/i.test(entry.name);
+    if (!isDependencyReadme && !SERVER_RELEASE_PRUNE_EXTENSIONS.has(extension)) continue;
     const size = fs.statSync(fullPath).size;
     fs.rmSync(fullPath, { force: true });
     stats.filesRemoved += 1;

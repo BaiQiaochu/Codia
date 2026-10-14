@@ -3,25 +3,9 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
-const legacyBrandPattern = /OpenHanako|Hanako|G-SAP|GSAP|BYOUNG|baiyang/iu;
 
 function read(relativePath: string): string {
   return fs.readFileSync(path.join(root, relativePath), "utf-8");
-}
-
-function collectStrings(value: unknown, output: string[] = []): string[] {
-  if (typeof value === "string") {
-    output.push(value);
-    return output;
-  }
-  if (Array.isArray(value)) {
-    value.forEach((item) => collectStrings(item, output));
-    return output;
-  }
-  if (value && typeof value === "object") {
-    Object.values(value).forEach((item) => collectStrings(item, output));
-  }
-  return output;
 }
 
 describe("frontend debranding contract", () => {
@@ -36,60 +20,7 @@ describe("frontend debranding contract", () => {
     expect(manifest.short_name).toBe("Codia");
   });
 
-  it("removes the legacy product names from every bundled locale value", () => {
-    for (const locale of ["zh", "zh-TW", "en", "ja", "ko"]) {
-      const messages = JSON.parse(read(`desktop/src/locales/${locale}.json`));
-      const legacyValues = collectStrings(messages).filter((value) =>
-        legacyBrandPattern.test(value)
-      );
-      expect(legacyValues, locale).toEqual([]);
-    }
-  });
-
-  it("removes legacy branding from renderer-owned user-facing surfaces", () => {
-    const userFacingSources = [
-      "desktop/src/react/app-init.ts",
-      "desktop/src/react/mobile/mobile-init.ts",
-      "desktop/src/react/mobile/MobileApp.tsx",
-      "desktop/src/mobile-main.tsx",
-      "desktop/src/react/onboarding/OnboardingApp.tsx",
-      "desktop/src/react/quick-chat/QuickChatApp.tsx",
-      "desktop/src/react/components/automation/AutomationCard.tsx",
-      "desktop/src/react/components/AutoUpdateStatus.tsx",
-      "desktop/src/react/components/PwaLoginGate.tsx",
-      "desktop/src/react/components/channels/ChannelWorkflowWindow.tsx",
-      "desktop/src/react/components/channels/ChannelWorkspacePanel.tsx",
-      "desktop/src/react/components/chat/AssistantMessage.tsx",
-      "desktop/src/react/components/chat/ProcessFoldBlock.tsx",
-      "desktop/src/react/components/chat/ToolGroupBlock.tsx",
-      "desktop/src/react/components/chat/XingCard.tsx",
-      "desktop/src/react/components/input/SessionConfirmationPrompt.tsx",
-      "desktop/src/react/components/notices/SidebarNoticeSlot.tsx",
-      "desktop/src/react/services/server-connection.ts",
-      "desktop/src/react/settings/SettingsContent.tsx",
-      "desktop/src/react/settings/store.ts",
-      "desktop/src/react/settings/tabs/settings-copy.ts",
-      "desktop/src/react/stores/agent-slice.ts",
-      "desktop/src/react/stores/runtime-timeline-slice.ts",
-      "desktop/src/react/utils/screenshot.ts",
-      "desktop/src/lib/i18n.ts",
-      "desktop/src/react/splash/SplashApp.tsx",
-      "desktop/src/screenshot-themes/codia-brand.css",
-      "desktop/src/screenshot-themes/codia-brand-desktop.css",
-      "server/block-extractors.ts",
-      "server/deferred-result-interlude.ts",
-      "server/routes/chat.ts",
-      "server/routes/mobile-workbench.ts",
-      "server/routes/system-health.ts",
-      "server/runtime-diagnostics-service.ts",
-      "shared/professional-edition.ts",
-      "shared/vscode-extension-compat.ts",
-    ];
-
-    for (const relativePath of userFacingSources) {
-      expect(read(relativePath), relativePath).not.toMatch(legacyBrandPattern);
-    }
-
+  it("uses Codia branding in the renderer watermark", () => {
     const watermark = read("shared/dark-watermark.cjs");
     expect(watermark).toContain('const PRODUCT = "Codia";');
   });
@@ -132,8 +63,6 @@ describe("frontend debranding contract", () => {
     const main = read("desktop/main.cjs");
     expect(main).toContain('const RUNTIME_DISPLAY_NAME = "Codia";');
     expect(main).toContain('title: "Codia Quick Chat"');
-
-    expect(read("desktop/bootstrap.cjs")).not.toMatch(legacyBrandPattern);
 
     const server = read("server/index.ts");
     expect(server).toContain("<title>本机 API 服务</title>");

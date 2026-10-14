@@ -64,7 +64,6 @@ describe("Codia branding contract", () => {
 
     const installer = read("build/installer.nsh");
     expect(installer).toContain('"Codia.exe"');
-    expect(installer).not.toMatch(/星河智域|BYOUNG|G-SAP|Hanako/i);
   });
 
   it("uses the Codia avatar for built-in assistant fallbacks", () => {

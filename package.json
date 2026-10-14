@@ -1,9 +1,10 @@
 {
   "name": "codia",
   "version": "0.3.2",
+  "private": true,
   "type": "module",
   "description": "Codia - a thoughtful AI workspace for chat, documents, workflows, and teams",
-  "license": "Apache-2.0",
+  "license": "UNLICENSED",
   "author": {
     "name": "kskooo"
   },

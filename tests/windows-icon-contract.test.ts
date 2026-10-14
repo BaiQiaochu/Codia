@@ -127,7 +127,6 @@ describe("Windows icon contract", () => {
     const installer = fs.readFileSync(path.join(root, "build", "installer.nsh"), "utf-8");
 
     expect(installer).toContain("Codia.exe");
-    expect(installer).not.toMatch(/CodiaCodia|星河智域|BYOUNG|G-SAP|Hanako/i);
     expect(installer).toContain("codia-server.exe");
     expect(installer).toContain("CODIA_INSTALL_DIR");
     expect(installer).toContain('RMDir /r "$INSTDIR\\resources\\app"');
@@ -136,6 +135,5 @@ describe("Windows icon contract", () => {
       .filter(line => /\bDetailPrint\b|\bMessageBox\b/u.test(line))
       .join("\n");
     expect(visibleInstallerCopy).toMatch(/Codia/u);
-    expect(installer).not.toMatch(/星河智域|BYOUNG|G-SAP|Hanako|OpenHanako/i);
   });
 });

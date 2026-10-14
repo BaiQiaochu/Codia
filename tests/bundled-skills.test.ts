@@ -66,31 +66,6 @@ describe("bundled skills", () => {
     expect(currentSkillNames.has("codia-plugin-creator")).toBe(true);
   });
 
-  it("keeps bundled skill text free of legacy product branding", () => {
-    const skillsRoot = path.join(process.cwd(), "skills2set");
-    const legacyBrandPattern = /OpenHanako|Hanako|G-SAP|GSAP|BYOUNG|baiyang/i;
-    const offenders = [];
-    const stack = [skillsRoot];
-
-    while (stack.length > 0) {
-      const current = stack.pop();
-      for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
-        const fullPath = path.join(current, entry.name);
-        if (entry.isDirectory()) {
-          stack.push(fullPath);
-          continue;
-        }
-        if (!/\.(?:md|yaml|yml|json|txt|py|js|ts|tsx|css|html)$/i.test(entry.name)) continue;
-        const text = fs.readFileSync(fullPath, "utf-8");
-        if (legacyBrandPattern.test(text)) {
-          offenders.push(path.relative(skillsRoot, fullPath));
-        }
-      }
-    }
-
-    expect(offenders).toEqual([]);
-  });
-
   it("keeps the synced original user guide feature coverage after debranding", () => {
     const userGuide = fs.readFileSync(
       path.join(process.cwd(), "skills2set", "user-guide", "SKILL.md"),

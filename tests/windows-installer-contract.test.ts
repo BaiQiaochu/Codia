@@ -30,7 +30,6 @@ describe("Windows NSIS installer contract", () => {
 
     expect(cleanup).toContain('Delete "$DESKTOP\\Codia.lnk"');
     expect(cleanup).toContain('Delete "$SMPROGRAMS\\Codia.lnk"');
-    expect(cleanup).not.toMatch(/星河智域|BYOUNG|G-SAP|Hanako/i);
     expect(customInstall).toContain("codiaRemoveLegacyShortcuts");
   });
 

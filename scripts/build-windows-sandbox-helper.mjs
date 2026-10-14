@@ -77,11 +77,15 @@ function runCompile(command, { rootDir, arch }) {
   const devCmd = findVsDevCmd();
   const scriptPath = path.join(windowsSandboxHelperOutputDir({ rootDir, arch }), "build-windows-sandbox-helper.cmd");
   fs.writeFileSync(scriptPath, buildWindowsSandboxBatchScript({ devCmd, compileCommand: command, arch }), "utf-8");
-  execFileSync("cmd.exe", ["/d", "/c", scriptPath], {
-    cwd: rootDir,
-    stdio: "inherit",
-    windowsHide: true,
-  });
+  try {
+    execFileSync("cmd.exe", ["/d", "/c", scriptPath], {
+      cwd: rootDir,
+      stdio: "inherit",
+      windowsHide: true,
+    });
+  } finally {
+    fs.rmSync(scriptPath, { force: true });
+  }
 }
 
 export function buildWindowsSandboxHelper({

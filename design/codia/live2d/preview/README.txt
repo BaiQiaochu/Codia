@@ -120,7 +120,7 @@ review-state JSON 报告真实 duration/currentTime/presentedFrameTime、videoWi
 录制时 JSON 的 elapsedSeconds 单独显示；不能将它当成浏览器实际解码时长。
 
 许可
-官方 SDK 保留在 .local-tools 中，适用 Live2D 自身许可，不属于本项目 Apache-2.0 授权。
+官方 SDK 保留在 .local-tools 中，适用 Live2D 自身许可，不受 Codia 项目许可证状态影响。
 下载来源、SHA256 和许可页快照见 .local-tools/live2d/downloads/download-manifest.json。
 本独立工具不会自动将 SDK 或 Editor 加入正式应用发布。
 
