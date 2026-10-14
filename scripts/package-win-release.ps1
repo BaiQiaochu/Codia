@@ -604,7 +604,7 @@ function Test-PackagedRendererDragRegion {
 
   $css = Read-RendererDragCss -Root $Root -PortableDir $PortableDir -SourceOnly:$SourceOnly
   $titlebar = Get-CssRuleBody -Css $css -SelectorPattern "\.titlebar" -Name ".titlebar"
-  $groups = Get-CssRuleBody -Css $css -SelectorPattern "\.tb-left-group,\s*\.tb-center-group,\s*\.tb-right-group" -Name ".tb-left-group/.tb-center-group/.tb-right-group"
+  $groups = Get-CssRuleBody -Css $css -SelectorPattern "\.tb-left-group,\s*\.tb-right-group" -Name ".tb-left-group/.tb-right-group"
   $toggle = Get-CssRuleBody -Css $css -SelectorPattern "(?:^|\n)\.tb-toggle" -Name ".tb-toggle"
   $obsidianIdeMenu = $null
   if ($css -match "\.obsidian-ide-menu\s*\{") {
