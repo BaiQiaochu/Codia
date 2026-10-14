@@ -133,7 +133,9 @@ describe("release preflight contract", () => {
     expect(packagedSmokeScript).toContain("mobile-desktop-root");
     expect(packagedSmokeScript).toContain("waitForPwaShellReady");
     expect(packagedSmokeScript).toContain("captureSmokeScreenshot");
-    expect(packagedSmokeScript).toContain("PWA welcome identity visible");
+    expect(packagedSmokeScript).toContain("PWA identity visible");
+    expect(winPackageScript).toContain('$psi.EnvironmentVariables["CODIA_PORT"] = "0"');
+    expect(winPackageScript).toContain('@("playwright", "install", "chromium")');
 
     const resolverStart = winPackageScript.indexOf("function Resolve-InstallerArtifactPath");
     const resolverEnd = winPackageScript.indexOf("\nfunction ConvertTo-RootRelativePath", resolverStart);

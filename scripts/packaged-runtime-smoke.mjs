@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
+import registry from "../desktop/src/shared/theme-registry.cjs";
 
 const baseUrl = String(process.env.CODIA_PACKAGE_SMOKE_BASE_URL || "").replace(/\/+$/, "");
 const token = String(process.env.CODIA_PACKAGE_SMOKE_TOKEN || "");
@@ -49,30 +50,35 @@ try {
   await page.waitForFunction(() => typeof window.setTheme === "function");
   if (token) {
     await waitForPwaShellReady(page);
-    await assertPwaWelcomeIdentityVisible(page);
+    await captureSmokeScreenshot(page, "mobile-shell");
+    await assertPwaIdentityVisible(page);
     await assertNoHorizontalOverflow(page, "mobile-ready");
     await captureSmokeScreenshot(page, "mobile-ready");
-    checks.push("PWA welcome identity visible");
+    checks.push("PWA identity visible");
   } else {
     await captureSmokeScreenshot(page, "mobile-login");
   }
   await page.evaluate(() => window.setTheme("workbench"));
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => document.documentElement.getAttribute("data-theme") === "workbench");
+  await page.waitForFunction(
+    (theme) => document.documentElement.getAttribute("data-theme") === theme,
+    registry.DEFAULT_THEME,
+  );
   await waitForPwaShellReady(page);
-  await assertNoHorizontalOverflow(page, "mobile-theme-workbench");
+  await assertNoHorizontalOverflow(page, "mobile-theme-normalized");
   const themeState = await page.evaluate(() => ({
     dataTheme: document.documentElement.getAttribute("data-theme"),
     storedTheme: localStorage.getItem("codia-theme"),
     cssHref: document.getElementById("themeSheet")?.getAttribute("href") || "",
   }));
-  if (themeState.storedTheme !== "workbench") {
-    throw new Error(`PWA theme storage did not persist workbench: ${JSON.stringify(themeState)}`);
+  if (themeState.storedTheme !== registry.DEFAULT_THEME) {
+    throw new Error(`PWA theme storage did not normalize to ${registry.DEFAULT_THEME}: ${JSON.stringify(themeState)}`);
   }
-  if (!themeState.cssHref.includes("workbench")) {
-    throw new Error(`PWA theme stylesheet did not switch to workbench: ${JSON.stringify(themeState)}`);
+  const expectedCss = registry.THEMES[registry.DEFAULT_THEME].cssPath;
+  if (!themeState.cssHref.includes(expectedCss)) {
+    throw new Error(`PWA theme stylesheet did not switch to ${expectedCss}: ${JSON.stringify(themeState)}`);
   }
-  await captureSmokeScreenshot(page, "mobile-theme-workbench");
+  await captureSmokeScreenshot(page, "mobile-theme-normalized");
   checks.push("PWA theme sync");
 } catch (error) {
   console.error(`[packaged-runtime-smoke] failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -111,29 +117,33 @@ async function waitForPwaShellReady(page) {
   await page.waitForSelector(".onboarding-step", { timeout: 20_000 });
 }
 
-async function assertPwaWelcomeIdentityVisible(page) {
+async function assertPwaIdentityVisible(page) {
+  await page.waitForSelector('#welcome section[aria-label] h2', {
+    state: "visible",
+    timeout: 20_000,
+  });
   const state = await page.evaluate(() => {
     const root = document.querySelector(".mobile-desktop-root");
     const login = document.querySelector("form.onboarding-step");
     const welcome = document.querySelector("#welcome");
-    const avatar = document.querySelector(".welcome img, .welcome span[aria-label], .welcomeAgentChip img, .onboarding-avatar");
-    const identityControl = welcome?.querySelector("button[aria-label]");
-    const title = welcome?.querySelector("h1");
-    const rect = avatar?.getBoundingClientRect?.();
-    const identityRect = identityControl?.getBoundingClientRect?.();
+    const hero = welcome?.querySelector("section[aria-label]");
+    const heroHeading = hero?.querySelector("h1, h2");
+    const agentChip = welcome?.querySelector('button[class*="welcomeAgentChip"]');
+    const heroRect = hero?.getBoundingClientRect?.();
+    const agentChipRect = agentChip?.getBoundingClientRect?.();
     return {
       ready: Boolean(root),
       loginVisible: Boolean(login),
-      avatarVisible: Boolean(rect && rect.width >= 16 && rect.height >= 16),
-      identityVisible: Boolean(identityRect && identityRect.width >= 16 && identityRect.height >= 16),
-      welcomeTitleVisible: Boolean(title?.textContent?.trim()),
+      heroVisible: Boolean(heroRect && heroRect.width >= 16 && heroRect.height >= 16),
+      heroHeadingVisible: Boolean(heroHeading?.textContent?.trim()),
+      agentChipVisible: Boolean(agentChipRect && agentChipRect.width >= 16 && agentChipRect.height >= 16),
     };
   });
   if (!state.ready || state.loginVisible) {
     throw new Error(`PWA did not enter the authenticated mobile shell: ${JSON.stringify(state)}`);
   }
-  if (!state.avatarVisible && !(state.identityVisible && state.welcomeTitleVisible)) {
-    throw new Error(`PWA welcome identity was not visible: ${JSON.stringify(state)}`);
+  if (!(state.heroVisible && state.heroHeadingVisible) && !state.agentChipVisible) {
+    throw new Error(`PWA identity was not visible: ${JSON.stringify(state)}`);
   }
 }
 

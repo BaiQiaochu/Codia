@@ -380,6 +380,7 @@ function Test-PortableServer {
     $psi.EnvironmentVariables["CODIA_HOME"] = $smokeHome
     $psi.EnvironmentVariables["CODIA_ROOT"] = $serverRoot
     $psi.EnvironmentVariables["CODIA_SERVER_ENTRY"] = Join-Path $serverRoot "bundle\index.js"
+    $psi.EnvironmentVariables["CODIA_PORT"] = "0"
 
     $pathEntries = @(
       (Join-Path $resources "git\mingw64\bin"),
@@ -773,6 +774,8 @@ if (!$NoPortable) {
   Test-PackagedRendererDragRegion -Root $root -PortableDir $portableDir
 
   if (!$SkipSmoke) {
+    Write-Step "Preparing local Chromium for package smoke tests"
+    Invoke-Step "npx" @("playwright", "install", "chromium")
     Write-Step "Smoke testing portable server"
     Test-PortableServer -Root $root -PortableDir $portableDir -ExpectedVersion $packageVersion
     Write-Step "Smoke testing packaged desktop app"
