@@ -438,7 +438,17 @@ const rootLock = JSON.parse(fs.readFileSync(path.join(ROOT, "package-lock.json")
 // an unverified package export shape.
 const externalPkg = buildExternalPackage(rootPkg, externalDeps, {
   rootLock,
-  pinnedTransitiveDeps: ["lru-cache"],
+  // pi-coding-agent 1.1.0 declares its sibling packages with caret ranges.
+  // Installing the generated server package without these direct pins can mix
+  // pi 1.1.0 with newer sibling releases whose export contracts differ.
+  pinnedTransitiveDeps: [
+    "lru-cache",
+    "@earendil-works/chord",
+    "@earendil-works/pi-codemode",
+    "@earendil-works/pi-mcp",
+    "@earendil-works/pi-telemetry",
+    "@earendil-works/pi-tui",
+  ],
   packageName: "codia-server",
 });
 const pinnedDeps = Object.entries(externalPkg.dependencies)

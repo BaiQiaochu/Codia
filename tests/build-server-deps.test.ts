@@ -34,6 +34,7 @@ describe("build-server external dependency packaging", () => {
       packages: {
         "node_modules/jsdom": { version: "29.0.2" },
         "node_modules/lru-cache": { version: "11.2.7" },
+        "node_modules/@earendil-works/pi-codemode": { version: "1.1.0" },
       },
     };
 
@@ -42,7 +43,7 @@ describe("build-server external dependency packaging", () => {
       { jsdom: "^29.0.2" },
       {
         rootLock,
-        pinnedTransitiveDeps: ["lru-cache"],
+        pinnedTransitiveDeps: ["lru-cache", "@earendil-works/pi-codemode"],
         packageName: "codia-server",
       },
     );
@@ -54,6 +55,7 @@ describe("build-server external dependency packaging", () => {
       dependencies: {
         jsdom: "29.0.2",
         "lru-cache": "11.2.7",
+        "@earendil-works/pi-codemode": "1.1.0",
       },
       overrides: { axios: "^1.15.2" },
     });
@@ -122,6 +124,7 @@ describe("build-server external dependency packaging", () => {
       type: "module",
       exports: {
         ".": {
+          source: "./src/index.ts",
           types: "./dist/index.d.ts",
           import: "./dist/index.js",
         },

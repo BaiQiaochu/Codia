@@ -18,6 +18,7 @@ const piAiRoot = path.join(root, "node_modules", "@earendil-works", "pi-ai");
 const verifiedVersions = new Set(["1.1.0"]);
 const verifiedPiAiVersions = new Set(["1.1.0"]);
 const piAgentCoreRoot = path.join(root, "node_modules", "@earendil-works", "pi-agent-core");
+const piCodemodeRoot = path.join(root, "node_modules", "@earendil-works", "pi-codemode");
 
 function fail(message) {
   console.error(`[verify-pi-sdk] ${message}`);
@@ -49,6 +50,20 @@ if (!verifiedPiAiVersions.has(piAiPkg.version)) {
 const piAgentCorePkg = readJson(path.join(piAgentCoreRoot, "package.json"));
 if (piAgentCorePkg.version !== "1.1.0") {
   fail(`pi-agent-core version ${piAgentCorePkg.version} does not match 1.1.0`);
+}
+if (!fs.existsSync(piCodemodeRoot)) {
+  fail("@earendil-works/pi-codemode is not installed");
+}
+const piCodemodePkg = readJson(path.join(piCodemodeRoot, "package.json"));
+if (piCodemodePkg.version !== pkg.version) {
+  fail(`pi-codemode version ${piCodemodePkg.version} does not match pi-coding-agent ${pkg.version}`);
+}
+const piCodemodeDeclarations = fs.readFileSync(
+  path.join(piCodemodeRoot, "dist", "declarations.js"),
+  "utf8",
+);
+if (!piCodemodeDeclarations.includes("MCP_TYPESCRIPT_PREAMBLE")) {
+  fail("pi-codemode declarations are incompatible with the verified coding-agent runtime");
 }
 
 const sdkIndex = fs.readFileSync(path.join(sdkRoot, "dist", "index.js"), "utf8");

@@ -66,7 +66,9 @@ function collectRuntimeExportTargets(exportValue, targets = []) {
   }
 
   for (const [condition, value] of Object.entries(exportValue)) {
-    if (condition === "types") continue;
+    // `types` and the non-standard `source` condition are development-time
+    // entries. Node's packaged runtime resolves `import`/`require`/`default`.
+    if (condition === "types" || condition === "source") continue;
     collectRuntimeExportTargets(value, targets);
   }
 
