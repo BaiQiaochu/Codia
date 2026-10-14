@@ -1,168 +1,52 @@
-name: Build release artifacts (manual only)
-run-name: Codia packages · ${{ github.ref_name }} · run ${{ github.run_number }}
+name: Build release artifacts on a free self-hosted runner
+run-name: Codia local packages · ${{ github.ref_name }} · run ${{ github.run_number }}
 
 on:
   workflow_dispatch:
     inputs:
       publish_release:
-        description: Publish all packages to GitHub Releases after every platform succeeds
+        description: Publish the draft after the local build succeeds
         type: boolean
         default: false
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: codia-packages-${{ github.ref }}
+  group: codia-local-packages-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  prepare-release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    outputs:
-      release_tag: ${{ steps.release.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24.15.0
-      - name: Prepare draft release
-        id: release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          RELEASE_TAG="v$(node -p "require('./package.json').version")"
-          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
-          if gh release view "$RELEASE_TAG" --json isDraft > release-state.json 2>/dev/null; then
-            node -e "if (!JSON.parse(require('fs').readFileSync('release-state.json')).isDraft) throw new Error('Release already published; use a new version')"
-            gh release edit "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Codia $RELEASE_TAG"
-          else
-            gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Codia $RELEASE_TAG" --notes "Cloud packages are being assembled." --draft
-          fi
-
-  build:
-    needs: prepare-release
-    permissions:
-      contents: write
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            name: windows-x64
-            arch: x64
-            command: npx electron-builder --config scripts/electron-builder.cloud.cjs --win nsis --x64 --publish never
-          - os: ubuntu-latest
-            name: linux-x64
-            arch: x64
-            command: npx electron-builder --config scripts/electron-builder.cloud.cjs --linux deb --x64 --publish never
-          - os: macos-15
-            name: macos-arm64
-            arch: arm64
-            command: npx electron-builder --config scripts/electron-builder.cloud.cjs --mac dmg zip --arm64 --publish never
-          - os: macos-15-intel
-            name: macos-x64
-            arch: x64
-            command: npx electron-builder --config scripts/electron-builder.cloud.cjs --mac dmg zip --x64 --publish never
-    runs-on: ${{ matrix.os }}
+  windows-release:
+    # This label intentionally prevents GitHub-hosted paid runners from running releases.
+    runs-on: [self-hosted, Windows, X64, codia-release]
+    timeout-minutes: 120
     env:
+      GITHUB_TOKEN: ${{ github.token }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
       PUPPETEER_SKIP_DOWNLOAD: 'true'
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
     steps:
       - uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 24.15.0
-          architecture: ${{ matrix.arch }}
           cache: npm
       - name: Install locked dependencies
         run: node scripts/ci-install-dependencies.mjs
-      - name: Verify runner architecture and bundled Live2D resources
-        env:
-          EXPECTED_ARCH: ${{ matrix.arch }}
+      - name: Compile locally and upload the exact source and Windows packages
+        shell: powershell
         run: |
-          node -e "if (process.arch !== process.env.EXPECTED_ARCH) throw new Error('Wrong build architecture'); console.log(process.platform, process.arch)"
-          node scripts/prepare-codia-live2d.mjs --check
-      - name: Prepare Windows Git and sandbox runtime
-        if: runner.os == 'Windows'
-        run: |
-          node scripts/download-git-portable.js
-          npm run build:windows-sandbox-helper
-      - name: Compile macOS computer-use helper
-        if: runner.os == 'macOS'
-        run: node scripts/build-computer-use-helper.mjs
-      - name: Compile client and bundled server
-        run: npm run build
-      # Use electron-builder directly: local dist scripts increment the version.
-      - name: Package application without changing the version
-        run: ${{ matrix.command }}
-      - name: Separate macOS update metadata by architecture
-        if: runner.os == 'macOS'
-        run: mv dist/latest-mac.yml dist/latest-mac-${{ matrix.arch }}.yml
-      - name: Upload package files to draft release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ needs.prepare-release.outputs.release_tag }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          files=(dist/*.exe dist/*.blockmap dist/*.dmg dist/*.zip dist/*.AppImage dist/*.deb dist/latest*.yml)
-          if (( ${#files[@]} == 0 )); then
-            echo "No release files were produced for ${{ matrix.name }}" >&2
-            exit 1
-          fi
-          gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
-
-  release-metadata:
-    needs: [prepare-release, build]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24.15.0
-      - name: Download packages from draft release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ needs.prepare-release.outputs.release_tag }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p artifacts
-          gh release download "$RELEASE_TAG" --dir artifacts
-      - name: Merge macOS metadata and verify release files
-        run: |
-          node scripts/merge-latest-mac-yml.cjs artifacts latest-mac.yml
-          mv latest-mac.yml artifacts/latest-mac.yml
-          node scripts/prepare-cloud-release.mjs artifacts
-      - name: Upload release metadata
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ needs.prepare-release.outputs.release_tag }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          gh release upload "$RELEASE_TAG" artifacts/latest-mac.yml artifacts/SHA256SUMS.txt artifacts/RELEASE-NOTES.md --clobber
-      - name: Publish complete GitHub Release
-        if: inputs.publish_release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ needs.prepare-release.outputs.release_tag }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          gh release edit "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Codia $RELEASE_TAG" --notes-file artifacts/RELEASE-NOTES.md --draft=false --latest
+          $arguments = @{
+            Version = (node -p "require('./package.json').version")
+            Repository = $env:GITHUB_REPOSITORY
+            Token = $env:GITHUB_TOKEN
+          }
+          if ('${{ inputs.publish_release }}' -eq 'true') {
+            $arguments.Publish = $true
+          }
+          & ./scripts/publish-local-release.ps1 @arguments

@@ -75,7 +75,7 @@ Codia 提供 OpenAI、Anthropic、Gemini、DeepSeek、通义千问、火山引�
 
 ## 开始体验
 
-从 [最新正式版](https://github.com/BaiQiaochu/Codia/releases/latest) 下载适合你电脑的安装包。当前 `v0.3.2` 提供 Windows x64、Linux x64，以及 macOS Apple Silicon / Intel 版本；仓库当前需要获授权的 GitHub 账号访问。
+从 [最新正式版](https://github.com/BaiQiaochu/Codia/releases/latest) 下载适合你电脑的安装包。当前源码版本为 `v0.3.3`；仓库当前需要获授权的 GitHub 账号访问。
 
 首次打开后，跟随引导连接模型、选择工作文件夹，就可以从一份资料、一个问题或一件想完成的小事开始。
 
@@ -128,7 +128,9 @@ npm run check:local       # 本地检查，默认保留检查产物
 
 `start:built` 默认仍运行服务端源码；完整构建后可用 `CODIA_DESKTOP_SERVER_MODE=dist` 验证独立服务端。`npm run e2e:desktop-smoke` 使用隔离配置和本机模拟模型。完整说明见[贡献指南](CONTRIBUTING.md)。勿用 `git clean -fdx` 清理日常环境；它会删除被忽略的依赖、缓存和构建产物。
 
-安装包使用[手动发布工作流](.github/workflows/build.yml)，推送源码或标签不会自动发布。工作流先上传草稿 Release；勾选 `publish_release` 后，所有平台成功才公开发布并附 `SHA256SUMS.txt`。云端不自动递增版本，也不覆盖已发布版本；本地 `dist:win`、`dist`、`dist:linux` 会调用版本递增，运行前检查 [package.json](package.json)。
+Windows 发布包默认在本机免费环境编译。运行 `npm run release:local` 会要求工作区干净，构建安装包和便携包，归档当前提交的源码，生成 `SHA256SUMS.txt`，并上传到同版本的 GitHub 草稿 Release。上传前先在 [package.json](package.json) 中提交新版本号；脚本不会覆盖已公开版本。
+
+[手动发布工作流](.github/workflows/build.yml) 只接受带 `codia-release` 标签的自托管 Windows x64 运行器，不会使用 GitHub 托管计费运行器。默认保留草稿；只有主动勾选 `publish_release` 才会公开。Linux 与 macOS 包需要在对应的免费自托管机器上另行构建。
 
 ## 目录
 
