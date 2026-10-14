@@ -14,7 +14,7 @@ describe("yuan visuals", () => {
     expect(getYuanVisual("butter")).toMatchObject({
       symbol: "\u2665",
       moodLabel: "PULSE",
-      accent: "#5BA88C",
+      accent: "#A984E8",
       avatar: defaultAssistantAvatar,
     });
     expect(getYuanVisual("ming")).toMatchObject({

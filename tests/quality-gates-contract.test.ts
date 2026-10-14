@@ -78,7 +78,7 @@ describe("quality gates", () => {
     expect(mainConfig).toContain('target: "node24"');
     expect(preloadConfig).toContain('target: "node24"');
     expect(ci.jobs.test.strategy.matrix["node-version"]).toEqual(["24.15.0"]);
-    expect(build.jobs.build.steps).toEqual(
+    expect(build.jobs["windows-release"].steps).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           with: expect.objectContaining({ "node-version": "24.15.0" }),

@@ -124,11 +124,11 @@ describe("macOS update metadata release contract", () => {
     expect(merged.path).toBe("Codia-0.171.5-macOS-arm64.zip");
   });
 
-  it("routes the GitHub release workflow through the checked merge script", () => {
+  it("does not publish macOS metadata from the Windows-only free release workflow", () => {
     const workflow = fs.readFileSync(workflowPath, "utf8");
 
-    expect(workflow).toContain("node scripts/merge-latest-mac-yml.cjs artifacts latest-mac.yml");
-    expect(workflow).not.toContain("Only x64 yml found, using as-is");
-    expect(workflow).not.toContain("Only arm64 yml found, using as-is");
+    expect(workflow).toContain("runs-on: [self-hosted, Windows, X64, codia-release]");
+    expect(workflow).not.toContain("macos-");
+    expect(workflow).not.toContain("merge-latest-mac-yml.cjs");
   });
 });
