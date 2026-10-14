@@ -140,6 +140,6 @@ npm run check:local       # 本地检查，默认保留检查产物
 
 [贡献指南](CONTRIBUTING.md) · [插件开发](PLUGINS.md) · [Plugin SDK](PLUGIN_SDK.md) · [行为准则](CODE_OF_CONDUCT.md)
 
-Codia 的项目许可证尚待选择。欢迎问题反馈、文档修订、测试和功能贡献；请保留既有来源与版权说明，勿提交密钥、个人会话或用户文件。
+
 
 Live2D 等第三方组件保留各自许可。再分发前请阅读 [Cubism SDK 许可](third_party/live2d/cubism-web-5-r.5/LICENSE.md)、[Core 许可](third_party/live2d/cubism-web-5-r.5/Core/LICENSE.md)、[Framework 许可](third_party/live2d/cubism-web-5-r.5/Framework/LICENSE.md)与[第三方声明](third_party/live2d/cubism-web-5-r.5/NOTICE.md)。
