@@ -52,7 +52,6 @@
     "dist:win": "npm run bump:package-version && npm run audit:source-tree -- --strict && npm run build:win-release-resources && npm run build:client && npm run build:server && electron-builder --win nsis dir",
     "dist:linux": "npm run bump:package-version && npm run audit:source-tree -- --strict && npm run clean:artifacts -- --apply && npm run generate:professional-icon && npm run build:client && npm run build:server && electron-builder --linux deb AppImage",
     "package:win": "node scripts/package-codia-win.mjs",
-    "release:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/publish-local-release.ps1",
     "package:surfaces": "node scripts/package-surface-artifacts.mjs",
     "package:size-trend": "node scripts/package-size-trend.mjs",
     "prune:git-portable": "node scripts/prune-git-portable.js",
@@ -275,7 +274,6 @@
       "target": "nsis",
       "icon": "desktop/src/icon.ico",
       "executableName": "Codia",
-      "signAndEditExecutable": false,
       "artifactName": "${productName}-${version}-Windows-${arch}.${ext}",
       "signtoolOptions": {
         "publisherName": "kskooo"

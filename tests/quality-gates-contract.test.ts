@@ -69,7 +69,6 @@ describe("quality gates", () => {
     const mainConfig = readText("vite.config.main.js");
     const preloadConfig = readText("vite.config.preload.js");
     const ci = readYaml(".github/workflows/ci.yml");
-    const build = readYaml(".github/workflows/build.yml");
 
     expect(packageJson.engines.node).toBe(">=24.12.0 <25");
     expect(buildServer).toContain('const NODE_VERSION = "v24.15.0"');
@@ -78,13 +77,6 @@ describe("quality gates", () => {
     expect(mainConfig).toContain('target: "node24"');
     expect(preloadConfig).toContain('target: "node24"');
     expect(ci.jobs.test.strategy.matrix["node-version"]).toEqual(["24.15.0"]);
-    expect(build.jobs["windows-release"].steps).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          with: expect.objectContaining({ "node-version": "24.15.0" }),
-        }),
-      ]),
-    );
   });
 
   it("verifies downloaded Node runtime archives before extraction", () => {

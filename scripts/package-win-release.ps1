@@ -774,8 +774,6 @@ if (!$NoPortable) {
   Test-PackagedRendererDragRegion -Root $root -PortableDir $portableDir
 
   if (!$SkipSmoke) {
-    Write-Step "Preparing local Chromium for package smoke tests"
-    Invoke-Step "npx" @("playwright", "install", "chromium")
     Write-Step "Smoke testing portable server"
     Test-PortableServer -Root $root -PortableDir $portableDir -ExpectedVersion $packageVersion
     Write-Step "Smoke testing packaged desktop app"

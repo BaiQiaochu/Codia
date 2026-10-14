@@ -1,11 +1,11 @@
-name: Build release artifacts on a free self-hosted runner
-run-name: Codia local packages · ${{ github.ref_name }} · run ${{ github.run_number }}
+name: Publish source release
+run-name: Codia source release · ${{ github.ref_name }} · run ${{ github.run_number }}
 
 on:
   workflow_dispatch:
     inputs:
       publish_release:
-        description: Publish the draft after the local build succeeds
+        description: Publish the release instead of keeping it as a draft
         type: boolean
         default: false
 
@@ -13,40 +13,65 @@ permissions:
   contents: write
 
 concurrency:
-  group: codia-local-packages-${{ github.ref }}
+  group: codia-source-release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  windows-release:
-    # This label intentionally prevents GitHub-hosted paid runners from running releases.
-    runs-on: [self-hosted, Windows, X64, codia-release]
-    timeout-minutes: 120
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
-      GITHUB_REPOSITORY: ${{ github.repository }}
-      PUPPETEER_SKIP_DOWNLOAD: 'true'
-      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
-      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+  source-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
-          clean: true
           fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24.15.0
-          cache: npm
-      - name: Install locked dependencies
-        run: node scripts/ci-install-dependencies.mjs
-      - name: Compile locally and upload the exact source and Windows packages
-        shell: powershell
+
+      - name: Resolve release metadata
+        id: release
+        shell: bash
         run: |
-          $arguments = @{
-            Version = (node -p "require('./package.json').version")
-            Repository = $env:GITHUB_REPOSITORY
-            Token = $env:GITHUB_TOKEN
-          }
-          if ('${{ inputs.publish_release }}' -eq 'true') {
-            $arguments.Publish = $true
-          }
-          & ./scripts/publish-local-release.ps1 @arguments
+          version="$(node -p "require('./package.json').version")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub source release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          TAG: ${{ steps.release.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+          PUBLISH_RELEASE: ${{ inputs.publish_release }}
+        run: |
+          set -euo pipefail
+
+          notes=$(cat <<EOF
+          # Codia v${VERSION}
+
+          Source-only release for commit \`${GITHUB_SHA}\`.
+
+          GitHub generates the **Source code (zip)** and **Source code (tar.gz)** archives directly from the tagged commit. No desktop installer or locally compiled artifact is attached to this release.
+          EOF
+          )
+
+          if gh release view "$TAG" --repo "$REPOSITORY" >/dev/null 2>&1; then
+            is_draft="$(gh api "repos/$REPOSITORY/releases/tags/$TAG" --jq .draft)"
+            if [[ "$is_draft" != "true" ]]; then
+              echo "Release $TAG is already published; refusing to replace it." >&2
+              exit 1
+            fi
+            gh release edit "$TAG" \
+              --repo "$REPOSITORY" \
+              --title "Codia $TAG" \
+              --notes "$notes"
+          else
+            gh release create "$TAG" \
+              --repo "$REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "Codia $TAG" \
+              --notes "$notes" \
+              --draft
+          fi
+
+          if [[ "$PUBLISH_RELEASE" == "true" ]]; then
+            gh release edit "$TAG" --repo "$REPOSITORY" --draft=false --latest
+          fi
