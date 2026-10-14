@@ -275,6 +275,7 @@
       "target": "nsis",
       "icon": "desktop/src/icon.ico",
       "executableName": "Codia",
+      "signAndEditExecutable": false,
       "artifactName": "${productName}-${version}-Windows-${arch}.${ext}",
       "signtoolOptions": {
         "publisherName": "kskooo"

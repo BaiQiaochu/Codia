@@ -26,6 +26,7 @@ describe("Windows icon contract", () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf-8"));
 
     expect(pkg.build.win.icon).toBe("desktop/src/icon.ico");
+    expect(pkg.build.win.signAndEditExecutable).toBe(false);
     expect(pkg.build.nsis.installerIcon).toBe("desktop/src/icon.ico");
     expect(pkg.build.nsis.uninstallerIcon).toBe("desktop/src/icon.ico");
     expect(pkg.build.files).toContain("desktop/src/**/*.{html,icns,ico,png,svg,json}");
