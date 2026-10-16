@@ -499,6 +499,11 @@ describe("bundled plugin runtime dependencies", () => {
     const ignore = createTraceIgnore();
 
     expect(ignore("C:\\Users\\ghost\\OneDrive\\locked-file")).toBe(true);
+    expect(ignore("C:/Users/ghost/OneDrive/locked-file")).toBe(true);
+    expect(ignore("\\\\server\\share\\locked-file")).toBe(true);
+    expect(ignore("/outside/locked-file")).toBe(true);
+    expect(ignore("../outside/locked-file")).toBe(true);
+    expect(ignore("plugins/demo/index.js")).toBe(false);
   });
 
   it("rejects plugin imports into host paths that are not explicit runtime surfaces", async () => {

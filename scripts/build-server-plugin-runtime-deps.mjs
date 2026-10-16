@@ -18,7 +18,8 @@ function isInsideRoot(rootDir, targetPath) {
 }
 
 function isOutsideTracePath(tracePath) {
-  return path.isAbsolute(tracePath) || tracePath === ".." || tracePath.startsWith("../") || tracePath.startsWith("..\\");
+  return path.posix.isAbsolute(tracePath) || path.win32.isAbsolute(tracePath)
+    || tracePath === ".." || tracePath.startsWith("../") || tracePath.startsWith("..\\");
 }
 
 export function createTraceReadlink(readlinkImpl = fs.promises.readlink) {

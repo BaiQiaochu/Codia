@@ -1,9 +1,10 @@
 import { useStore } from '../stores';
+import { resolveWorkflowWorkspaceKey } from './workflow-workspace-storage';
 const EVENT = 'codia-workflow-template-request';
 let pending: { description: string; workspace: string } | null = null;
 function workspace() {
   const state = useStore.getState();
-  return state.selectedWorkspaceMountId || state.selectedFolder || state.homeFolder || 'default';
+  return resolveWorkflowWorkspaceKey(state);
 }
 export function requestWorkflowTemplate(description: string) {
   pending = { description, workspace: workspace() };

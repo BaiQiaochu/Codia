@@ -1220,6 +1220,7 @@ describe("syncModels", () => {
     expect(result.providers.ollama).toBeDefined();
     expect(result.providers.ollama.apiKey).toBe("local");
     expect(mm._modelRegistry.refresh).toHaveBeenCalledTimes(1);
+    expect(mm._modelRegistry.refresh).toHaveBeenCalledWith({ allowNetwork: false });
     expect(mm.availableModels).toEqual([{ id: "llama3", provider: "ollama" }]);
   });
 

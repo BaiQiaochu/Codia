@@ -8,6 +8,7 @@ import { CodiaEngine } from "../core/engine.js";
 describe("CodiaEngine Computer Use lazy runtime", () => {
   let tmpDir = null;
   let engine = null;
+  const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
 
   afterEach(async () => {
     if (engine) {
@@ -26,6 +27,7 @@ describe("CodiaEngine Computer Use lazy runtime", () => {
       }
     }
     tmpDir = null;
+    Object.defineProperty(process, "platform", platformDescriptor);
   });
 
   function createEngine() {
@@ -45,7 +47,19 @@ describe("CodiaEngine Computer Use lazy runtime", () => {
     expect(engine._computerHost).toBeNull();
   });
 
-  it("constructs and disposes the Computer Use runtime through the global switch", async () => {
+  it("rejects enabling Computer Use on unsupported Linux without constructing a runtime", async () => {
+    Object.defineProperty(process, "platform", { value: "linux" });
+    const engine = createEngine();
+
+    await expect(engine.updateComputerUseSettings({ enabled: true }))
+      .rejects.toThrow("Computer Use is not supported on this platform.");
+    expect(engine.getComputerUseSettings().enabled).toBe(false);
+    expect(engine._computerProviders).toBeNull();
+    expect(engine._computerHost).toBeNull();
+  });
+
+  it.each(["darwin", "win32"])("constructs and disposes the Computer Use runtime through the global switch on %s", async (platform) => {
+    Object.defineProperty(process, "platform", { value: platform });
     const engine = createEngine();
 
     const disabled = await engine.updateComputerUseSettings({ enabled: false });
@@ -68,7 +82,8 @@ describe("CodiaEngine Computer Use lazy runtime", () => {
     expect(engine._computerHost).toBeNull();
   });
 
-  it("disposes the lazy Computer Use runtime during engine shutdown", async () => {
+  it.each(["darwin", "win32"])("disposes the lazy Computer Use runtime during engine shutdown on %s", async (platform) => {
+    Object.defineProperty(process, "platform", { value: platform });
     const engine = createEngine();
     await engine.updateComputerUseSettings({ enabled: true });
     const dispose = vi.fn(async () => {});

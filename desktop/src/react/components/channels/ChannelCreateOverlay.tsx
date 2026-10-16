@@ -2,7 +2,7 @@
  * ChannelCreateOverlay — 创建频道弹窗
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useStore } from '../../stores';
 import { useI18n } from '../../hooks/use-i18n';
 import { createChannel } from '../../stores/channel-actions';
@@ -46,6 +46,7 @@ export function ChannelCreateOverlay() {
   const [nameError, setNameError] = useState(false);
   const [membersError, setMembersError] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
+  const membersErrorId = useId();
 
   // When overlay becomes visible, reset form and select all agents
   useEffect(() => {
@@ -80,7 +81,6 @@ export function ChannelCreateOverlay() {
     }
     if (selectedMembers.length < 2) {
       setMembersError(true);
-      setTimeout(() => setMembersError(false), 1500);
       return;
     }
 
@@ -129,6 +129,10 @@ export function ChannelCreateOverlay() {
           <label className={styles.createFieldLabel}>{t('channel.createMembers')}</label>
           <div
             className={styles.channelCreateMembers}
+            role="group"
+            aria-label={t('channel.createMembers')}
+            aria-invalid={membersError || undefined}
+            aria-describedby={membersError ? membersErrorId : undefined}
             style={membersError ? { outline: '1.5px solid var(--danger)' } : undefined}
           >
             {agents.map((agent) => {
@@ -146,6 +150,11 @@ export function ChannelCreateOverlay() {
               );
             })}
           </div>
+          {membersError && (
+            <p id={membersErrorId} className={styles.createFieldError} role="alert">
+              {t('channel.minMembers')}
+            </p>
+          )}
         </div>
         <div className={styles.createField}>
           <label className={styles.createFieldLabel}>

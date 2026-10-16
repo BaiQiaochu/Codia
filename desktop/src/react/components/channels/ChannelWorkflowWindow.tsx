@@ -13,6 +13,7 @@ import { useStore } from '../../stores';
 import { normalizeAgentActivityList, type AgentActivityEntry } from '../../stores/agent-activity-slice';
 import type { AgentPhoneActivity, ChannelMessage } from '../../types';
 import { codiaFetch } from '../../hooks/use-codia-fetch';
+import { resolveWorkflowWorkspaceKey, restoreLegacyHomeWorkflowDraft, workflowDraftStorageKey, workflowExecutionBindingKey } from '../../utils/workflow-workspace-storage';
 import { createChannel, openChannel, toggleChannelsEnabled } from '../../stores/channel-actions';
 import {
   validateWorkflowTemplateDraft,
@@ -195,10 +196,6 @@ const EMPTY_CHANNEL_MESSAGES: ChannelMessage[] = [];
 
 function workflowStorageKey(channelId: string) {
   return `${WORKFLOW_STORAGE_PREFIX}${channelId}`;
-}
-
-function workflowDraftStorageKey(workspaceKey: string) {
-  return `${WORKFLOW_STORAGE_PREFIX}draft.${encodeURIComponent(workspaceKey || 'default')}`;
 }
 
 function parseStoredWorkflow(value: string | null): {
@@ -635,8 +632,15 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
   const channelsEnabled = useStore(s => s.channelsEnabled);
   const selectedFolder = useStore(s => s.selectedFolder);
   const selectedWorkspaceMountId = useStore(s => s.selectedWorkspaceMountId);
-  const workflowWorkspaceKey = selectedWorkspaceMountId || selectedFolder || 'default';
-  const executionBindingKey = `codia.workflow.execution-channel.${encodeURIComponent(workflowWorkspaceKey)}`;
+  const deskBasePath = useStore(s => s.deskBasePath);
+  const deskWorkspaceMountId = useStore(s => s.deskWorkspaceMountId);
+  const homeFolder = useStore(s => s.homeFolder);
+  // selectedFolder is a pending new-session choice, not a durable workspace:
+  // switching to an existing chat clears it. Keep the actual workspace scope.
+  const workflowWorkspaceKey = resolveWorkflowWorkspaceKey({
+    selectedWorkspaceMountId, selectedFolder, deskWorkspaceMountId, deskBasePath, homeFolder,
+  });
+  const executionBindingKey = workflowExecutionBindingKey(workflowWorkspaceKey);
   const [executionChannelId, setExecutionChannelId] = useState(() => standalone ? localStorage.getItem(executionBindingKey) || '' : '');
   const [executionSetupOpen, setExecutionSetupOpen] = useState(false);
   const [executionChannelName, setExecutionChannelName] = useState('');
@@ -648,8 +652,11 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     ? workflowDraftStorageKey(workflowWorkspaceKey)
     : currentChannel ? workflowStorageKey(currentChannel) : '';
   useEffect(() => {
+    if (standalone && open && !selectedWorkspaceMountId && !deskWorkspaceMountId) {
+      restoreLegacyHomeWorkflowDraft(localStorage, workflowWorkspaceKey, homeFolder);
+    }
     setExecutionChannelId(standalone ? localStorage.getItem(executionBindingKey) || '' : '');
-  }, [executionBindingKey, standalone]);
+  }, [deskWorkspaceMountId, executionBindingKey, homeFolder, open, selectedWorkspaceMountId, standalone, workflowWorkspaceKey]);
   const scopedChannel = channels.find(channel => channel.id === workflowChannelId && !channel.isDM);
   const workflowChannelMembers = standalone
     ? scopedChannel?.members || []

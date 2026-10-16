@@ -85,6 +85,40 @@ async function getDeepseekApiKey(manager) {
 }
 
 describe("ModelManager ModelRuntime credential ownership", () => {
+  it("reloads local model configuration without remote discovery when PI_OFFLINE is unset", async () => {
+    const originalOffline = process.env.PI_OFFLINE;
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response("", { status: 404 }));
+    delete process.env.PI_OFFLINE;
+    try {
+      const provider = {
+        base_url: "http://127.0.0.1:12345/v1",
+        api: "openai-completions",
+        models: ["local-before"],
+      };
+      writeAuth({});
+      writeAddedModels({
+        local: provider,
+        deepseek: deepseekProvider("sk-test-no-network"),
+      });
+
+      const manager = new ModelManager({ codiaHome: tmpDir });
+      await manager.init();
+      await manager.syncAndRefresh();
+      expect(manager.availableModels.filter((model) => model.provider === "local").map((model) => model.id))
+        .toEqual(["local-before"]);
+      expect(fetchSpy).not.toHaveBeenCalled();
+
+      manager.providerRegistry.saveProvider("local", { ...provider, models: ["local-after"] });
+      await manager.reloadAndSync();
+      expect(manager.availableModels.map((model) => model.id)).toContain("local-after");
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      if (originalOffline === undefined) delete process.env.PI_OFFLINE;
+      else process.env.PI_OFFLINE = originalOffline;
+      fetchSpy.mockRestore();
+    }
+  });
+
   it("uses only the selected provider credentials across provider A -> B -> A", async () => {
     writeAuth({});
     writeAddedModels({

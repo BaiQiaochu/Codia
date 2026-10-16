@@ -5,6 +5,10 @@ vi.mock("path", async () => {
   return { default: nodePath.win32 };
 });
 
+// These path-only tests do not read session history. Keep the Windows path
+// mock away from the SDK's host-native package discovery.
+vi.mock("../lib/pi-sdk/index.ts", () => ({ SessionManager: {} }));
+
 vi.mock("../core/llm-utils.js", () => ({
   isToolCallBlock: (b) => (b.type === "tool_use" || b.type === "toolCall") && !!b.name,
   getToolArgs: (b) => b.input || b.arguments,

@@ -46,6 +46,11 @@ describe('ChannelWorkflowWindow render', () => {
       }),
     } as Response);
     useStore.setState({
+      selectedFolder: null,
+      selectedWorkspaceMountId: null,
+      deskWorkspaceMountId: null,
+      deskBasePath: '',
+      homeFolder: null,
       currentChannel: 'ch_crew',
       channelHeaderName: '工作群',
       channelMessages: [
@@ -213,6 +218,58 @@ describe('ChannelWorkflowWindow render', () => {
     fireEvent.click(screen.getByRole('button', { name: '执行' }));
     expect(screen.getByRole('dialog', { name: '关联执行频道' })).toBeInTheDocument();
     expect(screen.queryByRole('dialog', { name: /新建频道/ })).not.toBeInTheDocument();
+  });
+
+  it('restores a legacy standalone draft on cold home startup before any chat is opened', async () => {
+    const home = '/workspace/home';
+    const legacyKey = 'codia.channel.workflow.draft.default';
+    const homeKey = `codia.channel.workflow.draft.${encodeURIComponent(home)}`;
+    const draft = JSON.stringify({ nodes: [1, 2].map((index) => ({
+      id: `saved-${index}`, title: `Restart node ${index}`, prompt: 'Saved before restart',
+      agentId: 'worker-1', x: 312 * index, y: 248,
+    })), edges: [{ id: 'saved-edge', from: 'saved-1', to: 'saved-2' }] });
+    localStorage.setItem(legacyKey, draft);
+    // initApp restores the configured home before restoring the workflow tab.
+    useStore.setState({ homeFolder: home, selectedFolder: home, deskBasePath: home });
+    const { ChannelWorkflowWindow } = await import('../../components/channels/ChannelWorkflowWindow');
+    const first = render(<ChannelWorkflowWindow open standalone pageMode onClose={vi.fn()} />);
+    expect(screen.getByText('Restart node 1')).toBeInTheDocument();
+    expect(screen.getByText('Restart node 2')).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem(homeKey)!).nodes).toHaveLength(2);
+    expect(localStorage.getItem(legacyKey)).toBe(draft);
+
+    // switchSession clears the pending folder choice, without changing cwd.
+    await act(async () => useStore.setState({ selectedFolder: null }));
+    expect(screen.getByText('Restart node 1')).toBeInTheDocument();
+    first.unmount();
+    // A fresh renderer/store startup must select the same persisted canvas.
+    useStore.setState({ selectedFolder: home, deskBasePath: '' });
+    render(<ChannelWorkflowWindow open standalone pageMode onClose={vi.fn()} />);
+    expect(screen.getByText('Restart node 1')).toBeInTheDocument();
+    expect(screen.getByText('Restart node 2')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '删除工作流' }));
+    cleanup();
+    render(<ChannelWorkflowWindow open standalone pageMode onClose={vi.fn()} />);
+    expect(screen.queryByText('Restart node 1')).not.toBeInTheDocument();
+    expect(localStorage.getItem(homeKey)).toBeNull();
+  });
+
+  it('uses the actual desk workspace when chat clears the temporary folder choice', async () => {
+    const home = '/workspace/home';
+    const folder = '/workspace/project';
+    const draftKey = `codia.channel.workflow.draft.${encodeURIComponent(folder)}`;
+    localStorage.setItem(draftKey, JSON.stringify({ nodes: [{
+      id: 'project-node', title: 'Project draft', prompt: 'Project work',
+      agentId: 'worker-1', x: 312, y: 248,
+    }], edges: [] }));
+    useStore.setState({ homeFolder: home, selectedFolder: folder, deskBasePath: folder });
+    const { ChannelWorkflowWindow } = await import('../../components/channels/ChannelWorkflowWindow');
+    render(<ChannelWorkflowWindow open standalone pageMode onClose={vi.fn()} />);
+    expect(screen.getByText('Project draft')).toBeInTheDocument();
+    await act(async () => useStore.setState({ selectedFolder: null }));
+    expect(screen.getByText('Project draft')).toBeInTheDocument();
+    expect(localStorage.getItem('codia.channel.workflow.draft.default')).toBeNull();
   });
 
   it('renders channel-scoped ActivityHub workflow entries in the timeline', async () => {

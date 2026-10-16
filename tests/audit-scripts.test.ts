@@ -185,7 +185,9 @@ describe("audit scripts", () => {
     expect(source).toContain("assertNoVisualBlockers");
     expect(source).toContain("pwa-theme-behavior-screenshots");
     expect(source).toContain("counts.screenshots");
-    expect(source).toContain("mobile-theme-changed");
+    expect(source).toContain("mobile-legacy-theme-normalized");
+    expect(source).toContain('window.setTheme("workbench")');
+    expect(source).toContain("expectedStoredTheme: registry.DEFAULT_THEME");
     expect(source).toContain("access-devices");
   });
 

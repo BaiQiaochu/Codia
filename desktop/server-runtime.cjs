@@ -158,6 +158,15 @@ function resolveServerLaunchConfig({
   const distBin = resolveServerBinary(distRoot, platform);
   const canUseDist = Boolean(distBin);
 
+  if (mode === "dist" && !canUseDist) {
+    const error = new Error(
+      `CODIA_DESKTOP_SERVER_MODE=dist requires a built server in ${distRoot}. ` +
+      "Run 'npm run build:server' before launching, or use 'npm start' for source mode.",
+    );
+    error.code = "CODIA_DIST_SERVER_MISSING";
+    throw error;
+  }
+
   if (mode !== "dist" && canUseSourceNode) {
     return {
       kind: "dev-source-node",

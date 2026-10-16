@@ -228,7 +228,7 @@ export function resolveMcpStdioSpawnSpec(server, {
   }
 
   const command = resolveWindowsCommand(rawCommand, baseEnv, existsSync);
-  const ext = path.extname(command).toLowerCase();
+  const ext = path.win32.extname(command).toLowerCase();
   if (ext === ".exe") {
     return { command, args: rawArgs, env };
   }
@@ -247,7 +247,7 @@ function resolveWindowsCommand(command, env, existsSync) {
   if (isPathLike(command)) return command;
   const pathValue = String(env.Path || env.PATH || "");
   const pathDirs = pathValue.split(";").filter(Boolean);
-  const extensions = path.extname(command)
+  const extensions = path.win32.extname(command)
     ? [""]
     : String(env.PATHEXT || ".COM;.EXE;.BAT;.CMD")
       .split(";")
@@ -255,7 +255,7 @@ function resolveWindowsCommand(command, env, existsSync) {
       .filter(Boolean);
   for (const dir of pathDirs) {
     for (const ext of extensions) {
-      const candidate = path.join(dir, `${command}${ext}`);
+      const candidate = path.win32.join(dir, `${command}${ext}`);
       if (existsSync(candidate)) return candidate;
     }
   }

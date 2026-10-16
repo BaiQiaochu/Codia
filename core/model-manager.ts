@@ -211,7 +211,8 @@ export class ModelManager {
     });
     await this._applyRuntimeApiKeyOverrides(providers);
     if (changed) {
-      await this._modelRegistry.refresh();
+      // This reloads the local projection; provider discovery must not run here.
+      await this._modelRegistry.refresh({ allowNetwork: false });
       await this.refreshAvailable();
       this._rebindDefaultModel();
     }

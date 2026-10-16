@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import os from "node:os";
+import path from "node:path";
 import { buildSkillInvocationNote, resolveSelectedSkillRecords } from "../server/routes/chat.js";
 
 describe("chat skill invocation note", () => {
@@ -25,6 +27,7 @@ describe("chat skill invocation note", () => {
   });
 
   it("resolves selected skill records from the current session agent", () => {
+    const skillDir = path.join(os.tmpdir(), "codia-skills", "wall-of-sighs");
     const engine = {
       currentAgentId: "fallback",
       agentIdFromSessionPath: () => "agent-a",
@@ -34,7 +37,7 @@ describe("chat skill invocation note", () => {
           {
             name: "wall-of-sighs",
             description: "Process emotional overload before action.",
-            baseDir: "C:\\Users\\ghost\\.codia\\skills\\wall-of-sighs",
+            baseDir: skillDir,
             source: "user",
             enabled: true,
           },
@@ -46,7 +49,7 @@ describe("chat skill invocation note", () => {
 
     expect(records[0]).toMatchObject({
       name: "wall-of-sighs",
-      filePath: "C:\\Users\\ghost\\.codia\\skills\\wall-of-sighs\\SKILL.md",
+      filePath: path.join(skillDir, "SKILL.md"),
       description: "Process emotional overload before action.",
     });
     expect(records[1]).toMatchObject({ name: "missing", filePath: "" });

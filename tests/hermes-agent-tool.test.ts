@@ -96,8 +96,8 @@ describe("hermes agent tool normalization", () => {
 
   it("does not use system Python by default", () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-hermes-python-"));
-    const portablePython = path.join(tempDir, "python", "python.exe");
-    const venvPython = path.join(tempDir, ".venv", "Scripts", "python.exe");
+    const portablePython = path.join(tempDir, "python", process.platform === "win32" ? "python.exe" : "bin/python");
+    const venvPython = path.join(tempDir, ".venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
     fs.mkdirSync(path.dirname(portablePython), { recursive: true });
     fs.mkdirSync(path.dirname(venvPython), { recursive: true });
     fs.writeFileSync(portablePython, "");

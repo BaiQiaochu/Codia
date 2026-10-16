@@ -4,6 +4,7 @@ import path from "path";
 import { afterEach, describe, expect, it } from "vitest";
 import YAML from "js-yaml";
 import { ensureFirstRun } from "../core/first-run.js";
+import { DEFAULT_WORKSPACE_DIRNAME } from "../shared/default-workspace-constants.ts";
 
 function writeFile(filePath, content) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -52,7 +53,7 @@ describe("ensureFirstRun codia defaults", () => {
     const homeDir = path.join(root, "home");
     const productDir = createProductDir(root);
 
-    ensureFirstRun(homeDir, productDir);
+    ensureFirstRun(homeDir, productDir, { defaultWorkspaceHome: homeDir });
 
     expect(fs.existsSync(path.join(homeDir, "agents", "codia", "config.yaml"))).toBe(true);
     expect(fs.existsSync(path.join(homeDir, "agents", "codia"))).toBe(true);
@@ -69,7 +70,7 @@ describe("ensureFirstRun codia defaults", () => {
     const homeDir = path.join(root, "home");
     const productDir = createProductDir(root);
 
-    ensureFirstRun(homeDir, productDir);
+    ensureFirstRun(homeDir, productDir, { defaultWorkspaceHome: homeDir });
 
     for (const skillName of [
       "codex-cli-multiturn-tools",
@@ -93,7 +94,7 @@ describe("ensureFirstRun codia defaults", () => {
     writeFile(path.join(homeDir, "agents", "codia", "pinned.md"), "keep me");
     writeFile(path.join(homeDir, "user", "preferences.json"), JSON.stringify({ primaryAgent: "codia" }, null, 2));
 
-    ensureFirstRun(homeDir, productDir);
+    ensureFirstRun(homeDir, productDir, { defaultWorkspaceHome: homeDir });
 
     const configPath = path.join(homeDir, "agents", "codia", "config.yaml");
     expect(fs.existsSync(configPath)).toBe(true);
@@ -101,6 +102,8 @@ describe("ensureFirstRun codia defaults", () => {
 
     const cfg = YAML.load(fs.readFileSync(configPath, "utf-8"));
     expect(cfg.agent.name).toBe("小豆蔻");
+    expect(cfg.desk.home_folder).toBe(path.join(homeDir, "Desktop", DEFAULT_WORKSPACE_DIRNAME));
+    expect(fs.existsSync(cfg.desk.home_folder)).toBe(true);
     expect(cfg.agent.yuan).toBe("codia");
   });
 
@@ -112,7 +115,7 @@ describe("ensureFirstRun codia defaults", () => {
     fs.mkdirSync(path.join(homeDir, "agents", "broken-agent"), { recursive: true });
     writeFile(path.join(homeDir, "user", "preferences.json"), JSON.stringify({ primaryAgent: "broken-agent" }, null, 2));
 
-    ensureFirstRun(homeDir, productDir);
+    ensureFirstRun(homeDir, productDir, { defaultWorkspaceHome: homeDir });
 
     const prefs = JSON.parse(fs.readFileSync(path.join(homeDir, "user", "preferences.json"), "utf-8"));
     expect(prefs.primaryAgent).toBe("codia");
@@ -130,7 +133,7 @@ describe("ensureFirstRun codia defaults", () => {
       JSON.stringify({ importedFrom: "legacy" }),
     );
 
-    ensureFirstRun(homeDir, productDir);
+    ensureFirstRun(homeDir, productDir, { defaultWorkspaceHome: homeDir });
 
     expect(fs.existsSync(path.join(homeDir, "skills", "quiet-musing"))).toBe(true);
     expect(fs.existsSync(path.join(homeDir, "skills", "fastmcp"))).toBe(false);

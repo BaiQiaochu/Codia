@@ -127,6 +127,77 @@ describe("desktop server runtime", () => {
     expect(config.serverEnv.CODIA_SERVER_ENTRY).toBe(path.join(projectRoot, "dist-server", "win-x64", "bundle", "index.js"));
   });
 
+  it.each(["linux", "win32", "darwin"])("rejects missing forced dist builds on %s instead of falling back to Electron or source Node", (platform) => {
+    const projectRoot = makeTempDir();
+    const fakeNode = path.join(projectRoot, "tools", "node");
+    ensureFile(path.join(projectRoot, "server", "index.ts"));
+    ensureFile(path.join(projectRoot, "server", "bootstrap.ts"));
+    ensureFile(fakeNode);
+    const distRoot = runtime.getDistServerRoot({ projectRoot, platform, arch: "x64" });
+
+    for (const launchNode of [undefined, fakeNode]) {
+      expect(() => runtime.resolveServerLaunchConfig({
+        env: {
+          CODIA_DESKTOP_SERVER_MODE: "dist",
+          CODIA_LAUNCH_NODE: launchNode,
+          CODIA_LAUNCH_NODE_VERSION: "24.19.0",
+        },
+        projectRoot,
+        resourcesPath: "",
+        platform,
+        arch: "x64",
+        electronExecPath: "/fake/electron",
+      })).toThrowError(expect.objectContaining({
+        code: "CODIA_DIST_SERVER_MISSING",
+        message: expect.stringContaining(distRoot),
+      }));
+    }
+  });
+
+  it("preserves the launch Node and offline controls when applying the source environment overlay", () => {
+    const projectRoot = makeTempDir();
+    const fakeNode = path.join(projectRoot, "tools", "node");
+    ensureFile(path.join(projectRoot, "server", "index.ts"));
+    ensureFile(path.join(projectRoot, "server", "bootstrap.ts"));
+    ensureFile(fakeNode);
+    const env = {
+      CODIA_DESKTOP_SERVER_MODE: "source",
+      CODIA_LAUNCH_NODE: fakeNode,
+      CODIA_LAUNCH_NODE_VERSION: "24.19.0",
+      CODIA_HOME: path.join(projectRoot, "isolated-home"),
+      PI_OFFLINE: "1",
+      PI_TELEMETRY: "0",
+      PI_SKIP_VERSION_CHECK: "1",
+      ELECTRON_RUN_AS_NODE: "1",
+    };
+    const config = runtime.resolveServerLaunchConfig({
+      env,
+      projectRoot,
+      resourcesPath: "",
+      platform: "linux",
+      arch: "x64",
+      electronExecPath: "/fake/electron",
+    });
+    // desktop/main.cjs removes Electron mode before applying this overlay.
+    const serverEnv = { ...env };
+    delete serverEnv.ELECTRON_RUN_AS_NODE;
+    Object.assign(serverEnv, config.serverEnv);
+
+    expect(config.kind).toBe("dev-source-node");
+    expect(config.serverBin).toBe(fakeNode);
+    expect(config.serverArgs).toEqual([path.join(projectRoot, "server", "bootstrap.ts")]);
+    expect(serverEnv).toMatchObject({
+      CODIA_LAUNCH_NODE: fakeNode,
+      CODIA_HOME: env.CODIA_HOME,
+      CODIA_SERVER_ENTRY: path.join(projectRoot, "server", "index.ts"),
+      PI_OFFLINE: "1",
+      PI_TELEMETRY: "0",
+      PI_SKIP_VERSION_CHECK: "1",
+    });
+    expect(serverEnv.ELECTRON_RUN_AS_NODE).toBeUndefined();
+    expect(env.ELECTRON_RUN_AS_NODE).toBe("1");
+  });
+
   it("prepends bundled ffmpeg to PATH for local dist server on Windows", () => {
     const projectRoot = makeTempDir();
     const distRoot = path.join(projectRoot, "dist-server", "win-x64");

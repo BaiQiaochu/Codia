@@ -1477,9 +1477,26 @@ describe("SessionCoordinator", () => {
       _switching: true,
     });
 
-    expect(coordinator.getSessionByPath(sessionFile.toUpperCase())).toBe(session);
+    const normalizedAlias = process.platform === "win32"
+      ? sessionFile.toUpperCase()
+      : `${path.dirname(sessionFile)}/./${path.basename(sessionFile)}`;
+    expect(coordinator.getSessionByPath(normalizedAlias)).toBe(session);
     expect(coordinator.getSessionByPath("session-123.jsonl")).toBe(session);
-    expect(coordinator.isSessionSwitching(sessionFile.toUpperCase())).toBe(true);
+    expect(coordinator.isSessionSwitching(normalizedAlias)).toBe(true);
+  });
+
+  it.skipIf(process.platform === "win32")("keeps case-distinct session filenames separate", () => {
+    const coordinator = new SessionCoordinator({});
+    const sessionFile = path.join(tempDir, "AgentA", "sessions", "session-123.jsonl");
+    const upperSessionFile = path.join(path.dirname(sessionFile), "SESSION-123.JSONL");
+    const lowerSession = { isStreaming: false };
+    const upperSession = { isStreaming: false };
+    coordinator._sessions.set(sessionFile, { session: lowerSession });
+
+    expect(coordinator.getSessionByPath(upperSessionFile)).toBeNull();
+    coordinator._sessions.set(upperSessionFile, { session: upperSession });
+    expect(coordinator.getSessionByPath(sessionFile)).toBe(lowerSession);
+    expect(coordinator.getSessionByPath(upperSessionFile)).toBe(upperSession);
   });
 
   it("uses normalized session lookup for prompt/steer/abort paths", async () => {
@@ -1502,13 +1519,16 @@ describe("SessionCoordinator", () => {
       lastTouchedAt: 0,
     });
 
-    await coordinator.promptSession(sessionFile.toUpperCase(), "hello");
+    const normalizedAlias = process.platform === "win32"
+      ? sessionFile.toUpperCase()
+      : `${path.dirname(sessionFile)}/./${path.basename(sessionFile)}`;
+    await coordinator.promptSession(normalizedAlias, "hello");
     expect(session.prompt).toHaveBeenCalledWith("hello", undefined);
 
     expect(coordinator.steerSession("session-456.jsonl", "wait")).toBe(true);
     expect(session.steer).toHaveBeenCalled();
 
-    await coordinator.abortSession(sessionFile.toUpperCase());
+    await coordinator.abortSession(normalizedAlias);
     expect(session.abort).toHaveBeenCalled();
   });
 

@@ -1997,6 +1997,13 @@
     margin-bottom: var(--space-md);
 }
 
+.createFieldError {
+    margin: 3px 0 0;
+    color: var(--danger);
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
 .createFieldLabel {
     font-size: 0.82rem;
     color: var(--text-light);

@@ -53,7 +53,7 @@ function getAutoLaunchStatus({ app, platform = process.platform, argv = process.
   let rawSettings = app.getLoginItemSettings(options);
   if (platform === "win32") {
     const path = require("node:path");
-    const legacyOptions = getLoginItemOptions(platform, path.join(path.dirname(execPath), "CODIA.exe"));
+    const legacyOptions = getLoginItemOptions(platform, path.win32.join(path.win32.dirname(execPath), "CODIA.exe"));
     legacyOptions.args = [LEGACY_START_AT_LOGIN_ARG];
     const legacySettings = app.getLoginItemSettings(legacyOptions);
     if (legacySettings.openAtLogin === true) {

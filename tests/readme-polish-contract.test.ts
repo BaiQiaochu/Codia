@@ -24,7 +24,9 @@ describe("Codia README contract", () => {
     expect(readme).toContain('build:server');
     expect(readme).toContain('Agent 小队');
     expect(readme).toContain("工作流");
-    expect(readme).toContain('项目许可证尚待选择');
+    expect(readme).toContain('Live2D 等第三方组件保留各自许可');
+    expect(readme).toContain('third_party/live2d/cubism-web-5-r.5/LICENSE.md');
+    expect(readme).toContain('third_party/live2d/cubism-web-5-r.5/NOTICE.md');
     expect(readme).toContain('npm run start:local');
     expect(readme).toContain('npm run check:local');
     expect(readme).toContain('默认保留检查产物');

@@ -5,8 +5,12 @@ export function desktopLaunchEnv(overrides = {}, baseEnv = process.env) {
     ...baseEnv,
     ...overrides,
   };
-  if (env.CODIA_E2E === "1" && !env.CODIA_PORT) {
-    env.CODIA_PORT = "0";
+  if (env.CODIA_E2E === "1") {
+    if (!env.CODIA_PORT) env.CODIA_PORT = "0";
+    // Keep local smoke runs free of SDK discovery, telemetry and update traffic.
+    env.PI_OFFLINE = "1";
+    env.PI_TELEMETRY = "0";
+    env.PI_SKIP_VERSION_CHECK = "1";
   }
   delete env.ELECTRON_RUN_AS_NODE;
   return env;
