@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Codia - a thoughtful AI workspace for chat, documents, workflows, and teams",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "author": {
     "name": "kskooo"
   },
