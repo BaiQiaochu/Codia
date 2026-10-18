@@ -9,6 +9,8 @@ import { SessionFileRegistry } from '../lib/session-files/session-file-registry.
 import { ResourceService } from '../core/resource-service.ts';
 import { ResourceAccessService } from '../core/resource-access-service.ts';
 
+// Only Linux supports verified content snapshots; keep common access checks portable.
+const itLinux = process.platform === 'linux' ? it : it.skip;
 const dirs: string[] = [];
 afterEach(() => { vi.restoreAllMocks(); for (const dir of dirs.splice(0)) fs.rmSync(dir, { recursive: true, force: true }); });
 function setup({ denyResource = false, denySession = false } = {}) {
@@ -38,6 +40,24 @@ function setup({ denyResource = false, denySession = false } = {}) {
   return { home, app, registry, sessionPath, otherSessionPath, source, filePath, engine, request, capture };
 }
 describe('registered task artifacts and actual snapshot history', () => {
+  it.each(['win32', 'darwin'] as const)('reports %s snapshot unavailability while preserving original-file access', async platform => {
+    const x = setup();
+    vi.spyOn(process, 'platform', 'get').mockReturnValue(platform);
+    const response = await x.request();
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.capabilities).toEqual({ platform, snapshotAvailable: false, reason: 'snapshot_platform_unsupported' });
+    expect(body.files).toHaveLength(1);
+    expect((await x.app.request(body.files[0].resource.links.content)).status).toBe(200);
+    const capture = await x.capture();
+    expect(capture.status).toBe(503);
+    expect(await capture.json()).toEqual({ error: 'snapshot_platform_unsupported' });
+    const compare = await x.request(`/${x.source.id}/compare`, { query: '&before=unknown&after=unknown' });
+    expect(compare.status).toBe(503);
+    expect(await compare.json()).toEqual({ error: 'snapshot_platform_unsupported' });
+    expect(x.engine.registerSessionFile).not.toHaveBeenCalled();
+    expect(fs.existsSync(path.join(x.home, 'artifact-snapshots'))).toBe(false);
+  });
   it('lists only registered visible files without capturing on read', async () => {
     const x = setup();
     x.registry.registerFile({ sessionPath: x.sessionPath, filePath: x.sessionPath, listed: false });
@@ -49,7 +69,7 @@ describe('registered task artifacts and actual snapshot history', () => {
     expect(x.engine.registerSessionFile).not.toHaveBeenCalled();
     expect(fs.existsSync(path.join(x.home, 'artifact-snapshots'))).toBe(false);
   });
-  it('reports unavailable snapshot capability while retaining registered files and historical metadata', async () => {
+  itLinux('reports unavailable snapshot capability while retaining registered files and historical metadata', async () => {
     const x = setup(); const snapshot = (await (await x.capture()).json()).snapshot;
     vi.spyOn(process, 'platform', 'get').mockReturnValue('win32');
     const response = await x.request();
@@ -64,7 +84,7 @@ describe('registered task artifacts and actual snapshot history', () => {
     const compared = await x.request(`/${x.source.id}/compare`, { query: `&before=${snapshot.id}&after=${snapshot.id}` });
     expect(compared.status).toBe(503);
   });
-  it('captures stable bytes, compares content and exports via existing authorized resource route after source deletion', async () => {
+  itLinux('captures stable bytes, compares content and exports via existing authorized resource route after source deletion', async () => {
     const x = setup();
     const one = await x.capture(); expect(one.status).toBe(201);
     const first = (await one.json()).snapshot;
@@ -83,7 +103,7 @@ describe('registered task artifacts and actual snapshot history', () => {
     const exported = await x.app.request(first.file.resource.links.content);
     expect(exported.status).toBe(200); expect(await exported.text()).toBe('Intro\nold result\n');
   });
-  it('exports only verified bytes, including range/HEAD, and rejects tampered or symlinked payloads', async () => {
+  itLinux('exports only verified bytes, including range/HEAD, and rejects tampered or symlinked payloads', async () => {
     const x = setup(); const snapshot = (await (await x.capture()).json()).snapshot;
     const contentUrl = snapshot.file.resource.links.content;
     const range = await x.app.request(contentUrl, { headers: { Range: 'bytes=0-4' } });
@@ -102,7 +122,7 @@ describe('registered task artifacts and actual snapshot history', () => {
     const escaped = await x.app.request(contentUrl);
     expect(escaped.status).toBe(403); expect((await escaped.json()).error).toBe('snapshot_path_changed');
   });
-  it('does not reopen snapshot paths after verification when returning content', async () => {
+  itLinux('does not reopen snapshot paths after verification when returning content', async () => {
     const x = setup(); const snapshot = (await (await x.capture()).json()).snapshot;
     const stream = vi.spyOn(fs, 'createReadStream');
     try {
@@ -111,7 +131,7 @@ describe('registered task artifacts and actual snapshot history', () => {
       expect(stream).not.toHaveBeenCalled();
     } finally { stream.mockRestore(); }
   });
-  it('requires snapshot session access even when existing resource permission allows reading', async () => {
+  itLinux('requires snapshot session access even when existing resource permission allows reading', async () => {
     const x = setup(); const snapshot = (await (await x.capture()).json()).snapshot;
     const oldAccess = x.engine.getResourceAccessService();
     const originalContext = x.engine.getRuntimeContext;
@@ -146,27 +166,27 @@ describe('registered task artifacts and actual snapshot history', () => {
     expect(sessionDenied.engine.listSessionFiles).not.toHaveBeenCalled();
     const resourceDenied = setup({ denyResource: true });
     expect((await resourceDenied.request()).status).toBe(403);
-    expect((await resourceDenied.capture()).status).toBe(403);
+    expect((await resourceDenied.capture()).status).toBe(process.platform === 'linux' ? 403 : 503);
     expect(resourceDenied.engine.registerSessionFile).not.toHaveBeenCalled();
   });
-  it('rejects foreign file IDs and foreign snapshot IDs even within the same owner studio', async () => {
+  itLinux('rejects foreign file IDs and foreign snapshot IDs even within the same owner studio', async () => {
     const x = setup(); const first = (await (await x.capture()).json()).snapshot;
     expect((await x.request(`/${x.source.id}/snapshots`, { method: 'POST', session: x.otherSessionPath })).status).toBe(404);
     const secondSource = x.registry.registerFile({ sessionPath: x.otherSessionPath, filePath: x.filePath });
     expect((await x.request(`/${secondSource.id}/compare`, { session: x.otherSessionPath, query: `&before=${first.id}&after=${first.id}` })).status).toBe(404);
     expect((await x.request(`/${x.source.id}/compare`, { query: '&before=../../private&after=unknown' })).status).toBe(404);
   });
-  it('never accepts arbitrary filesystem paths or hidden snapshot IDs as sources', async () => {
+  itLinux('never accepts arbitrary filesystem paths or hidden snapshot IDs as sources', async () => {
     const x = setup(); const first = (await (await x.capture()).json()).snapshot;
     expect((await x.request('/sf_unregistered/snapshots', { method: 'POST', query: `&filePath=${encodeURIComponent(x.filePath)}` })).status).toBe(404);
     expect((await x.request(`/${first.snapshotFileId}/snapshots`, { method: 'POST' })).status).toBe(404);
   });
-  it('rejects registered source paths that were replaced by symlinks', async () => {
+  itLinux('rejects registered source paths that were replaced by symlinks', async () => {
     const x = setup(); fs.unlinkSync(x.filePath); fs.symlinkSync(x.otherSessionPath, x.filePath);
     expect((await x.capture()).status).toBe(403);
     expect(x.engine.registerSessionFile).not.toHaveBeenCalled();
   });
-  it('rejects expired sources and directories', async () => {
+  itLinux('rejects expired sources and directories', async () => {
     const x = setup();
     const directory = x.registry.registerFile({ sessionPath: x.sessionPath, filePath: x.home });
     expect((await x.request(`/${directory.id}/snapshots`, { method: 'POST' })).status).toBe(409);

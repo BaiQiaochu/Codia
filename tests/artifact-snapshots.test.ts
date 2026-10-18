@@ -4,6 +4,8 @@ import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ArtifactSnapshotStore, ARTIFACT_SNAPSHOT_LIMITS, compareArtifactSnapshots, readSnapshotSource, getArtifactSnapshotCapabilities } from '../lib/session-files/artifact-snapshots.ts';
 
+// Content snapshots depend on real Linux /proc/self/fd verification.
+const itLinux = process.platform === 'linux' ? it : it.skip;
 const dirs: string[] = [];
 afterEach(() => { vi.restoreAllMocks(); for (const dir of dirs.splice(0)) fs.rmSync(dir, { recursive: true, force: true }); });
 function setup(limits = ARTIFACT_SNAPSHOT_LIMITS, ext = 'txt') {
@@ -17,7 +19,19 @@ function setup(limits = ARTIFACT_SNAPSHOT_LIMITS, ext = 'txt') {
   return { home, filePath, source, store, register, capture };
 }
 describe('immutable artifact snapshots', () => {
-  it('retains actual bytes after source mutation, persists history and records hash lineage', () => {
+  it.each(['win32', 'darwin'] as const)('fails closed on %s before reading or writing payloads', platform => {
+    const x = setup();
+    vi.spyOn(process, 'platform', 'get').mockReturnValue(platform);
+    const read = vi.spyOn(fs, 'readSync');
+    expect(getArtifactSnapshotCapabilities()).toEqual({ platform, snapshotAvailable: false, reason: 'snapshot_platform_unsupported' });
+    expect(() => x.capture()).toThrow('snapshot_platform_unsupported');
+    expect(() => readSnapshotSource(x.filePath, x.filePath, 1024)).toThrow('snapshot_platform_unsupported');
+    expect(read).not.toHaveBeenCalled();
+    expect(x.register).not.toHaveBeenCalled();
+    expect(fs.existsSync(path.join(x.home, 'artifact-snapshots'))).toBe(false);
+    expect(fs.readFileSync(x.filePath, 'utf8')).toBe('first\n');
+  });
+  itLinux('retains actual bytes after source mutation, persists history and records hash lineage', () => {
     const x = setup();
     const first = x.capture().snapshot;
     fs.writeFileSync(x.filePath, 'second\n');
@@ -34,19 +48,19 @@ describe('immutable artifact snapshots', () => {
     expect(x.capture().created).toBe(false);
     expect(x.register).toHaveBeenCalledTimes(2);
   });
-  it('supports JSON payloads without confusing them with metadata', () => {
+  itLinux('supports JSON payloads without confusing them with metadata', () => {
     const x = setup(ARTIFACT_SNAPSHOT_LIMITS, 'json');
     fs.writeFileSync(x.filePath, '{"a":1}');
     const snapshot = x.capture().snapshot;
     expect(x.store.list('/session-a')).toEqual([snapshot]);
     expect(x.store.read('/session-a', snapshot).toString()).toBe('{"a":1}');
   });
-  it('does not collide with internal metadata when a source has a pending extension', () => {
+  itLinux('does not collide with internal metadata when a source has a pending extension', () => {
     const x = setup(ARTIFACT_SNAPSHOT_LIMITS, 'pending');
     const snapshot = x.capture().snapshot;
     expect(x.store.read('/session-a', snapshot).toString()).toBe('first\n');
   });
-  it('keeps incomplete saves unlisted while accounting for their bytes and count', () => {
+  itLinux('keeps incomplete saves unlisted while accounting for their bytes and count', () => {
     const x = setup({ ...ARTIFACT_SNAPSHOT_LIMITS, maxSnapshotsPerSession: 2 });
     const first = x.capture().snapshot;
     fs.writeFileSync(x.filePath, 'second');
@@ -56,7 +70,7 @@ describe('immutable artifact snapshots', () => {
     expect(x.store.read('/session-a', first).toString()).toBe('first\n');
     expect(() => x.capture()).toThrow('snapshot_count_limit');
   });
-  it('rejects source symlinks, redirected parents and hardlinks', () => {
+  itLinux('rejects source symlinks, redirected parents and hardlinks', () => {
     const x = setup();
     const other = path.join(x.home, 'private.txt'); fs.writeFileSync(other, 'private');
     fs.unlinkSync(x.filePath); fs.symlinkSync(other, x.filePath);
@@ -65,7 +79,7 @@ describe('immutable artifact snapshots', () => {
     expect(() => x.capture()).toThrow('snapshot_not_regular_file');
     expect(x.register).not.toHaveBeenCalled();
   });
-  it('rejects a symlinked snapshot store without writing through it', () => {
+  itLinux('rejects a symlinked snapshot store without writing through it', () => {
     const x = setup();
     const outside = path.join(x.home, 'outside'); fs.mkdirSync(outside);
     fs.symlinkSync(outside, path.join(x.home, 'artifact-snapshots'), 'dir');
@@ -73,7 +87,7 @@ describe('immutable artifact snapshots', () => {
     expect(fs.readdirSync(outside)).toEqual([]);
   });
 
-  it('rejects a transient parent-directory swap before reading outside bytes', () => {
+  itLinux('rejects a transient parent-directory swap before reading outside bytes', () => {
     const x = setup();
     const allowed = path.join(x.home, 'allowed');
     const parked = path.join(x.home, 'parked');
@@ -103,7 +117,7 @@ describe('immutable artifact snapshots', () => {
     expect(() => readSnapshotSource(source, source, 1024)).toThrow('snapshot_path_changed');
     expect(read).not.toHaveBeenCalled();
   });
-  it('anchors snapshot creation to a verified directory descriptor', () => {
+  itLinux('anchors snapshot creation to a verified directory descriptor', () => {
     const x = setup(); x.capture(); fs.writeFileSync(x.filePath, 'second');
     const outside = path.join(x.home, 'outside'); fs.mkdirSync(outside);
     const storeDir = path.dirname(x.register.mock.calls[0][0] as unknown as string);
@@ -120,7 +134,7 @@ describe('immutable artifact snapshots', () => {
     expect(swapped).toBe(true);
     expect(fs.readdirSync(outside)).toEqual([]);
   });
-  it('fails closed when descriptor verification is unavailable or platform is unsupported', () => {
+  itLinux('fails closed when descriptor verification is unavailable or platform is unsupported', () => {
     const x = setup();
     vi.spyOn(fs, 'readlinkSync').mockImplementation(() => { throw new Error('procfs unavailable'); });
     expect(() => x.capture()).toThrow('snapshot_fd_verification_unavailable');
@@ -130,7 +144,7 @@ describe('immutable artifact snapshots', () => {
     expect(x.register).not.toHaveBeenCalled();
   });
 
-  it('preserves allowlisted metadata on unsupported platforms without enabling payload reads', () => {
+  itLinux('preserves allowlisted metadata on unsupported platforms without enabling payload reads', () => {
     const x = setup(); const snapshot = x.capture().snapshot;
     const dir = path.dirname(x.register.mock.calls[0][0] as unknown as string);
     const metadata = path.join(dir, `${snapshot.id}.json`);
@@ -143,18 +157,18 @@ describe('immutable artifact snapshots', () => {
     expect(() => x.store.read('/session-a', snapshot)).toThrow('snapshot_platform_unsupported');
   });
 
-  it('detects changed bytes instead of silently presenting tampered history', () => {
+  itLinux('detects changed bytes instead of silently presenting tampered history', () => {
     const x = setup(); const snapshot = x.capture().snapshot;
     const payload = x.register.mock.calls[0][0] as unknown as string;
     fs.chmodSync(payload, 0o600); fs.writeFileSync(payload, 'altered\n');
     expect(() => x.store.read('/session-a', snapshot)).toThrow('snapshot_integrity_failed');
   });
-  it('rejects oversize input before registration', () => {
+  itLinux('rejects oversize input before registration', () => {
     const x = setup({ ...ARTIFACT_SNAPSHOT_LIMITS, maxFileBytes: 3 });
     expect(() => x.capture()).toThrow('snapshot_file_too_large');
     expect(x.register).not.toHaveBeenCalled();
   });
-  it('rejects new versions at retention limit and preserves every saved version and the source', () => {
+  itLinux('rejects new versions at retention limit and preserves every saved version and the source', () => {
     const x = setup({ ...ARTIFACT_SNAPSHOT_LIMITS, maxVersionsPerFile: 2 });
     const first = x.capture().snapshot;
     fs.writeFileSync(x.filePath, 'second'); const second = x.capture().snapshot;
@@ -165,7 +179,7 @@ describe('immutable artifact snapshots', () => {
     expect(fs.readFileSync(x.filePath, 'utf8')).toBe('third');
     expect(x.store.list('/session-a')).toHaveLength(2);
   });
-  it('enforces per-session count and byte quotas independently', () => {
+  itLinux('enforces per-session count and byte quotas independently', () => {
     const count = setup({ ...ARTIFACT_SNAPSHOT_LIMITS, maxSnapshotsPerSession: 1 });
     count.capture(); fs.writeFileSync(count.filePath, 'next');
     expect(() => count.capture()).toThrow('snapshot_count_limit');

@@ -145,7 +145,8 @@ describe('model-task runner and redacted report boundary', () => {
     const mock = spawnSync(process.execPath, [...args, '--mock'], { encoding: 'utf8' });
     expect(mock.status, mock.stderr).toBe(0);
     expect(JSON.parse(fs.readFileSync(output, 'utf8')).executionMode).toBe('mock');
-    expect(fs.statSync(output).mode & 0o777).toBe(0o600);
+    // Windows does not implement POSIX owner/group permission bits.
+    if (process.platform !== 'win32') expect(fs.statSync(output).mode & 0o777).toBe(0o600);
     const marker = path.join(directory, 'imported');
     const module = path.join(directory, 'danger.mjs');
     fs.writeFileSync(module, `import fs from 'node:fs'; fs.writeFileSync(${JSON.stringify(marker)}, 'bad');`);
