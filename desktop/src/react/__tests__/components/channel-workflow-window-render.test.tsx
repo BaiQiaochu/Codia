@@ -85,6 +85,34 @@ describe('ChannelWorkflowWindow render', () => {
     cleanup();
   });
 
+  it('keeps dispatch queued until the exact backend task completes', async () => {
+    window.localStorage.setItem('codia.channel.workflow.ch_crew', JSON.stringify({
+      nodes: [{ id: 'custom-test', title: 'Evidence task', prompt: 'Do work', agentId: 'worker-1', x: 312, y: 248 }], edges: [],
+    }));
+    let task: any = null;
+    codiaFetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.endsWith('/assign-from-workflow')) {
+        const body = JSON.parse(String(init?.body));
+        task = { id: 'real-task', channelId: 'ch_crew', status: 'assigned', source: { nodeId: 'custom-test', runId: body.runId } };
+        return { ok: true, json: async () => ({ tasks: [task] }) };
+      }
+      return { ok: true, json: async () => ({ channels: [], tasks: task ? [task] : [] }) };
+    });
+    const { ChannelWorkflowWindow } = await import('../../components/channels/ChannelWorkflowWindow');
+    render(<ChannelWorkflowWindow open onClose={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText('Evidence task')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: '执行' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: '已排队' })).toBeDisabled());
+    expect(codiaFetchMock.mock.calls.some(([url]) => String(url).endsWith('/trigger'))).toBe(false);
+    task = { ...task, status: 'awaiting_approval' };
+    fireEvent.click(screen.getByRole('button', { name: '刷新' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: '等待审批 / 解除阻塞' })).toBeDisabled());
+    task = { ...task, status: 'completed', report: 'Verified output' };
+    fireEvent.click(screen.getByRole('button', { name: '刷新' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: '执行' })).toBeEnabled());
+    expect(screen.queryByRole('button', { name: '取消后续执行' })).not.toBeInTheDocument();
+  });
+
   it('renders a neutral Chinese workflow canvas above the app chrome', async () => {
     const { ChannelWorkflowWindow } = await import('../../components/channels/ChannelWorkflowWindow');
     render(<ChannelWorkflowWindow open onClose={vi.fn()} />);

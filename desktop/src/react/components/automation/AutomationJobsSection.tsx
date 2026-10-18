@@ -168,6 +168,8 @@ export function AutomationJobsSection({
         action: 'add',
         scheduleType: 'cron',
         schedule: '0 9 * * *',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        misfirePolicy: 'catch-up-once',
         label: tr('automation.newAutomation'),
         prompt: '',
         enabled: false,

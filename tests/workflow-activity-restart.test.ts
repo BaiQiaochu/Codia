@@ -58,7 +58,7 @@ describe("workflow 卡重启持久化（端到端）", () => {
     expect(emittedIds).toEqual(["wf-1", "wf-1::n0"]);
   });
 
-  it("跑到一半被重启的 workflow：遗留 running 判孤儿 → 重启后显示 failed（不永久转圈）", () => {
+  it("跑到一半被重启的 workflow：遗留 running 判孤儿 → 重启后标记需恢复（不永久转圈）", () => {
     // 进程 1：派出后只跑了一半就被杀（父 + 节点都停在 running）
     {
       const store = new WorkflowActivityStore(file);
@@ -69,7 +69,9 @@ describe("workflow 卡重启持久化（端到端）", () => {
     // 进程 2：重启回灌，孤儿 running → failed
     const hub2 = new ActivityHub(null, new WorkflowActivityStore(file));
     expect(hub2.get("wf-2").status).toBe("failed");
-    expect(hub2.get("wf-2").finishedAt).toBe(2000);   // 用 startedAt 兜底
+    expect(hub2.get("wf-2").finishedAt).toBeNull(); // 未确认完成，不编造终止时间
+    expect(hub2.get("wf-2").lifecycleStatus).toBe("recovery_required");
+    expect(hub2.get("wf-2::n0").lifecycleStatus).toBe("recovery_required");
     expect(hub2.get("wf-2::n0").status).toBe("failed");
   });
 

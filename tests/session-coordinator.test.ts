@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { createRunBudget } from "../lib/workflow/run-budget.ts";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -13,7 +14,8 @@ const { createAgentSessionMock, sessionManagerCreateMock, sessionManagerOpenMock
   settingsInMemoryMock: vi.fn(() => ({})),
 }));
 
-vi.mock("../lib/pi-sdk/index.js", () => ({
+vi.mock("../lib/pi-sdk/index.js", async () => ({
+  createAssistantMessageEventStream: (await vi.importActual("../lib/pi-sdk/index.ts")).createAssistantMessageEventStream,
   createAgentSession: createAgentSessionMock,
   SessionManager: {
     create: sessionManagerCreateMock,
@@ -1228,6 +1230,69 @@ describe("SessionCoordinator", () => {
 
     expect(targetAgent.buildSystemPrompt).toHaveBeenCalledWith({ forSubagent: true });
     expect(createAgentSessionMock.mock.calls[0][0].resourceLoader.getSystemPrompt()).toBe("SUBAGENT PROMPT");
+
+    // Exercise the real execution gate: it must run before session.prompt,
+    // rather than merely attaching hashes to a completed action.
+    const prompt = vi.fn();
+    const dispose = vi.fn();
+    createAgentSessionMock.mockResolvedValue({ session: {
+      model: { id: "resolved", provider: "actual-provider" },
+      agent: { state: { systemPrompt: "FINAL RESOLVED PROMPT", tools: [] } },
+      sessionManager: { getSessionFile: () => null }, prompt, dispose,
+    } });
+    const rejected = await coordinator.executeIsolated("guarded", {
+      subagentContext: true,
+      workflowRuntimeGuard: () => { throw new Error("runtime mismatch"); },
+    });
+    expect(rejected.error).toBe("runtime mismatch");
+    expect(prompt).not.toHaveBeenCalled();
+    expect(dispose).toHaveBeenCalledTimes(1);
+    const guard = vi.fn(() => ({ replay: true, result: "cached" }));
+    const replay = await coordinator.executeIsolated("guarded", { subagentContext: true, workflowRuntimeGuard: guard });
+    expect(replay.workflowReplay).toBe(true);
+    expect(guard).toHaveBeenCalledWith(expect.objectContaining({ version: 1, model: expect.any(String), tools: expect.any(String), prompt: expect.any(String) }));
+    expect(prompt).not.toHaveBeenCalled();
+
+    const budgetModel = { id: "bounded", provider: "test-provider", api: "openai-completions", contextWindow: 1000, maxTokens: 100, cost: { input: 1, output: 2 } };
+    const limits = { maxTokens: 2000, maxUsd: 1, maxSteps: 2, maxDurationMs: 10000, maxOutputTokensPerCall: 20 };
+    const budget = createRunBudget(limits, budgetModel);
+    const boundedTools = vi.spyOn(coordinator._d, "buildTools");
+    const noControl = await coordinator.executeIsolated("bounded", { model: budgetModel, runBudget: budget, subagentContext: true, toolFilter: [], builtinFilter: [] });
+    expect(noControl.error).toMatch(/controllable SDK/);
+    expect(prompt).not.toHaveBeenCalled();
+
+    const originalStream = vi.fn(async (_model, _context, options) => {
+      const payload = await options.onPayload({ max_tokens: 999 }, budgetModel);
+      expect(payload.max_tokens).toBe(20);
+      return (async function* () { yield { type: "done", reason: "stop", message: {
+        role: "assistant", content: [{ type: "text", text: "ok" }], api: budgetModel.api, provider: budgetModel.provider, model: budgetModel.id,
+        stopReason: "stop", timestamp: Date.now(), usage: { input: 10, output: 2, cacheRead: 0, cacheWrite: 0, totalTokens: 12 },
+      } }; })();
+    });
+    const boundedSession = {
+      model: budgetModel, agent: { state: { systemPrompt: "BOUNDED", tools: [] }, streamFn: originalStream },
+      sessionManager: { getSessionFile: () => null }, subscribe: vi.fn(() => vi.fn()), dispose: vi.fn(),
+      setAutoCompactionEnabled: vi.fn(), setAutoRetryEnabled: vi.fn(),
+      prompt: async () => { const stream = await boundedSession.agent.streamFn(budgetModel, { messages: [] }, {}); await stream.result(); },
+    };
+    createAgentSessionMock.mockResolvedValue({ session: boundedSession });
+    await coordinator.executeIsolated("bounded", { model: budgetModel, runBudget: budget, subagentContext: true, toolFilter: [], builtinFilter: [] });
+    expect(boundedSession.setAutoCompactionEnabled).toHaveBeenCalledWith(false);
+    expect(boundedSession.setAutoRetryEnabled).toHaveBeenCalledWith(false);
+    expect(originalStream).toHaveBeenCalledTimes(1);
+    expect(budget.snapshot()).toMatchObject({ calls: 1, committedTokens: 12, pendingCalls: 0 });
+    expect(boundedTools.mock.calls.at(-1)[2].getPermissionMode()).toBe("ask");
+    expect(boundedTools.mock.calls.at(-1)[2].permissionContext).toEqual({ isSubagent: true, requireInteractiveApproval: true });
+    const ordinarySession = { ...boundedSession, agent: { ...boundedSession.agent, streamFn: originalStream },
+      setAutoCompactionEnabled: vi.fn(), setAutoRetryEnabled: vi.fn(), prompt: vi.fn(async () => {}) };
+    createAgentSessionMock.mockResolvedValue({ session: ordinarySession });
+    await coordinator.executeIsolated("ordinary", { subagentContext: true });
+    expect(ordinarySession.setAutoCompactionEnabled).not.toHaveBeenCalled();
+    expect(ordinarySession.setAutoRetryEnabled).not.toHaveBeenCalled();
+    expect(ordinarySession.agent.streamFn).toBe(originalStream);
+    expect(boundedTools.mock.calls.at(-1)[2].getPermissionMode()).toBe("operate");
+    expect(boundedTools.mock.calls.at(-1)[2].permissionContext).toEqual({ isSubagent: true });
+
   });
 
   it("does not inherit the focused session workspace unless parentSessionPath is explicit", async () => {

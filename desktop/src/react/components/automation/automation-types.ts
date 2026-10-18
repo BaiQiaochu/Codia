@@ -25,6 +25,8 @@ export interface CronJob {
   label?: string;
   prompt?: string;
   schedule: string | number;
+  timezone?: string;
+  misfirePolicy?: 'skip' | 'catch-up-once';
   nextRunAt?: string | null;
   lastRunAt?: string | null;
   createdAt?: string;

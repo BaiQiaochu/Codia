@@ -11,6 +11,7 @@ import {
   modelValueFromSelect,
 } from './automation-utils';
 import { ScheduleEditor } from './ScheduleEditor';
+import { SchedulePolicyEditor, validScheduleTimezone, type MisfirePolicy } from './SchedulePolicyEditor';
 import {
   intervalMinutesForApi,
   scheduleDraftFromStored,
@@ -60,6 +61,9 @@ export function AutomationCard({
   const [scheduleDirty, setScheduleDirty] = useState(false);
   const [prompt, setPrompt] = useState(job.prompt || '');
   const [model, setModel] = useState(modelSelectValue(job.model));
+  const defaultTimezone = job.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const [timezone, setTimezone] = useState(defaultTimezone);
+  const [misfirePolicy, setMisfirePolicy] = useState<MisfirePolicy>(job.misfirePolicy || 'catch-up-once');
   const isAgentSession = !job.executor || job.executor.kind === 'agent_session';
   const executorLabel = automationExecutorLabel(job);
   const modelOptions = useMemo(() => modelOptionsForJob(job, availableModels), [availableModels, job]);
@@ -76,11 +80,15 @@ export function AutomationCard({
     setScheduleDirty(false);
     setPrompt(job.prompt || '');
     setModel(modelSelectValue(job.model));
+    setTimezone(job.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
+    setMisfirePolicy(job.misfirePolicy || 'catch-up-once');
   }, [job]);
 
   const dirty =
     label !== jobTitle(job)
     || scheduleDirty
+    || timezone !== defaultTimezone
+    || misfirePolicy !== (job.misfirePolicy || 'catch-up-once')
     || prompt !== (job.prompt || '')
     || model !== modelSelectValue(job.model);
 
@@ -99,12 +107,15 @@ export function AutomationCard({
         ? intervalMinutesForApi(scheduleDraft) || nextSchedule.schedule
         : nextSchedule.schedule;
     }
+    if (timezone !== defaultTimezone) fields.timezone = timezone;
+    if (misfirePolicy !== (job.misfirePolicy || 'catch-up-once')) fields.misfirePolicy = misfirePolicy;
     if (prompt !== (job.prompt || '')) fields.prompt = prompt;
     if (model !== modelSelectValue(job.model)) fields.model = modelValueFromSelect(model);
     return fields;
   };
 
   const save = async () => {
+    if (!validScheduleTimezone(timezone)) return;
     const fields = updateFields();
     if (Object.keys(fields).length) await onUpdate(job.id, fields);
   };
@@ -114,6 +125,7 @@ export function AutomationCard({
       onToggleEnabled(job.id);
       return;
     }
+    if (!validScheduleTimezone(timezone)) return;
     if (isAgentSession && !prompt.trim()) {
       addToast(t('automation.promptRequired'), 'error');
       return;
@@ -136,7 +148,7 @@ export function AutomationCard({
           <span className={styles.title} title={jobTitle(job)}>{jobTitle(job)}</span>
           <span className={styles.subline}>
             <span className={styles.meta}>{schedulePreviewFromDraft(scheduleDraftFromStored(job.type, job.schedule))}</span>
-            {job.nextRunAt ? <span className={styles.meta}>{new Date(job.nextRunAt).toLocaleString(undefined, { hour12: false })}</span> : null}
+            {job.nextRunAt ? <span className={styles.meta}>{new Date(job.nextRunAt).toLocaleString(undefined, { hour12: false, ...(job.timezone && validScheduleTimezone(job.timezone) ? { timeZone: job.timezone } : {}) })} {job.timezone || '设备时区'}</span> : null}
             <span className={styles.badge}>{executorLabel}</span>
           </span>
         </span>
@@ -152,6 +164,7 @@ export function AutomationCard({
             </label>
           </div>
           <ScheduleEditor draft={scheduleDraft} onChange={updateScheduleDraft} />
+          <SchedulePolicyEditor timezone={timezone} misfirePolicy={misfirePolicy} onTimezoneChange={setTimezone} onMisfirePolicyChange={setMisfirePolicy} />
           {isAgentSession ? (
             <label className={styles.field}>
               <span>{t('automation.field.prompt')}</span>
@@ -179,7 +192,7 @@ export function AutomationCard({
             </label>
           ) : null}
           <div className={styles.actions}>
-            <button className={styles.textButton} type="button" disabled={!dirty} onClick={save}>{t('common.confirm')}</button>
+            <button className={styles.textButton} type="button" disabled={!dirty || !validScheduleTimezone(timezone)} onClick={save}>{t('common.confirm')}</button>
             <button className={`${styles.textButton} ${styles.dangerButton}`} type="button" onClick={() => onRemove(job.id)}>{t('automation.delete')}</button>
           </div>
         </div>

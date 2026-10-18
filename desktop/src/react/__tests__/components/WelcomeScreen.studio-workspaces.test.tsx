@@ -241,6 +241,29 @@ describe('WelcomeScreen studio workspaces', () => {
     expect(live2DPropsMock).toHaveBeenLastCalledWith(expect.objectContaining({ enabled: false }));
   });
 
+  it('retries failed desktop policy reads without inventing policy or showing a static mascot', async () => {
+    const readPolicy = vi.fn().mockRejectedValueOnce(new Error('IPC unavailable'))
+      .mockResolvedValueOnce({ gpuSafeMode: true, hardwareAccelerationEnabled: false });
+    window.platform.getGpuRuntimeState = readPolicy;
+    const { container } = render(<WelcomeScreen />);
+    expect((await screen.findByRole('alert')).textContent).toContain('无法读取桌面图形状态');
+    expect(live2DPropsMock).toHaveBeenLastCalledWith(expect.objectContaining({ enabled: false }));
+    expect(container.querySelector('img')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '重试读取图形状态' }));
+    await waitFor(() => expect(live2DPropsMock).toHaveBeenLastCalledWith(expect.objectContaining({
+      enabled: true, gpuSafeMode: true, hardwareAccelerationEnabled: false,
+    })));
+    expect(readPolicy).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('treats malformed desktop policy as a retryable error instead of enabling the mascot', async () => {
+    window.platform.getGpuRuntimeState = vi.fn().mockResolvedValue(null);
+    render(<WelcomeScreen />);
+    expect((await screen.findByRole('alert')).textContent).toContain('无法读取桌面图形状态');
+    expect(live2DPropsMock).toHaveBeenLastCalledWith(expect.objectContaining({ enabled: false }));
+  });
+
   it('does not mount a mascot when the welcome screen is hidden', () => {
     state.welcomeVisible = false;
     render(<WelcomeScreen />);

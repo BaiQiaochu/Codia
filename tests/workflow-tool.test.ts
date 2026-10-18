@@ -374,3 +374,130 @@ describe("workflow tool", () => {
     expect(ledger.list).toHaveBeenCalledWith({ childSessionId: "sess_child_workflow" });
   });
 });
+
+describe("workflow durable recovery", () => {
+  it("reuses successful writes without dispatch and refuses changed definitions", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "workflow-resume-"));
+    try {
+      const store = makeStore();
+      const executeIsolated = vi.fn(async () => ({ replyText: "saved" }));
+      const tool = createWorkflowTool({ executeIsolated, getAgentId: () => "a1", getJournalDir: () => dir, getDeferredStore: () => store });
+      const script = META + "return await agent('save artifact', { access: 'write' });";
+      const first = await tool.execute("one", { script }, undefined, undefined, makeCtx());
+      await waitForBackground(() => expect(store.resolve).toHaveBeenCalledWith(first.details.taskId, "saved"));
+      const second = await tool.execute("two", { script, resumeFromRunId: first.details.taskId }, undefined, undefined, makeCtx());
+      await waitForBackground(() => expect(store.resolve).toHaveBeenCalledWith(second.details.taskId, "saved"));
+      expect(executeIsolated).toHaveBeenCalledTimes(1);
+      const changed = await tool.execute("three", { script: script + " // changed", resumeFromRunId: second.details.taskId }, undefined, undefined, makeCtx());
+      expect(changed.details.error).toMatch(/changed/);
+      expect(store.defer).toHaveBeenCalledTimes(2);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  });
+
+  it("unknown external writes block resume before registering another run", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "workflow-unknown-"));
+    try {
+      const store = makeStore();
+      const executeIsolated = vi.fn(async () => { throw new Error("timeout after send"); });
+      const tool = createWorkflowTool({ executeIsolated, getJournalDir: () => dir, getDeferredStore: () => store });
+      const script = META + "return await agent('send', { access: 'write' });";
+      const first = await tool.execute("one", { script }, undefined, undefined, makeCtx());
+      await waitForBackground(() => expect(store.fail).toHaveBeenCalled());
+      const retry = await tool.execute("two", { script, resumeFromRunId: first.details.taskId }, undefined, undefined, makeCtx());
+      expect(retry.details.error).toMatch(/unknown external result/);
+      expect(executeIsolated).toHaveBeenCalledTimes(1);
+      expect(store.defer).toHaveBeenCalledTimes(1);
+      const invalid = await tool.execute("three", { script, resumeFromRunId: "../../outside" }, undefined, undefined, makeCtx());
+      expect(invalid.details.error).toMatch(/Invalid workflow run ID/);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  });
+
+  it("nested workflow actions have distinct journal sequences and activity IDs", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "workflow-nested-"));
+    try {
+      const store = makeStore();
+      const calls = [];
+      const tool = createWorkflowTool({ executeIsolated: async (_p, o) => { calls.push(o); return { replyText: "ok" }; }, getJournalDir: () => dir, getDeferredStore: () => store });
+      const child = META + "return await agent('child');";
+      const script = META + "await agent('parent'); return await workflow(args.child);";
+      const result = await tool.execute("one", { script, args: { child } }, undefined, undefined, makeCtx());
+      await waitForBackground(() => expect(store.resolve).toHaveBeenCalled());
+      expect(new Set(calls.map(o => o.subagentThreadId)).size).toBe(2);
+      const lines = fs.readFileSync(path.join(dir, result.details.taskId + ".jsonl"), "utf8").trim().split("\n").map(JSON.parse);
+      expect(new Set(lines.filter(e => e.status === "ok").map(e => e.actionId)).size).toBe(2);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  });
+});
+
+describe("workflow resolved registry versions", () => {
+  it("blocks a changed registry before claiming recovery or dispatching another node", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "workflow-runtime-"));
+    try {
+      const store = makeStore();
+      let registry = { model: "resolved-model-v1", prompt: "prompt-v1", tools: "tools-v1" };
+      const effects = vi.fn();
+      const tool = createWorkflowTool({
+        requireRuntimeSnapshot: true, getRuntimeSnapshot: () => registry,
+        executeIsolated: async (_prompt, opts) => {
+          const replay = opts.workflowRuntimeGuard({ version: 1, model: "resolved-model-v1", tools: "tools-v1", prompt: "prompt-v1" });
+          if (replay?.replay) return { workflowReplay: true };
+          effects();
+          return { replyText: "saved" };
+        },
+        getJournalDir: () => dir, getDeferredStore: () => store,
+      });
+      const script = META + "return await agent('save', { access: 'write' });";
+      const first = await tool.execute("one", { script }, undefined, undefined, makeCtx());
+      await waitForBackground(() => expect(store.resolve).toHaveBeenCalledWith(first.details.taskId, "saved"));
+      registry = { ...registry, tools: "tools-v2" };
+      const second = await tool.execute("two", { script, resumeFromRunId: first.details.taskId }, undefined, undefined, makeCtx());
+      expect(second.details.error).toMatch(/changed/);
+      expect(effects).toHaveBeenCalledTimes(1);
+      expect(fs.existsSync(path.join(dir, first.details.taskId + ".jsonl.resume"))).toBe(false);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  });
+});
+
+describe("trusted template budget propagation", () => {
+  it("refuses the unpersisted synchronous fallback", async () => {
+    const executeIsolated = vi.fn();
+    const tool = createWorkflowTool({ executeIsolated });
+    const result = await tool.execute("budget", { script: META + "return await agent('x')" }, undefined, undefined, { runBudget: {} });
+    expect(result.details.error).toMatch(/persisted parent session/);
+    expect(result.content[0].text).toMatch(/persisted parent session/);
+    expect(executeIsolated).not.toHaveBeenCalled();
+  });
+  it("shares the same budget with nested workflows and retains evidence on the root run", async () => {
+    const store = makeStore();
+    const runBudget = { limits: { maxTokens: 100 }, model: { id: "pinned" }, snapshot: () => ({ committedTokens: 12 }) };
+    const executeIsolated = vi.fn(async () => ({ replyText: "ok" }));
+    const hub = { upsert: vi.fn() };
+    const tool = createWorkflowTool({ executeIsolated, getDeferredStore: () => store, getActivityHub: () => hub });
+    const child = META + "return await agent('nested')";
+    await tool.execute("budget", { script: META + "return await workflow(args.child)", args: { child } }, undefined, undefined,
+      { ...makeCtx(), runBudget, executionModel: { id: "pinned" }, toolFilter: [], builtinFilter: [] });
+    await waitForBackground(() => expect(store.resolve.mock.calls.length + store.fail.mock.calls.length).toBe(1));
+    expect(store.fail.mock.calls).toEqual([]);
+    expect(executeIsolated.mock.calls[0][1].runBudget).toBe(runBudget);
+    expect(executeIsolated.mock.calls[0][1].model).toEqual({ id: "pinned" });
+    expect(hub.upsert).toHaveBeenLastCalledWith(expect.objectContaining({ status: "done", runBudget: { committedTokens: 12 } }));
+  });
+});
+
+it("cancels active workflow dispatch and never schedules the next node", async () => {
+  const store = makeStore();
+  const hub = { upsert: vi.fn() };
+  const abort = vi.fn();
+  const executeIsolated = vi.fn((_prompt, options) => new Promise(resolve => {
+    options.signal.addEventListener("abort", () => resolve({ error: "aborted" }), { once: true });
+  }));
+  const tool = createWorkflowTool({ executeIsolated, getDeferredStore: () => store, getActivityHub: () => hub, getSubagentRunStore: () => ({ register: vi.fn(), abort }) });
+  const result = await tool.execute("cancel", { script: META + "await agent('first'); return await agent('must not dispatch');" }, undefined, undefined, makeCtx());
+  await waitForBackground(() => expect(executeIsolated).toHaveBeenCalledTimes(1));
+  expect(tool.cancelRun(result.details.taskId)).toBe(true);
+  await waitForBackground(() => expect(store.fail).toHaveBeenCalled());
+  expect(executeIsolated).toHaveBeenCalledTimes(1);
+  expect(abort).toHaveBeenCalled();
+  expect(hub.upsert).toHaveBeenLastCalledWith(expect.objectContaining({ status: "aborted" }));
+  await waitForBackground(() => expect(tool.cancelRun(result.details.taskId)).toBe(false));
+});

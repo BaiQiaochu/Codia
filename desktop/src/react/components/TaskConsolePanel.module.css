@@ -1,0 +1,17 @@
+.panel { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; background: var(--bg-primary, #faf9f6); color: var(--text-primary, #222); padding: 20px; min-width: 0; }
+.header, .toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.header { justify-content: space-between; }
+.header h2 { margin: 0 0 12px; }
+.body { overflow: auto; min-height: 0; padding: 12px 0; }
+.columns { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(240px, 2fr); gap: 24px; }
+.card, .run { padding: 12px; border: 1px solid var(--border-color, #ddd); border-radius: 8px; margin-bottom: 8px; overflow-wrap: anywhere; }
+.run { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 6px; background: transparent; color: inherit; }
+.panel button { cursor: pointer; }
+.panel button:disabled { cursor: not-allowed; opacity: .6; }
+.panel button[aria-pressed='true'] { outline: 2px solid var(--accent-color, #84694a); outline-offset: -2px; }
+.panel button:focus-visible, .panel input:focus-visible, .panel select:focus-visible, .panel textarea:focus-visible { outline: 2px solid #4678b0; outline-offset: 2px; }
+.panel dd { margin: 4px 0 12px; overflow-wrap: anywhere; }
+.field { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+.field input, .field textarea { box-sizing: border-box; max-width: 100%; padding: 8px; font: inherit; }
+.transcript { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 760px) { .columns { grid-template-columns: 1fr; } .panel { padding: 12px; } }

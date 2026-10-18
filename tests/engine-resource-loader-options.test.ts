@@ -45,6 +45,12 @@ describe("CodiaEngine resource loader options", () => {
 
   it("respects explicit permission mode overrides when building tools", async () => {
     const engine = Object.create(CodiaEngine.prototype);
+    // Tool execution revalidates the live scope through the real engine getters.
+    engine._sessionCoord = {
+      getSessionByPath: () => null,
+      getSessionWorkspaceFolders: () => [],
+      getSessionAuthorizedFolders: () => [],
+    };
     engine.codiaHome = "/codia-home";
     engine._agentMgr = {
       agent: {

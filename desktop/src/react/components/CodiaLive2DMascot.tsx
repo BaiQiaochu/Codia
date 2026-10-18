@@ -10,30 +10,41 @@ interface Props {
   enabled?: boolean;
   gpuSafeMode?: boolean;
   hardwareAccelerationEnabled?: boolean;
-  /** Optional non-animated fallback for fixtures or non-welcome surfaces. */
+  /** @deprecated Static fallback is no longer rendered; retained for caller compatibility. */
   fallback?: ReactNode;
   className?: string;
 }
 
 export function CodiaLive2DMascot({
-  assets, enabled = false, gpuSafeMode = false, hardwareAccelerationEnabled = true, fallback = null, className,
+  assets, enabled = false, gpuSafeMode = false, hardwareAccelerationEnabled = true, className,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [state, setState] = useState<'fallback' | 'loading' | 'live2d'>('fallback');
+  const [animationDisabled, setAnimationDisabled] = useState(() => {
+    try { return localStorage.getItem('codia.mascot.static') === 'true'; } catch { return false; }
+  });
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const toggleAnimation = () => setAnimationDisabled(value => {
+    try { localStorage.setItem('codia.mascot.static', String(!value)); } catch { /* Storage may be unavailable. */ }
+    return !value;
+  });
+  const [state, setState] = useState<'disabled' | 'loading' | 'live2d' | 'error'>('disabled');
   const [error, setError] = useState('');
-  const [restored, setRestored] = useState(0);
+  const [attempt, setAttempt] = useState(0);
   const modelUrl = assets?.modelUrl;
   const shaderPath = assets?.shaderPath;
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    // Attempt the real model even when Electron is running in software-safe
-    // mode. WebGL2 can still be available through WARP; the runtime itself
-    // reports a load error when it is genuinely unavailable. Falling back here
-    // based only on the startup policy was what kept the old sprite animation
-    // visible on affected machines.
-    if (!canvas || !enabled || !modelUrl || !shaderPath) {
-      setState('fallback');
+    // Respect Electron's existing graphics setup. Software WebGL2 may still be
+    // available in safe mode; the runtime reports failed initialization.
+    if (!canvas || !enabled || animationDisabled) {
+      setState('disabled');
+      setError('');
+      return;
+    }
+    if (!modelUrl || !shaderPath) {
+      setState('error');
+      setError('Live2D 模型资源未配置');
       return;
     }
     const controller = new AbortController();
@@ -42,24 +53,28 @@ export function CodiaLive2DMascot({
     let failed = false;
     let inView = true;
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const disposeHandle = () => {
+      const current = handle;
+      handle = null;
+      current?.dispose();
+    };
     const fail = (reason: unknown) => {
-      if (!active || controller.signal.aborted) return;
+      if (!active || failed || controller.signal.aborted) return;
       failed = true;
-      setError(reason instanceof Error ? reason.message : String(reason));
-      setState('fallback');
+      setError((reason instanceof Error ? reason.message : String(reason)) || '未知错误');
+      setState('error');
+      controller.abort();
+      disposeHandle();
     };
     const visibility = () => handle?.setVisible(inView && !document.hidden);
-    const motion = () => handle?.setReducedMotion(media.matches);
+    const motion = () => handle?.setReducedMotion(media.matches || reduceMotion);
     const resize = new ResizeObserver(() => handle?.resize());
     const intersection = new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; visibility(); });
     const contextLost = (event: Event) => {
       event.preventDefault();
       fail(new Error('WebGL context lost'));
-      controller.abort();
-      handle?.dispose();
-      handle = null;
     };
-    const contextRestored = () => { if (active) setRestored(value => value + 1); };
+    const contextRestored = () => { if (active) setAttempt(value => value + 1); };
     canvas.addEventListener('webglcontextlost', contextLost);
     canvas.addEventListener('webglcontextrestored', contextRestored);
     resize.observe(canvas);
@@ -68,20 +83,22 @@ export function CodiaLive2DMascot({
     document.addEventListener('visibilitychange', visibility);
     setError('');
     setState('loading');
-    void loadCodiaLive2D(canvas, {
-      modelUrl, shaderPath, signal: controller.signal, reducedMotion: media.matches, onError: fail,
-    }).then(loaded => {
-      if (!active || controller.signal.aborted || failed) { loaded.dispose(); return; }
-      handle = loaded;
-      motion();
-      if (!failed) visibility();
-      if (failed) { loaded.dispose(); handle = null; return; }
-      setState('live2d');
-    }).catch(fail);
+    void (async () => {
+      try {
+        const loaded = await loadCodiaLive2D(canvas, {
+          modelUrl, shaderPath, signal: controller.signal, reducedMotion: media.matches || reduceMotion, onError: fail,
+        });
+        if (!active || controller.signal.aborted || failed) { loaded.dispose(); return; }
+        handle = loaded;
+        motion();
+        if (!failed) visibility();
+        if (!failed) setState('live2d');
+      } catch (reason) { fail(reason); }
+    })();
     return () => {
       active = false;
       controller.abort();
-      handle?.dispose();
+      disposeHandle();
       resize.disconnect();
       intersection.disconnect();
       media.removeEventListener('change', motion);
@@ -89,13 +106,20 @@ export function CodiaLive2DMascot({
       canvas.removeEventListener('webglcontextlost', contextLost);
       canvas.removeEventListener('webglcontextrestored', contextRestored);
     };
-  }, [enabled, modelUrl, shaderPath, gpuSafeMode, hardwareAccelerationEnabled, restored]);
+  }, [enabled, modelUrl, shaderPath, gpuSafeMode, hardwareAccelerationEnabled, attempt, animationDisabled, reduceMotion]);
 
   return (
     <div className={`${styles.mascot}${className ? ` ${className}` : ''}`} data-codia-renderer={state} data-codia-load-error={error || undefined}>
-      <div className={styles.fallback} aria-hidden={state === 'live2d'} hidden={state === 'live2d'}>{fallback}</div>
-      <canvas ref={canvasRef} className={styles.canvas} style={{ visibility: state === 'live2d' ? 'visible' : 'hidden' }}
+      <canvas key={attempt} ref={canvasRef} className={styles.canvas} style={{ visibility: state === 'live2d' ? 'visible' : 'hidden' }}
         role="img" aria-label="Codia 吉祥物" aria-hidden={state !== 'live2d'} />
+      {state !== 'live2d' && <span className={styles.status} role={state === 'error' ? 'alert' : 'status'}>
+        {animationDisabled ? '动画已关闭' : error ? `Live2D 加载或渲染失败：${error}` : state === 'loading' ? '正在加载 Live2D…' : 'Live2D 未启用'}
+      </span>}
+      <div className={styles.controls}>
+        {state === 'error' && !animationDisabled && <button type="button" onClick={() => setAttempt(value => value + 1)}>重试 Live2D</button>}
+        <button type="button" onClick={toggleAnimation} aria-pressed={animationDisabled}>{animationDisabled ? '启用动画' : '关闭动画'}</button>
+        {!animationDisabled && <button type="button" onClick={() => setReduceMotion(value => !value)} aria-pressed={reduceMotion}>减少动态效果</button>}
+      </div>
     </div>
   );
 }

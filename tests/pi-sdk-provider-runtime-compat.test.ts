@@ -129,3 +129,15 @@ describe("Pi SDK provider runtime compat", () => {
     expect(streamFn.mock.calls[0][2].headers).toEqual({ "x-api-key": "sk-test" });
   });
 });
+
+it("wraps the actual SDK streamFunction slot and preserves this binding", async () => {
+  const { Agent } = await import("@earendil-works/pi-agent-core");
+  const streamFn = vi.fn(function (_model, _context, _options) { return null; });
+  const agent = new Agent({ streamFn } as any);
+  const session = { agent, sessionId: "actual-sdk-session" };
+  installProviderRuntimeCompat(session);
+  await (agent as any).streamFunction({}, {}, { cacheRetention: "none" });
+  expect(streamFn.mock.contexts[0]).toBe(agent);
+  expect(streamFn.mock.calls[0][2]).toEqual({ cacheRetention: "none" });
+  expect((agent as any).streamFn).toBeUndefined();
+});

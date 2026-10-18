@@ -4,6 +4,18 @@ import path from "path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CodiaEngine } from "../core/engine.js";
 
+function createEngineFixture() {
+  const engine = Object.create(CodiaEngine.prototype);
+  // Production constructs SessionCoordinator before tools are built. Keep the
+  // real engine scope getters wired to an explicit empty session scope here.
+  engine._sessionCoord = {
+    getSessionByPath: vi.fn(() => null),
+    getSessionWorkspaceFolders: vi.fn(() => []),
+    getSessionAuthorizedFolders: vi.fn(() => []),
+  };
+  return engine;
+}
+
 describe("CodiaEngine.buildTools", () => {
   let tmpDir;
 
@@ -17,7 +29,7 @@ describe("CodiaEngine.buildTools", () => {
     const focusAgentDir = path.join(tmpDir, "agents", "focus");
     const missingAgentDir = path.join(tmpDir, "agents", "missing");
 
-    const engine = Object.create(CodiaEngine.prototype);
+    const engine = createEngineFixture();
     engine.codiaHome = tmpDir;
     engine.getAgent = vi.fn(() => null);
     engine._pluginManager = null;
@@ -49,7 +61,7 @@ describe("CodiaEngine.buildTools", () => {
       })),
     };
 
-    const engine = Object.create(CodiaEngine.prototype);
+    const engine = createEngineFixture();
     engine.codiaHome = tmpDir;
     engine.getAgent = vi.fn(() => ({ id: "focus", agentDir, tools: [] }));
     engine._pluginManager = null;
@@ -85,6 +97,71 @@ describe("CodiaEngine.buildTools", () => {
     expect(result.details.executed).toBe(true);
   });
 
+  it.each(['getSessionByPath', 'getSessionWorkspaceFolders', 'getSessionAuthorizedFolders'])(
+    'blocks execution when the real engine scope getter fails through %s', async getter => {
+      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-build-tools-scope-"));
+      const agentDir = path.join(tmpDir, "agents", "focus");
+      const sessionPath = path.join(agentDir, "sessions", "scope.jsonl");
+      const execute = vi.fn(async () => ({ details: { executed: true } }));
+      const engine = createEngineFixture();
+      engine.codiaHome = tmpDir;
+      engine.getAgent = vi.fn(() => ({ id: "focus", agentDir, tools: [] }));
+      engine._agentMgr = { agent: { id: "focus", agentDir, tools: [] } };
+      engine._pluginManager = null;
+      engine._prefs = { getFileBackup: () => ({ enabled: false }) };
+      engine._readPreferences = () => ({ sandbox: true });
+      engine._sessionCoord[getter].mockImplementation(() => { throw new Error("scope backend unavailable"); });
+      engine._toolActionLedger = { begin: vi.fn() };
+      const { customTools } = engine.buildTools(tmpDir, [{ name: "stage_files", execute }], {
+        agentDir, workspace: tmpDir, getPermissionMode: () => "operate",
+      });
+
+      const result = await customTools[0].execute("scope-failure", { path: "x" }, { sessionPath });
+
+      expect(result.details.errorCode).toBe("APPROVAL_SCOPE_UNAVAILABLE");
+      expect(execute).not.toHaveBeenCalled();
+      expect(engine._toolActionLedger.begin).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['write', 'stage_files'])(
+    'rejects pending %s approval when buildTools dynamic folder authorization changes', async toolName => {
+      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-build-tools-revoke-"));
+      const agentDir = path.join(tmpDir, "agents", "focus");
+      const sessionPath = path.join(agentDir, "sessions", "scope.jsonl");
+      let authorizedFolders = [path.join(tmpDir, "shared")];
+      let approve!: (decision: { action: string }) => void;
+      const execute = vi.fn(async () => ({ details: { executed: true } }));
+      const engine = createEngineFixture();
+      engine.codiaHome = tmpDir;
+      engine.getAgent = vi.fn(() => ({ id: "focus", agentDir, tools: [] }));
+      engine._agentMgr = { agent: { id: "focus", agentDir, tools: [] } };
+      engine._pluginManager = null;
+      engine._prefs = { getFileBackup: () => ({ enabled: false }) };
+      engine._readPreferences = () => ({ sandbox: true });
+      engine._confirmStore = {
+        create: vi.fn(() => ({ confirmId: "scope-approval", promise: new Promise(resolve => { approve = resolve; }) })),
+      };
+      engine._emitEvent = vi.fn();
+      engine._toolActionLedger = { begin: vi.fn() };
+      const result = engine.buildTools(tmpDir, [{ name: "stage_files", execute }], {
+        agentDir, workspace: tmpDir, getSessionPath: () => sessionPath,
+        getPermissionMode: () => "ask", getAuthorizedFolders: () => authorizedFolders,
+      });
+      const tool = [...result.tools, ...result.customTools].find(item => item.name === toolName);
+      const pending = tool.execute("scope-revoked", { path: "result.txt", content: "x" });
+      expect(engine._confirmStore.create).toHaveBeenCalledOnce();
+
+      authorizedFolders = [];
+      approve({ action: "confirmed" });
+
+      expect((await pending).details.errorCode).toBe("APPROVAL_PARAMETERS_CHANGED");
+      expect(execute).not.toHaveBeenCalled();
+      expect(engine._toolActionLedger.begin).not.toHaveBeenCalled();
+      expect(fs.existsSync(path.join(tmpDir, "result.txt"))).toBe(false);
+    },
+  );
+
   it("passes a session workbench execution boundary into plugin tools", async () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-build-tools-boundary-"));
     const agentDir = path.join(tmpDir, "agents", "focus");
@@ -98,7 +175,7 @@ describe("CodiaEngine.buildTools", () => {
       tools: [],
     };
 
-    const engine = Object.create(CodiaEngine.prototype);
+    const engine = createEngineFixture();
     engine.codiaHome = tmpDir;
     engine._runtimeContext = {
       serverId: "server_engine",
@@ -169,7 +246,7 @@ describe("CodiaEngine.buildTools", () => {
       origin,
       operation,
     }));
-    const engine = Object.create(CodiaEngine.prototype);
+    const engine = createEngineFixture();
     engine.codiaHome = tmpDir;
     engine.registerSessionFile = registerSessionFile;
     engine.getAgent = vi.fn(() => ({ id: "focus", agentDir, tools: [] }));
@@ -246,7 +323,7 @@ describe("CodiaEngine.buildTools", () => {
       origin,
       operation,
     }));
-    const engine = Object.create(CodiaEngine.prototype);
+    const engine = createEngineFixture();
     engine.codiaHome = tmpDir;
     engine.registerSessionFile = registerSessionFile;
     engine.getAgent = vi.fn(() => ({ id: "focus", agentDir, tools: [] }));

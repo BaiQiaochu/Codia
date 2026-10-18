@@ -250,7 +250,8 @@ describe("ActivityHub 持久化背书", () => {
     ]);
     const hub = new ActivityHub(null, store);
     expect(hub.get("sub-orphan").status).toBe("failed");
-    expect(hub.get("sub-orphan").finishedAt).toBe(100);
+    expect(hub.get("sub-orphan").finishedAt).toBeNull();
+    expect(hub.get("sub-orphan").lifecycleStatus).toBe("recovery_required");
   });
 
   it("构造时从 store 回灌；上一进程遗留的 running 判为孤儿 → 标 failed（不再永久转圈）", () => {
@@ -262,7 +263,8 @@ describe("ActivityHub 持久化背书", () => {
     const hub = new ActivityHub(null, store);
     expect(hub.get("wf-done").status).toBe("done");          // 终态原样回灌
     expect(hub.get("wf-orphan").status).toBe("failed");      // 孤儿 running → failed
-    expect(hub.get("wf-orphan").finishedAt).toBe(1000);      // 用 startedAt 兜 finishedAt
+    expect(hub.get("wf-orphan").finishedAt).toBeNull(); // 不编造外部动作完成时间
+    expect(hub.get("wf-orphan").lifecycleStatus).toBe("recovery_required");
     expect(hub.get("wf-orphan::n1").status).toBe("failed");  // 子节点同理
     // 孤儿修正写回 store，保持落盘一致
     expect(store.get("wf-orphan").status).toBe("failed");
@@ -317,4 +319,15 @@ describe("ActivityHub 持久化背书", () => {
     expect(typeof hub.rebroadcastSession).toBe("function");
     hub.rebroadcastSession("/s/a.jsonl"); // 不抛
   });
+});
+
+
+it("marks interrupted budget evidence as unknown after restart", () => {
+  const store = makeFakeStore();
+  const first = new ActivityHub(null, store);
+  first.upsert({ id: "budgeted", kind: "workflow", status: "running", runBudget: { state: "active", committedTokens: 12, reservedTokens: 200 } });
+  const restarted = new ActivityHub(null, store);
+  expect(restarted.get("budgeted")).toMatchObject({ lifecycleStatus: "recovery_required", runBudget: {
+    state: "blocked", committedTokens: 12, reservedTokens: 200, usageAfterCheckpointUnknown: true,
+  } });
 });

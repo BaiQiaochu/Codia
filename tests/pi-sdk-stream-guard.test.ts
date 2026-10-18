@@ -189,3 +189,15 @@ describe("Pi SDK stream guard", () => {
     expect(result.content).toEqual([validTool]);
   });
 });
+
+it("installs sanitization on the actual SDK streamFunction slot", async () => {
+  const { Agent } = await import("@earendil-works/pi-agent-core");
+  const message = { role: "assistant", content: [{ type: "text", text: "ok" }], stopReason: "stop" };
+  const original = vi.fn(() => makeStream([{ type: "done", reason: "stop", message }], message));
+  const agent = new Agent({ streamFn: original });
+  installAssistantStreamGuard({ agent });
+  expect(agent.streamFunction).not.toBe(original);
+  const { result } = await collect(await agent.streamFunction({}, {}, {}));
+  expect(result.content).toEqual(message.content);
+  expect(original).toHaveBeenCalledOnce();
+});

@@ -38,6 +38,8 @@ describe("desk cron route", () => {
         schedule: 5,
         prompt: "summarize my desk",
         label: "Desk summary",
+        timezone: "Asia/Shanghai",
+        misfirePolicy: "skip",
       }),
     });
 
@@ -46,6 +48,8 @@ describe("desk cron route", () => {
       type: "every",
       prompt: "summarize my desk",
       label: "Desk summary",
+      timezone: "Asia/Shanghai",
+      misfirePolicy: "skip",
     }));
   });
 

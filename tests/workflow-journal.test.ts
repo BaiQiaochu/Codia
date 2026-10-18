@@ -57,9 +57,9 @@ describe("WorkflowJournal", () => {
     const key1 = WorkflowJournal.computeKey("a", {});
     const key2 = WorkflowJournal.computeKey("b", {});
     const key3 = WorkflowJournal.computeKey("c", {});
-    journal.record(1, key1, "one");
-    journal.record(2, key2, "two");
-    journal.record(3, key3, "three");
+    journal.record(1, key1, "one", "ok", { access: "read" });
+    journal.record(2, key2, "two", "ok", { access: "read" });
+    journal.record(3, key3, "three", "ok", { access: "read" });
 
     const replay = WorkflowJournal.load(journalPath);
     expect(replay.tryReplay(1, key1)).toEqual({ hit: true, result: "one" });
@@ -68,7 +68,7 @@ describe("WorkflowJournal", () => {
     expect(replay.replayHits).toBe(1);
   });
 
-  it("skips error entries and corrupt journal lines", () => {
+  it("blocks corrupt journal lines instead of silently replaying possible writes", () => {
     const journalPath = tmpJournalPath();
     paths.push(journalPath);
     fs.mkdirSync(path.dirname(journalPath), { recursive: true });
@@ -79,7 +79,14 @@ describe("WorkflowJournal", () => {
       "",
     ].join("\n"));
 
-    const replay = WorkflowJournal.load(journalPath);
-    expect(replay.tryReplay(1, key)).toBeNull();
+    expect(() => WorkflowJournal.load(journalPath)).toThrow(/corrupt/);
   });
+});
+
+
+it("does not offer unbounded draft recovery for budgeted templates", () => {
+  const journal = new WorkflowJournal(null);
+  journal.setMetadata({ definitionKey: "bounded", definition: { script: "saved" }, budgetContract: { limits: { maxTokens: 100 } } });
+  journal.finish();
+  expect(journal.inspectRecovery()).toMatchObject({ canPrepare: false, blockedReason: expect.stringMatching(/new reviewed budget/) });
 });

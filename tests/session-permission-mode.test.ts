@@ -60,3 +60,12 @@ describe("session permission modes", () => {
     expect(classifySessionPermission({ mode: "operate", toolName: "file", params: { action: "copy" } })).toEqual({ action: "allow" });
   });
 });
+
+
+it("preserves explicit human approval for bounded template subagents", () => {
+  for (const toolName of ["bash", "write", "edit", "unclassified_mcp_write"]) {
+    expect(classifySessionPermission({ mode: "ask", toolName, context: { isSubagent: true, requireInteractiveApproval: true } })).toMatchObject({ action: "prompt" });
+  }
+  expect(classifySessionPermission({ mode: "ask", toolName: "read", context: { isSubagent: true, requireInteractiveApproval: true } })).toMatchObject({ action: "allow" });
+  expect(classifySessionPermission({ mode: "ask", toolName: "bash", context: { isSubagent: true } })).toMatchObject({ action: "allow" });
+});

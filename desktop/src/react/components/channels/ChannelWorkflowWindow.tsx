@@ -1,3 +1,4 @@
+import { workflowTaskState, workflowRunState, isWorkflowRunActive, type WorkflowExecutionState } from '../../utils/workflow-run-state';
 import { consumeWorkflowTemplateRequest, WORKFLOW_TEMPLATE_REQUEST_EVENT } from '../../utils/workflow-template-request';
 import {
   useCallback,
@@ -28,6 +29,10 @@ import {
 import styles from './Channels.module.css';
 
 interface CompanyTask {
+  report?: string;
+  acceptanceFailure?: string;
+  artifacts?: unknown[];
+  source?: { nodeId?: string; runId?: string };
   id: string;
   treeId?: string;
   parentTaskId?: string;
@@ -155,10 +160,11 @@ interface WorkflowTimelineItem {
   state: WorkflowNode['state'];
 }
 
-type WorkflowRetryState = 'not_started' | 'running' | 'retrying' | 'succeeded' | 'failed';
+type WorkflowRetryState = 'not_started' | 'retrying' | WorkflowExecutionState;
 
 interface WorkflowRunNodeSnapshot {
   nodeId: string;
+  taskId?: string;
   label: string;
   agentId?: string;
   agentName?: string;
@@ -174,7 +180,7 @@ interface WorkflowRunSnapshot {
   id: string;
   startedAt: string;
   finishedAt?: string;
-  status: 'running' | 'succeeded' | 'failed';
+  status: WorkflowExecutionState;
   failure?: string;
   nodes: WorkflowRunNodeSnapshot[];
 }
@@ -242,10 +248,11 @@ function parseStoredWorkflow(value: string | null): {
           id: String(snapshot.id),
           startedAt: String(snapshot.startedAt || ''),
           ...(snapshot.finishedAt ? { finishedAt: String(snapshot.finishedAt) } : {}),
-          status: snapshot.status === 'succeeded' || snapshot.status === 'failed' ? snapshot.status : 'running',
+          status: ['queued', 'running', 'awaiting_approval', 'partial_failure', 'succeeded', 'failed', 'cancelled'].includes(String(snapshot.status)) ? snapshot.status as WorkflowExecutionState : 'queued',
           ...(snapshot.failure ? { failure: String(snapshot.failure) } : {}),
           nodes: (snapshot.nodes || []).filter((node: Partial<WorkflowRunNodeSnapshot>) => typeof node?.nodeId === 'string').map((node: Partial<WorkflowRunNodeSnapshot>) => ({
             nodeId: String(node.nodeId),
+            ...(node.taskId ? { taskId: String(node.taskId) } : {}),
             label: String(node.label || node.nodeId),
             ...(node.agentId ? { agentId: String(node.agentId) } : {}),
             ...(node.agentName ? { agentName: String(node.agentName) } : {}),
@@ -253,7 +260,7 @@ function parseStoredWorkflow(value: string | null): {
             output: String(node.output || ''),
             ...(node.failure ? { failure: String(node.failure) } : {}),
             state: ['running', 'done', 'blocked', 'error', 'idle'].includes(String(node.state)) ? node.state as WorkflowNode['state'] : 'idle',
-            retryState: ['not_started', 'running', 'retrying', 'succeeded', 'failed'].includes(String(node.retryState))
+            retryState: ['not_started', 'queued', 'running', 'awaiting_approval', 'retrying', 'succeeded', 'failed', 'cancelled'].includes(String(node.retryState))
               ? node.retryState as WorkflowRetryState
               : 'not_started',
             triggeredAt: String(node.triggeredAt || snapshot.startedAt || ''),
@@ -430,6 +437,9 @@ function activityHubTimelineItems(activities: AgentActivityEntry[]): WorkflowTim
 function statusText(status?: string) {
   const map: Record<string, string> = {
     assigned: '已分派',
+    queued: '已排队',
+    cancelled: '已取消',
+    awaiting_approval: '等待审批',
     in_progress: '执行中',
     reported: '已回报',
     completed: '已完成',
@@ -442,7 +452,7 @@ function statusText(status?: string) {
 function taskState(status?: string): WorkflowNode['state'] {
   const key = String(status || 'assigned');
   if (key === 'completed') return 'done';
-  if (key === 'blocked') return 'blocked';
+  if (key === 'blocked' || key === 'awaiting_approval' || key === 'cancelled') return 'blocked';
   if (key === 'failed') return 'error';
   if (key === 'in_progress' || key === 'reported') return 'running';
   return 'idle';
@@ -686,10 +696,15 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
   const pendingChannelResourceAction = useStore(s => s.pendingChannelResourceAction);
   const consumePendingChannelResourceAction = useStore(s => s.consumePendingChannelResourceAction);
   const agentMap = useMemo(() => buildAgentMap(agents), [agents]);
+  const currentWorkflowScopeRef = useRef(workflowScopeKey);
+  currentWorkflowScopeRef.current = workflowScopeKey;
   const [companyStatus, setCompanyStatus] = useState<CompanyStatus | null>(null);
   const [companyError, setCompanyError] = useState('');
   const [zoom, setZoom] = useState(1);
   const [triggering, setTriggering] = useState(false);
+  const dispatchRunRef = useRef<string | null>(null);
+  const cancelledRunIdsRef = useRef(new Set<string>());
+  const [cancellingRun, setCancellingRun] = useState(false);
   const [customWorkflowNodes, setCustomWorkflowNodes] = useState<CustomWorkflowNode[]>([]);
   const [customWorkflowEdges, setCustomWorkflowEdges] = useState<CustomWorkflowEdge[]>([]);
   const [workflowRunSnapshots, setWorkflowRunSnapshots] = useState<WorkflowRunSnapshot[]>([]);
@@ -752,20 +767,19 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
   const loadCompanyStatus = useCallback(async () => {
     if (!open || !workflowChannelId) return;
     setCompanyError('');
-    setCompanyStatus(null);
     try {
       const res = await codiaFetch('/api/plugins/company/companies/default/status');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      if (currentWorkflowScopeRef.current !== workflowScopeKey) return;
       setCompanyStatus({
         channels: Array.isArray(data.channels) ? data.channels : [],
         tasks: Array.isArray(data.tasks) ? data.tasks : [],
       });
     } catch (err) {
-      setCompanyStatus(null);
-      setCompanyError(err instanceof Error ? err.message : String(err));
+      if (currentWorkflowScopeRef.current === workflowScopeKey) setCompanyError(err instanceof Error ? err.message : String(err));
     }
-  }, [open, workflowChannelId]);
+  }, [open, workflowChannelId, workflowScopeKey]);
 
   useEffect(() => {
     if (!open) return;
@@ -822,6 +836,31 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     });
   }, [companyStatus, workflowChannelId]);
 
+  const activeWorkflowRun = workflowRunSnapshots.find(run => isWorkflowRunActive(run.status));
+  useEffect(() => {
+    if (!open || !activeWorkflowRun) return;
+    const timer = window.setInterval(() => void loadCompanyStatus(), 2000);
+    return () => window.clearInterval(timer);
+  }, [open, activeWorkflowRun?.id, loadCompanyStatus]);
+
+  useEffect(() => {
+    if (!companyStatus) return;
+    setWorkflowRunSnapshots(runs => runs.map(run => {
+      if (!isWorkflowRunActive(run.status)) return run;
+      const nodes = run.nodes.map(node => {
+        const task = companyStatus.tasks.find(task => task.id === node.taskId || (task.source?.runId === run.id && task.source?.nodeId === node.nodeId));
+        if (!task) return node;
+        const retryState = workflowTaskState(task.status);
+        const state: WorkflowNode['state'] = retryState === 'succeeded' ? 'done' : retryState === 'failed' ? 'error' : retryState === 'awaiting_approval' || retryState === 'cancelled' ? 'blocked' : retryState === 'running' ? 'running' : 'idle';
+        return { ...node, taskId: task.id, retryState, state,
+          output: task.acceptanceFailure || task.report || (task.artifacts?.length ? JSON.stringify(task.artifacts) : '等待任务结果'),
+          failure: retryState === 'failed' ? task.report || '任务失败' : undefined };
+      });
+      const status = workflowRunState(nodes.map(node => node.retryState === 'not_started' || node.retryState === 'retrying' ? 'queued' : node.retryState));
+      return { ...run, nodes, status, ...(!isWorkflowRunActive(status) ? { finishedAt: new Date().toISOString() } : {}) };
+    }));
+  }, [companyStatus]);
+
   const customNodeIds = useMemo(() => new Set(customWorkflowNodes.map((node) => node.id)), [customWorkflowNodes]);
   useEffect(() => {
     customNodeIdsRef.current = customNodeIds;
@@ -859,7 +898,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     ]),
     [customWorkflowNodes, workflowPlan.supervision.supervisorAgentIds],
   );
-  const hasDispatchableWorkflow = scopedCompanyTasks.length > 0 || customWorkflowNodes.length > 0;
+  const hasDispatchableWorkflow = scopedCompanyTasks.some(task => !['completed', 'failed', 'cancelled'].includes(task.status || '')) || customWorkflowNodes.length > 0;
 
   const updateCustomWorkflowNode = useCallback((nodeId: string, patch: Partial<CustomWorkflowNode>) => {
     setCustomWorkflowNodes((nodes) => nodes.map((node) => (
@@ -1279,7 +1318,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     const resolveAgentName = (agentId?: string) => agentId
       ? resolveChannelMember(agentId, userName, userAvatarUrl, agents, currentAgentId, agentMap).displayName
       : undefined;
-    const nodes = latestWorkflowNodesRef.current.map((node): WorkflowRunNodeSnapshot => {
+    const nodes = latestWorkflowNodesRef.current.filter(node => customWorkflowNodes.length ? customById.has(node.id) : Boolean(node.taskId && !['completed', 'failed', 'cancelled'].includes(taskById.get(node.taskId)?.status || ''))).map((node): WorkflowRunNodeSnapshot => {
       const task = node.taskId ? taskById.get(node.taskId) : undefined;
       const custom = customById.get(node.id);
       const criteria = Array.isArray(task?.acceptanceCriteria) ? task.acceptanceCriteria.filter(Boolean).join('；') : '';
@@ -1290,6 +1329,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
       const agentName = resolveAgentName(node.agentId);
       return {
         nodeId: node.id,
+        ...(node.taskId ? { taskId: node.taskId } : {}),
         label: node.title,
         ...(node.agentId ? { agentId: node.agentId } : {}),
         ...(agentName ? { agentName } : {}),
@@ -1322,86 +1362,80 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
   ]);
 
   const upsertWorkflowRunSnapshot = useCallback((snapshot: WorkflowRunSnapshot) => {
+    if (currentWorkflowScopeRef.current !== workflowScopeKey) return;
     setWorkflowRunSnapshots((snapshots) => [
       snapshot,
       ...snapshots.filter((item) => item.id !== snapshot.id),
     ].slice(0, 20));
-  }, []);
+  }, [workflowScopeKey]);
 
-  const handleExecuteWorkflow = useCallback(async () => {
-    if (triggering || !hasDispatchableWorkflow) return;
+  const handleExecuteWorkflow = useCallback(async (failedOnly = false, replayNodeId?: string) => {
+    if (dispatchRunRef.current || activeWorkflowRun || !hasDispatchableWorkflow) return;
     if (standalone && (!workflowChannelId || !channelsEnabled)) {
       setExecutionSetupOpen(true);
       setExecutionError('');
       return;
     }
     if (!workflowChannelId) return;
-    const runningSnapshot = snapshotWorkflowRun('running');
+    const failedIds = new Set(workflowRunSnapshots[0]?.nodes.filter(node => node.retryState === 'failed').map(node => node.nodeId));
+    const selectedIds = replayNodeId ? new Set([replayNodeId]) : failedOnly ? failedIds : null;
+    const priorOutputs = workflowRunSnapshots[0]?.nodes.filter(node => node.retryState === 'succeeded').map(node => `${node.label}: ${node.output}`).join('\n') || '';
+    const plan = selectedIds ? { ...workflowPlan, nodes: workflowPlan.nodes.filter(node => selectedIds.has(node.id)).map(node => ({ ...node, prompt: priorOutputs ? `${node.prompt}\n\n已完成步骤结果：\n${priorOutputs}` : node.prompt })), edges: workflowPlan.edges.filter(edge => selectedIds.has(edge.from) && selectedIds.has(edge.to)) } : workflowPlan;
+    if (failedOnly && !plan.nodes.length) return;
+    const initial = snapshotWorkflowRun('running');
+    const runningSnapshot: WorkflowRunSnapshot = { ...initial, status: 'queued', nodes: initial.nodes.filter(node => !selectedIds || selectedIds.has(node.nodeId)).map(node => ({ ...node, retryState: 'queued', state: 'idle', output: '等待任务结果' })) };
+    dispatchRunRef.current = runningSnapshot.id;
     upsertWorkflowRunSnapshot(runningSnapshot);
     setTriggering(true);
     try {
-      if (workflowPlan.nodes.length > 0) {
+      if (plan.nodes.length > 0) {
         const assignRes = await codiaFetch('/api/plugins/company/tasks/assign-from-workflow', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            companyId: 'company_default',
-            channelId: workflowChannelId,
-            workflow: workflowPlan,
-          }),
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyId: 'company_default', channelId: workflowChannelId, runId: runningSnapshot.id, ...(replayNodeId ? { source: 'workflow_replay' } : {}), workflow: plan }),
         });
         if (!assignRes.ok) throw new Error(`HTTP ${assignRes.status}`);
+        const assigned = await assignRes.json();
+        if (!cancelledRunIdsRef.current.has(runningSnapshot.id)) {
+          upsertWorkflowRunSnapshot({ ...runningSnapshot, nodes: runningSnapshot.nodes.map(node => ({ ...node, taskId: assigned.tasks?.find((task: CompanyTask) => task.source?.nodeId === node.nodeId)?.id })) });
+        }
+        // Run-aware assignment performs dependency-gated dispatch itself.
+      } else if (!cancelledRunIdsRef.current.has(runningSnapshot.id)) {
+        const res = await codiaFetch(`/api/channels/${encodeURIComponent(workflowChannelId)}/trigger`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: 'workflow_window', workflowPlan: plan, mentionedAgents }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
       }
-      const res = await codiaFetch(`/api/channels/${encodeURIComponent(workflowChannelId)}/trigger`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'workflow_window', workflowPlan, mentionedAgents }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      addToast(workflowPlan.nodes.length > 0 ? '工作流已派发并触发' : '工作流已触发', 'success', 2200);
-      upsertWorkflowRunSnapshot({
-        ...runningSnapshot,
-        status: 'succeeded',
-        finishedAt: new Date().toISOString(),
-        nodes: runningSnapshot.nodes.map((node) => ({
-          ...node,
-          retryState: 'succeeded',
-          state: node.state === 'idle' ? 'done' : node.state,
-          output: node.output || '已触发',
-        })),
-      });
       await loadCompanyStatus();
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      upsertWorkflowRunSnapshot({
-        ...runningSnapshot,
-        status: 'failed',
-        finishedAt: new Date().toISOString(),
-        failure: message,
-        nodes: runningSnapshot.nodes.map((node) => ({
-          ...node,
-          retryState: 'failed',
-          state: 'error',
-          failure: message,
-        })),
-      });
-      addToast(`工作流触发失败: ${err instanceof Error ? err.message : String(err)}`, 'error');
+      if (!cancelledRunIdsRef.current.has(runningSnapshot.id)) {
+        const message = err instanceof Error ? err.message : String(err);
+        upsertWorkflowRunSnapshot({ ...runningSnapshot, status: 'awaiting_approval', failure: `派发结果未知，请检查后再决定：${message}`,
+          nodes: runningSnapshot.nodes.map(node => ({ ...node, retryState: 'awaiting_approval', state: 'blocked', failure: message })) });
+        addToast(`派发未确认，请先检查实际任务结果: ${message}`, 'error');
+      }
     } finally {
+      dispatchRunRef.current = null;
       setTriggering(false);
     }
-  }, [
-    addToast,
-    workflowChannelId,
-    standalone,
-    channelsEnabled,
-    hasDispatchableWorkflow,
-    loadCompanyStatus,
-    mentionedAgents,
-    snapshotWorkflowRun,
-    triggering,
-    upsertWorkflowRunSnapshot,
-    workflowPlan,
-  ]);
+  }, [activeWorkflowRun, addToast, workflowChannelId, standalone, channelsEnabled, hasDispatchableWorkflow, loadCompanyStatus, mentionedAgents, snapshotWorkflowRun, upsertWorkflowRunSnapshot, workflowPlan, workflowRunSnapshots]);
+
+  const handleCancelWorkflow = useCallback(async () => {
+    if (!activeWorkflowRun || cancellingRun) return;
+    setCancellingRun(true);
+    cancelledRunIdsRef.current.add(activeWorkflowRun.id);
+    try {
+      const res = await codiaFetch(`/api/plugins/company/workflow-runs/${encodeURIComponent(activeWorkflowRun.id)}/cancel`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ companyId: 'company_default', taskIds: activeWorkflowRun.nodes.flatMap(node => node.taskId ? [node.taskId] : []) }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      upsertWorkflowRunSnapshot({ ...activeWorkflowRun, status: 'cancelled', finishedAt: new Date().toISOString(), nodes: activeWorkflowRun.nodes.map(node => node.retryState === 'succeeded' || node.retryState === 'failed' ? node : { ...node, retryState: 'cancelled', state: 'blocked' }) });
+      addToast('已停止后续派发；已经开始的操作可能仍会完成', 'info');
+    } catch (err) {
+      cancelledRunIdsRef.current.delete(activeWorkflowRun.id);
+      addToast(`取消未确认: ${err instanceof Error ? err.message : String(err)}`, 'error');
+    } finally { setCancellingRun(false); }
+  }, [activeWorkflowRun, cancellingRun, addToast, upsertWorkflowRunSnapshot]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -1604,6 +1638,15 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
       edges.push({ id: edge.id, from: edge.from, to: edge.to, state: 'idle' });
     });
 
+    const latestRun = workflowRunSnapshots[0];
+    for (const node of nodes) {
+      const evidence = latestRun?.nodes.find(step => step.nodeId === node.id);
+      if (evidence) { node.state = evidence.state; node.meta = evidence.failure || evidence.output; }
+    }
+    for (const edge of edges) {
+      const evidence = latestRun?.nodes.find(step => step.nodeId === edge.to);
+      if (evidence) edge.state = evidence.state;
+    }
     const agentStates = nodes.filter((node) => node.kind === 'agent').map((node) => node.state);
     const taskStates = nodes.filter((node) => node.kind === 'task').map((node) => node.state);
     const outputStates = nodes.filter((node) => node.kind === 'output').map((node) => node.state);
@@ -1674,6 +1717,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     customWorkflowEdges,
     customWorkflowNodes,
     scopedCompanyTasks,
+    workflowRunSnapshots,
     tickerStatuses,
     userAvatarUrl,
     workflowNodeLayout,
@@ -2066,65 +2110,16 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
   }, [focusWorkflowTimelineItem]);
 
   const handleRerunWorkflowReplayItem = useCallback(async () => {
-    if (!workflowChannelId || !workflowReplayItemId || workflowReplayRerunning) return;
-    const item = timelineItems.find((entry) => entry.id === workflowReplayItemId);
-    const customNode = item ? customWorkflowNodes.find((node) => node.id === item.nodeId) : null;
-    if (!item || !customNode) {
-      addToast('\u53ea\u80fd\u91cd\u8dd1\u81ea\u5b9a\u4e49\u4efb\u52a1\u8282\u70b9', 'info', 2200);
+    if (activeWorkflowRun || workflowReplayRerunning) return;
+    const item = timelineItems.find(entry => entry.id === workflowReplayItemId);
+    if (!item || !customNodeIds.has(item.nodeId)) {
+      addToast('只能重跑自定义任务节点', 'info', 2200);
       return;
     }
-    const singleNodePlan = {
-      ...workflowPlan,
-      id: `${workflowPlan.id}:replay:${customNode.id}`,
-      title: `${workflowPlan.title} / ${customNode.title}`,
-      nodes: [{
-        id: customNode.id,
-        title: customNode.title,
-        prompt: customNode.prompt,
-        assigneeAgentId: customNode.agentId,
-        kind: 'task',
-      }],
-      edges: [],
-    };
     setWorkflowReplayRerunning(true);
-    try {
-      const assignRes = await codiaFetch('/api/plugins/company/tasks/assign-from-workflow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          companyId: 'company_default',
-          channelId: workflowChannelId,
-          workflow: singleNodePlan,
-        }),
-      });
-      if (!assignRes.ok) throw new Error(`HTTP ${assignRes.status}`);
-      const res = await codiaFetch(`/api/channels/${encodeURIComponent(workflowChannelId)}/trigger`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          source: 'workflow_replay',
-          workflowPlan: singleNodePlan,
-          mentionedAgents: uniqueStrings([customNode.agentId, ...workflowPlan.supervision.supervisorAgentIds]),
-        }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      addToast(`\u5df2\u91cd\u8dd1\u8282\u70b9\uff1a${customNode.title}`, 'success', 2200);
-      await loadCompanyStatus();
-    } catch (err) {
-      addToast(`\u91cd\u8dd1\u8282\u70b9\u5931\u8d25\uff1a${err instanceof Error ? err.message : String(err)}`, 'error');
-    } finally {
-      setWorkflowReplayRerunning(false);
-    }
-  }, [
-    addToast,
-    workflowChannelId,
-    customWorkflowNodes,
-    loadCompanyStatus,
-    timelineItems,
-    workflowPlan,
-    workflowReplayItemId,
-    workflowReplayRerunning,
-  ]);
+    try { await handleExecuteWorkflow(false, item.nodeId); }
+    finally { setWorkflowReplayRerunning(false); }
+  }, [activeWorkflowRun, workflowReplayRerunning, timelineItems, workflowReplayItemId, customNodeIds, addToast, handleExecuteWorkflow]);
 
   const stepWorkflowReplay = useCallback((direction: -1 | 1) => {
     if (timelineItems.length === 0) return;
@@ -2204,7 +2199,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
               type="button"
               className={`${styles.workflowWindowButton} ${styles.workflowWindowDangerButton}`}
               onClick={handleDeleteWorkflow}
-              disabled={customWorkflowNodes.length === 0 && customWorkflowEdges.length === 0}
+              disabled={Boolean(activeWorkflowRun) || (customWorkflowNodes.length === 0 && customWorkflowEdges.length === 0)}
             >
               删除工作流
             </button>
@@ -2212,10 +2207,12 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
               type="button"
               className={`${styles.workflowWindowButton} ${styles.workflowWindowRunButton}`}
               onClick={() => void handleExecuteWorkflow()}
-              disabled={triggering || !hasDispatchableWorkflow || graph.isEmpty}
+              disabled={triggering || Boolean(activeWorkflowRun) || !hasDispatchableWorkflow || graph.isEmpty}
             >
-              {triggering ? '执行中' : '执行'}
+              {activeWorkflowRun ? activeWorkflowRun.status === 'partial_failure' ? '部分失败，仍在执行' : activeWorkflowRun.status === 'awaiting_approval' ? '等待审批 / 解除阻塞' : activeWorkflowRun.status === 'queued' ? '已排队' : '执行中' : triggering ? '派发中' : '执行'}
             </button>
+            {activeWorkflowRun && <button type="button" className={styles.workflowWindowButton} disabled={cancellingRun} onClick={() => void handleCancelWorkflow()}>{cancellingRun ? '取消中' : '取消后续执行'}</button>}
+            {!activeWorkflowRun && workflowRunSnapshots[0]?.nodes.some(node => node.retryState === 'failed' && customNodeIds.has(node.nodeId)) && <button type="button" className={styles.workflowWindowButton} onClick={() => void handleExecuteWorkflow(true)}>仅重试失败步骤</button>}
             <button type="button" className={styles.workflowWindowButton} onClick={() => void loadCompanyStatus()}>
               刷新
             </button>

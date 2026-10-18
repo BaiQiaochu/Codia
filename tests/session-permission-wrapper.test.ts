@@ -1,3 +1,4 @@
+import { ConfirmStore } from "../lib/confirm-store.ts";
 import { describe, expect, it, vi } from "vitest";
 import { wrapWithSessionPermission } from "../lib/tools/session-permission-wrapper.js";
 
@@ -314,4 +315,30 @@ describe("session permission wrapper", () => {
     expect(tool.execute).toHaveBeenCalledOnce();
     expect(result.details.executed).toBe(true);
   });
+});
+
+
+it("cancels a pending template approval and never executes its action", async () => {
+  const tool = makeTool("write");
+  const store = new ConfirmStore();
+  const controller = new AbortController();
+  const [wrapped] = wrapWithSessionPermission([tool], { getPermissionMode: () => "ask", getConfirmStore: () => store,
+    permissionContext: { isSubagent: true, requireInteractiveApproval: true } });
+  const pending = wrapped.execute("cancel-write", { path: "/tmp/result.txt", content: "effect" }, controller.signal, null, ctx);
+  await vi.waitFor(() => expect(store.listPending()).toHaveLength(1));
+  const id = store.listPending()[0].id;
+  controller.abort();
+  await pending;
+  expect(store.listPending()).toHaveLength(0);
+  expect(store.resolve(id, "confirmed", undefined)).toBe(false);
+  expect(tool.execute).not.toHaveBeenCalled();
+});
+
+it("rejects an already cancelled tool even in operate mode", async () => {
+  const tool = makeTool("write");
+  const controller = new AbortController(); controller.abort();
+  const [wrapped] = wrapWithSessionPermission([tool], { getPermissionMode: () => "operate" });
+  const result = await wrapped.execute("aborted", {}, controller.signal, null, ctx);
+  expect(result.details.errorCode).toBe("ACTION_ABORTED");
+  expect(tool.execute).not.toHaveBeenCalled();
 });

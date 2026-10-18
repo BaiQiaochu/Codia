@@ -66,20 +66,28 @@ function WelcomeInner() {
     getDesktopApi()?.getGpuRuntimeState ? null : { gpuSafeMode: false, hardwareAccelerationEnabled: true }
   ));
 
+  const [gpuPolicyError, setGpuPolicyError] = useState(false);
+  const [gpuPolicyAttempt, setGpuPolicyAttempt] = useState(0);
+
   useEffect(() => {
     const api = getDesktopApi();
     if (!api?.getGpuRuntimeState) return;
     let active = true;
+    setGpuPolicyError(false);
     void (async () => {
       try {
         const state = await api.getGpuRuntimeState!();
+        if (typeof state?.gpuSafeMode !== 'boolean' || typeof state?.hardwareAccelerationEnabled !== 'boolean') {
+          throw new Error('Desktop GPU policy unavailable');
+        }
         if (active) setGpuRuntime(state);
       } catch {
-        // Keep the PNG fallback if the desktop GPU policy cannot be read.
+        // Do not guess the desktop policy or silently substitute a static image.
+        if (active) setGpuPolicyError(true);
       }
     })();
     return () => { active = false; };
-  }, []);
+  }, [gpuPolicyAttempt]);
 
   const prefillPrompt = useCallback((prompt: string) => {
     const state = useStore.getState();
@@ -132,6 +140,10 @@ function WelcomeInner() {
               gpuSafeMode={gpuRuntime?.gpuSafeMode}
               hardwareAccelerationEnabled={gpuRuntime?.hardwareAccelerationEnabled}
             />
+            {gpuPolicyError && <div role="alert">
+              <p>无法读取桌面图形状态，Live2D 尚未启动。请重试。</p>
+              <button type="button" onClick={() => { setGpuPolicyError(false); setGpuPolicyAttempt(value => value + 1); }}>重试读取图形状态</button>
+            </div>}
           </div>
         </section>
       </div>
