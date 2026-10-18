@@ -1,0 +1,114 @@
+name: Package Windows
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Windows x64 artifacts
+    runs-on: windows-latest
+    timeout-minutes: 90
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+    steps:
+      - name: Preserve committed source bytes
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: npm
+      - name: Install locked dependencies
+        run: node scripts/ci-install-dependencies.mjs
+      - name: Check source tree
+        run: npm run audit:source-tree -- --strict
+      - name: Build workspace packages and prepare Live2D
+        run: |
+          npm run build:packages
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run prepare:live2d
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/prepare-codia-live2d.mjs --check
+      - name: Prepare bundled Git and smoke-test browser
+        run: |
+          node scripts/download-git-portable.js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npx playwright install chromium
+      - name: Package current version without publishing
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          ./scripts/package-win-release.ps1 -Version $version -SkipTests
+      - name: Verify packaged Live2D and record provenance
+        shell: pwsh
+        run: |
+          @'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const crypto = require('node:crypto');
+          const asar = require('@electron/asar');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const product = pkg.build.productName;
+          const folder = path.join('dist', `${product}-${pkg.version}-Windows-x64-Portable-Folder`);
+          const archive = path.join(folder, 'resources', 'app.asar');
+          const source = 'desktop/src/assets/codia/live2d';
+          const report = { commit: process.env.GITHUB_SHA, run: process.env.GITHUB_RUN_ID, version: pkg.version, platform: 'win32-x64', live2d: [], artifacts: [], gpuVisualAcceptance: 'Not verified by cloud packaging' };
+          const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+          function walk(dir, prefix = '') {
+            return fs.readdirSync(dir, { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(path.join(dir, e.name), `${prefix}${e.name}/`) : [`${prefix}${e.name}`]);
+          }
+          for (const relative of walk(source)) {
+            const original = fs.readFileSync(path.join(source, relative));
+            const packed = asar.extractFile(archive, `desktop/dist-renderer/assets/codia/live2d/${relative}`);
+            if (!original.equals(packed)) throw new Error(`Packaged Live2D mismatch: ${relative}`);
+            if (!relative.endsWith('.js')) {
+              const serverCopy = fs.readFileSync(path.join(folder, 'resources/server/desktop/dist-renderer/assets/codia/live2d', relative));
+              if (!original.equals(serverCopy)) throw new Error(`Server Live2D mismatch: ${relative}`);
+            }
+            report.live2d.push({ file: relative, bytes: original.length, sha256: hash(original) });
+          }
+          const model = JSON.parse(fs.readFileSync(path.join(source, 'model/Codia.model3.json'), 'utf8'));
+          const refs = model.FileReferences;
+          for (const relative of [refs.Moc, ...refs.Textures, refs.DisplayInfo, ...Object.values(refs.Motions || {}).flat().map(m => m.File)].filter(Boolean)) {
+            if (!fs.statSync(path.join(source, 'model', relative)).size) throw new Error(`Empty model resource: ${relative}`);
+          }
+          for (const name of fs.readdirSync('dist').filter(n => n.endsWith('.exe'))) {
+            const bytes = fs.readFileSync(path.join('dist', name));
+            report.artifacts.push({ name, bytes: bytes.length, sha256: hash(bytes) });
+          }
+          if (!report.artifacts.length) throw new Error('No installer artifact');
+          fs.writeFileSync('dist/build-provenance.json', JSON.stringify(report, null, 2) + '\n');
+          console.log(JSON.stringify(report, null, 2));
+          '@ | node
+      - name: Upload installer and verification report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Codia-Windows-x64-installer-${{ github.sha }}
+          path: |
+            dist/*.exe
+            dist/build-provenance.json
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Upload portable folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: Codia-Windows-x64-portable-${{ github.sha }}
+          path: dist/*-Portable-Folder/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Upload diagnostic reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Codia-Windows-x64-reports-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
