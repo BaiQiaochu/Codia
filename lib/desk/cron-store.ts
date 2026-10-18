@@ -51,6 +51,18 @@ function assertCanEnableAutomationJob(job) {
   throw new Error("prompt required to enable agent automation");
 }
 
+/** Pin newly created schedules to an explicit IANA zone; legacy jobs retain host time. */
+export function validateCronTimezone(timezone) {
+  if (typeof timezone !== "string" || !timezone.trim() || /^[+-]/.test(timezone)) throw new Error("timezone must be an IANA time zone");
+  try { return new Intl.DateTimeFormat("en-US", { timeZone: timezone }).resolvedOptions().timeZone; }
+  catch { throw new Error(`invalid IANA timezone: ${timezone}`); }
+}
+
+function validateMisfirePolicy(policy) {
+  if (!["skip", "catch-up-once"].includes(policy)) throw new Error("misfirePolicy must be skip or catch-up-once");
+  return policy;
+}
+
 export class CronStore {
  /** */
   static BACKOFF = [0, 60_000, 300_000, 900_000, 3_600_000];
@@ -176,6 +188,8 @@ export class CronStore {
     executor = null,
     createdBy = null,
     enabled = true,
+    timezone = Intl.DateTimeFormat().resolvedOptions().timeZone,
+    misfirePolicy = "catch-up-once",
   }) {
     // type 枚举校验
     const VALID_TYPES = new Set(["at", "every", "cron"]);
@@ -183,7 +197,9 @@ export class CronStore {
       throw new Error(`无效的 job type: "${type}"; expected at, every, or cron`);
     }
 
-    schedule = this._normalizeAndValidateSchedule(type, schedule);
+    timezone = validateCronTimezone(timezone);
+    misfirePolicy = validateMisfirePolicy(misfirePolicy);
+    schedule = this._normalizeAndValidateSchedule(type, schedule, timezone);
 
     const now = new Date().toISOString();
     validateAutomationExecutorForWrite(executor);
@@ -197,10 +213,12 @@ export class CronStore {
       label: deriveJobLabel({ label, prompt, executor }),
       model: normalizeCronModelRef(model),
       enabled: enabled !== false,
+      timezone,
+      misfirePolicy,
       consecutiveErrors: 0,
       createdAt: now,
       lastRunAt: null,
-      nextRunAt: this._calcNextRun(type, schedule, now),
+      nextRunAt: this._calcNextRun(type, schedule, now, timezone),
     };
     this._attachOwnershipFields(job, { actorAgentId, executionContext, legacyRef });
     this._attachAutomationFields(job, { executor, createdBy });
@@ -224,6 +242,8 @@ export class CronStore {
     }
     validateAutomationExecutorForWrite(input.executor);
 
+    const timezone = input.timezone === undefined ? undefined : validateCronTimezone(input.timezone);
+    const misfirePolicy = validateMisfirePolicy(input.misfirePolicy ?? "catch-up-once");
     let schedule = input.schedule;
     if (type === "every") {
       const ms = typeof schedule === "number" ? schedule : parseInt(schedule, 10);
@@ -240,12 +260,14 @@ export class CronStore {
       label: deriveJobLabel({ label: input.label, prompt: input.prompt, executor: input.executor }),
       model: normalizeCronModelRef(input.model),
       enabled: input.enabled !== false,
+      timezone,
+      misfirePolicy,
       consecutiveErrors: Number.isFinite(input.consecutiveErrors) ? input.consecutiveErrors : 0,
       createdAt: typeof input.createdAt === "string" ? input.createdAt : now,
       lastRunAt: typeof input.lastRunAt === "string" ? input.lastRunAt : null,
       nextRunAt: typeof input.nextRunAt === "string" || input.nextRunAt === null
         ? input.nextRunAt
-        : this._calcNextRun(type, schedule, now),
+        : this._calcNextRun(type, schedule, now, timezone),
     };
     this._attachOwnershipFields(job, input);
     this._attachAutomationFields(job, input);
@@ -322,6 +344,8 @@ export class CronStore {
 
     const ALLOWED = new Set([
       "type",
+      "timezone",
+      "misfirePolicy",
       "label",
       "model",
       "schedule",
@@ -338,6 +362,8 @@ export class CronStore {
       if (!ALLOWED.has(key)) continue;
       let value = partial[key];
 
+      if (key === "timezone") value = validateCronTimezone(value);
+      if (key === "misfirePolicy") value = validateMisfirePolicy(value);
       if (key === "model") value = normalizeCronModelRef(value);
       if (key === "executor") validateAutomationExecutorForWrite(value);
 
@@ -345,9 +371,9 @@ export class CronStore {
     }
 
  // schedule 变更时重新计-nextRunAt
-    if ("schedule" in partial || "type" in partial) {
-      next.schedule = this._normalizeAndValidateSchedule(next.type, next.schedule);
-      next.nextRunAt = this._calcNextRun(next.type, next.schedule, new Date().toISOString());
+    if ("schedule" in partial || "type" in partial || "timezone" in partial) {
+      next.schedule = this._normalizeAndValidateSchedule(next.type, next.schedule, next.timezone);
+      next.nextRunAt = this._calcNextRun(next.type, next.schedule, new Date().toISOString(), next.timezone);
     }
 
     Object.assign(job, next);
@@ -369,7 +395,7 @@ export class CronStore {
     job.enabled = !job.enabled;
     if (job.enabled) {
  // 重新计算下次执行时间
-      job.nextRunAt = this._calcNextRun(job.type, job.schedule, new Date().toISOString());
+      job.nextRunAt = this._calcNextRun(job.type, job.schedule, new Date().toISOString(), job.timezone);
     }
     const normalized = normalizeAutomationJob(job);
     assertCanEnableAutomationJob(normalized);
@@ -384,18 +410,39 @@ export class CronStore {
    * @param {object} [opts]
  * @param {boolean} [opts.success=true] - 是否执行成功
    */
-  markRun(id, { success = true } = {}) {
+  /** Persist a period claim BEFORE dispatch. A crash never silently replays a claimed side effect.
+   * Single-process scheduler contract; this JSON store is not a distributed lock.
+   */
+  claimRun(id, scheduledAt, { skipped = false, now = new Date().toISOString() } = {}) {
+    this._load();
+    const job = this._jobs.find(j => j.id === id);
+    if (!job?.enabled || job.nextRunAt !== scheduledAt || job.lastScheduledAt === scheduledAt) return false;
+    job.lastScheduledAt = scheduledAt;
+    job.lastScheduledStatus = skipped ? "skipped" : "claimed";
+    job.nextRunAt = this._calcNextRun(job.type, job.schedule, now, job.timezone);
+    if (job.type === "at") job.enabled = false;
+    this._save();
+    return true;
+  }
+
+  markRun(id, { success = true, scheduledAt, skipped = false } = {}) {
     const job = this._jobs.find(j => j.id === id);
     if (!job) return;
     const now = new Date().toISOString();
     job.lastRunAt = now;
 
+    if (scheduledAt && job.lastScheduledAt === scheduledAt) job.lastScheduledStatus = skipped ? "skipped" : success ? "success" : "error";
+    if (skipped) {
+      this._save();
+      return;
+    }
+
     if (success) {
       job.consecutiveErrors = 0;
-      job.nextRunAt = this._calcNextRun(job.type, job.schedule, now);
+      if (!scheduledAt) job.nextRunAt = this._calcNextRun(job.type, job.schedule, now, job.timezone);
     } else {
       job.consecutiveErrors = (job.consecutiveErrors || 0) + 1;
-      const normalNext = this._calcNextRun(job.type, job.schedule, now);
+      const normalNext = scheduledAt ? job.nextRunAt : this._calcNextRun(job.type, job.schedule, now, job.timezone);
       const backoffIdx = Math.min(job.consecutiveErrors, CronStore.BACKOFF.length - 1);
       const backoffMs = CronStore.BACKOFF[backoffIdx];
       const backoffNext = new Date(Date.now() + backoffMs).toISOString();
@@ -486,7 +533,7 @@ export class CronStore {
    * @param {string|number} schedule
   *
    */
-  _calcNextRun(type, schedule, fromISO) {
+  _calcNextRun(type, schedule, fromISO, timezone) {
     const from = new Date(fromISO);
 
     switch (type) {
@@ -506,7 +553,7 @@ export class CronStore {
 
       case "cron": {
  // 完整 5 字段 cron 解析
-        return this._parseSimpleCron(schedule, from);
+        return this._parseSimpleCron(schedule, from, timezone);
       }
 
       default:
@@ -514,7 +561,7 @@ export class CronStore {
     }
   }
 
-  _normalizeAndValidateSchedule(type, schedule) {
+  _normalizeAndValidateSchedule(type, schedule, timezone) {
     if (type === "every") {
       const ms = typeof schedule === "number" ? schedule : parseInt(schedule, 10);
       if (isNaN(ms) || ms <= 0) {
@@ -535,7 +582,7 @@ export class CronStore {
     }
 
     if (type === "cron") {
-      const nextRun = this._calcNextRun(type, schedule, new Date().toISOString());
+      const nextRun = this._calcNextRun(type, schedule, new Date().toISOString(), timezone);
       if (!nextRun) {
         throw new Error(`无效的 cron schedule: "${schedule}"`);
       }
@@ -552,9 +599,10 @@ export class CronStore {
   *
    * @returns {string|null}
    */
-  _parseSimpleCron(expr, from) {
+  _parseSimpleCron(expr, from, timezone) {
+    if (typeof expr !== "string") return null;
     const parts = expr.trim().split(/\s+/);
-    if (parts.length < 5) return null;
+    if (parts.length !== 5) return null;
 
     const ranges = [
       [0, 59],
@@ -576,23 +624,29 @@ export class CronStore {
     const dayOfWeekRestricted = parts[4] !== "*";
 
  //
-    const start = new Date(from);
-    start.setSeconds(0, 0);
-    start.setMinutes(start.getMinutes() + 1);
+    const start = new Date(Math.floor(from.getTime() / 60_000) * 60_000 + 60_000);
 
+    // Enumerate UTC instants: nonexistent DST minutes are skipped; repeated minutes
+    // are distinct periods and both run. This avoids ambiguous local date arithmetic.
+    const formatter = timezone ? new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone, month: "numeric", day: "numeric", weekday: "short",
+      hour: "numeric", minute: "numeric", hourCycle: "h23",
+    }) : null;
+    const weekdayNumbers = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
     const limit = 366 * 24 * 60;
     for (let i = 0; i < limit; i++) {
       const t = new Date(start.getTime() + i * 60_000);
-      if (!months.has(t.getMonth() + 1)) continue;
-      const matchesDayOfMonth = days.has(t.getDate());
-      const matchesDayOfWeek = weekdays.has(t.getDay());
+      const local = formatter ? Object.fromEntries(formatter.formatToParts(t).map(p => [p.type, p.value])) : null;
+      if (!months.has(local ? Number(local.month) : t.getMonth() + 1)) continue;
+      const matchesDayOfMonth = days.has(local ? Number(local.day) : t.getDate());
+      const matchesDayOfWeek = weekdays.has(local ? weekdayNumbers[local.weekday] : t.getDay());
       const matchesDay =
         dayOfMonthRestricted && dayOfWeekRestricted
           ? (matchesDayOfMonth || matchesDayOfWeek)
           : (matchesDayOfMonth && matchesDayOfWeek);
       if (!matchesDay) continue;
-      if (!hours.has(t.getHours())) continue;
-      if (!minutes.has(t.getMinutes())) continue;
+      if (!hours.has(local ? Number(local.hour) : t.getHours())) continue;
+      if (!minutes.has(local ? Number(local.minute) : t.getMinutes())) continue;
       return t.toISOString();
     }
 
@@ -606,6 +660,7 @@ export class CronStore {
     for (const segment of field.split(",")) {
       // Step expression: */N.
       if (segment.startsWith("*/")) {
+        if (!/^\*\/\d+$/.test(segment)) return null;
         const step = parseInt(segment.slice(2), 10);
         if (isNaN(step) || step <= 0) return null;
         for (let v = min; v <= max; v += step) values.add(v);
@@ -633,6 +688,7 @@ export class CronStore {
       }
 
       //
+      if (!/^\d+$/.test(segment)) return null;
       const num = parseInt(segment, 10);
       if (isNaN(num)) return null;
       const effectiveMax = isWeekday ? 7 : max;

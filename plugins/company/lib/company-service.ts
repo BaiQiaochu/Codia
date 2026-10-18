@@ -1,5 +1,6 @@
 // @ts-nocheck
 import crypto from "node:crypto";
+import path from "node:path";
 import { createCompanyStore } from "./company-store.ts";
 
 export const DEFAULT_COMPANY_ID = "company_default";
@@ -218,6 +219,9 @@ function taskForRole(company, role, input, extra = {}) {
     assigneeAgentId: employee.agentId || "",
     dueAt: cleanText(input.dueAt),
     acceptanceCriteria: criteria.length ? criteria : defaultCriteriaForRole(role),
+    requireAcceptance: input.requireAcceptance === true,
+    outputFormat: cleanText(input.outputFormat),
+    writePaths: safeArray(input.writePaths).map(cleanText).filter(Boolean).map(value => path.posix.normalize(value.replaceAll("\\", "/"))),
     status: "assigned",
     priority: cleanText(input.priority) || "normal",
     source: input.source || { type: "company_command" },
@@ -230,7 +234,7 @@ function taskForRole(company, role, input, extra = {}) {
   };
 }
 
-const TASK_STATUS_VALUES = new Set(["assigned", "in_progress", "reported", "completed", "blocked", "failed"]);
+const TASK_STATUS_VALUES = new Set(["assigned", "in_progress", "reported", "completed", "blocked", "failed", "queued", "awaiting_approval", "cancelled"]);
 
 function normalizeTaskStatus(value, fallback = "reported") {
   const status = cleanText(value);
@@ -266,7 +270,7 @@ function findReportTargetTask(tasks, input = {}) {
   const channelId = cleanText(input.channelId);
   const agentId = cleanText(input.agentId || input.assigneeAgentId || input.senderId);
   const taskTitle = cleanText(input.taskTitle || input.title);
-  const activeStatuses = new Set(["assigned", "in_progress", "reported", "blocked"]);
+  const activeStatuses = new Set(["assigned", "in_progress", "reported", "blocked", "awaiting_approval"]);
 
   const candidates = tasks
     .filter((task) => taskMatchesChannel(task, channelId))
@@ -423,12 +427,90 @@ function formatChannelTaskDispatch(tasks) {
     `公司任务已分派 ${tasks.length} 项：`,
     ...tasks.map((task) => {
       const mention = task.assigneeAgentId ? `@${task.assigneeAgentId}` : task.assigneeTitle;
-      return `- ${mention}：${task.title}\n  验收：${safeArray(task.acceptanceCriteria).join("；")}`;
+      return [
+        `- ${mention}：${task.title} (taskId: ${task.id})`,
+        `  输入：${task.description}`,
+        `  验收：${safeArray(task.acceptanceCriteria).join("；")}`,
+        task.outputFormat ? `  交付格式：${task.outputFormat}` : "",
+        task.writePaths?.length ? `  声明写入范围：${task.writePaths.join("、")}` : "",
+        task.requireAcceptance ? "  完成时必须通过 report 工具提交逐项 acceptanceResults（criterion、passed、evidence），并附结果或产物引用。" : "  请通过 report 工具回报真实状态和结果；派发不代表完成。",
+      ].filter(Boolean).join("\n");
     }),
   ].join("\n");
 }
 
 export function createCompanyService(ctx) {
+  // Cancel intent is synchronous, including while assignment is awaiting I/O.
+  const cancelledRuns = new Set();
+  const runDispatches = new Map();
+  const runAssignments = new Map();
+  const companyKey = value => !cleanText(value) || cleanText(value) === "default" ? DEFAULT_COMPANY_ID : cleanText(value);
+  const runKey = (companyId, runId) => `${companyKey(companyId)}:${runId}`;
+  function dispatchWorkflowRun(companyId, runId) {
+    const key = runKey(companyId, runId);
+    const previous = runDispatches.get(key) || Promise.resolve();
+    const next = previous.catch(() => {}).then(async () => {
+      const tasks = (await store.listTasks(companyId)).filter(task => task.source?.runId === runId);
+      if (cancelledRuns.has(key) || tasks.some(task => task.status === "cancelled")) return;
+      const byId = new Map(tasks.map(task => [task.id, task]));
+      // Propagate failures in any canvas node order, including long chains.
+      let changed = true;
+      while (changed && !cancelledRuns.has(key)) {
+        changed = false;
+        for (const task of tasks) {
+          if (task.status === "queued" && safeArray(task.dependsOn).some(id => byId.get(id)?.status === "failed")) {
+            await store.updateTask(task.id, { status: "failed", report: "Dependency failed; step was not dispatched" });
+            task.status = "failed";
+            changed = true;
+          }
+        }
+      }
+      for (const task of tasks) {
+        if (cancelledRuns.has(key)) return;
+        if (task.status !== "queued") continue;
+        const dependencies = safeArray(task.dependsOn).map(id => byId.get(id));
+        if (dependencies.some(dep => dep?.status === "failed")) {
+          await store.updateTask(task.id, { status: "failed", report: "Dependency failed; step was not dispatched" });
+          task.status = "failed";
+          continue;
+        }
+        if (!dependencies.every(dep => dep?.status === "completed")) continue;
+        // Persist before external dispatch: uncertain deliveries are never auto-replayed.
+        const assigned = await store.updateTask(task.id, { status: "assigned" });
+        if (cancelledRuns.has(key)) return;
+        try {
+          await postAssignedTasksToChannel([{ ...assigned, description: [assigned.description,
+            ...dependencies.map(dep => `已完成依赖 ${dep.id}: ${dep.report || ""} ${JSON.stringify(dep.artifacts || [])}`),
+          ].join("\n") }], {
+            dispatchChannelId: task.source.dispatchChannelId,
+            strictDispatch: true,
+          });
+        } catch (error) {
+          if (cancelledRuns.has(key)) return;
+          await store.updateTask(task.id, { status: "blocked", dispatchOutcome: "unknown", report: `Dispatch outcome unknown; inspect external results before retry: ${error.message}` });
+          task.status = "blocked";
+        }
+      }
+    });
+    runDispatches.set(key, next);
+    return next.finally(() => { if (runDispatches.get(key) === next) runDispatches.delete(key); });
+  }
+
+  async function cancelWorkflowRun(input = {}) {
+    const runId = cleanText(input.runId);
+    if (!runId) throw Object.assign(new Error("runId is required"), { status: 400 });
+    cancelledRuns.add(runKey(input.companyId, runId));
+    const company = await ensureCompany(input.companyId);
+    const taskIds = new Set(safeArray(input.taskIds));
+    const tasks = (await store.listTasks(company.id)).filter(task => task.source?.runId === runId || taskIds.has(task.id));
+    for (const task of tasks) {
+      if (!["completed", "failed", "cancelled"].includes(task.status)) {
+        await store.updateTask(task.id, { status: "cancelled", report: "Cancelled; already-dispatched operations may finish" });
+      }
+    }
+    return { runId, status: "cancelled" };
+  }
+
   const store = ctx._company?.store || createCompanyStore(ctx.dataDir);
   if (ctx._company) ctx._company.store = store;
 
@@ -488,7 +570,10 @@ export function createCompanyService(ctx) {
 
   async function postAssignedTasksToChannel(tasks, input = {}, channelInfo = null) {
     const channelId = cleanText(input.dispatchChannelId || input.channelId);
-    if (!channelId || !tasks.length || typeof ctx.bus?.request !== "function") return null;
+    if (!channelId || !tasks.length || typeof ctx.bus?.request !== "function") {
+      if (input.strictDispatch) throw new Error("Channel dispatch unavailable");
+      return null;
+    }
     const supervisorAgentIds = unique([
       ...channelSupervisorAgentIds(channelInfo),
       ...safeArray(input.supervisorAgentIds).map((agentId) => cleanText(agentId)),
@@ -504,7 +589,7 @@ export function createCompanyService(ctx) {
     ]);
     const pmTask = tasks.find((task) => task.assigneeRole === "project_manager") || tasks[0];
     try {
-      return await ctx.bus.request("channel:post-message", {
+      const result = await ctx.bus.request("channel:post-message", {
         channelId,
         senderId: pmTask.assigneeAgentId || "project_manager",
         senderName: "项目经理",
@@ -516,7 +601,10 @@ export function createCompanyService(ctx) {
           companyId: tasks[0]?.companyId,
         },
       });
+      if (input.strictDispatch && result?.ok === false) throw new Error(result.error || "Channel rejected dispatch");
+      return result;
     } catch (err) {
+      if (input.strictDispatch) throw err;
       ctx.log?.warn?.(`company channel post failed: ${err?.message || String(err)}`);
       return null;
     }
@@ -603,7 +691,7 @@ export function createCompanyService(ctx) {
   }
 
   async function ensureCompany(companyId) {
-    const idValue = cleanText(companyId) || DEFAULT_COMPANY_ID;
+    const idValue = companyKey(companyId);
     return (await store.getCompany(idValue)) || createDefaultCompany({ id: idValue });
   }
 
@@ -803,12 +891,32 @@ export function createCompanyService(ctx) {
       throw err;
     }
 
+    if (target.status === "cancelled") return target;
+    if (target.source?.runId && (cancelledRuns.has(runKey(company.id, target.source.runId)) || ["cancelled", "completed", "failed"].includes(target.status))) return target;
+    if (target.source?.runId && target.status === "queued") throw Object.assign(new Error("Task is waiting for dependencies"), { status: 409 });
     const report = cleanText(input.report || input.content || input.text);
-    const status = normalizeTaskStatus(input.status, report ? "reported" : "in_progress");
+    let status = normalizeTaskStatus(input.status, report ? "reported" : "in_progress");
+    const acceptanceResults = safeArray(input.acceptanceResults);
+    const artifacts = input.artifacts === undefined ? safeArray(target.artifacts) : safeArray(input.artifacts);
+    const finalReport = report || target.report || "";
+    let acceptanceFailure = "";
+    if (status === "completed") {
+      if (acceptanceResults.some(check => check?.passed === false)) acceptanceFailure = "Acceptance check failed";
+      if (target.requireAcceptance) {
+        if (!safeArray(target.acceptanceCriteria).every(criterion => acceptanceResults.some(check => check?.criterion === criterion && check.passed === true && cleanText(check.evidence)))) acceptanceFailure = "Acceptance evidence missing or failed";
+        if (!finalReport && !artifacts.length) acceptanceFailure = "Deliverable report or artifact reference required";
+        if (target.outputFormat === "json") {
+          try { JSON.parse(finalReport); } catch { acceptanceFailure = "Deliverable is not valid JSON"; }
+        }
+      }
+      if (acceptanceFailure) status = "blocked";
+    }
     const patch = {
       status,
-      report,
-      artifacts: safeArray(input.artifacts),
+      report: finalReport,
+      artifacts,
+      ...(input.acceptanceResults !== undefined ? { acceptanceResults } : {}),
+      acceptanceFailure,
     };
     const updated = await store.updateTask(target.id, patch);
     if (updated) {
@@ -827,10 +935,21 @@ export function createCompanyService(ctx) {
         // The persisted task update is authoritative; event delivery is best-effort.
       }
     }
+    if (updated?.source?.runId) await dispatchWorkflowRun(company.id, updated.source.runId);
     return updated;
   }
 
-  async function assignFromCanvas(input = {}) {
+  function assignFromCanvas(input = {}) {
+    const runId = cleanText(input.runId);
+    if (!runId) return assignCanvasTasks(input);
+    const key = runKey(input.companyId, runId);
+    if (runAssignments.has(key)) return runAssignments.get(key);
+    const promise = assignCanvasTasks(input).finally(() => runAssignments.delete(key));
+    runAssignments.set(key, promise);
+    return promise;
+  }
+
+  async function assignCanvasTasks(input = {}) {
     const company = await ensureCompany(input.companyId);
     const workflow = input.workflow && typeof input.workflow === "object" ? input.workflow : null;
     const sourceType = cleanText(input.sourceType) || (workflow ? "workflow_canvas" : "ai_movie_canvas");
@@ -860,6 +979,21 @@ export function createCompanyService(ctx) {
       ...safeArray(workflow?.edges),
       ...safeArray(input.edges),
     ];
+    const runId = cleanText(input.runId);
+    if (runId) {
+      const existing = (await store.listTasks(company.id)).filter(task => task.source?.runId === runId);
+      if (existing.length) return { companyId: company.id, tasks: existing };
+      if (cancelledRuns.has(runKey(company.id, runId))) return { companyId: company.id, tasks: [], cancelled: true };
+      const keys = new Set(items.map(({ key }) => key));
+      if (keys.size !== items.length) throw Object.assign(new Error("Duplicate workflow node IDs"), { status: 400 });
+      if (workflowEdges.some(edge => !keys.has(cleanText(edge.from)) || !keys.has(cleanText(edge.to)))) throw Object.assign(new Error("Workflow references an unknown dependency"), { status: 400 });
+      const remaining = new Set(keys);
+      while (remaining.size) {
+        const ready = [...remaining].filter(key => !workflowEdges.some(edge => cleanText(edge.to) === key && remaining.has(cleanText(edge.from))));
+        if (!ready.length) throw Object.assign(new Error("Workflow contains a dependency cycle"), { status: 400 });
+        ready.forEach(key => remaining.delete(key));
+      }
+    }
     const treeId = id("tree");
     const taskIdsByNode = new Map(items.map(({ key }) => [key, id("task")]));
 
@@ -877,10 +1011,14 @@ export function createCompanyService(ctx) {
         title: item.title,
         dueAt: input.dueAt,
         acceptanceCriteria: safeArray(item.acceptanceCriteria).length ? item.acceptanceCriteria : input.acceptanceCriteria,
+        requireAcceptance: item.requireAcceptance === true || input.requireAcceptance === true,
+        outputFormat: item.outputFormat || input.outputFormat,
+        writePaths: item.writePaths,
         source: {
           type: sourceType,
           workflowId,
           workflowTitle,
+          ...(runId ? { runId, dispatchChannelId: linkedChannel.channelId || input.channelId } : {}),
           nodeId: key,
           nodeType: cleanText(item.kind || item.itemType || "task"),
           supervision: {
@@ -889,6 +1027,7 @@ export function createCompanyService(ctx) {
           },
         },
       }, {
+        ...(runId ? { status: "queued" } : {}),
         id: taskIdsByNode.get(key),
         treeId,
         parentTaskId: dependsOn[0] || "",
@@ -919,7 +1058,25 @@ export function createCompanyService(ctx) {
         mentions: unique([`@${agentId}`, ...safeArray(base.mentions)]),
       };
     });
-    const created = await store.addTasks(tasks);
+    // Declared write ownership is a coordination guard, not filesystem isolation.
+    const validateOwnership = (existing) => {
+      const seen = existing.filter(task => task.companyId === company.id && !["completed", "failed", "cancelled"].includes(task.status));
+      const overlaps = (a, b) => a === b || a === "/" || b === "/" || (a === "." && !b.startsWith("/")) || (b === "." && !a.startsWith("/")) || a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
+      for (const task of tasks) {
+        for (const other of seen) {
+          if (safeArray(task.writePaths).some(a => safeArray(other.writePaths).some(b => overlaps(a, b)))) {
+            throw Object.assign(new Error(`Declared write ownership conflict with task ${other.id}`), { status: 409 });
+          }
+        }
+        seen.push(task);
+      }
+    };
+    const created = await store.addTasks(tasks, validateOwnership);
+    if (runId) {
+      if (cancelledRuns.has(runKey(company.id, runId))) await cancelWorkflowRun({ companyId: company.id, runId });
+      else await dispatchWorkflowRun(company.id, runId);
+      return { companyId: company.id, tasks: (await store.listTasks(company.id)).filter(task => task.source?.runId === runId) };
+    }
     emitAssignedTasks(created);
     await postAssignedTasksToChannel(created, {
       ...input,
@@ -955,6 +1112,7 @@ export function createCompanyService(ctx) {
     reportTask,
     assignCommand,
     assignFromCanvas,
+    cancelWorkflowRun,
     clearTasks,
     getStatus,
     updateTask: (taskId, patch) => store.updateTask(taskId, patch),

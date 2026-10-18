@@ -777,6 +777,8 @@ export function createConfigRoute(engine: any) {
         tags: e.tags || [],
         time: e.time || e.date || null,
         session_id: e.session_id || "imported",
+        source: e.source || null,
+        status: e.status,
       }));
 
       const { store, isTemp } = getStoreForAgent(c.req.query("agentId"));
@@ -789,6 +791,46 @@ export function createConfigRoute(engine: any) {
     } finally {
       tempStore?.close();
     }
+  });
+
+  // Individual corrections use the selected agent's existing fact database.
+  route.patch("/memories/:id", async (c) => {
+    let tempStore = null;
+    try {
+      const denied = denyWithoutScope(c, "settings.write");
+      if (denied) return denied;
+      const agent = resolveAgentStrict(engine, c);
+      const id = Number(c.req.param("id"));
+      const body = await safeJson(c);
+      if (!Number.isSafeInteger(id) || id <= 0 || typeof body.expectedUpdatedAt !== "string"
+        || (body.fact === undefined && body.status === undefined)) {
+        return c.json({ error: "Valid id, correction and expectedUpdatedAt are required" }, 400);
+      }
+      const { store, isTemp } = getStoreForAgent(agent.id);
+      if (isTemp) tempStore = store;
+      const result = store.update(id, { fact: body.fact, status: body.status }, body.expectedUpdatedAt);
+      if (result.error) return c.json(result, result.error === "not_found" ? 404 : result.error === "conflict" ? 409 : 400);
+      return c.json(result);
+    } catch (err) {
+      return c.json({ error: err.message }, err instanceof AgentNotFoundError ? 404 : 500);
+    } finally { tempStore?.close(); }
+  });
+
+  route.delete("/memories/:id", async (c) => {
+    let tempStore = null;
+    try {
+      const denied = denyWithoutScope(c, "settings.write");
+      if (denied) return denied;
+      const agent = resolveAgentStrict(engine, c);
+      const id = Number(c.req.param("id"));
+      if (!Number.isSafeInteger(id) || id <= 0) return c.json({ error: "Invalid memory id" }, 400);
+      const { store, isTemp } = getStoreForAgent(agent.id);
+      if (isTemp) tempStore = store;
+      if (!store.delete(id)) return c.json({ error: "Memory not found" }, 404);
+      return c.json({ ok: true });
+    } catch (err) {
+      return c.json({ error: err.message }, err instanceof AgentNotFoundError ? 404 : 500);
+    } finally { tempStore?.close(); }
   });
 
   // ── 搜索 API Key 验证 ──

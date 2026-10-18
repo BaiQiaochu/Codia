@@ -93,6 +93,7 @@ type PermissionModeInput = {
 
 type PermissionContext = {
   isSubagent?: boolean;
+  requireInteractiveApproval?: boolean;
 };
 
 type ClassifySessionPermissionInput = {
@@ -199,7 +200,7 @@ export function classifySessionPermission({ mode, toolName, params, context }: C
       message: `${name} is not available inside a subagent.`,
     });
   }
-  if (context?.isSubagent && (
+  if (context?.isSubagent && !context.requireInteractiveApproval && (
     normalized === SESSION_PERMISSION_MODES.ASK
     || normalized === SESSION_PERMISSION_MODES.AUTO
   )) {

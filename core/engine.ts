@@ -143,6 +143,7 @@ import {
   professionalFeatureDisabled,
 } from "../shared/professional-edition.ts";
 import { wrapWithCheckpoint } from "../lib/checkpoint-wrapper.ts";
+import { ToolActionLedger } from "../lib/tools/tool-action-ledger.ts";
 import { wrapWithSessionPermission } from "../lib/tools/session-permission-wrapper.ts";
 import { createApprovalGateway, createModelApprovalReviewer } from "../lib/approval-gateway.ts";
 import { TaskRegistry } from "../lib/task-registry.ts";
@@ -255,6 +256,7 @@ export class CodiaEngine {
    */
   constructor({ codiaHome, productDir, agentId = null }: EngineConstructorOptions) {
     this.codiaHome = codiaHome;
+    this._toolActionLedger = new ToolActionLedger(path.join(codiaHome, "tool-actions"));
     this.productDir = productDir;
     this._license = null;
     this._currentTurnNativeMedia = createCurrentTurnNativeMediaStore();
@@ -575,6 +577,7 @@ export class CodiaEngine {
  /** */
   get currentAgentId() { return this._agentMgr.activeAgentId; }
   get confirmStore() { return this._confirmStore; }
+  get toolActionLedger() { return this._toolActionLedger; }
   get approvalGateway() { return this._approvalGateway; }
   getStudioCronStore() { return this._studioCronService; }
 
@@ -1046,6 +1049,8 @@ export class CodiaEngine {
   removeSessionAuthorizedFolder(p, folder) {
     return this._sessionCoord.removeSessionAuthorizedFolder(p, folder);
   }
+  getWorkflowRuntimeSnapshot() { return this._sessionCoord.getWorkflowRuntimeSnapshot(); }
+
   async executeIsolated(prompt, opts) { return this._sessionCoord.executeIsolated(prompt, opts); }
 
   // ════════════════════════════
@@ -2111,12 +2116,16 @@ export class CodiaEngine {
     result = {
       ...result,
       tools: wrapWithSessionPermission(result.tools, {
+        actionLedger: this._toolActionLedger,
         getSessionPath,
         getPermissionMode,
         permissionContext: opts.permissionContext || null,
         getTraceContext,
         recordToolCall,
         cwd,
+        getAuthorizedFolders,
+        workspaceFolders,
+        authorizedFolders: staticAuthorizedFolders,
         getSessionCwd: (sessionPath) => this.getSessionCwd(sessionPath),
         getSessionWorkspaceFolders: (sessionPath) => this.getSessionWorkspaceFolders(sessionPath),
         getSessionAuthorizedFolders: (sessionPath) => this.getSessionAuthorizedFolders(sessionPath),
@@ -2125,12 +2134,16 @@ export class CodiaEngine {
         emitEvent: (event, sessionPath) => this._emitEvent(event, sessionPath),
       }),
       customTools: wrapWithSessionPermission(result.customTools, {
+        actionLedger: this._toolActionLedger,
         getSessionPath,
         getPermissionMode,
         permissionContext: opts.permissionContext || null,
         getTraceContext,
         recordToolCall,
         cwd,
+        getAuthorizedFolders,
+        workspaceFolders,
+        authorizedFolders: staticAuthorizedFolders,
         getSessionCwd: (sessionPath) => this.getSessionCwd(sessionPath),
         getSessionWorkspaceFolders: (sessionPath) => this.getSessionWorkspaceFolders(sessionPath),
         getSessionAuthorizedFolders: (sessionPath) => this.getSessionAuthorizedFolders(sessionPath),

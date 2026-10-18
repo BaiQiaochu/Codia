@@ -1,0 +1,246 @@
+{
+  "version": 1,
+  "kind": "deterministic-regression",
+  "cases": [
+    {
+      "id": "scheduler-01",
+      "category": "scheduler",
+      "file": "tests/cron-reliability.test.ts",
+      "test": "persists and validates per-task zones and misfire policy",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "scheduler-02",
+      "category": "scheduler",
+      "file": "tests/cron-reliability.test.ts",
+      "test": "skips nonexistent DST minutes and treats repeated minutes as separate UTC periods",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "scheduler-03",
+      "category": "scheduler",
+      "file": "tests/cron-reliability.test.ts",
+      "test": "launches independent due jobs without waiting for a long job, and caps concurrency",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "scheduler-04",
+      "category": "scheduler",
+      "file": "tests/cron-reliability.test.ts",
+      "test": "skips stale periods or catches up once, and persists claims across restart",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "scheduler-05",
+      "category": "scheduler",
+      "file": "tests/cron-reliability.test.ts",
+      "test": "does not replay a claimed period after crash before completion",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "scheduler-06",
+      "category": "scheduler",
+      "file": "tests/cron-reliability.test.ts",
+      "test": "retains a timed-out executor slot until execution actually settles",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "scheduler-07",
+      "category": "scheduler",
+      "file": "tests/cron-reliability.test.ts",
+      "test": "does not duplicate an in-flight period under reentrant scans or manual dispatch",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "scheduler-08",
+      "category": "scheduler",
+      "file": "tests/cron-reliability.test.ts",
+      "test": "applies failure backoff to future periods without replaying failed side effects",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "scheduler-09",
+      "category": "scheduler",
+      "file": "tests/cron-reliability.test.ts",
+      "test": "does not turn a successful execution into failure when completion notification throws",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "approval-01",
+      "category": "approval",
+      "file": "tests/approval-binding.test.ts",
+      "test": "is stable under key order but changes with target, tool or scope",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "approval-02",
+      "category": "approval",
+      "file": "tests/approval-binding.test.ts",
+      "test": "rejects mutable parameters after the user approves the original target",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "approval-03",
+      "category": "approval",
+      "file": "tests/approval-binding.test.ts",
+      "test": "rejects an approval after its deadline even if the confirmation source responds late",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "approval-04",
+      "category": "approval",
+      "file": "tests/approval-binding.test.ts",
+      "test": "redacts credentials in approval cards and stored presentation metadata",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "recovery-01",
+      "category": "recovery",
+      "file": "tests/workflow-failure-recovery.test.ts",
+      "test": "parallel rejects a failed branch rather than returning null and done",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "recovery-02",
+      "category": "recovery",
+      "file": "tests/workflow-failure-recovery.test.ts",
+      "test": "pipeline rejects failed stages rather than reporting done",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "redaction-01",
+      "category": "redaction",
+      "file": "tests/log-redactor.test.ts",
+      "test": "redacts secrets, auth headers, query tokens, and common key prefixes",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "redaction-02",
+      "category": "redaction",
+      "file": "tests/log-redactor.test.ts",
+      "test": "redacts local home paths across macOS, Linux, Windows, and file URLs",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "redaction-03",
+      "category": "redaction",
+      "file": "tests/log-redactor.test.ts",
+      "test": "redacts direct personal identifiers and long random strings",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "redaction-04",
+      "category": "redaction",
+      "file": "tests/log-redactor.test.ts",
+      "test": "redacts object values by sensitive key without mutating the original object",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "redaction-05",
+      "category": "redaction",
+      "file": "tests/log-redactor.test.ts",
+      "test": "redacts Error messages and stacks",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "redaction-06",
+      "category": "redaction",
+      "file": "tests/log-redactor.test.ts",
+      "test": "formats console args with redaction and safe labels",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "budget-01",
+      "category": "budget",
+      "file": "tests/memory-llm-budget.test.ts",
+      "test": "keeps non-reasoning memory calls at the visible token budget",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "budget-02",
+      "category": "budget",
+      "file": "tests/memory-llm-budget.test.ts",
+      "test": "adds a hidden reasoning buffer without exceeding model limits",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "budget-03",
+      "category": "budget",
+      "file": "tests/memory-llm-budget.test.ts",
+      "test": "uses the reasoning buffer in memory compile and rolling summary calls",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "structured-output-01",
+      "category": "structured-output",
+      "file": "tests/workflow-structured-output.test.ts",
+      "test": "工具形状正确，parameters 用传入的 schema",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "structured-output-02",
+      "category": "structured-output",
+      "file": "tests/workflow-structured-output.test.ts",
+      "test": "调用前 getResult 为 undefined，调用后捕获参数",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "structured-output-03",
+      "category": "structured-output",
+      "file": "tests/workflow-structured-output.test.ts",
+      "test": "schema 缺省时退化为 type:object",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "concurrency-01",
+      "category": "concurrency",
+      "file": "tests/workflow-concurrency.test.ts",
+      "test": "同时在飞不超过 maxConcurrent",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "concurrency-02",
+      "category": "concurrency",
+      "file": "tests/workflow-concurrency.test.ts",
+      "test": "超过 maxTotal 的 run 直接 reject",
+      "points": 1,
+      "required": true
+    },
+    {
+      "id": "concurrency-03",
+      "category": "concurrency",
+      "file": "tests/workflow-concurrency.test.ts",
+      "test": "thunk 抛错时 run 的 promise reject、不卡住后续",
+      "points": 1,
+      "required": true
+    }
+  ]
+}

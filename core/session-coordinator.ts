@@ -1,3 +1,6 @@
+import { installRunBudgetStreamGuard } from "../lib/workflow/run-budget-stream.ts";
+import type { RunBudget } from "../lib/workflow/run-budget.ts";
+import { createResolvedRuntimeSnapshot } from "../lib/workflow/runtime-snapshot.ts";
 import { isAgentReviewPending, assertAgentReviewActive } from './agent-review-turns.ts';
 /**
  * SessionCoordinator
@@ -132,6 +135,7 @@ type DeletedAgentCompactionSession = {
     state?: { systemPrompt?: string | null; thinkingLevel?: unknown };
     id?: string | null;
     streamFn?: unknown;
+    streamFunction?: unknown;
     sessionId?: unknown;
     onPayload?: unknown;
     onResponse?: unknown;
@@ -158,6 +162,8 @@ type ExecuteIsolatedOptions = {
   persist?: string | null | false;
   resumeSessionPath?: string | null;
   forceLocalRuntime?: boolean;
+  runBudget?: RunBudget;
+  workflowRuntimeGuard?: (snapshot: unknown) => { replay: true; result: unknown } | null;
   subagentContext?: boolean;
   parentSessionPath?: string | null;
   subagentTaskId?: string | null;
@@ -1977,7 +1983,7 @@ export class SessionCoordinator {
           "Summarize the old transcript so the new primary agent can continue without depending on the deleted agent runtime.",
         ].join(" "),
         thinkingLevel: compactSession.thinkingLevel ?? compactSession.agent?.state?.thinkingLevel,
-        streamFn: compactSession.agent?.streamFn,
+        streamFn: compactSession.agent?.streamFunction ?? compactSession.agent?.streamFn,
         streamOptions: {
           sessionId: compactSession.agent?.sessionId,
           onPayload: compactSession.agent?.onPayload,
@@ -4217,11 +4223,12 @@ export class SessionCoordinator {
 
   _installCachePrefixGuard(sessionPath, entry) {
     const agent = entry?.session?.agent;
-    if (!agent || typeof agent.streamFn !== "function" || entry.cachePrefixGuardInstalled) return;
-    const originalStreamFn = agent.streamFn;
+    const streamSlot = typeof agent?.streamFunction === "function" ? "streamFunction" : "streamFn";
+    if (!agent || typeof agent[streamSlot] !== "function" || entry.cachePrefixGuardInstalled) return;
+    const originalStreamFn = agent[streamSlot];
     entry.cachePrefixGuardInstalled = true;
     entry.cachePrefixOriginalStreamFn = originalStreamFn;
-    agent.streamFn = async (model, context, options) => {
+    agent[streamSlot] = async (model, context, options) => {
       this._assertCachePrefixContract(sessionPath, entry, { model, context });
       return originalStreamFn.call(agent, model, context, options);
     };
@@ -4292,6 +4299,19 @@ export class SessionCoordinator {
    *   toolFilter, builtinFilter, withMemory, subagentContext, signal,
    *   emitEvents (forward session events to EventBus),
    *   onSessionReady (sessionPath => void) callback before prompt execution.   */
+  getWorkflowRuntimeSnapshot() {
+    const models = this._d.getModels();
+    const agents = [...this._d.getAgents().values()];
+    return createResolvedRuntimeSnapshot({
+      model: { available: models.availableModels.map(model => models.resolveExecutionModel(model)), default: models.defaultModel },
+      thinkingLevel: this._d.getPrefs().getThinkingLevel(),
+      systemPrompt: { agents: agents.map(agent => ({ id: agent.id, prompt: agent.buildSystemPrompt({ forSubagent: true }) })), append: this._d.getResourceLoader().getAppendSystemPrompt?.() },
+      tools: agents.map(agent => ({ id: agent.id, tools: agent.tools })),
+      agentConfig: { global: this._d.getConfig(), agents: agents.map(agent => ({ id: agent.id, config: agent.config })) },
+      scope: null,
+    });
+  }
+
   async executeIsolated(prompt, opts: ExecuteIsolatedOptions = {}) {
     const targetAgent = opts.agentId ? this._d.getAgentById(opts.agentId) : this._d.getAgent();
     if (!targetAgent) throw new Error(t("error.agentNotInitialized", { id: opts.agentId }));
@@ -4301,6 +4321,9 @@ export class SessionCoordinator {
       return { sessionPath: null, replyText: "", error: "aborted" };
     }
 
+    if ((opts.workflowRuntimeGuard || opts.runBudget) && opts.forceLocalRuntime !== true && isWukongRuntimeAgent(targetAgent)) {
+      throw new Error("Workflow runtime version pinning is unavailable for the external Wukong runtime.");
+    }
     if (opts.forceLocalRuntime !== true && isWukongRuntimeAgent(targetAgent)) {
       try {
         const result = await executeWukongAgentRuntimeTask({
@@ -4431,7 +4454,9 @@ export class SessionCoordinator {
         tempSessionMgr = SessionManager.create(execCwd, sessionDir);
       }
       const execPermissionMode = normalizeSessionPermissionMode({
-        permissionMode: opts.permissionMode || SESSION_PERMISSION_MODES.OPERATE,
+        permissionMode: opts.runBudget
+          ? (opts.permissionMode === SESSION_PERMISSION_MODES.READ_ONLY ? SESSION_PERMISSION_MODES.READ_ONLY : SESSION_PERMISSION_MODES.ASK)
+          : opts.permissionMode || SESSION_PERMISSION_MODES.OPERATE,
       });
       const targetAgentToolsSnapshot = typeof targetAgent.getToolsSnapshot === "function"
         ? targetAgent.getToolsSnapshot({
@@ -4457,7 +4482,7 @@ export class SessionCoordinator {
             ? opts.fileReadSessionPaths.filter((sp) => typeof sp === "string" && sp.trim())
             : [],
           getPermissionMode: () => execPermissionMode,
-          permissionContext: opts.subagentContext ? { isSubagent: true } : null,
+          permissionContext: opts.subagentContext ? { isSubagent: true, ...(opts.runBudget ? { requireInteractiveApproval: true } : {}) } : null,
         },
       );
 
@@ -4511,6 +4536,16 @@ export class SessionCoordinator {
       }
       const execResourceLoader = Object.create(resourceLoader, execResourceLoaderProps);
 
+      if (opts.runBudget) {
+        opts.runBudget.assertActive();
+        if (!Array.isArray(opts.toolFilter) || !Array.isArray(opts.builtinFilter)) {
+          throw new Error("Budgeted execution requires explicit tool allowlists.");
+        }
+        const unboundedDelegation = new Set(["workflow", "subagent", "subagent_reply", "hermes_agent", "channel", "cron", "agent", "team"]);
+        if ([...actTools, ...actCustomTools, ...extraCustomTools].some(tool => unboundedDelegation.has(tool.name))) {
+          throw new Error("Budgeted execution cannot delegate outside its run budget.");
+        }
+      }
       const { session } = await createAgentSession({
         cwd: execCwd,
         sessionManager: tempSessionMgr,
@@ -4522,6 +4557,52 @@ export class SessionCoordinator {
         tools: actTools,
         customTools: [...actCustomTools, ...extraCustomTools],
       });
+
+      if (opts.runBudget) {
+        try {
+          // SDK compaction can perform a separate provider call. Disable it and
+          // SDK retries rather than letting hidden work evade this run's budget.
+          if (typeof session.setAutoCompactionEnabled !== "function" || typeof session.setAutoRetryEnabled !== "function") {
+            throw new Error("Budgeted execution requires controllable SDK compaction and retry settings.");
+          }
+          session.setAutoCompactionEnabled(false);
+          session.setAutoRetryEnabled(false);
+          installRunBudgetStreamGuard(session, opts.runBudget);
+        } catch (error) {
+          session.dispose();
+          cleanupTempSession();
+          throw error;
+        }
+      }
+
+      // This is an execution gate, not an observer. Resolve the actual session's
+      // final prompt/model/tools and durably approve them before any model call.
+      if (opts.workflowRuntimeGuard) {
+        try {
+          const finalSystemPrompt = session.agent?.state?.systemPrompt;
+          if (typeof finalSystemPrompt !== "string" || !Array.isArray(session.agent?.state?.tools)) {
+            throw new Error("Workflow resolved prompt or tool snapshot is unavailable; execution blocked.");
+          }
+          const snapshot = createResolvedRuntimeSnapshot({
+            model: session.model || execModel,
+            thinkingLevel: execThinkingLevel,
+            systemPrompt: finalSystemPrompt,
+            tools: { exposed: session.agent?.state?.tools, implementations: [...actTools, ...actCustomTools, ...extraCustomTools] },
+            agentConfig: targetAgent.config,
+            scope: { cwd: execCwd, workspace: execWorkspaceScope, folders: execFolderScope, permissionMode: execPermissionMode },
+          });
+          const decision = opts.workflowRuntimeGuard(snapshot);
+          if (decision?.replay) {
+            session.dispose();
+            cleanupTempSession();
+            return { sessionPath: null, replyText: "", error: null, workflowReplay: true };
+          }
+        } catch (error) {
+          session.dispose();
+          cleanupTempSession();
+          throw error;
+        }
+      }
 
       childSessionPath = session.sessionManager?.getSessionFile?.() || null;
       traceContext = this._startLifecycleTrace({

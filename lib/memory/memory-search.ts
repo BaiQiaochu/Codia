@@ -68,7 +68,7 @@ export function createMemorySearchTool(factStore, opts = {}) {
           );
           for (const r of tagResults) {
             seenIds.add(r.id);
-            results.push({ ...r, source: "tag" });
+            results.push({ ...r, retrieval: "tag" });
           }
         }
 
@@ -78,7 +78,7 @@ export function createMemorySearchTool(factStore, opts = {}) {
           for (const r of ftsResults) {
             if (seenIds.has(r.id)) continue;
             seenIds.add(r.id);
-            results.push({ ...r, source: "fts" });
+            results.push({ ...r, retrieval: "fts" });
           }
         }
 
@@ -105,8 +105,8 @@ export function createMemorySearchTool(factStore, opts = {}) {
         const elapsed = performance.now() - t0;
         console.log(
           `\x1b[90m[memory-search] ${elapsed.toFixed(0)}ms | ` +
-          `hits: ${results.length} (tag: ${results.filter((r) => r.source === "tag").length}, ` +
-          `fts: ${results.filter((r) => r.source === "fts").length})\x1b[0m`,
+          `hits: ${results.length} (tag: ${results.filter((r) => r.retrieval === "tag").length}, ` +
+          `fts: ${results.filter((r) => r.retrieval === "fts").length})\x1b[0m`,
         );
 
         if (results.length === 0) {
@@ -120,7 +120,7 @@ export function createMemorySearchTool(factStore, opts = {}) {
         const lines = results.map((r, i) => {
           const tagsStr = r.tags.length > 0 ? ` (${r.tags.join(", ")})` : "";
           const timeStr = r.time ? ` - ${r.time}` : "";
-          return `${i + 1}. ${r.fact}${tagsStr}${timeStr}`;
+          return `${i + 1}. ${r.fact}${tagsStr}${timeStr}${r.status === "conflict" ? " [Conflict: needs user review]" : ""}${r.source ? ` [Source: ${r.source}]` : ""}`;
         });
 
         return {

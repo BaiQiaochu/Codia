@@ -1,3 +1,8 @@
+import { createModelQualificationRoute } from "./routes/model-qualification.ts";
+import { createToolActionsRoute } from "./routes/tool-actions.ts";
+import { createTaskArtifactsRoute } from "./routes/task-artifacts.ts";
+import { createWorkflowRecoveryRoute } from "./routes/workflow-recovery.ts";
+import { createTaskConsoleRoute } from "./routes/task-console.ts";
 /**
  * Local application server - HTTP + WebSocket API.
  *
@@ -664,7 +669,7 @@ app.onError((err, c) => {
 });
 
 //
-const confirmStore = new ConfirmStore();
+const confirmStore = new ConfirmStore({ persistPath: path.join(codiaHome, "approvals.json") });
 engine.setConfirmStore(confirmStore);
 
 // --- Deferred Result Store ---
@@ -826,6 +831,11 @@ app.route("/api", createWukongRoute(engine));
 app.route("/api", createAuthRoute(engine));
 app.route("/api", createDiaryRoute(engine));
 app.route("/api", createConfirmRoute(confirmStore, engine));
+app.route("/api", createTaskConsoleRoute(engine, confirmStore));
+app.route("/api", createTaskArtifactsRoute(engine));
+app.route("/api", createToolActionsRoute(engine));
+app.route("/api", createWorkflowRecoveryRoute(engine));
+app.route("/api", createModelQualificationRoute(engine));
 app.route("/api", createPluginsRoute(engine));
 app.route("/api", createCheckpointsRoute(engine));
 app.route("/api", createCommandsRoute(engine));

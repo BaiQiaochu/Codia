@@ -1,5 +1,8 @@
 // @ts-nocheck
+import { assertResolvedRuntimeSnapshot } from "./runtime-snapshot.ts";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { createStructuredOutputTool } from "./structured-output.ts";
+import { createWorkflowExecutionLimits, assertWorkflowWithinDuration, consumeWorkflowStep } from "./limits.ts";
 import { WorkflowJournal } from "./journal.ts";
 import { resolveSubagentToolAccess } from "../tools/subagent-tool-policy.ts";
 
@@ -84,19 +87,31 @@ function createWorkflowRuntimeContract() {
 }
 
 export function createHostApi(deps) {
-  const { executeIsolated, baseIsoOpts, limiter, signal, budget, args, resolveAgentId } = deps;
+  const { executeIsolated, baseIsoOpts, limiter, budget, args, resolveAgentId } = deps;
+  const failureController = new AbortController();
+  const branchContext = new AsyncLocalStorage();
+  const executionLimits = deps.executionLimits || createWorkflowExecutionLimits(args);
+  const signal = deps.signal ? AbortSignal.any([deps.signal, failureController.signal]) : failureController.signal;
   const onAgentEvent = typeof deps.onAgentEvent === "function" ? deps.onAgentEvent : () => {};
   const onProgress = typeof deps.onProgress === "function" ? deps.onProgress : () => {};
   const journal = deps.journal || null;
   const replayJournal = deps.replayJournal || null;
   const runtimeContract = createWorkflowRuntimeContract();
-  let nodeSeq = 0;
+  let branchFailure = null;
+  runtimeContract.cancel = (reason) => failureController.abort(reason);
+  runtimeContract.assertSuccessful = () => {
+    if (branchFailure) throw branchFailure;
+    if (signal.aborted) throw new Error("workflow aborted");
+    assertWorkflowWithinDuration(executionLimits);
+  };
+  const nodeSequence = deps.nodeSequence || { value: 0 };
   let currentPhase = null;
 
   function agent(prompt, rawOpts = {}) {
+    const branchPolicy = branchContext.getStore();
     const normalizedPrompt = normalizeAgentPrompt(prompt);
-    const opts = normalizeAgentOptions(rawOpts);
-    const seq = ++nodeSeq;
+    const opts = structuredClone(normalizeAgentOptions(rawOpts));
+    const seq = ++nodeSequence.value;
     const nodeId = `node-${seq}`;
     const parentTaskId = typeof baseIsoOpts.subagentTaskId === "string" && baseIsoOpts.subagentTaskId
       ? baseIsoOpts.subagentTaskId
@@ -106,19 +121,23 @@ export function createHostApi(deps) {
     const label = typeof opts.label === "string" && opts.label ? opts.label : null;
 
     const startAgentNode = async () => {
-      if (replayJournal) {
+      const effectivePolicy = branchPolicy || branchContext.getStore();
+      checkActive();
+      deps.assertRuntimeSnapshot?.();
+      if (replayJournal && !deps.requireRuntimeSnapshot) {
         const replayKey = WorkflowJournal.computeKey(normalizedPrompt, opts);
         const cached = replayJournal.tryReplay(seq, replayKey);
         if (cached) {
           onAgentEvent({ phase: "start", nodeId, threadId, threadKind, label, agentId: baseIsoOpts.agentId ?? null, phaseLabel: currentPhase });
           onAgentEvent({ phase: "done", nodeId, threadId, threadKind });
-          journal?.record(seq, replayKey, cached.result, "ok");
+          journal?.record(seq, replayKey, cached.result, "ok", { access: opts.access, actionId: replayJournal.actionId(seq, replayKey) });
           return cached.result;
         }
       }
 
       return limiter.run(async () => {
-        if (signal?.aborted) throw new Error("workflow aborted");
+        try {
+        checkActive();
         if (budget?.total != null && budget.remaining() <= 0) {
           throw new Error(`workflow token budget exhausted (spent ${budget.spent()})`);
         }
@@ -150,6 +169,21 @@ export function createHostApi(deps) {
           nodeAgentId = id;
         }
         if (opts.toolFilter) isoOpts.toolFilter = opts.toolFilter;
+        if (baseIsoOpts.runBudget) {
+          // Template authorization/model selection cannot be expanded by a
+          // generated node, including nested workflow scripts.
+          isoOpts.model = baseIsoOpts.model;
+          isoOpts.agentId = baseIsoOpts.agentId;
+          nodeAgentId = isoOpts.agentId ?? null;
+          const intersect = (requested, authorized) => {
+            if (!Array.isArray(authorized)) throw new Error("Bounded workflow requires explicit tool allowlists.");
+            if (requested == null || requested === "*") return [...authorized];
+            return authorized.filter(name => requested.includes(name));
+          };
+          isoOpts.toolFilter = intersect(isoOpts.toolFilter, baseIsoOpts.toolFilter);
+          isoOpts.builtinFilter = intersect(isoOpts.builtinFilter, baseIsoOpts.builtinFilter);
+        }
+
 
         onAgentEvent({ phase: "start", nodeId, threadId, threadKind, label, agentId: nodeAgentId, phaseLabel: currentPhase });
         isoOpts.onSessionReady = (sp, meta = {}) => onAgentEvent({
@@ -171,23 +205,56 @@ export function createHostApi(deps) {
 
         const journalKey = journal ? WorkflowJournal.computeKey(normalizedPrompt, opts) : null;
 
+        let runtimeSnapshot = null;
+        let dispatched = false;
+        let replayed = null;
+        const beforeDispatch = () => {
+          checkActive();
+          consumeWorkflowStep(executionLimits);
+          if (journalKey) journal.record(seq, journalKey, null, "running", { access: opts.access, threadId, runtimeSnapshot });
+          dispatched = true;
+        };
+        if (deps.requireRuntimeSnapshot) {
+          isoOpts.workflowRuntimeGuard = (snapshot) => {
+            if (runtimeSnapshot) throw new Error("Workflow runtime guard called more than once.");
+            deps.assertRuntimeSnapshot?.();
+            const previous = replayJournal?.getEntry(seq);
+            if (previous) assertResolvedRuntimeSnapshot(previous.runtimeSnapshot, snapshot);
+            runtimeSnapshot = structuredClone(snapshot);
+            if (replayJournal) replayed = replayJournal.tryReplay(seq, journalKey);
+            if (replayed) return { replay: true, result: replayed.result };
+            beforeDispatch();
+            return null;
+          };
+        } else beforeDispatch();
         try {
           const res = await executeIsolated(finalPrompt, isoOpts);
+          if (deps.requireRuntimeSnapshot && !runtimeSnapshot) {
+            throw new Error(res?.error || "Workflow executor did not enforce resolved runtime versions.");
+          }
+          if (signal.aborted) throw new Error("workflow aborted");
           if (res?.error) throw new Error(`agent failed: ${res.error}`);
           let result;
-          if (structured) {
+          if (replayed) {
+            result = replayed.result;
+          } else if (structured) {
             const out = structured.getResult();
             if (out === undefined) throw new Error("agent did not call structured_output");
             result = out;
           } else {
             result = res?.replyText ?? "";
           }
+          if (journalKey) journal.record(seq, journalKey, result, "ok", { access: opts.access, threadId, runtimeSnapshot });
           onAgentEvent({ phase: "done", nodeId, threadId, threadKind });
-          if (journalKey) journal.record(seq, journalKey, result, "ok");
           return result;
         } catch (err) {
-          onAgentEvent({ phase: "fail", nodeId, threadId, threadKind });
-          if (journalKey) journal.record(seq, journalKey, null, "error");
+          onAgentEvent({ phase: "fail", nodeId, threadId, threadKind, error: err?.message || String(err) });
+          if (journalKey && dispatched) journal.record(seq, journalKey, null, opts.access === "read" ? "error" : "unknown", { access: opts.access, threadId, runtimeSnapshot });
+          throw err;
+        }
+        } catch (err) {
+          // Abort before the limiter releases its slot to a queued branch.
+          if (effectivePolicy === "fail-fast") failureController.abort(err);
           throw err;
         }
       });
@@ -199,48 +266,82 @@ export function createHostApi(deps) {
     );
   }
 
-  async function parallel(thunks) {
-    const seq = ++nodeSeq;
-    const stepNodeId = `step-${seq}`;
+  function checkActive() {
+    if (signal.aborted) throw new Error("workflow aborted");
+    assertWorkflowWithinDuration(executionLimits);
+  }
+
+  function failurePolicy(options = {}) {
+    const policy = options.failurePolicy ?? "fail-fast";
+    if (!["fail-fast", "collect-errors"].includes(policy)) {
+      throw new Error('failurePolicy must be "fail-fast" or "collect-errors"');
+    }
+    return policy;
+  }
+
+  async function runBranches(branches, policy) {
+    const pending = branches.map((branch) => Promise.resolve().then(() => {
+      checkActive();
+      return branchContext.run(policy, async () => await branch());
+    }).catch((err) => {
+      if (policy === "fail-fast") failureController.abort(err);
+      throw err;
+    }));
+    if (policy === "fail-fast") return Promise.all(pending);
+    const results = await Promise.allSettled(pending);
+    const failures = results.filter((r) => r.status === "rejected");
+    if (failures.length) {
+      const error = new AggregateError(failures.map((r) => r.reason), `${failures.length} workflow branches failed`);
+      // Preserve index-aligned successes and failures for diagnosis/recovery.
+      error.results = results;
+      throw error;
+    }
+    return results.map((r) => r.value);
+  }
+
+  async function parallel(thunks, options = {}) {
+    const policy = failurePolicy(options);
+    const stepNodeId = `step-${++nodeSequence.value}`;
     onAgentEvent({ phase: "start", nodeId: stepNodeId, stepKind: "parallel", phaseLabel: currentPhase });
     try {
-      const result = await Promise.all((thunks || []).map((thunk) =>
-        Promise.resolve().then(thunk).catch(() => null)
-      ));
+      const result = await runBranches(thunks || [], policy);
+      checkActive();
       onAgentEvent({ phase: "done", nodeId: stepNodeId, stepKind: "parallel" });
       return result;
     } catch (err) {
-      onAgentEvent({ phase: "fail", nodeId: stepNodeId, stepKind: "parallel" });
+      branchFailure = err;
+      onAgentEvent({ phase: "fail", nodeId: stepNodeId, stepKind: "parallel", error: err?.message || String(err) });
       throw err;
     }
   }
 
+  // An optional final options object preserves the existing variadic stages API.
   async function pipeline(items, ...stages) {
-    const seq = ++nodeSeq;
-    const stepNodeId = `step-${seq}`;
+    const options = stages.length && typeof stages.at(-1) === "object" ? stages.pop() : {};
+    const policy = failurePolicy(options);
+    const stepNodeId = `step-${++nodeSequence.value}`;
     onAgentEvent({ phase: "start", nodeId: stepNodeId, stepKind: "pipeline", phaseLabel: currentPhase });
     try {
-      const result = await Promise.all((items || []).map(async (item, index) => {
+      const result = await runBranches((items || []).map((item, index) => async () => {
         let cur = item;
         for (const stage of stages) {
-          try {
-            cur = await stage(cur, item, index);
-          } catch {
-            return null;
-          }
+          checkActive();
+          cur = await stage(cur, item, index);
         }
         return cur;
-      }));
+      }), policy);
+      checkActive();
       onAgentEvent({ phase: "done", nodeId: stepNodeId, stepKind: "pipeline" });
       return result;
     } catch (err) {
-      onAgentEvent({ phase: "fail", nodeId: stepNodeId, stepKind: "pipeline" });
+      branchFailure = err;
+      onAgentEvent({ phase: "fail", nodeId: stepNodeId, stepKind: "pipeline", error: err?.message || String(err) });
       throw err;
     }
   }
 
   function log(message) {
-    const seq = ++nodeSeq;
+    const seq = ++nodeSequence.value;
     const stepNodeId = `step-${seq}`;
     const text = String(message);
     onAgentEvent({ phase: "start", nodeId: stepNodeId, stepKind: "log", label: text, phaseLabel: currentPhase });
@@ -254,6 +355,7 @@ export function createHostApi(deps) {
   }
 
   async function workflow(script, childArgs) {
+    checkActive();
     if (typeof deps.runWorkflow !== "function") {
       throw new Error("nested workflow is unavailable in this environment");
     }

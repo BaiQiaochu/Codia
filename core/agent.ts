@@ -595,6 +595,12 @@ export class Agent {
 
     // 12. workflow tool.
     this._workflowTool = createWorkflowTool({
+      requireRuntimeSnapshot: true,
+      getRuntimeSnapshot: () => {
+        const engine = this._cb?.getEngine?.();
+        if (!engine?.getWorkflowRuntimeSnapshot) throw new Error("Workflow runtime resolver is unavailable.");
+        return engine.getWorkflowRuntimeSnapshot();
+      },
       executeIsolated: (prompt, opts) => {
         if (!this._cb?.executeIsolated) throw new Error("workflow call failed: engine is not initialized");
         return this._cb.executeIsolated(prompt, opts);
@@ -693,6 +699,7 @@ export class Agent {
 
   get config() { return this._config; }
   get factStore() { return this._factStore; }
+  get workflowTool() { return this._workflowTool; }
   /**
   *
  * 用于"-session"路径（巡棢/cron/频道/DM/bridge owner 新建快照），

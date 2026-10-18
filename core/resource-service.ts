@@ -30,6 +30,7 @@ type SessionFileLike = {
   size?: number | null;
   isDirectory?: boolean | null;
   missingAt?: number | null;
+  origin?: string | null;
 };
 
 type SessionFilesLike = {
@@ -105,6 +106,17 @@ export class ResourceService {
       });
     }
 
+    // Snapshot delivery materializes hash-verified bytes in the HTTP boundary after
+    // authorization. Never follow its registered path here or stream it a second time.
+    if (file.origin === "artifact_snapshot") {
+      return {
+        resourceId: resource.resourceId, resource, filePath: sourcePath,
+        mime: file.mime || "application/octet-stream", size: file.size,
+        filename: file.displayName || file.filename || "snapshot", mtimeMs: file.mtimeMs,
+        etag: null,
+      };
+    }
+
     let realPath;
     try {
       realPath = fs.realpathSync(sourcePath);
@@ -153,7 +165,7 @@ export class ResourceService {
   }
 
   _reconcileFileAvailability(file) {
-    if (!file || file.status === "expired") return file;
+    if (!file || file.status === "expired" || file.origin === "artifact_snapshot") return file;
 
     const sourcePath = file.realPath || file.filePath;
     if (!sourcePath || !path.isAbsolute(sourcePath)) return file;

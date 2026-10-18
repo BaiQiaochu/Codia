@@ -458,6 +458,7 @@ function isDeskFileWriteRoute(verb: string, routePath: string): boolean {
 }
 
 function isSettingsWriteRoute(verb, routePath) {
+  if ((verb === "PATCH" || verb === "DELETE") && /^\/api\/memories\/\d+$/.test(routePath)) return true;
   if (verb === "POST" && routePath === "/api/preferences/setup-complete") return true;
   if (verb === "PATCH" && /^\/api\/experiments\/[^/]+$/.test(routePath)) return true;
   if (verb === "DELETE" && routePath === "/api/experiments/memory/cache-snapshot-reflection/observation") return true;

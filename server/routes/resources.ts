@@ -1,5 +1,8 @@
 // @ts-nocheck
 import fs from "fs";
+import path from "node:path";
+import { isDesktopSessionPath, isValidSessionPath } from "../../core/message-utils.ts";
+import { ArtifactSnapshotStore, ArtifactSnapshotError } from "../../lib/session-files/artifact-snapshots.ts";
 import { Readable } from "stream";
 import { Hono } from "hono";
 import { ResourceError } from "../../core/resource-service.ts";
@@ -18,6 +21,7 @@ export function createResourcesRoute(engine) {
       const requestContext = createRequestContext(c, engine);
       const resource = getResource(engine, c.req.param("resourceId"), requestContext);
       if (!resource) return jsonError(c, { code: "resource_not_found", status: 404 });
+      if (resource.origin === "artifact_snapshot") verifiedSnapshot(engine, resource, requestContext);
       return c.json(resource);
     } catch (err) {
       return resourceRouteError(c, err);
@@ -28,7 +32,7 @@ export function createResourcesRoute(engine) {
     try {
       const resourceId = c.req.param("resourceId");
       const requestContext = createRequestContext(c, engine);
-      const content = resolveResourceContent(engine, resourceId, requestContext);
+      const content = materializeSnapshotContent(engine, resolveResourceContent(engine, resourceId, requestContext), requestContext);
       const studioId = content.resource?.studioId || requestContext.studioId;
       const issued = issueResourceTicket({
         codiaHome: engine?.codiaHome,
@@ -105,9 +109,10 @@ function serveResourceContent(c, engine, headOnly) {
   try {
     const resourceId = c.req.param("resourceId");
     const ticket = c.req.query("ticket");
-    const content = ticket
+    const requestContext = ticket ? null : createRequestContext(c, engine);
+    const content = materializeSnapshotContent(engine, ticket
       ? resolveTicketContent(c, engine, resourceId, ticket)
-      : resolveResourceContent(engine, resourceId, createRequestContext(c, engine));
+      : resolveResourceContent(engine, resourceId, requestContext), requestContext, !!ticket);
     if (c.req.header("if-none-match") && c.req.header("if-none-match") === content.etag) {
       c.header("ETag", content.etag);
       return c.body(null, 304);
@@ -134,11 +139,48 @@ function serveResourceContent(c, engine, headOnly) {
     if (content.filename) c.header("Content-Disposition", contentDisposition(content.filename));
     if (headOnly || content.size === 0) return c.body(null, status);
 
+    // The exact verified snapshot bytes are served, never a second path-based read.
+    if (content.snapshotBytes) return c.body(new Uint8Array(content.snapshotBytes.subarray(start, end + 1)), status);
     const stream = fs.createReadStream(content.filePath, { start, end });
     return c.body(Readable.toWeb(stream), status);
   } catch (err) {
     return resourceRouteError(c, err);
   }
+}
+
+function verifiedSnapshot(engine, resource, requestContext, ticketVerified = false) {
+  const file = engine.getSessionFile?.(resource.fileId);
+  const sessionPath = file?.sessionPath;
+  if (!file || file.origin !== "artifact_snapshot" || !sessionPath
+    || !isValidSessionPath(sessionPath, engine.agentsDir) || !isDesktopSessionPath(sessionPath, engine.agentsDir)) {
+    throw new ResourceError("snapshot ownership missing", { status: 404, code: "snapshot_not_found" });
+  }
+  try {
+    const root = fs.realpathSync(engine.agentsDir);
+    const actual = fs.realpathSync(sessionPath);
+    const relative = path.relative(root, actual);
+    if (!relative || relative.startsWith("..") || path.isAbsolute(relative)
+      || actual !== path.resolve(sessionPath) || !fs.lstatSync(actual).isFile()) throw new Error();
+  } catch { throw new ResourceError("invalid snapshot session", { status: 403, code: "snapshot_session_forbidden" }); }
+  if (!ticketVerified && !requestContext?.authorize?.("sessions.read", {
+    kind: "session", sessionPath, sessionId: engine.getSessionIdForPath?.(sessionPath) || undefined,
+  })?.allowed) throw new ResourceError("snapshot session access denied", { status: 403, code: "snapshot_session_forbidden" });
+  const store = new ArtifactSnapshotStore(engine.codiaHome);
+  const snapshot = store.list(sessionPath).find(item => item.snapshotFileId === file.id);
+  const source = snapshot && engine.getSessionFile?.(snapshot.sourceFileId, { sessionPath });
+  const ownedCopy = engine.getSessionFile?.(file.id, { sessionPath });
+  if (!snapshot || !source || source.sessionPath !== sessionPath || source.listed === false
+    || !ownedCopy || ownedCopy.sessionPath !== sessionPath) {
+    throw new ResourceError("snapshot ownership mismatch", { status: 404, code: "snapshot_not_found" });
+  }
+  return { store, snapshot, sessionPath };
+}
+
+function materializeSnapshotContent(engine, content, requestContext, ticketVerified = false) {
+  if (content.resource?.origin !== "artifact_snapshot") return content;
+  const { store, snapshot, sessionPath } = verifiedSnapshot(engine, content.resource, requestContext, ticketVerified);
+  const bytes = store.read(sessionPath, snapshot);
+  return { ...content, snapshotBytes: bytes, size: bytes.length, etag: `"sha256-${snapshot.sha256}"` };
 }
 
 function resolveTicketContent(c, engine, resourceId, ticket) {
@@ -200,7 +242,7 @@ function resourceRouteError(c, err) {
   if (err instanceof ResourceTicketError) {
     return jsonError(c, { code: err.code, detail: err.message, status: err.status });
   }
-  if (err instanceof ResourceError) {
+  if (err instanceof ResourceError || err instanceof ArtifactSnapshotError) {
     return jsonError(c, { code: err.code, detail: err.message, status: err.status });
   }
   return jsonError(c, {

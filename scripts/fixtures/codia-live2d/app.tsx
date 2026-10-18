@@ -98,11 +98,11 @@ function Fixture() {
       for (let cycle = 1; cycle <= 5; cycle++) {
         setCycleStatus(`第 ${cycle}/5 次停用…`);
         setEnabled(false);
-        await waitForRenderer('fallback');
+        await waitForRenderer('disabled');
         setCycleStatus(`第 ${cycle}/5 次启用…`);
         setEnabled(true);
         await waitForRenderer('live2d');
-        addEvent(`cycle ${cycle}/5: fallback → live2d, no reported runtime error`);
+        addEvent(`cycle ${cycle}/5: disabled → live2d, no reported runtime error`);
       }
       setCycleStatus('5/5 次启停完成：均恢复 live2d；请继续核对画面');
     } catch (error) {
@@ -118,7 +118,7 @@ function Fixture() {
       <fieldset className="controls" disabled={cycling}>
         <label><input id="enabled" type="checkbox" checked={enabled} onChange={event => setEnabled(event.target.checked)} />启用</label>
         <label><input id="mounted" type="checkbox" checked={mounted} onChange={event => setMounted(event.target.checked)} />挂载</label>
-        <label><input id="gpu-safe" type="checkbox" checked={safe} onChange={event => setSafe(event.target.checked)} />安全模式回退</label>
+        <label><input id="gpu-safe" type="checkbox" checked={safe} onChange={event => setSafe(event.target.checked)} />GPU 安全模式</label>
         <button id="remount" onClick={() => setKey(value => value + 1)}>重新挂载</button>
         <button id="lose-context" onClick={lose}>丢失 WebGL 上下文</button>
         <button id="restore-context" onClick={restore}>恢复 WebGL 上下文</button>
@@ -127,8 +127,7 @@ function Fixture() {
       </fieldset>
       <p id="cycle-status" role="status">{cycleStatus}</p>
       <div ref={stage} id="stage" style={{ width: size, height: size }}>
-        {mounted && <CodiaLive2DMascot key={key} enabled={enabled} assets={assets} gpuSafeMode={safe}
-          fallback={<div className="fallback">静态回退占位<br /><small>此时不是 Live2D 画面</small></div>} />}
+        {mounted && <CodiaLive2DMascot key={key} enabled={enabled} assets={assets} gpuSafeMode={safe} />}
       </div>
       <h2>当前状态</h2><pre id="runtime-state">{JSON.stringify(state, null, 2)}</pre>
       <h2>状态与错误记录</h2><pre id="runtime-events">{events.join('\n')}</pre>

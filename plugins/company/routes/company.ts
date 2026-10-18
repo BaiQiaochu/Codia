@@ -98,6 +98,15 @@ export default function registerCompanyRoutes(app, ctx) {
     }
   });
 
+  app.post("/workflow-runs/:id/cancel", async (c) => {
+    try {
+      const body = await readBody(c);
+      return c.json({ ok: true, ...await getCompanyService(ctx).cancelWorkflowRun({ ...body, runId: c.req.param("id") }) });
+    } catch (err) {
+      return routeError(c, err, statusForError(err));
+    }
+  });
+
   app.post("/tasks/clear", async (c) => {
     try {
       const body = await readBody(c);

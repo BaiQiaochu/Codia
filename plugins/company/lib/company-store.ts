@@ -135,9 +135,10 @@ export class CompanyStore {
     return this._read().tasks.filter((task) => !companyId || task.companyId === companyId);
   }
 
-  async addTasks(tasks) {
+  async addTasks(tasks, validateExisting = null) {
     return this._withWriteLock(async () => {
       const state = this._read();
+      if (validateExisting) validateExisting(state.tasks);
       state.tasks.push(...tasks);
       this._write(state);
       return tasks;

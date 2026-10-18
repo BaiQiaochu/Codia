@@ -38,6 +38,8 @@ import {
   prepareCompaction as rawPrepareCompaction,
 } from "../../node_modules/@earendil-works/pi-coding-agent/dist/core/compaction/compaction.js";
 
+export { createAssistantMessageEventStream } from "@earendil-works/pi-ai/utils/event-stream";
+
 export { SessionManager, SettingsManager } from "@earendil-works/pi-coding-agent";
 
 export async function createAgentSession(options) {
@@ -49,14 +51,15 @@ export async function createAgentSession(options) {
 
 export function installProviderRuntimeCompat(session) {
   const agent = session?.agent;
-  const streamFn = agent?.streamFn;
+  const streamSlot = typeof agent?.streamFunction === "function" ? "streamFunction" : "streamFn";
+  const streamFn = agent?.[streamSlot];
   if (typeof streamFn !== "function" || streamFn.__codiaProviderRuntimeCompat) return;
 
   const wrapped = (model, context, options = {}) => {
-    return streamFn(model, context, buildProviderRuntimeOptions(session, options));
+    return streamFn.call(agent, model, context, buildProviderRuntimeOptions(session, options));
   };
   wrapped.__codiaProviderRuntimeCompat = true;
-  agent.streamFn = wrapped;
+  agent[streamSlot] = wrapped;
 }
 
 const CACHE_RETENTION_VALUES = new Set(["none", "short", "long"]);

@@ -6,11 +6,12 @@ const STREAM_GUARD_FLAG = Symbol.for("app.piSdk.streamGuardInstalled");
 
 export function installAssistantStreamGuard(session) {
   const agent = session?.agent;
-  if (!agent || typeof agent.streamFn !== "function" || agent[STREAM_GUARD_FLAG]) return;
+  const streamSlot = typeof agent?.streamFunction === "function" ? "streamFunction" : "streamFn";
+  if (!agent || typeof agent[streamSlot] !== "function" || agent[STREAM_GUARD_FLAG]) return;
 
-  const originalStreamFn = agent.streamFn;
-  agent.streamFn = async (model, context, options) => {
-    const inner = await originalStreamFn(model, context, options);
+  const originalStreamFn = agent[streamSlot];
+  agent[streamSlot] = async (model, context, options) => {
+    const inner = await originalStreamFn.call(agent, model, context, options);
     return guardAssistantMessageStream(inner);
   };
   agent[STREAM_GUARD_FLAG] = true;

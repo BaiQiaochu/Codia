@@ -1,6 +1,9 @@
 // @ts-nocheck
 import { classifySessionPermission, normalizeSessionPermissionMode } from "../../core/session-permission-mode.ts";
-import { getToolSessionPath } from "./tool-session.ts";
+import { actionScopeDigest, isRetrySafeRead, toolActionId, toolActionSessionRef } from "./tool-action-ledger.ts";
+import { approvalDigest } from "../permission/approval-binding.ts";
+import { redactLogValue, redactLogText } from "../log-redactor.ts";
+import { getToolSessionPath, getToolSessionCwd } from "./tool-session.ts";
 import { toolError, toolOk } from "./tool-result.ts";
 import { evaluateToolSafetyPolicy } from "../permission/safety-policy.ts";
 
@@ -22,7 +25,7 @@ function findRuntimeCtx(args) {
   return null;
 }
 
-function buildToolApprovalRequest(confirmId, toolName, params) {
+function buildToolApprovalRequest(confirmId, toolName, params, binding) {
   return {
     type: "session_confirmation",
     confirmId,
@@ -33,14 +36,14 @@ function buildToolApprovalRequest(confirmId, toolName, params) {
     body: "The current session is in ask-first mode. This operation may change local or external state.",
     subject: {
       label: toolName,
-      detail: summarizeParams(params),
+      detail: redactLogText(summarizeParams(params)),
     },
     severity: "elevated",
     actions: {
       confirmLabel: "同意",
       rejectLabel: "拒绝",
     },
-    payload: { toolName, params },
+    payload: { toolName, params: redactLogValue(params), ...binding },
   };
 }
 
@@ -94,6 +97,33 @@ function permissionContextForTool(tool, deps = {}) {
     ...base,
     ...(toolSessionPermission ? { toolSessionPermission } : {}),
     ...(tool?._pluginId ? { isPluginTool: true, pluginId: tool._pluginId } : {}),
+  };
+}
+
+/** Capture all live permission inputs used by the wrapper/gateway. Only the digest
+ * is persisted; folder paths and permission presentation are never ledger payloads.
+ * Re-evaluate after every asynchronous approval, including automatic review. */
+function currentPermissionState(tool, ctx, deps) {
+  const sessionPath = getToolSessionPath(ctx) || ctx?.sessionPath || deps.getSessionPath?.() || null;
+  const mode = normalizeSessionPermissionMode(
+    deps.getPermissionMode?.(sessionPath) || deps.getPermissionMode?.() || "ask",
+  );
+  const context = permissionContextForTool(tool, deps);
+  return {
+    mode, context,
+    digest: actionScopeDigest({
+      sessionPath, mode, permissionContext: context,
+      agentId: ctx?.agentId || null,
+      cwd: ctx?.cwd || deps.cwd || null,
+      runtimeCwd: getToolSessionCwd(ctx),
+      sessionCwd: deps.getSessionCwd?.(sessionPath) ?? null,
+      sessionWorkspaceFolders: deps.getSessionWorkspaceFolders?.(sessionPath) ?? null,
+      sessionAuthorizedFolders: deps.getSessionAuthorizedFolders?.(sessionPath) ?? null,
+      authorizedFolders: deps.getAuthorizedFolders?.() ?? deps.authorizedFolders ?? null,
+      workspaceFolders: deps.workspaceFolders ?? null,
+      contextWorkspaceFolders: ctx?.workspaceFolders ?? null,
+      contextAuthorizedFolders: ctx?.authorizedFolders ?? null,
+    }),
   };
 }
 
@@ -175,34 +205,50 @@ function recordToolTrace(deps, tool, traceCtx, input = {}) {
 }
 
 function inferResultStatus(result) {
-  if (result?.details?.errorCode || result?.isError) return "tool_error";
+  if (result?.details?.errorCode || result?.details?.error || result?.isError) return "tool_error";
   return "success";
 }
 
-async function askForToolApproval(toolName, params, sessionPath, deps) {
+async function askForToolApproval(toolName, params, sessionPath, deps, actionId, scopeDigest, signal) {
   const confirmStore = deps.getConfirmStore?.() || deps.confirmStore || null;
   if (!confirmStore || !sessionPath) {
     return { allowed: false, status: "rejected", confirmId: "", reason: "confirmation-unavailable" };
   }
+  const binding = {
+    actionId,
+    scopeDigest,
+    parameterDigest: approvalDigest(toolName, params, sessionPath),
+    expiresAt: Date.now() + 5 * 60 * 1000,
+    scope: 'single-action',
+    target: redactLogValue(approvalTargetForTool(toolName, params)),
+    expectedSideEffect: 'May change local or external state; approval applies only to these parameters.',
+  };
   const { confirmId, promise } = confirmStore.create(
     "tool_action_approval",
-    { toolName, params },
+    { toolName, params: redactLogValue(params), ...binding },
     sessionPath,
   );
   deps.emitEvent?.({
     type: "session_confirmation",
-    request: buildToolApprovalRequest(confirmId, toolName, params),
+    request: buildToolApprovalRequest(confirmId, toolName, params, binding),
   }, sessionPath);
-  const decision = await promise;
-  const status = toStatus(decision?.action);
+  const onAbort = () => confirmStore.resolve?.(confirmId, "aborted");
+  signal?.addEventListener?.("abort", onAbort, { once: true });
+  if (signal?.aborted) onAbort();
+  let decision;
+  try { decision = await promise; } finally { signal?.removeEventListener?.("abort", onAbort); }
+  const changed = approvalDigest(toolName, params, sessionPath) !== binding.parameterDigest;
+  const expired = Date.now() >= binding.expiresAt;
+  const status = expired ? 'timeout' : changed ? 'rejected' : toStatus(decision?.action);
   return {
     allowed: status === "confirmed",
     status,
     confirmId,
+    reason: changed ? "approval-parameters-changed" : expired ? "approval-expired" : undefined,
   };
 }
 
-async function reviewToolApproval(tool, toolName, params, sessionPath, deps, runtimeCtx = null) {
+async function reviewToolApproval(tool, toolName, params, sessionPath, deps, runtimeCtx = null, actionId = null) {
   const gateway = deps.getApprovalGateway?.() || deps.approvalGateway || null;
   if (!gateway || typeof gateway.review !== "function") {
     return {
@@ -212,6 +258,7 @@ async function reviewToolApproval(tool, toolName, params, sessionPath, deps, run
     };
   }
   const request = buildToolApprovalGatewayRequest(tool, toolName, params, sessionPath, runtimeCtx?.agentId || null);
+  if (actionId) request.id = actionId;
   const decision = await gateway.review(request, {
     sessionPath,
     agentId: runtimeCtx?.agentId || null,
@@ -248,13 +295,63 @@ export function wrapWithSessionPermission(tools = [], deps = {}) {
       _sessionPermissionWrapped: true,
       execute: async (...args) => {
         const params = args[1] || {};
+        const signal = args.slice(2).find(value => value && typeof value.aborted === "boolean" && typeof value.addEventListener === "function");
+        if (signal?.aborted) return toolError("Action cancelled before execution.", { errorCode: "ACTION_ABORTED" });
         const toolTraceId = args[0] ? `tooltrace_${String(args[0]).slice(0, 120)}` : undefined;
         const ctx = findRuntimeCtx(args);
         const sessionPath = getToolSessionPath(ctx) || ctx?.sessionPath || deps.getSessionPath?.() || null;
+        const actionId = sessionPath && args[0] ? toolActionId(sessionPath, String(args[0])) : null;
+        const initialDigest = approvalDigest(tool.name, params, sessionPath);
+        let initialPermission;
+        try { initialPermission = currentPermissionState(tool, ctx, deps); }
+        catch { return toolError("Current permission scope could not be verified.", { errorCode: "APPROVAL_SCOPE_UNAVAILABLE" }); }
+        const initialScopeDigest = initialPermission.digest;
         const traceCtx = resolveTraceContext(ctx, sessionPath, deps);
-        const mode = normalizeSessionPermissionMode(
-          deps.getPermissionMode?.(sessionPath) || deps.getPermissionMode?.() || "ask",
-        );
+        const mode = initialPermission.mode;
+        const executeWithLedger = async (permission) => {
+          if (signal?.aborted) return toolError("Action cancelled before execution.", { errorCode: "ACTION_ABORTED" });
+          let currentPermission;
+          try { currentPermission = currentPermissionState(tool, ctx, deps); }
+          catch { return toolError("Current permission scope could not be verified.", { errorCode: "APPROVAL_SCOPE_UNAVAILABLE" }); }
+          if (approvalDigest(tool.name, params, sessionPath) !== initialDigest || currentPermission.digest !== initialScopeDigest) {
+            return toolError("Action parameters or permission scope changed during approval. Request fresh approval under the current permissions.", { errorCode: "APPROVAL_PARAMETERS_CHANGED" });
+          }
+          const ledger = deps.actionLedger;
+          if (!ledger) return tool.execute(...args);
+          if (!sessionPath || !args[0]) {
+            return toolError('Durable execution requires a stable session and tool call ID.', { errorCode: 'ACTION_ID_REQUIRED' });
+          }
+          let record;
+          try {
+            record = ledger.begin({
+              actionId,
+              toolName: tool.name,
+              parameterDigest: initialDigest,
+              scopeDigest: initialScopeDigest,
+              sessionRef: toolActionSessionRef(sessionPath),
+              readOnly: isRetrySafeRead(tool),
+              traceId: traceCtx?.traceId,
+              toolTraceId: traceCtx?.toolTraceId || toolTraceId,
+              approval: permission,
+            });
+          } catch (error) {
+            return toolError(error?.code === 'ACTION_ALREADY_COMPLETED'
+              ? 'This action already completed; it was not executed again.'
+              : 'Action execution is blocked. Inspect the durable action record and reconcile any external result before retrying.',
+              { errorCode: error?.code?.startsWith('ACTION_') ? error.code : 'ACTION_LEDGER_UNAVAILABLE', actionId });
+          }
+          let result;
+          try { result = await tool.execute(...args); } catch (error) {
+            // A timeout/throw cannot establish that an external write did not happen.
+            try { ledger.finish(record, false); } catch { /* Existing running record remains fail-closed. */ }
+            throw error;
+          }
+          try { ledger.finish(record, inferResultStatus(result) === 'success'); } catch {
+            return toolError('The tool returned, but its completion could not be durably recorded. Check its result before retrying.',
+              { errorCode: 'ACTION_RESULT_UNKNOWN', actionId });
+          }
+          return result;
+        };
         const gatewayRequest = buildToolApprovalGatewayRequest(tool, tool.name, params, sessionPath, ctx?.agentId || null);
         const safety = evaluateToolSafetyPolicy(gatewayRequest);
         if (safety?.action === "block") {
@@ -280,7 +377,7 @@ export function wrapWithSessionPermission(tools = [], deps = {}) {
           });
         }
 
-        const decision = classifySessionPermission({ mode, toolName: tool.name, params, context: permissionContextForTool(tool, deps) });
+        const decision = classifySessionPermission({ mode, toolName: tool.name, params, context: initialPermission.context });
         if (decision.action === "allow") {
           recordToolTrace(deps, tool, traceCtx, {
             toolTraceId,
@@ -289,7 +386,7 @@ export function wrapWithSessionPermission(tools = [], deps = {}) {
             result: { status: "running" },
           });
           try {
-            const result = await tool.execute(...args);
+            const result = await executeWithLedger({ mode, decision: "allowed" });
             recordToolTrace(deps, tool, traceCtx, {
               toolTraceId,
               params,
@@ -323,7 +420,10 @@ export function wrapWithSessionPermission(tools = [], deps = {}) {
         }
 
         if (decision.action === "review") {
-          const review = await reviewToolApproval(tool, tool.name, params, sessionPath, deps, ctx);
+          const review = await reviewToolApproval(tool, tool.name, params, sessionPath, deps, ctx, actionId);
+          if (review.allowed && approvalDigest(tool.name, params, sessionPath) !== initialDigest) {
+            return toolError('Tool parameters changed during approval; request approval again.', { errorCode: 'APPROVAL_PARAMETERS_CHANGED' });
+          }
           if (review.allowed) {
             recordToolTrace(deps, tool, traceCtx, {
               toolTraceId,
@@ -337,7 +437,7 @@ export function wrapWithSessionPermission(tools = [], deps = {}) {
               result: { status: "running" },
             });
             try {
-              const result = await tool.execute(...args);
+              const result = await executeWithLedger({ mode, decision: "approved", reviewer: review.decision?.reviewer });
               recordToolTrace(deps, tool, traceCtx, {
                 toolTraceId,
                 params,
@@ -393,7 +493,7 @@ export function wrapWithSessionPermission(tools = [], deps = {}) {
           }
         }
 
-        const approval = await askForToolApproval(tool.name, params, sessionPath, deps);
+        const approval = await askForToolApproval(tool.name, params, sessionPath, deps, actionId || toolTraceId || gatewayRequest.id, initialScopeDigest, signal);
         if (!approval.allowed) {
           recordToolTrace(deps, tool, traceCtx, {
             toolTraceId,
@@ -425,7 +525,7 @@ export function wrapWithSessionPermission(tools = [], deps = {}) {
           result: { status: "running" },
         });
         try {
-          const result = await tool.execute(...args);
+          const result = await executeWithLedger({ mode, decision: "confirmed", confirmId: approval.confirmId });
           recordToolTrace(deps, tool, traceCtx, {
             toolTraceId,
             params,

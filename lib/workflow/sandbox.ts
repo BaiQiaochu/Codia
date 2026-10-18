@@ -44,9 +44,16 @@ export async function runWorkflowScript(
     throw new Error(`workflow "${meta.name}" script error: ${err?.message || String(err)}`);
   }
 
-  const result = await raceDeadline(scriptPromise, { signal, deadlineMs, name: meta.name });
-  (hostApi as any)?.[WORKFLOW_RUNTIME_CONTRACT as any]?.assertNoUnawaitedAgentCalls?.();
-  return { meta, result };
+  const contract = (hostApi as any)?.[WORKFLOW_RUNTIME_CONTRACT as any];
+  try {
+    const result = await raceDeadline(scriptPromise, { signal, deadlineMs, name: meta.name });
+    contract?.assertNoUnawaitedAgentCalls?.();
+    contract?.assertSuccessful?.();
+    return { meta, result };
+  } catch (error) {
+    contract?.cancel?.(error);
+    throw error;
+  }
 }
 
 function raceDeadline(

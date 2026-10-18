@@ -126,6 +126,10 @@ export class StudioCronService {
     return this._getStore().toggleJob(id);
   }
 
+  claimRun(id, scheduledAt, opts) {
+    return this._getStore().claimRun(id, scheduledAt, opts);
+  }
+
   markRun(id, opts) {
     return this._getStore().markRun(id, opts);
   }

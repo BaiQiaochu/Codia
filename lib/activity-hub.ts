@@ -1,6 +1,6 @@
 const VALID_KINDS = new Set(["subagent", "workflow", "workflow_agent", "workflow_step", "heartbeat", "cron"]);
 const VALID_STATUSES = new Set(["running", "done", "failed", "aborted"]);
-const VALID_LIFECYCLE_STATUSES = new Set(["queued", "running", "succeeded", "failed", "cancelled"]);
+const VALID_LIFECYCLE_STATUSES = new Set(["queued", "running", "succeeded", "failed", "cancelled", "recovery_required"]);
 const PERSISTABLE_KINDS = new Set(["workflow", "workflow_agent", "workflow_step", "subagent"]);
 
 function normalizeLifecycleStatus(value: any, existing: any = null) {
@@ -17,7 +17,7 @@ function normalizeLifecycleStatus(value: any, existing: any = null) {
 function legacyStatusFromLifecycle(status: any) {
   if (status === "succeeded") return "done";
   if (status === "cancelled") return "aborted";
-  if (status === "failed") return "failed";
+  if (status === "failed" || status === "recovery_required") return "failed";
   return "running";
 }
 
@@ -84,6 +84,7 @@ function normalizeEntry(entry: any, existing: any, resolveSessionIdForPath: any 
     parentTaskId: pickStr(entry.parentTaskId, existing?.parentTaskId ?? null),
     phaseLabel: pickStr(entry.phaseLabel, existing?.phaseLabel ?? null),
     tokens: pickNum(entry.tokens, existing?.tokens ?? null),
+    ...(entry.runBudget || existing?.runBudget ? { runBudget: structuredClone(entry.runBudget || existing.runBudget) } : {}),
     stepKind: pickStr(entry.stepKind, existing?.stepKind ?? null),
     startedAt: pickNum(existing?.startedAt, pickNum(entry.startedAt, null)),
     finishedAt: pickNum(entry.finishedAt, existing?.finishedAt ?? null),
@@ -122,7 +123,8 @@ export class ActivityHub {
     for (const raw of this._store.list()) {
       const orphaned = raw.status === "running";
       const seed = orphaned
-        ? { ...raw, status: "failed", finishedAt: raw.finishedAt ?? raw.startedAt ?? null }
+        ? { ...raw, status: "failed", lifecycleStatus: "recovery_required", finishedAt: raw.finishedAt ?? null,
+          ...(raw.runBudget ? { runBudget: { ...raw.runBudget, state: "blocked", blockedReason: "Process interrupted; usage after the last saved checkpoint is unknown.", usageAfterCheckpointUnknown: true } } : {}) }
         : raw;
       const next = normalizeEntry(seed, null, (sessionPath) => this._resolveSessionIdForPath(sessionPath));
       this._entries.set(next.id, next);

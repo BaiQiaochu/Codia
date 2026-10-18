@@ -1,12 +1,14 @@
 // @ts-nocheck
 // lib/tools/workflow-tool.js
 import path from "node:path";
+import { assertResolvedRuntimeSnapshot } from "../workflow/runtime-snapshot.ts";
 import { Type } from "../pi-sdk/index.ts";
 import { t } from "../i18n.ts";
 import { runWorkflowScript } from "../workflow/sandbox.ts";
 import { extractMeta } from "../workflow/meta.ts";
 import { createHostApi } from "../workflow/host-api.ts";
 import { createLimiter } from "../workflow/concurrency.ts";
+import { createWorkflowExecutionLimits } from "../workflow/limits.ts";
 import { WorkflowJournal } from "../workflow/journal.ts";
 import { getToolSessionPath, getToolSessionCwd } from "./tool-session.ts";
 import { toolOk, toolError } from "./tool-result.ts";
@@ -21,6 +23,8 @@ const WORKFLOW_DESCRIPTION = [
   "The script must start with: export const meta = { name: string, description: string }.",
   "Available globals: agent(prompt, opts), parallel(thunks), pipeline(items, ...stages), workflow(script, args), phase(title), log(message), budget, args.",
   'agent() signature is agent(prompt, { label?, model?, agentType?, access?: "read"|"write", schema?, toolFilter? }).',
+  'parallel(thunks, { failurePolicy?: "fail-fast"|"collect-errors" }) and pipeline(items, ...stages, options?) default to fail-fast. collect-errors waits for all branches then throws AggregateError with indexed results; failures never become null successes.',
+  "Optional args.budgetTokens, args.maxSteps (1-1000), args.maxDurationMs (1-600000) bound dispatch; in-flight usage may exceed a token estimate.",
   "Always await agent(): const result = await agent('task prompt', { access: 'read', agentType: 'codia' }); agent() does not return { result }.",
   "To choose a target agent, use opts.agentType. Do not pass task in opts; put complete task instructions in the first prompt argument.",
   "The script cannot import modules or access require/process/fs/net. To read/write files or run tools, ask an agent() node to do it.",
@@ -70,6 +74,7 @@ function sessionInputForPath(deps, sessionPath) {
 
 function journalPath(journalDir, runId) {
   if (!journalDir || !runId) return null;
+  if (!/^[A-Za-z0-9_-]+$/.test(runId)) throw new Error("Invalid workflow run ID");
   return path.join(journalDir, `${runId}.jsonl`);
 }
 
@@ -129,7 +134,14 @@ function makeBudget(ledger, taskId, budgetTotal) {
  * }} deps
  */
 export function createWorkflowTool(deps) {
+  const activeRuns = new Map();
   return {
+    cancelRun(runId) {
+      const controller = activeRuns.get(runId);
+      if (!controller) return false;
+      controller.abort("cancelled by user");
+      return true;
+    },
     name: "workflow",
     label: t("toolDef.workflow.label"),
     description: WORKFLOW_DESCRIPTION,
@@ -140,9 +152,26 @@ export function createWorkflowTool(deps) {
       const parentSessionId = parentSessionRef?.sessionId || null;
       const cwd = getToolSessionCwd(ctx) || deps.getParentCwd?.() || null;
       const agentId = deps.getAgentId?.() || undefined;
+      // Trusted server context only; never accept executable budget objects from
+      // serialized model arguments or script globals.
+      const boundedContext = ctx?.runBudget ? {
+        runBudget: ctx.runBudget,
+        model: ctx.executionModel,
+        workspaceFolders: ctx.workspaceFolders,
+        authorizedFolders: ctx.authorizedFolders,
+        toolFilter: ctx.toolFilter,
+        builtinFilter: ctx.builtinFilter,
+        forceLocalRuntime: true,
+      } : {};
+
 
       let meta;
+      let executionLimits;
+      let runtimeSnapshot;
       try {
+        runtimeSnapshot = structuredClone(deps.getRuntimeSnapshot?.());
+        if (deps.requireRuntimeSnapshot && !runtimeSnapshot) throw new Error("Workflow runtime registry snapshot is unavailable.");
+        executionLimits = createWorkflowExecutionLimits(params.args);
         ({ meta } = extractMeta(params.script));
       } catch (err) {
         return toolError(t("tool.workflow.scriptInvalid", { message: err.message }));
@@ -152,35 +181,55 @@ export function createWorkflowTool(deps) {
       const runStore = deps.getSubagentRunStore?.();
       const threadStore = deps.getSubagentThreadStore?.();
 
+      if ((!store || !parentSessionPath) && params.resumeFromRunId) {
+        return toolError("Workflow recovery requires a persisted run and session.");
+      }
       if (!store || !parentSessionPath) {
-        return _syncRun(deps, params, meta, { agentId, cwd, parentSessionPath });
+        if (ctx?.runBudget) return toolError("Budgeted templates require a persisted parent session and deferred run store.");
+        return _syncRun(deps, params, meta, { agentId, cwd, parentSessionPath }, executionLimits);
       }
 
       const taskId = `workflow-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const summary = meta.name;
+      const runBudgetEvidence = () => ctx?.runBudget ? { runBudget: ctx.runBudget.snapshot() } : {};
       const hub = deps.getActivityHub?.();
       const startedAt = Date.now();
 
-      store.defer(taskId, sessionInputForPath(deps, parentSessionPath), { type: "workflow", summary });
-      runStore?.register?.(taskId, { parentSessionId, parentSessionPath, summary });
-      hub?.upsert({ id: taskId, kind: "workflow", status: "running", sessionId: parentSessionId, sessionPath: parentSessionPath, agentId, summary, startedAt });
-
       const journalDir = deps.getJournalDir?.() || null;
       let replayJournal = null;
-      if (params.resumeFromRunId && journalDir) {
-        replayJournal = WorkflowJournal.load(journalPath(journalDir, params.resumeFromRunId));
-        if (replayJournal.hasEntries) {
-          deps.emitEvent?.({
-            type: "workflow_progress",
-            taskId,
-            message: t("tool.workflow.journalResuming", { count: replayJournal.totalEntries }),
-          }, parentSessionPath);
+      let journal;
+      const metadata = {
+        version: 1, runId: taskId, originRunId: taskId, ownerPid: process.pid,
+        definitionKey: WorkflowJournal.computeKey(params.script, { args: params.args, agentId, cwd, parentSessionId, parentSessionPath, runtimeVersion: deps.requireRuntimeSnapshot ? 2 : 1, runtimeSnapshot, ...(ctx?.runBudget ? { budgetContract: { limits: ctx.runBudget.limits, model: ctx.runBudget.model } } : {}) }),
+        runtimeSnapshot: runtimeSnapshot ?? null,
+        ...(ctx?.runBudget ? { budgetContract: { limits: ctx.runBudget.limits, modelId: ctx.runBudget.model.id } } : {}),
+        createdAt: startedAt,
+        definition: { script: params.script, args: params.args ?? null, hasArgs: params.args !== undefined, agentId: agentId ?? null, parentSessionPath },
+      };
+      try {
+        if (params.resumeFromRunId) {
+          if (!journalDir) throw new Error("Workflow recovery requires persistent journals.");
+          replayJournal = WorkflowJournal.load(journalPath(journalDir, params.resumeFromRunId));
+          replayJournal.assertCompatible(metadata);
+          replayJournal.assertRecoveryBudgetSupported(params.args);
+          metadata.originRunId = replayJournal.metadata.originRunId || params.resumeFromRunId;
+          replayJournal.claimRecovery(taskId);
         }
+        journal = new WorkflowJournal(journalPath(journalDir, taskId));
+        journal.setMetadata(metadata);
+        if (replayJournal) journal.inherit(replayJournal);
+      } catch (err) {
+        return toolError(`Workflow recovery unavailable: ${err.message}`);
       }
-      const journal = new WorkflowJournal(journalPath(journalDir, taskId));
+      store.defer(taskId, sessionInputForPath(deps, parentSessionPath), { type: "workflow", summary });
+      runStore?.register?.(taskId, { parentSessionId, parentSessionPath, summary });
+      hub?.upsert({ id: taskId, kind: "workflow", status: "running", sessionId: parentSessionId, sessionPath: parentSessionPath, agentId, summary, startedAt, ...runBudgetEvidence() });
+      const unsubscribeBudget = ctx?.runBudget?.subscribe?.(() => hub?.upsert({ id: taskId, ...runBudgetEvidence() }));
+      const nodeSequence = { value: 0 };
 
       const controller = new AbortController();
-      const timeoutTimer = setTimeout(() => controller.abort(), WORKFLOW_TIMEOUT_BACKSTOP_MS);
+      activeRuns.set(taskId, controller);
+      const timeoutTimer = setTimeout(() => controller.abort(), Math.min(WORKFLOW_TIMEOUT_BACKSTOP_MS, executionLimits.maxDurationMs));
       if (timeoutTimer.unref) timeoutTimer.unref();
 
       const ledger = deps.getUsageLedger?.();
@@ -200,6 +249,7 @@ export function createWorkflowTool(deps) {
             subagentContext: true,
             subagentTaskId: taskId,
             emitEvents: true,
+            ...boundedContext,
             ...(nodeSessionDir ? { persist: nodeSessionDir } : {}),
           },
           limiter,
@@ -211,10 +261,14 @@ export function createWorkflowTool(deps) {
           resolveAgentId: deps.resolveAgentId,
           journal,
           replayJournal,
+          nodeSequence,
+          requireRuntimeSnapshot: deps.requireRuntimeSnapshot === true,
+          assertRuntimeSnapshot: deps.getRuntimeSnapshot ? () => assertResolvedRuntimeSnapshot(runtimeSnapshot, deps.getRuntimeSnapshot()) : undefined,
+          executionLimits,
         });
         return runWorkflowScript(childScript, childHostApi, {
           signal: controller.signal,
-          deadlineMs: WORKFLOW_DEADLINE_MS,
+          deadlineMs: executionLimits.maxDurationMs,
         }).then(({ result }) => assertWorkflowResult(result));
       };
 
@@ -228,6 +282,7 @@ export function createWorkflowTool(deps) {
           subagentContext: true,
           subagentTaskId: taskId,
           emitEvents: true,
+          ...boundedContext,
           ...(nodeSessionDir ? { persist: nodeSessionDir } : {}),
         },
         limiter,
@@ -239,17 +294,22 @@ export function createWorkflowTool(deps) {
         resolveAgentId: deps.resolveAgentId,
         journal,
         replayJournal,
+        nodeSequence,
+        requireRuntimeSnapshot: deps.requireRuntimeSnapshot === true,
+        assertRuntimeSnapshot: deps.getRuntimeSnapshot ? () => assertResolvedRuntimeSnapshot(runtimeSnapshot, deps.getRuntimeSnapshot()) : undefined,
+        executionLimits,
         runWorkflow,
       });
 
-      runWorkflowScript(params.script, hostApi, { signal: controller.signal, deadlineMs: WORKFLOW_DEADLINE_MS })
+      runWorkflowScript(params.script, hostApi, { signal: controller.signal, deadlineMs: executionLimits.maxDurationMs })
         .then(({ result }) => {
           const text = workflowResultToText(result);
+          journal.finish();
           const finishedAt = Date.now();
           const replayHits = (replayJournal?.replayHits ?? 0) + (journal?.replayHits ?? 0);
           store.resolve(taskId, text);
           runStore?.resolve?.(taskId, text);
-          hub?.upsert({ id: taskId, status: "done", finishedAt });
+          hub?.upsert({ id: taskId, status: "done", finishedAt, ...runBudgetEvidence() });
           deps.emitEvent?.({
             type: "block_update",
             taskId,
@@ -261,14 +321,19 @@ export function createWorkflowTool(deps) {
           }, parentSessionPath);
         })
         .catch((err) => {
-          const reason = err?.message || String(err);
+          const cancelled = controller.signal.reason === "cancelled by user";
+          controller.abort();
+          let reason = err?.message || String(err);
+          try { journal.finish(); } catch (persistError) { reason += `; journal persistence failed: ${persistError.message}`; }
           const finishedAt = Date.now();
           store.fail(taskId, reason);
-          runStore?.fail?.(taskId, reason);
-          hub?.upsert({ id: taskId, status: "failed", finishedAt });
-          deps.emitEvent?.({ type: "block_update", taskId, patch: { streamStatus: "failed", finishedAt } }, parentSessionPath);
+          if (cancelled) runStore?.abort?.(taskId, reason);
+          else runStore?.fail?.(taskId, reason);
+          const terminalStatus = cancelled ? "aborted" : "failed";
+          hub?.upsert({ id: taskId, status: terminalStatus, finishedAt, ...runBudgetEvidence() });
+          deps.emitEvent?.({ type: "block_update", taskId, patch: { streamStatus: terminalStatus, finishedAt } }, parentSessionPath);
         })
-        .finally(() => clearTimeout(timeoutTimer));
+        .finally(() => { clearTimeout(timeoutTimer); activeRuns.delete(taskId); unsubscribeBudget?.(); });
 
       return toolOk(
         t("tool.workflow.dispatched", { summary, taskId }),
@@ -346,12 +411,12 @@ function buildAgentEventHandler({ taskId, parentSessionId, parentSessionPath, su
       if (!isStep && evt.threadId) {
         threadStore?.finishRun?.(evt.threadId, { status: "failed", close: true });
       }
-      hub?.upsert({ id: childId, status: "failed", finishedAt: Date.now(), ...(isStep ? { stepKind: evt.stepKind || null } : {}) });
+      hub?.upsert({ id: childId, status: "failed", error: evt.error || null, finishedAt: Date.now(), ...(isStep ? { stepKind: evt.stepKind || null } : {}) });
     }
   };
 }
 
-async function _syncRun(deps, params, meta, { agentId, cwd, parentSessionPath }) {
+async function _syncRun(deps, params, meta, { agentId, cwd, parentSessionPath }, executionLimits) {
   const limiter = makeLimiter();
   const ledger = deps.getUsageLedger?.();
   const budget = makeBudget(ledger, null, params.args?.budgetTokens ?? null);
@@ -365,9 +430,11 @@ async function _syncRun(deps, params, meta, { agentId, cwd, parentSessionPath })
     budget,
     args: params.args,
     resolveAgentId: deps.resolveAgentId,
+    requireRuntimeSnapshot: deps.requireRuntimeSnapshot === true,
+    executionLimits,
   });
   try {
-    const { result } = await runWorkflowScript(params.script, hostApi, { deadlineMs: WORKFLOW_DEADLINE_MS });
+    const { result } = await runWorkflowScript(params.script, hostApi, { deadlineMs: executionLimits.maxDurationMs });
     const text = workflowResultToText(result);
     return toolOk(
       t("tool.workflow.syncComplete", { name: meta.name, count: limiter.totalSpawned, result: text }),

@@ -16,7 +16,7 @@ export function loadBetterSqliteDatabase() {
 
 /**
  * 当前 schema 版本。每次改表结构时递增- * 并在 _migrate() 里添加对应的迁移逻辑- */
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 4;
 
 export class FactStore {
   /**
@@ -125,6 +125,15 @@ export class FactStore {
               INSERT INTO facts_fts(facts_fts) VALUES ('rebuild');
             `);
             break;
+          case 3:
+            this.db.exec("ALTER TABLE facts ADD COLUMN updated_at TEXT");
+            this.db.exec("ALTER TABLE facts ADD COLUMN status TEXT NOT NULL DEFAULT 'active'");
+            this.db.exec("UPDATE facts SET updated_at = created_at");
+            break;
+          case 2:
+            if (!this._hasColumn("facts", "source")) this.db.exec("ALTER TABLE facts ADD COLUMN source TEXT");
+            this.db.exec("UPDATE facts SET source = 'session:' || session_id WHERE source IS NULL AND session_id IS NOT NULL");
+            break;
         }
         v++;
       }
@@ -142,8 +151,8 @@ export class FactStore {
   _prepareStatements() {
     this._stmts = {
       insert: this.db.prepare(`
-        INSERT INTO facts (fact, tags, time, session_id, created_at)
-        VALUES (@fact, @tags, @time, @sessionId, @createdAt)
+        INSERT INTO facts (fact, tags, time, session_id, created_at, source, updated_at, status)
+        VALUES (@fact, @tags, @time, @sessionId, @createdAt, @source, @updatedAt, @status)
       `),
       getAll: this.db.prepare(`SELECT * FROM facts ORDER BY time DESC`),
       getById: this.db.prepare(`SELECT * FROM facts WHERE id = ?`),
@@ -155,7 +164,7 @@ export class FactStore {
         SELECT f.*, rank
         FROM facts_fts fts
         JOIN facts f ON f.id = fts.rowid
-        WHERE facts_fts MATCH ?
+        WHERE facts_fts MATCH ? AND f.status != 'expired'
         ORDER BY rank
         LIMIT ?
       `),
@@ -180,6 +189,10 @@ export class FactStore {
       time: entry.time || null,
       sessionId: entry.session_id || null,
       createdAt: now,
+      updatedAt: now,
+      status: ["active", "expired", "conflict"].includes(entry.status) ? entry.status : "active",
+      source: typeof entry.source === 'string' && entry.source.trim()
+        ? entry.source.trim() : entry.session_id ? `session:${entry.session_id}` : null,
     });
     return { id: Number(result.lastInsertRowid) };
   }
@@ -240,7 +253,7 @@ export class FactStore {
     const sql = `
       SELECT f.*, COUNT(DISTINCT je.value) as matchCount
       FROM facts f, json_each(f.tags) je
-      WHERE je.value IN (${placeholders})${dateWhere}
+      WHERE f.status != 'expired' AND je.value IN (${placeholders})${dateWhere}
       GROUP BY f.id
       ORDER BY matchCount DESC, f.time DESC
       LIMIT @limit
@@ -287,7 +300,7 @@ export class FactStore {
    */
   _likeFallback(query, limit) {
     const rows = this.db
-      .prepare(`SELECT * FROM facts WHERE fact LIKE '%' || ? || '%' ORDER BY time DESC LIMIT ?`)
+      .prepare(`SELECT * FROM facts WHERE status != 'expired' AND fact LIKE '%' || ? || '%' ORDER BY time DESC LIMIT ?`)
       .all(query, limit);
     return rows.map((row) => this._rowToFact(row));
   }
@@ -310,6 +323,26 @@ export class FactStore {
 
   get size() {
     return this._stmts.count.get().cnt;
+  }
+
+  /** Correct in place without losing evidence; reject stale editor writes. */
+  update(id, patch, expectedUpdatedAt) {
+    return this.db.transaction(() => {
+      const current = this.getById(id);
+      if (!current) return { error: "not_found" };
+      if (expectedUpdatedAt !== current.updated_at) return { error: "conflict", current };
+      if (patch.fact !== undefined && (typeof patch.fact !== "string" || !patch.fact.trim())) {
+        return { error: "invalid_fact" };
+      }
+      if (patch.status !== undefined && !["active", "expired", "conflict"].includes(patch.status)) {
+        return { error: "invalid_status" };
+      }
+      const fact = patch.fact === undefined ? current.fact : scrubPII(patch.fact.trim()).cleaned;
+      const updatedAt = new Date(Math.max(Date.now(), Date.parse(current.updated_at) + 1)).toISOString();
+      this.db.prepare("UPDATE facts SET fact = ?, status = ?, updated_at = ? WHERE id = ?")
+        .run(fact, patch.status ?? current.status, updatedAt, id);
+      return { memory: this.getById(id) };
+    })();
   }
 
   /** 删除单条 */
@@ -343,6 +376,8 @@ export class FactStore {
           tags: entry.tags || [],
           time: entry.time || null,
           session_id: entry.session_id || null,
+          source: entry.source || null,
+          status: entry.status,
         });
       }
     });
@@ -365,6 +400,9 @@ export class FactStore {
       time: row.time,
       session_id: row.session_id,
       created_at: row.created_at,
+      source: row.source || null,
+      updated_at: row.updated_at || row.created_at,
+      status: row.status || "active",
       matchCount: row.matchCount ?? undefined,
     };
   }

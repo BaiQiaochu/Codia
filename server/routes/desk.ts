@@ -1202,6 +1202,8 @@ export function createDeskRoute(engine: any, hub: any) {
           job = store.addJob({
             type,
             schedule: params.schedule,
+            timezone: params.timezone,
+            misfirePolicy: params.misfirePolicy,
             prompt: hasPrompt ? params.prompt : "",
             label: params.label,
             model: params.model,
