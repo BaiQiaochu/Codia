@@ -66,7 +66,7 @@ jobs:
           // TypeScript declarations are development-only and excluded by electron-builder.
           for (const relative of walk(source).filter(file => !file.endsWith('.d.ts'))) {
             const original = fs.readFileSync(path.join(source, relative));
-            const packed = asar.extractFile(archive, `desktop/dist-renderer/assets/codia/live2d/${relative}`);
+            const packed = asar.extractFile(archive, path.join('desktop', 'dist-renderer', 'assets', 'codia', 'live2d', relative));
             if (!original.equals(packed)) throw new Error(`Packaged Live2D mismatch: ${relative}`);
             if (!relative.endsWith('.js')) {
               const serverCopy = fs.readFileSync(path.join(folder, 'resources/server/desktop/dist-renderer/assets/codia/live2d', relative));
