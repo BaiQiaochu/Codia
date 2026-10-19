@@ -80,6 +80,39 @@ jobs:
           # Preserve its complete upstream license with the bundled runtime.
           node -e 'const fs=require("node:fs");const os=process.platform==="darwin"?"mac":process.platform;fs.copyFileSync(`.cache/node-runtime/node-v24.15.0-${process.platform}-${process.arch}/LICENSE`, `dist-server/${os}-${process.arch}/Node-LICENSE.txt`);'
           git diff --exit-code -- package.json package-lock.json
+      - name: Restore and verify macOS PTY helper executable mode
+        if: runner.os == 'macOS'
+        run: |
+          # node-pty 1.1.0 publishes these helpers as 0644 (microsoft/node-pty#850).
+          # Fix only the generated release tree, before DMG/ZIP creation.
+          cd "dist-server/mac-$(node -p process.arch)"
+          ./node <<'CODIA_PTY_EOF'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const assert = require('node:assert/strict');
+          const { execFileSync } = require('node:child_process');
+          const utilsPath = require.resolve('node-pty/lib/utils.js');
+          const native = require(utilsPath).loadNativeModule('pty');
+          const helper = path.resolve(path.dirname(utilsPath), native.dir, 'spawn-helper');
+          const stat = fs.lstatSync(helper);
+          assert(stat.isFile() && stat.size > 0, 'Missing or invalid PTY spawn-helper');
+          console.log('PTY helper before repair:', helper, 'mode=' + (stat.mode & 0o777).toString(8));
+          execFileSync('lipo', ['-verify_arch', process.arch === 'x64' ? 'x86_64' : 'arm64', helper], { stdio: 'inherit' });
+          fs.chmodSync(helper, 0o755);
+          fs.accessSync(helper, fs.constants.X_OK);
+          console.log('PTY helper after repair: mode=' + (fs.statSync(helper).mode & 0o777).toString(8));
+          const pty = require('node-pty');
+          const child = pty.spawn('/bin/sh', ['-c', 'printf CODIA_PTY_OK'], { cols: 80, rows: 24, env: process.env });
+          let output = '';
+          child.onData(text => { output += text; });
+          const timer = setTimeout(() => { child.kill(); throw Error('Prepack PTY smoke timeout'); }, 10000);
+          child.onExit(({exitCode}) => {
+            clearTimeout(timer);
+            assert.equal(exitCode, 0);
+            assert.match(output, /CODIA_PTY_OK/);
+            console.log('Prepack native PTY smoke passed');
+          });
+          CODIA_PTY_EOF
       - name: Package Linux without publishing
         if: runner.os == 'Linux'
         run: npx --no-install electron-builder --linux deb AppImage --x64 --publish never
@@ -155,6 +188,19 @@ jobs:
           const upstreamNodeLicense = fs.readFileSync(path.join(root, '.cache/node-runtime', `node-v24.15.0-${platform}-${arch}`, 'LICENSE'));
           assert(nodeLicense.length > 0 && nodeLicense.equals(upstreamNodeLicense), 'Bundled Node license missing or changed');
           report.nodeLicense = { file: 'server/Node-LICENSE.txt', bytes: nodeLicense.length, sha256: digest(nodeLicense) };
+          if (mac) {
+            const serverRequire = createRequire(path.join(server, 'package.json'));
+            const utilsPath = serverRequire.resolve('node-pty/lib/utils.js');
+            const native = serverRequire(utilsPath).loadNativeModule('pty');
+            const ptyHelper = path.resolve(path.dirname(utilsPath), native.dir, 'spawn-helper');
+            executable(ptyHelper);
+            assert((fs.statSync(ptyHelper).mode & 0o777) === 0o755, 'Packaged PTY helper must retain mode 0755');
+            fs.accessSync(ptyHelper, fs.constants.X_OK);
+            execFileSync('lipo', ['-verify_arch', arch === 'x64' ? 'x86_64' : 'arm64', ptyHelper], { stdio: 'inherit' });
+            const sourceHelper = path.join(root, 'dist-server', `mac-${arch}`, path.relative(server, ptyHelper));
+            assert(fs.readFileSync(ptyHelper).equals(fs.readFileSync(sourceHelper)), 'Packaged PTY helper bytes changed');
+            report.ptyHelper = { file: path.relative(resources, ptyHelper), mode: (fs.statSync(ptyHelper).mode & 0o777).toString(8), sha256: digest(fs.readFileSync(ptyHelper)) };
+          }
           const node = path.join(server, 'node');
           executable(node);
           executable(path.join(server, 'codia-server'));
