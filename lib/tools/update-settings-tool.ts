@@ -3,20 +3,11 @@
  * update-settings-tool.js -设置修改工具（渐进式披露- *
   * */
 
-import path from "path";
 import { Type, StringEnum } from "../pi-sdk/index.ts";
 import { t } from "../i18n.ts";
 import { getToolSessionPath } from "./tool-session.ts";
 import themeRegistry from "../../desktop/src/shared/theme-registry.cjs";
 import { parseModelRef } from "../../shared/model-ref.ts";
-import {
-  EDITABLE_MEMORY_EXPERIMENT_ID,
-  getResolvedExperimentValue,
-} from "../experiments/registry.ts";
-import {
-  readEditableFactsText,
-  writeEditableFactsSection,
-} from "../memory/compile.ts";
 import {
   createSettingsToolResult,
   createSettingsUpdate,
@@ -133,24 +124,6 @@ function requireAgentId(agent, key) {
   return agentId;
 }
 
-function isEditableMemoryEnabled(engine) {
-  try {
-    return getResolvedExperimentValue(engine?.preferences, EDITABLE_MEMORY_EXPERIMENT_ID) === true;
-  } catch {
-    return false;
-  }
-}
-
-function resolveAgentMemoryPaths(agent, key) {
-  const memoryMdPath = agent?.memoryMdPath
-    || (agent?.agentDir ? path.join(agent.agentDir, "memory", "memory.md") : null);
-  if (!memoryMdPath) throw new Error(`${key} requires target agent memory path`);
-  return {
-    memoryMdPath,
-    memoryDir: path.dirname(memoryMdPath),
-  };
-}
-
 const SETTINGS_REGISTRY = {
   sandbox: {
     type: "toggle",
@@ -245,30 +218,12 @@ const SETTINGS_REGISTRY = {
   "memory.facts": {
     type: "text",
     get label() { return t("toolDef.updateSettings.memoryFacts"); },
-    get description() { return t("toolDef.updateSettings.memoryFactsDesc"); },
+    description: "Bulk compiled memory editing is retired. Correct individual sourced facts in Settings > Agent > Memory; use memory_search to inspect relevant facts.",
     scope: "agent",
     searchTerms: ["facts", "editable memory", "memory facts", "user facts"],
-    get: (engine, agent) => {
-      if (!agent) return null;
-      if (!isEditableMemoryEnabled(engine)) return t("toolDef.updateSettings.memoryFactsDisabled");
-      try {
-        const { memoryDir } = resolveAgentMemoryPaths(agent, "memory.facts");
-        return readEditableFactsText(memoryDir);
-      } catch {
-        return null;
-      }
-    },
-    apply: async (engine, agent, v) => {
-      if (!agent) throw new Error("no active agent");
-      if (!isEditableMemoryEnabled(engine)) {
-        throw new Error(t("toolDef.updateSettings.memoryFactsDisabled"));
-      }
-      const { memoryDir, memoryMdPath } = resolveAgentMemoryPaths(agent, "memory.facts");
-      writeEditableFactsSection(memoryDir, v, {
-        summaryManager: agent.summaryManager,
-        memoryMdPath,
-      });
-      await engine.updateConfig?.({}, { agentId: agent.id });
+    get: (_engine, agent) => agent ? "Retired: manage individual sourced facts in the memory page." : null,
+    apply: () => {
+      throw new Error("Bulk memory.facts editing is retired. Correct individual sourced facts in the memory page so provenance, revisions and forgetting remain consistent.");
     },
   },
   "experience.enabled": {

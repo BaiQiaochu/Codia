@@ -1,5 +1,6 @@
 // @ts-nocheck
 import fs from "fs";
+import { projectModelPricing } from "../shared/model-pricing.ts";
 import { getPiModel } from "../lib/pi-sdk/index.ts";
 import { lookupKnown } from "../shared/known-models.ts";
 import { atomicWriteSync } from "../shared/safe-fs.ts";
@@ -109,7 +110,7 @@ function isZhipuOpenAICompat(provider, baseUrl, api) {
   );
 }
 
-function buildModelOverride(modelEntry, modelDefaults = {}) {
+function buildModelOverride(modelEntry, modelDefaults = {}, binding = {}) {
   const modelDefaultThinkingLevel = getProviderModelDefaultThinkingLevel(modelDefaults, getModelId(modelEntry));
   if (typeof modelEntry !== "object" || modelEntry === null) {
     return modelDefaultThinkingLevel !== undefined
@@ -118,6 +119,7 @@ function buildModelOverride(modelEntry, modelDefaults = {}) {
   }
 
   const override = {};
+  if (modelEntry.pricing !== undefined) override.cost = projectModelPricing({ ...binding, id: modelEntry.id, pricing: modelEntry.pricing });
   if (modelEntry.name !== undefined) override.name = modelEntry.name;
   if (modelEntry.context !== undefined) override.contextWindow = modelEntry.context;
   if (modelEntry.contextWindow !== undefined) override.contextWindow = modelEntry.contextWindow;
@@ -192,6 +194,7 @@ function buildModelEntry(modelEntry, provider, baseUrl = "", api = "openai-compl
       ? modelEntry.reasoning
       : (known?.reasoning === true),
   };
+  if (isObj && modelEntry.pricing !== undefined) entry.cost = projectModelPricing({ provider, id, api: entry.api, baseUrl, pricing: modelEntry.pricing });
   const thinkingLevelMap = (isObj && modelEntry.thinkingLevelMap) || known?.thinkingLevelMap;
   if (isPlainObject(thinkingLevelMap)) entry.thinkingLevelMap = { ...thinkingLevelMap };
 
@@ -311,7 +314,7 @@ export function syncModels(providers, opts = {}) {
     for (const modelEntry of chatModels) {
       const id = getModelId(modelEntry);
       if (shouldReusePiBuiltinModel(name, id, effectiveApi)) {
-        const override = buildModelOverride(modelEntry, modelDefaults);
+        const override = buildModelOverride(modelEntry, modelDefaults, { provider: name, api: effectiveApi, baseUrl: effectiveBaseUrl });
         if (override) modelOverrides[id] = override;
         continue;
       }

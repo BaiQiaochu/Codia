@@ -3,6 +3,7 @@
 
 import fs from "fs";
 import path from "path";
+import { randomUUID } from "node:crypto";
 import { createHeartbeat } from "../lib/desk/heartbeat.ts";
 import { createCronScheduler } from "../lib/desk/cron-scheduler.ts";
 import { getLocale } from "../lib/i18n.ts";
@@ -67,7 +68,7 @@ export class Scheduler {
     return this._cronScheduler ?? this._agentCrons.get(agentId) ?? null;
   }
 
-  async runAgentCronNow(agentId, jobId) {
+  async runAgentCronNow(agentId, jobId, options = {}) {
     if (this._cronScheduler && this._cronStore) {
       const job = this._cronStore.getJob(jobId);
       if (!job) throw new Error(`cron job "${jobId}" not found`);
@@ -75,14 +76,14 @@ export class Scheduler {
       if (owner && agentId && owner !== agentId) {
         throw new Error(`cron job "${jobId}" belongs to agent "${owner}"`);
       }
-      return this._cronScheduler.runNow(job);
+      return this._cronScheduler.runNow(job, options);
     }
     const sched = this._agentCrons.get(agentId);
     if (!sched) throw new Error(`cron scheduler not initialized for agent "${agentId}"`);
     const store = this._cronStores.get(agentId);
     const job = store?.getJob(jobId);
     if (!job) throw new Error(`cron job "${jobId}" not found`);
-    return sched.runNow(job);
+    return sched.runNow(job, options);
   }
 
   _canRunAgentJobs(agentId, explicitModel) {
@@ -332,7 +333,8 @@ export class Scheduler {
             "",
             job.prompt,
           ].join("\n");
-      await this._executeActivityForAgent(agentId, prompt, "cron", job.label, {
+      return await this._executeActivityForAgent(agentId, prompt, "cron", job.label, {
+        jobId: job.id,
         model: job.model || undefined,
         signal: ac.signal,
         ...this._cronExecutionOptions(job),
@@ -363,7 +365,7 @@ export class Scheduler {
     const agentDir = path.join(engine.agentsDir, agentId);
     const activityDir = path.join(agentDir, "activity");
     const startedAt = Date.now();
-    const id = `${type === "heartbeat" ? "hb" : "cron"}_${startedAt}`;
+    const id = `${type === "heartbeat" ? "hb" : "cron"}_${startedAt}_${randomUUID()}`;
 
     // Execute through the isolated-agent path.
     const { signal, ...restOpts } = opts;
@@ -373,6 +375,7 @@ export class Scheduler {
       signal,
       activityType: type,
       ...restOpts,
+      runId: id,
     });
     const { sessionPath, error } = result;
 
@@ -407,6 +410,9 @@ export class Scheduler {
         if (failed) return `${label || (type === "heartbeat" ? hbLabel : cronLabel)} ${failSuffix}`;
         return summary || (type === "heartbeat" ? hbLabel : (label || cronLabel));
       })(),
+      jobId: opts.jobId || null,
+      sessionPath: typeof sessionPath === "string" ? sessionPath : null,
+      environment: result.environment?.provenance === "recorded" ? result.environment : null,
       sessionFile: typeof sessionPath === "string" ? path.basename(sessionPath) : null,
       status: failed ? "error" : "done",
       error: error || null,
@@ -422,10 +428,11 @@ export class Scheduler {
       const isZhR = getLocale().startsWith("zh");
       const reason = error || (isZhR ? "后台任务未生成 session" : "background task produced no session");
       engine.emitDevLog(`[${type}] ${label || "后台任务"} 失败: ${reason}`, "error");
-      throw new Error(reason);
+      throw Object.assign(new Error(reason), { runDetails: { activityId: id, sessionPath: sessionPath || null } });
     }
 
     engine.emitDevLog(`活动记录: ${entry.summary}`, "heartbeat");
+    return { activityId: id, sessionPath: sessionPath || null };
   }
 
 }

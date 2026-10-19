@@ -3,6 +3,7 @@
   *
   * */
 import path from "path";
+import { projectModelPricing } from "../shared/model-pricing.ts";
 import fs from "fs";
 import { ModelRuntime, createModelRegistry } from "../lib/pi-sdk/index.ts";
 import { t } from "../lib/i18n.ts";
@@ -54,6 +55,7 @@ function buildProviderModelMetadataMap(rawProviders: unknown) {
       if (typeof modelId !== "string" || !modelId) continue;
       const meta: Record<string, unknown> = {};
       if (isRecord(modelEntry)) {
+        if (modelEntry.pricing !== undefined) meta.pricing = structuredClone(modelEntry.pricing);
         if (modelEntry.xhigh !== undefined) meta.xhigh = modelEntry.xhigh === true;
         if (modelEntry.defaultThinkingLevel !== undefined) meta.defaultThinkingLevel = modelEntry.defaultThinkingLevel;
         const thinkingLevels = normalizeThinkingLevelChoices(modelEntry.thinkingLevels);
@@ -78,6 +80,7 @@ function applyProviderModelMetadata(model, metadataByModel) {
   const meta = metadataByModel.get(modelMetadataKey(model?.provider, model?.id));
   if (!meta) return model;
   const merged = { ...model, ...meta };
+  if (meta.pricing !== undefined) merged.cost = projectModelPricing(merged);
   const thinkingLevels = normalizeThinkingLevelChoices(merged.thinkingLevels);
   if (thinkingLevels) {
     merged.thinkingLevels = thinkingLevels;

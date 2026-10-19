@@ -7,7 +7,9 @@ import { diagnoseTemplateEnvironment } from './task-console-environment.ts';
 import { diagnoseTemplateRuntime } from './task-console-diagnostics.ts';
 import { safeJson } from '../hono-helpers.ts';
 import { TASK_TEMPLATES, preflightTemplate, buildTemplateDraft, buildTemplatePlan, buildTemplateWorkflow } from '../../shared/task-console/templates.ts';
-import { normalizeConsoleRun } from '../../shared/task-console/records.ts';
+import { buildCompanyDelivery } from './task-console-delivery.ts';
+import { createRequestContext } from '../http/boundary.ts';
+import { collectConsoleRuns } from './task-console-records.ts';
 
 /** Read-only projection plus explicitly requested launches through the existing workflow tool.
  * Kept studio-owner-only by the default HTTP route policy, like desk activities.
@@ -18,32 +20,36 @@ export function createTaskConsoleRoute(engine: any, confirmStore: any, options: 
   const admissions = new Map<string, { fingerprint: string; result: Promise<any> }>();
   const route = new Hono();
   route.get('/task-console', async (c) => {
-    const runs = (engine.activityHub?.list?.() || []).map((entry: any) => normalizeConsoleRun(entry, 'workflow'));
-    for (const agent of engine.listAgents()) {
-      for (const entry of engine.getActivityStore(agent.id)?.list() || []) {
-        runs.push(normalizeConsoleRun({ ...entry, agentId: entry.agentId || agent.id }, 'activity', agent.name));
-      }
-    }
-    const limitations = ['仅汇总已有活动记录；空列表不代表所有外部任务均已完成。'];
-    const companyService = engine.pluginManager?.getPlugin?.('company')?.ctx?._company?.service;
-    if (companyService) {
-      try {
-        for (const company of await companyService.listCompanies()) {
-          for (const task of await companyService.store.listTasks(company.id)) {
-            runs.push(normalizeConsoleRun({
-              ...task, label: task.title, summary: task.acceptanceFailure || task.report || task.description,
-              agentName: task.assigneeAgentName || task.assigneeTitle, agentId: task.assigneeAgentId,
-              startedAt: task.createdAt ? Date.parse(task.createdAt) : null,
-              finishedAt: ['done', 'cancelled'].includes(task.status) && task.updatedAt ? Date.parse(task.updatedAt) : null,
-              parentTaskId: task.source?.runId,
-            }, 'company'));
-          }
-        }
-      } catch { limitations.push('团队任务读取失败；其他记录仍可查看。'); }
-    } else { limitations.push('团队插件尚未加载；未主动启用插件或创建公司记录。'); }
-    runs.sort((a: any, b: any) => (b.startedAt || 0) - (a.startedAt || 0));
+    const { runs, limitations } = await collectConsoleRuns(engine);
     return c.json({ runs, approvals: confirmStore.listPending(), interruptedApprovals: confirmStore.listInterrupted?.().map((a: any) => ({ id: a.id, kind: a.kind, sessionPath: a.sessionPath })) || [], generatedAt: Date.now(),
       limitations });
+  });
+  const companyTask = async (taskId: string) => {
+    const service = engine.pluginManager?.getPlugin?.('company')?.ctx?._company?.service;
+    if (!service) throw Object.assign(new Error('company_service_unavailable'), { status: 503 });
+    const task = (await service.store.listTasks()).find((entry: any) => entry.id === taskId);
+    if (!task) throw Object.assign(new Error('company_task_not_found'), { status: 404 });
+    return { service, task };
+  };
+  route.get('/task-console/company/:taskId/delivery', async c => {
+    try {
+      const { task } = await companyTask(c.req.param('taskId'));
+      return c.json(buildCompanyDelivery(engine, task, createRequestContext(c, engine)));
+    } catch (error: any) { return c.json({ error: error.message || 'company_delivery_unavailable' }, error.status || 500); }
+  });
+  route.post('/task-console/company/:taskId/review', async c => {
+    try {
+      const { task, service } = await companyTask(c.req.param('taskId'));
+      const context = createRequestContext(c, engine);
+      const delivery = buildCompanyDelivery(engine, task, context);
+      const body = await safeJson(c) || {};
+      if (typeof body.version !== 'string' || body.version !== delivery.version) return c.json({ error: 'delivery_changed', message: '报告或产物版本已变化，请刷新后重新核对。' }, 409);
+      if (!Array.isArray(body.items) || body.items.length > 100) return c.json({ error: 'review_items_required' }, 400);
+      if (body.items.some((item: any) => item?.verdict === 'pass') && delivery.artifacts.some(a => a.state !== 'available')) return c.json({ error: 'delivery_artifacts_unavailable', message: '部分产物不可读取或版本无法核对，不能记录通过。' }, 409);
+      const updated = await service.reviewTask(task.id, { expectedRevision: delivery.revision, version: delivery.version, items: body.items,
+        reviewedBy: context.principalId || context.userId || 'studio_owner' });
+      return c.json(buildCompanyDelivery(engine, updated, context));
+    } catch (error: any) { return c.json({ error: error.message || 'company_review_failed' }, error.status || 500); }
   });
   const prepare = async (body: any) => {
     const selectedModel = structuredClone(engine.currentModel || null);

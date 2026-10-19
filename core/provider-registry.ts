@@ -12,6 +12,7 @@ import path from "path";
 import YAML from "js-yaml";
 import { safeReadYAMLSync } from "../shared/safe-fs.ts";
 import { fromRoot } from "../shared/app-root.ts";
+import { confirmModelPricing, modelPricingBinding } from "../shared/model-pricing.ts";
 import { lookupKnown } from "../shared/known-models.ts";
 import { normalizeModelType, resolveModelTypeFromModelId } from "../shared/model-type-inference.ts";
 import {
@@ -1432,6 +1433,18 @@ export class ProviderRegistry {
     for (const key of ALLOWED) {
       if (meta[key] !== undefined) safe[key] = meta[key];
     }
+    if (Object.prototype.hasOwnProperty.call(meta || {}, "pricing")) {
+      const provider = this.get(providerId);
+      const existing = uc.models.find(model => typeof model === "object" && model?.id === modelId);
+      const binding = modelPricingBinding({
+        provider: providerId, id: modelId, api: existing?.api || lookupKnown(providerId, modelId)?.api || uc.api || provider?.api || "openai-completions",
+        baseUrl: uc.base_url || provider?.baseUrl || "",
+      });
+      if (meta.pricing !== null && (!meta.pricing?.expectedBinding || Object.entries(binding).some(([key, value]) => meta.pricing.expectedBinding[key] !== value))) {
+        throw new Error("pricing configuration changed or binding missing; refresh the model before confirming prices");
+      }
+      safe.pricing = confirmModelPricing(meta.pricing, binding);
+    }
     const compat = normalizeModelProtocolCompat(meta?.compat);
     if (compat) safe.compat = compat;
     const toolUse = normalizeToolUseContract(meta?.toolUse);
@@ -1487,6 +1500,15 @@ export class ProviderRegistry {
       providerData.headers = normalizeProviderHeaders(providerData.headers);
     }
     let nextProvider = { ...(userConfig[providerId] || {}), ...providerData };
+    const prior = userConfig[providerId] || {};
+    const definition = this.get(providerId);
+    const oldBinding = modelPricingBinding({ provider: providerId, api: prior.api || definition?.api || "openai-completions", baseUrl: prior.base_url || definition?.baseUrl || "" });
+    const newBinding = modelPricingBinding({ provider: providerId, api: nextProvider.api || definition?.api || "openai-completions", baseUrl: nextProvider.base_url || definition?.baseUrl || "" });
+    if (oldBinding.api !== newBinding.api || oldBinding.baseUrl !== newBinding.baseUrl) {
+      nextProvider.models = nextProvider.models?.map(model => typeof model === "object" && model?.pricing
+        ? { ...model, pricing: { ...model.pricing, invalidatedAt: new Date().toISOString() } } : model);
+    }
+
     if (seedDefaultModels && (!Array.isArray(nextProvider.models) || nextProvider.models.length === 0)) {
       const defaults = chatDefaultModels(providerId, this.getDefaultModels(providerId));
       if (defaults.length > 0) nextProvider.models = [...defaults];

@@ -2,8 +2,9 @@
 import { debugLog } from "../debug-log.ts";
 
 function numberOrNull(value) {
+  if (value == null || value === "" || typeof value === "boolean") return null;
   const n = Number(value);
-  return Number.isFinite(n) ? n : null;
+  return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
 function firstNumber(...values) {
@@ -40,16 +41,27 @@ function costTotalFromUsage(usage) {
   return maybeNumber(usage?.costTotal, usage?.cost?.total);
 }
 
-function costTotalFromRates(normalized, costRates) {
+/** SDKs initialize usage to zero before receiving any provider usage. Zero counters
+ * alone do not prove an observed zero-token/free request; retain its reservation. */
+export function hasObservedUsageTokens(normalized) {
+  return [normalized?.input?.totalTokens, normalized?.input?.uncachedTokens,
+    normalized?.output?.totalTokens, normalized?.output?.reasoningTokens,
+    normalized?.cache?.readTokens, normalized?.cache?.writeTokens, normalized?.totalTokens]
+    .some(value => numberOrNull(value) > 0);
+}
+
+export function costTotalFromRates(normalized, costRates) {
   if (!costRates || typeof costRates !== "object") return null;
+  if (numberOrNull(normalized.input?.totalTokens) === null || numberOrNull(normalized.output?.totalTokens) === null || numberOrNull(normalized.totalTokens) === null) return null;
   const inputTokens = normalized.input.uncachedTokens ?? normalized.input.totalTokens ?? 0;
   const outputTokens = normalized.output.totalTokens ?? 0;
   const cacheReadTokens = normalized.cache.readTokens ?? 0;
   const cacheWriteTokens = normalized.cache.writeTokens ?? 0;
-  const input = firstNumber(costRates.input) * inputTokens / 1_000_000;
-  const output = firstNumber(costRates.output) * outputTokens / 1_000_000;
-  const cacheRead = firstNumber(costRates.cacheRead) * cacheReadTokens / 1_000_000;
-  const cacheWrite = firstNumber(costRates.cacheWrite) * cacheWriteTokens / 1_000_000;
+  if (costRates.currency && costRates.currency !== "USD" || costRates.needsReview) return null;
+  const components = [[inputTokens, costRates.input], [outputTokens, costRates.output], [cacheReadTokens, costRates.cacheRead], [cacheWriteTokens, costRates.cacheWrite]];
+  if (components.some(([tokens, rate]) => tokens > 0 && numberOrNull(rate) === null)) return null;
+  if (!components.some(([,rate]) => numberOrNull(rate) > 0) && costRates.zeroCostConfirmed !== true) return null;
+  const [input, output, cacheRead, cacheWrite] = components.map(([tokens, rate]) => tokens * (numberOrNull(rate) ?? 0) / 1_000_000);
   const total = input + output + cacheRead + cacheWrite;
   return Number.isFinite(total) ? total : null;
 }
@@ -95,9 +107,10 @@ function ratio(partTokens, totalTokens, support) {
  */
 export function normalizeLlmUsage(usage, options = {}) {
   if (!usage || typeof usage !== "object") return null;
+  if (![usage.input, usage.inputTokens, usage.input_tokens, usage.prompt_tokens, usage.output, usage.outputTokens, usage.output_tokens, usage.completion_tokens, usage.totalTokens, usage.total_tokens].some(value => numberOrNull(value) !== null)) return null;
 
-  const rawInputTokens = firstNumber(usage.input, usage.inputTokens, usage.input_tokens, usage.prompt_tokens);
-  const outputTokens = firstNumber(usage.output, usage.outputTokens, usage.output_tokens, usage.completion_tokens);
+  const rawInputTokens = maybeNumber(usage.input, usage.inputTokens, usage.input_tokens, usage.prompt_tokens);
+  const outputTokens = maybeNumber(usage.output, usage.outputTokens, usage.output_tokens, usage.completion_tokens);
   const cacheMissTokens = maybeNumber(usage.cacheMiss, usage.cacheMissTokens, usage.prompt_cache_miss_tokens);
   const support = cacheSupport(options);
   const inclusivePromptTokens = usesInclusivePromptTokenAccounting(usage);
@@ -112,7 +125,7 @@ export function normalizeLlmUsage(usage, options = {}) {
     )
     : null;
   const cacheWriteTokens = support === "reported" ? cacheCreationTokens(usage) : null;
-  const inputTokens = support === "reported" && !inclusivePromptTokens
+  const inputTokens = rawInputTokens === null ? null : support === "reported" && !inclusivePromptTokens
     ? rawInputTokens + firstNumber(cacheReadTokens) + firstNumber(cacheWriteTokens)
     : rawInputTokens;
   const inputUncachedTokens = uncachedTokens(
@@ -124,14 +137,9 @@ export function normalizeLlmUsage(usage, options = {}) {
     support,
     inclusivePromptTokens
   );
-  const fallbackTotal = numberOrNull(usage.prompt_tokens) !== null || numberOrNull(usage.completion_tokens) !== null
-    ? inputTokens + outputTokens
-    : inputTokens + outputTokens;
-  const totalTokens = firstNumber(
-    usage.totalTokens,
-    usage.total_tokens,
-    fallbackTotal
-  );
+  const fallbackTotal = inputTokens !== null && outputTokens !== null ? inputTokens + outputTokens : null;
+  const reportedTotal = maybeNumber(usage.totalTokens, usage.total_tokens, fallbackTotal);
+  const totalTokens = fallbackTotal !== null && reportedTotal !== null && reportedTotal < fallbackTotal ? null : reportedTotal;
   const normalized = {
     input: {
       totalTokens: inputTokens,
@@ -154,8 +162,10 @@ export function normalizeLlmUsage(usage, options = {}) {
     },
     totalTokens,
   };
+  if (!hasObservedUsageTokens(normalized)) return null;
   const explicitCost = costTotalFromUsage(usage);
-  const costTotal = explicitCost !== null ? explicitCost : costTotalFromRates(normalized, options.costRates);
+  const estimatedCost = costTotalFromRates(normalized, options.costRates);
+  const costTotal = options.costRates ? estimatedCost : explicitCost;
 
   return {
     costTotal,

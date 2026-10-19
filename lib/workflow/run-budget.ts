@@ -1,3 +1,4 @@
+import { resolveModelPricing, type ModelPricing } from "../../shared/model-pricing.ts";
 /** Local admission accounting, never a guarantee about a provider's final invoice.
  * Reserve the entire configured input window before dispatch: an approximate
  * tokenizer must not be used to promise a bounded monetary charge.
@@ -13,6 +14,7 @@ export interface RunBudgetLimits {
 export interface BudgetModel {
   id: string; provider: string; api: string; baseUrl?: string;
   contextWindow: number; maxTokens: number;
+  pricing?: ModelPricing | null;
   cost: { input: number; output: number; cacheRead?: number; cacheWrite?: number };
 }
 export interface BudgetReservation {
@@ -21,8 +23,7 @@ export interface BudgetReservation {
 }
 const SUPPORTED_APIS = new Set(['openai-completions', 'openai-responses', 'anthropic-messages']);
 const positiveInteger = (value: unknown): value is number => Number.isSafeInteger(value) && Number(value) > 0;
-const knownRate = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0;
-const modelKey = (model: BudgetModel) => JSON.stringify([model.id, model.provider, model.api, model.baseUrl || '', model.contextWindow, model.maxTokens, model.cost]);
+const modelKey = (model: BudgetModel) => JSON.stringify([model.id, model.provider, model.api, model.baseUrl || '', model.contextWindow, model.maxTokens, model.cost, model.pricing]);
 const SAFE_FAILURES = new Set([
   'provider result unknown', 'provider usage missing or inconsistent', 'provider usage missing or inconsistent; reservation retained',
   'provider usage exceeds reservation or cache price is unknown', 'provider usage exceeds reservation or cache price is unknown; further calls blocked',
@@ -42,6 +43,7 @@ export const RUN_BUDGET_NOTE = '本地按配置价格预留模型费用；每次
 
 export function inspectRunBudget(limits: Partial<RunBudgetLimits> = {}, model?: BudgetModel | null) {
   let reason = '';
+  const pricing = resolveModelPricing(model);
   if (!positiveInteger(limits.maxTokens) || !(typeof limits.maxUsd === 'number' && Number.isFinite(limits.maxUsd) && limits.maxUsd > 0)
       || !positiveInteger(limits.maxSteps) || limits.maxSteps > 1000
       || !positiveInteger(limits.maxDurationMs) || limits.maxDurationMs > 600_000
@@ -49,17 +51,15 @@ export function inspectRunBudget(limits: Partial<RunBudgetLimits> = {}, model?: 
       || (limits.maxModelCalls !== undefined && (!positiveInteger(limits.maxModelCalls) || limits.maxModelCalls > 1000))) reason = '预算必须包含有效的 token、USD、步骤、时长与单次输出上限。';
   else if (!model || !model.id || !model.provider || !SUPPORTED_APIS.has(model.api)) reason = '当前供应商适配器尚无可验证的输出上限，禁止预算执行。';
   else if (!positiveInteger(model.contextWindow) || !positiveInteger(model.maxTokens)) reason = '模型上下文或最大输出配置未知，无法安全预留。';
-  else if (!knownRate(model.cost?.input) || !knownRate(model.cost?.output) || Math.max(model.cost.input, model.cost.output) === 0
-      || (model.cost.cacheRead !== undefined && !knownRate(model.cost.cacheRead))
-      || (model.cost.cacheWrite !== undefined && !knownRate(model.cost.cacheWrite))) reason = '模型价格未知或为零占位，禁止费用预算执行。';
+  else if (pricing.state === 'unknown') reason = '模型价格未知、未确认或已失效，禁止费用预算执行。';
   // Caching is disabled in the guarded request. Reserve the most expensive known
   // input rate as defense in depth for providers with implicit cache accounting.
   const maxInputTokens = model && positiveInteger(model.contextWindow) ? model.contextWindow : null;
   const maxOutputTokens = model && positiveInteger(model.maxTokens) && positiveInteger(limits.maxOutputTokensPerCall) ? Math.min(model.maxTokens, limits.maxOutputTokensPerCall) : null;
-  const inputRate = model?.cost && knownRate(model.cost.input) ? Math.max(model.cost.input, model.cost.cacheRead ?? 0, model.cost.cacheWrite ?? 0) : null;
+  const inputRate = pricing.rates.input !== null ? Math.max(pricing.rates.input, pricing.rates.cacheRead ?? 0, pricing.rates.cacheWrite ?? 0) : null;
   const reservationTokens = maxInputTokens !== null && maxOutputTokens !== null ? maxInputTokens + maxOutputTokens : null;
-  const reservationUsd = reservationTokens !== null && inputRate !== null && knownRate(model?.cost?.output)
-    ? (maxInputTokens! * inputRate + maxOutputTokens! * model!.cost.output) / 1_000_000 : null;
+  const reservationUsd = reservationTokens !== null && inputRate !== null && pricing.rates.output !== null
+    ? (maxInputTokens! * inputRate + maxOutputTokens! * pricing.rates.output) / 1_000_000 : null;
   if (!reason && (reservationTokens! > limits.maxTokens! || reservationUsd! > limits.maxUsd!)) reason = '预算不足以预留一次完整上下文窗口与输出上限；请提高预算或选择更小窗口的模型。';
   return { state: reason ? 'fail' as const : 'pass' as const, reason: reason || '可按本地预留契约执行。', reservationTokens, reservationUsd, maxInputTokens, maxOutputTokens, note: RUN_BUDGET_NOTE };
 }
@@ -80,7 +80,7 @@ export class RunBudget {
     const inspection = inspectRunBudget(limits, model);
     if (inspection.state !== 'pass') throw new Error(inspection.reason);
     this.limits = Object.freeze({ ...limits, maxModelCalls: limits.maxModelCalls ?? 32 });
-    this.model = Object.freeze({ ...model, cost: Object.freeze({ ...model.cost }) });
+    this.model = Object.freeze({ ...model, cost: Object.freeze({ ...model.cost }), ...(model.pricing !== undefined ? { pricing: structuredClone(model.pricing) } : {}) });
     this.now = now;
     this.startedAt = now();
   }
@@ -101,10 +101,13 @@ export class RunBudget {
     this.notify();
     throw new Error(reason);
   }
+  assertModel(model?: BudgetModel | null) {
+    if (!model || modelKey(model) !== modelKey(this.model)) throw new Error('run budget model or price configuration changed');
+  }
   /** No awaits: concurrent nodes share one atomic admission gate. */
   reserve(model: BudgetModel): BudgetReservation {
     this.assertActive();
-    if (modelKey(model) !== modelKey(this.model)) throw new Error('run budget model or price configuration changed');
+    this.assertModel(model);
     if (this.calls >= this.limits.maxModelCalls) this.block('run model-call budget exhausted');
     const check = inspectRunBudget(this.limits, model);
     if (check.state !== 'pass') throw new Error(check.reason);
@@ -128,11 +131,12 @@ export class RunBudget {
     }
     const [input, output, cacheRead, cacheWrite] = values;
     if (input + cacheRead + cacheWrite > reservation.maxInputTokens || output > reservation.maxOutputTokens
-        || (cacheRead > 0 && !knownRate(this.model.cost.cacheRead)) || (cacheWrite > 0 && !knownRate(this.model.cost.cacheWrite))) {
+        || (cacheRead > 0 && resolveModelPricing(this.model).rates.cacheRead === null) || (cacheWrite > 0 && resolveModelPricing(this.model).rates.cacheWrite === null)) {
       this.uncertain(id, 'provider usage exceeds reservation or cache price is unknown');
       throw new Error('provider usage exceeds reservation or cache price is unknown; further calls blocked');
     }
-    const usd = (input * this.model.cost.input + output * this.model.cost.output + cacheRead * (this.model.cost.cacheRead ?? 0) + cacheWrite * (this.model.cost.cacheWrite ?? 0)) / 1_000_000;
+    const rates = resolveModelPricing(this.model).rates;
+    const usd = (input * rates.input! + output * rates.output! + cacheRead * (rates.cacheRead ?? 0) + cacheWrite * (rates.cacheWrite ?? 0)) / 1_000_000;
     this.reservations.delete(id);
     this.committedTokens += usage.totalTokens;
     this.committedUsd += usd;

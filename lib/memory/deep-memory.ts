@@ -5,6 +5,8 @@
   *
   * */
 
+import { deferExtractionForBudget } from "./retention-policy.ts";
+import { createHash } from "node:crypto";
 import { callText } from "../../core/llm-client.ts";
 import { getLocale } from "../i18n.ts";
 import { attachPromptLayoutMetadata, buildUtilityPromptLayout } from "../llm/prompt-layout.ts";
@@ -18,97 +20,71 @@ import { createModuleLogger } from "../debug-log.ts";
 
 const log = createModuleLogger("deep-memory");
 
-const MAX_RETRIES = 3;
+export const FACT_EXTRACTOR_VERSION = "facts.v2";
 const MAX_CONCURRENT = 3;
-const _failCounts = new Map(); // session -> { count, lastUpdated }
-const FAIL_COUNT_TTL_MS = 60 * 60 * 1000;
-
-function cleanExpiredFailCounts() {
-  const cutoff = Date.now() - FAIL_COUNT_TTL_MS;
-  for (const [k, v] of _failCounts) {
-    if (v.lastUpdated < cutoff) _failCounts.delete(k);
-  }
+export function summarySourceRevision(session) {
+  return createHash("sha256").update(JSON.stringify([session.session_id, session.summary, session.sourceRefs || [], session.projectId || null])).digest("hex");
 }
 
-/**
-  *
- *
- * @param {import('./session-summary.ts').SessionSummaryManager} summaryManager
- * @param {import('./fact-store.ts').FactStore} factStore
- * @param {{ model: string, api: string, api_key: string, base_url: string }} resolvedModel
- * @returns {Promise<{ processed: number, factsAdded: number }>}
- */
+/** Facts and the authoritative extraction receipt commit in one SQLite transaction. */
 export async function processDirtySessions(summaryManager, factStore, resolvedModel, opts = {}) {
   const dirty = summaryManager.getDirtySessions({ since: opts.since || null });
-  if (dirty.length === 0) {
-    return { processed: 0, factsAdded: 0 };
-  }
-
-  log.log(`${dirty.length} dirty sessions pending`);
-
-  let totalFacts = 0;
-
+  const result = { processed: 0, succeeded: 0, failed: 0, skipped: 0, quarantined: 0, deferred: 0, factsAdded: 0 };
   const processOne = async (session) => {
+    if (opts.isSessionEnabled?.(session) === false) { result.skipped++; result.deferred++; return; }
+    if (opts.isEnabled && !opts.isEnabled()) { result.skipped++; return; }
+    const sourceRevision = summarySourceRevision(session);
+    const key = createHash("sha256").update(`${session.session_id}:${sourceRevision}:${FACT_EXTRACTOR_VERSION}`).digest("hex");
+    // Compatibility for external legacy stores; production FactStore always owns the durable ledger.
+    const durable = typeof factStore.beginExtraction === "function";
+    const claim = durable ? factStore.beginExtraction(key, {
+      sessionId: session.session_id, sourceRevision, extractorVersion: FACT_EXTRACTOR_VERSION,
+      sourceRefs: session.sourceRefs || [], projectId: session.projectId || null,
+    }, opts) : { status: "running", generation: factStore.generation };
+    if (claim.status !== "running") {
+      result.skipped++;
+      if (claim.status === "quarantined") result.quarantined++;
+      if (["deferred", "busy"].includes(claim.status)) result.deferred++;
+      if (claim.status === "succeeded") summaryManager.markProcessed(session.session_id, sourceRevision, session.summary);
+      return;
+    }
     try {
       const sourceTimeRange = !session?.source_time_range && typeof opts.getSourceTimeRange === "function"
-        ? await opts.getSourceTimeRange(session.session_id)
-        : null;
-      const sessionForTime = sourceTimeRange
-        ? { ...session, source_time_range: sourceTimeRange }
-        : session;
-      const timeContext = buildFactTimeContext(sessionForTime, { timeZone: opts.timeZone });
-      const facts = await extractFactsFromDiff(
-        session.summary,
-        session.snapshot || "",
-        resolvedModel,
-        timeContext,
-      );
-
-      if (facts.length > 0) {
-        factStore.addBatch(
-          facts.map((f) => ({
-            fact: f.fact,
-            tags: f.tags || [],
-            time: f.time || null,
-            session_id: session.session_id,
-          })),
-        );
-        totalFacts += facts.length;
-        log.log(
-          `${session.session_id.slice(0, 8)}...: ${facts.length} 条元事实`,
-        );
-      }
-
-      summaryManager.markProcessed(session.session_id);
-      _failCounts.delete(session.session_id);
+        ? await opts.getSourceTimeRange(session.session_id) : null;
+      const timeContext = buildFactTimeContext(sourceTimeRange ? { ...session, source_time_range: sourceTimeRange } : session, { timeZone: opts.timeZone });
+      const facts = await extractFactsFromDiff(session.summary, session.snapshot || "", { ...resolvedModel, usageJobId: key, usageSessionId: session.session_id }, timeContext);
+      if (opts.isEnabled && !opts.isEnabled()) throw new Error("Memory learning paused during extraction");
+      const latest = summaryManager.getSummary?.(session.session_id);
+      if (latest && summarySourceRevision(latest) !== sourceRevision) throw new Error("Source summary changed during extraction; retry the newer revision");
+      const entries = facts.map(f => ({
+        fact: f.fact, tags: f.tags || [], time: f.time || null, session_id: session.session_id,
+        ...(durable ? {
+          sourceRefs: session.sourceRefs?.length ? session.sourceRefs : [{ kind: "session", sessionId: session.session_id, revision: sourceRevision }],
+          sourceRevision, extractorVersion: FACT_EXTRACTOR_VERSION,
+          projectId: session.projectId || null, channelId: session.channelId || null,
+          observedAt: session.updated_at || new Date().toISOString(),
+          // Extracted assertions are not evidence of verification or permission.
+          reviewStatus: "unverified", status: "candidate",
+        } : {}),
+      }));
+      if (opts.isSessionEnabled?.(session) === false) throw new Error('Session memory environment became ambiguous during extraction');
+      const committed = durable ? factStore.commitExtraction(key, entries, claim) : { factsAdded: factStore.addBatch(entries) ?? entries.length };
+      result.factsAdded += committed.factsAdded;
+      result.succeeded++;
+      result.processed++;
+      // A failed JSON/cache write cannot undo a durable receipt or cause duplicate inserts.
+      try { summaryManager.markProcessed(session.session_id, sourceRevision, session.summary); }
+      catch { log.warn("Extraction committed; summary cache will be reconciled on retry"); }
     } catch (err) {
-      cleanExpiredFailCounts();
-      const prev = _failCounts.get(session.session_id);
-      const count = (prev?.count || 0) + 1;
-      _failCounts.set(session.session_id, { count, lastUpdated: Date.now() });
-
-      if (count >= MAX_RETRIES) {
-        log.error(
-          `${session.session_id.slice(0, 8)}... 连续失败 ${count} 次，标记跳过: ${err.message}`,
-        );
-        summaryManager.markProcessed(session.session_id);
-        _failCounts.delete(session.session_id);
-      } else {
-        log.error(
-          `处理失败 (${session.session_id.slice(0, 8)}... ${count}/${MAX_RETRIES}): ${err.message}`,
-        );
-      }
+      if (deferExtractionForBudget(factStore, key, claim, err)) { result.deferred++; return; }
+      const status = durable ? factStore.failExtraction(key, err, claim, opts) : "failed";
+      result.failed++;
+      if (status === "quarantined") result.quarantined++;
+      log.error(`Extraction failed for ${session.session_id}: ${err?.code || "invalid_or_failed_extraction"}`);
     }
   };
-
- //
-  for (let i = 0; i < dirty.length; i += MAX_CONCURRENT) {
-    const batch = dirty.slice(i, i + MAX_CONCURRENT);
-    await Promise.allSettled(batch.map(processOne));
-  }
-
-  log.log(`Completed: ${dirty.length} sessions, ${totalFacts} new facts`);
-  return { processed: dirty.length, factsAdded: totalFacts };
+  for (let i = 0; i < dirty.length; i += MAX_CONCURRENT) await Promise.all(dirty.slice(i, i + MAX_CONCURRENT).map(processOne));
+  return result;
 }
 
 /**
@@ -119,7 +95,7 @@ export async function processDirtySessions(summaryManager, factStore, resolvedMo
  * @param {{ model: string, api: string, api_key: string, base_url: string }} resolvedModel
  * @returns {Promise<Array<{ fact: string, tags: string[], time: string }>>}
  */
-async function extractFactsFromDiff(currentSummary, previousSnapshot, resolvedModel, timeContext = null) {
+export async function extractFactsFromDiff(currentSummary, previousSnapshot, resolvedModel, timeContext = null) {
   const { model: utilityModel, api, api_key, base_url } = resolvedModel;
 
   const hasPrevious = !!previousSnapshot;
@@ -154,6 +130,7 @@ async function extractFactsFromDiff(currentSummary, previousSnapshot, resolvedMo
     attribution: {
       kind: "memory",
       agentId: resolvedModel.usageAgentId || null,
+      jobId: resolvedModel.usageJobId || null, sessionId: resolvedModel.usageSessionId || null,
     },
   }, layout.usageMetadata);
 
@@ -174,19 +151,13 @@ async function extractFactsFromDiff(currentSummary, previousSnapshot, resolvedMo
   const fenceMatch = raw.match(/^```(?:json)?\s*\n([\s\S]*?)\n\s*```\s*$/);
   const jsonStr = (fenceMatch ? fenceMatch[1] : raw).trim();
 
-  try {
-    const facts = JSON.parse(jsonStr);
-    if (!Array.isArray(facts)) return [];
-    return facts
-      .filter((f) => f && typeof f.fact === "string" && f.fact.length > 0)
-      .map((f) => ({
-        ...f,
-        time: normalizeFactTime(f.time, timeContext || {}),
-      }));
-  } catch {
-    log.error(`JSON 解析失败: ${jsonStr.slice(0, 200)}`);
-    return [];
+  let facts;
+  try { facts = JSON.parse(jsonStr); }
+  catch { throw Object.assign(new Error("Fact extraction returned invalid JSON"), { code: "INVALID_EXTRACTION_JSON" }); }
+  if (!Array.isArray(facts) || facts.some(f => !f || typeof f.fact !== "string" || !f.fact.trim() || (f.tags !== undefined && (!Array.isArray(f.tags) || f.tags.some(tag => typeof tag !== "string"))))) {
+    throw Object.assign(new Error("Fact extraction returned an invalid fact schema"), { code: "INVALID_EXTRACTION_SCHEMA" });
   }
+  return facts.map(f => ({ fact: f.fact.trim(), tags: f.tags || [], time: normalizeFactTime(f.time, timeContext || {}) }));
 }
 
 function buildTimeContextBlock(timeContext, isZh) {

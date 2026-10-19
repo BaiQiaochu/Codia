@@ -102,6 +102,7 @@ import { createPwaAuth } from "./pwa-auth.ts";
 import { createWebAuthRoute } from "./routes/web-auth.ts";
 import { createWebSocketAuthRoute } from "./routes/ws-auth.ts";
 import { createUsageRoute } from "./routes/usage.ts";
+import { createUsageMaintenanceRoute } from "./routes/usage-maintenance.ts";
 import { createWorkspaceToolsRoute } from "./routes/workspace-tools.ts";
 import { normalizePrincipal } from "../core/security-principal.ts";
 import { createWebSocketTicketService } from "../core/ws-auth-ticket.ts";
@@ -807,6 +808,8 @@ app.route("/api", createSessionsRoute(engine));
 app.route("/api", createSessionProjectsRoute(engine));
 app.route("/api", createStudioWorkspacesRoute(engine));
 app.route("/api", createModelsRoute(engine));
+// Static memory maintenance endpoints must precede /memories/:id.
+app.route("/api", createUsageMaintenanceRoute(engine));
 app.route("/api", createConfigRoute(engine));
 app.route("/api", createUploadRoute(engine));
 app.route("/api", createResourcesRoute(engine));

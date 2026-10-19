@@ -3,6 +3,8 @@ import { cancelAgentReview, isAgentReviewPending } from './agent-review-turns.ts
   *
  */
 import fs from "fs";
+import { buildTrustedMemoryContext, persistMemoryRuntimeSnapshot } from "../lib/memory/runtime-context.ts";
+import { captureMemoryEvidenceEpoch } from "../lib/memory/prompt-guard.ts";
 import os from "os";
 import path from "path";
 import { migrateConfigScope } from "../shared/migrate-config-scope.ts";
@@ -509,6 +511,7 @@ export class CodiaEngine {
     this._listeners = new Set();
     this._eventBus = null;
     this._usageLedger = createUsageLedger({
+      dbPath: path.join(this.codiaHome, "usage", "ledger.sqlite"),
       eventBus: {
         emit: (event, sessionPath) => this._emitEvent(event, sessionPath),
       },
@@ -1051,7 +1054,29 @@ export class CodiaEngine {
   }
   getWorkflowRuntimeSnapshot() { return this._sessionCoord.getWorkflowRuntimeSnapshot(); }
 
-  async executeIsolated(prompt, opts) { return this._sessionCoord.executeIsolated(prompt, opts); }
+  async executeIsolated(prompt, opts: any = {}) {
+    const onSessionReady = opts.onSessionReady;
+    let capturedEnvironment: (ReturnType<typeof buildTrustedMemoryContext> & {cwd:string;provenance:'recorded'}) | null = null;
+    const result = await this._sessionCoord.executeIsolated(prompt, {
+      ...opts,
+      onSessionReady: (sessionPath, ...rest) => {
+        // Runs using an external runtime never reach this local-session callback.
+        // Capture once immediately before execution, never when reading historical results.
+        try {
+          const cwd = opts.cwd || this.getHomeCwd(opts.agentId || this.currentAgentId) || process.cwd();
+          let appVersion = null;
+          try { appVersion = JSON.parse(fs.readFileSync(path.join(this.productDir, '..', 'package.json'), 'utf8')).version || null; } catch {}
+          const environment = { ...buildTrustedMemoryContext({cwd,sessionPath:opts.parentSessionPath || sessionPath,appVersion,bridgeMetadata:this.getBridgeContextForSessionPath?.(opts.parentSessionPath || sessionPath)}),cwd,sessionId:sessionPath || null,runId:opts.runId || opts.workflowRunId || opts.subagentTaskId || null,provenance:'recorded' as const };
+          capturedEnvironment = environment;
+          if(sessionPath) persistMemoryRuntimeSnapshot(sessionPath,environment);
+          if(opts.subagentTaskId && this._activityHub?.get?.(opts.subagentTaskId)) this._activityHub.upsert({id:opts.subagentTaskId,environment});
+        } catch (error) { moduleLog.warn(`Run environment snapshot unavailable: ${error.message}`); }
+        onSessionReady?.(sessionPath,...rest);
+      },
+    });
+    // External runtimes cannot upgrade their own self-reported environment into trusted evidence.
+    return {...result, environment:capturedEnvironment};
+  }
 
   // ════════════════════════════
  //
@@ -1820,6 +1845,7 @@ export class CodiaEngine {
     await this._sessionCoord.cleanupSession();
     await this.disposeComputerRuntime();
     this._sessionManifestStore?.close?.();
+    this._usageLedger?.close?.();
   }
 
   // ════════════════════════════
@@ -2231,22 +2257,28 @@ export class CodiaEngine {
   // ════════════════════════════
 
   async writeDiary(options: DynamicOptions = {}) {
+    const agent = this.agent;
+    const memoryAgentDir = agent.agentDir && fs.existsSync(path.join(agent.agentDir, "memory")) ? agent.agentDir : null;
+    const memoryEvidenceEpoch = memoryAgentDir ? captureMemoryEvidenceEpoch(memoryAgentDir) : null;
     const currentPath = this.currentSessionPath;
-    if (currentPath && this.agent.memoryTicker) {
-      await this.agent.memoryTicker.flushSession(currentPath);
+    if (currentPath && agent.memoryTicker) {
+      await agent.memoryTicker.flushSession(currentPath);
     }
     const { writeDiary } = await import("../lib/diary/diary-writer.ts");
-    const diaryModelId = this.agent.config?.models?.chat || this.agent.memoryModel;
+    const diaryModelId = agent.config?.models?.chat || agent.memoryModel;
     const resolvedModel = {
       ...this._models.resolveModelWithCredentials(diaryModelId),
       usageLedger: this._usageLedger,
+      usageAgentId: agent.id,
     };
-    const agent = this.agent;
     return writeDiary({
       summaryManager: agent.summaryManager,
       resolvedModel,
       agentPersonality: agent.personality,
+      agentDir: memoryAgentDir,
+      memoryEvidenceEpoch,
       memory: (() => {
+        if (memoryAgentDir) return ""; // The writer reads eligible live memory at use time.
         try { return fs.readFileSync(agent.memoryMdPath, "utf-8"); } catch { return ""; }
       })(),
       userName: agent.userName,

@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { governanceQueryFromParams, GovernanceQueryError } from '../../lib/memory/governance-query.ts';
 /**
  * 配置管理 REST 路由
  */
@@ -10,6 +11,7 @@ import { safeJson } from "../hono-helpers.ts";
 import { t } from "../../lib/i18n.ts";
 import { debugLog } from "../../lib/debug-log.ts";
 import { getRawConfig, clearConfigCache } from "../../lib/memory/config-loader.ts";
+import { registerMemoryGovernanceRoutes } from './memory-governance.ts';
 import { FactStore } from "../../lib/memory/fact-store.ts";
 import {
   writeCompiledResetMarker,
@@ -19,7 +21,6 @@ import {
 import {
   buildCompiledMemoryMarkdown,
   readCompiledMemorySections,
-  writeEditableFactsSection,
 } from "../../lib/memory/compile.ts";
 import {
   ensureDefaultWorkspace,
@@ -631,6 +632,8 @@ export function createConfigRoute(engine: any) {
     }
   }
 
+  registerMemoryGovernanceRoutes(route, engine, getStoreForAgent);
+
   // 获取所有元事实
   route.get("/memories/health", async (c) => {
     try {
@@ -648,11 +651,14 @@ export function createConfigRoute(engine: any) {
   route.get("/memories", async (c) => {
     let tempStore = null;
     try {
+      const denied = denyWithoutScope(c, "settings.read");
+      if (denied) return denied;
+      resolveAgentStrict(engine, c);
       const { store, isTemp } = getStoreForAgent(c.req.query("agentId"));
       if (isTemp) tempStore = store;
-      return c.json({ memories: store.exportAll() });
+      return c.json(store.queryPage(governanceQueryFromParams(c.req.query())));
     } catch (err) {
-      return c.json({ error: err.message }, 500);
+      return c.json({ error: err.message }, err instanceof GovernanceQueryError ? 400 : err instanceof AgentNotFoundError ? 404 : 500);
     } finally {
       tempStore?.close();
     }
@@ -678,29 +684,11 @@ export function createConfigRoute(engine: any) {
 
   // 清除编译产物（today/week/longterm/facts/memory.md + fingerprints）
   route.put("/memories/compiled/facts", async (c) => {
-    try {
-      const denied = denyWithoutScope(c, "settings.write");
-      if (denied) return denied;
-      const agent = resolveAgentStrict(engine, c);
-      if (!isEditableMemoryEnabled(engine)) {
-        return c.json({ error: "editable memory experiment is disabled" }, 400);
-      }
-      const body = await safeJson(c);
-      if (typeof body?.facts !== "string") {
-        return c.json({ error: "facts must be a string" }, 400);
-      }
-      const memDir = path.dirname(agent.memoryMdPath);
-      const normalizedFacts = writeEditableFactsSection(memDir, body.facts, {
-        summaryManager: agent.summaryManager,
-        memoryMdPath: agent.memoryMdPath,
-      });
-      debugLog()?.log("api", `PUT /api/memories/compiled/facts agent=${agent.id}`);
-      await engine.updateConfig({}, { agentId: agent.id });
-      return c.json({ ok: true, facts: normalizedFacts });
-    } catch (err) {
-      if (err instanceof AgentNotFoundError) return c.json({ error: err.message }, 404);
-      return c.json({ error: err.message }, 500);
-    }
+    const denied = denyWithoutScope(c, "settings.write");
+    if (denied) return denied;
+    try { resolveAgentStrict(engine, c); }
+    catch (err) { return c.json({ error: err.message }, err instanceof AgentNotFoundError ? 404 : 500); }
+    return c.json({ error: "Bulk compiled facts editing is retired. Correct individual sourced facts in the memory page.", code: "sourced_memory_required" }, 410);
   });
 
   route.delete("/memories/compiled", async (c) => {
@@ -742,56 +730,16 @@ export function createConfigRoute(engine: any) {
     }
   });
 
-  // 导出记忆（JSON）
-  route.get("/memories/export", async (c) => {
-    let tempStore = null;
-    try {
-      const { store, isTemp } = getStoreForAgent(c.req.query("agentId"));
-      if (isTemp) tempStore = store;
-      return c.json({
-        version: 2,
-        exportedAt: new Date().toISOString(),
-        facts: store.exportAll(),
-      });
-    } catch (err) {
-      return c.json({ error: err.message }, 500);
-    } finally {
-      tempStore?.close();
-    }
-  });
-
-  // 导入记忆（直接写入，无需 embedding）
-  route.post("/memories/import", async (c) => {
-    let tempStore = null;
-    try {
-      const body = await safeJson(c);
-      const { facts, memories } = body;
-      // 兼容 v1 导出格式（memories 字段）和 v2 格式（facts 字段）
-      const entries = facts || memories;
-      if (!Array.isArray(entries) || entries.length === 0) {
-        return c.json({ error: "facts must be a non-empty array" }, 400);
-      }
-
-      const importEntries = entries.map((e) => ({
-        fact: e.fact || e.content || "",
-        tags: e.tags || [],
-        time: e.time || e.date || null,
-        session_id: e.session_id || "imported",
-        source: e.source || null,
-        status: e.status,
-      }));
-
-      const { store, isTemp } = getStoreForAgent(c.req.query("agentId"));
-      if (isTemp) tempStore = store;
-      store.importAll(importEntries);
-      debugLog()?.log("api", `POST /api/memories/import: ${importEntries.length} entries`);
-      return c.json({ ok: true, imported: importEntries.length });
-    } catch (err) {
-      return c.json({ error: err.message }, 500);
-    } finally {
-      tempStore?.close();
-    }
-  });
+  // v1/v2 dumps lose scope, expiry and revocation history. They are not backup formats.
+  for (const [method, endpoint, scope] of [["get", "/memories/export", "settings.read"], ["post", "/memories/import", "settings.write"]]) {
+    route[method](endpoint, (c) => {
+      const denied = denyWithoutScope(c, scope);
+      if (denied) return denied;
+      try { resolveAgentStrict(engine, c); }
+      catch (err) { return c.json({ error: err.message }, err instanceof AgentNotFoundError ? 404 : 500); }
+      return c.json({ code: "unsafe_memory_format_retired", error: "Legacy memory import/export is retired: it cannot preserve scope, expiry and revocation history. Full backup/restore is not implemented; no data has been imported." }, 410);
+    });
+  }
 
   // Individual corrections use the selected agent's existing fact database.
   route.patch("/memories/:id", async (c) => {
@@ -801,15 +749,29 @@ export function createConfigRoute(engine: any) {
       if (denied) return denied;
       const agent = resolveAgentStrict(engine, c);
       const id = Number(c.req.param("id"));
-      const body = await safeJson(c);
-      if (!Number.isSafeInteger(id) || id <= 0 || typeof body.expectedUpdatedAt !== "string"
-        || (body.fact === undefined && body.status === undefined)) {
-        return c.json({ error: "Valid id, correction and expectedUpdatedAt are required" }, 400);
+      const body = (await safeJson(c)) || {};
+      if (!Number.isSafeInteger(id) || id <= 0
+        || !(typeof body.expectedUpdatedAt === "string" || (Number.isSafeInteger(body.expectedRevision) && body.expectedRevision > 0))
+        || !["fact", "status", "scope", "projectId", "expiresAt"].some(key => body[key] !== undefined)) {
+        return c.json({ error: "Valid id, correction and expectedRevision or expectedUpdatedAt are required" }, 400);
       }
       const { store, isTemp } = getStoreForAgent(agent.id);
       if (isTemp) tempStore = store;
-      const result = store.update(id, { fact: body.fact, status: body.status }, body.expectedUpdatedAt);
+      if ((body.scope !== undefined && !["global", "project"].includes(body.scope))
+        || (body.projectId !== undefined && body.projectId !== null && (typeof body.projectId !== "string" || !body.projectId.trim() || body.projectId.length > 1024))
+        || (body.scope === "project" && !body.projectId?.trim())
+        || (body.expiresAt !== undefined && body.expiresAt !== null && (typeof body.expiresAt !== "string" || !Number.isFinite(Date.parse(body.expiresAt))))
+        || (body.fact !== undefined && (typeof body.fact !== "string" || !body.fact.trim() || body.fact.length > 16000))
+        || (body.status !== undefined && !["candidate", "active", "conflict", "superseded", "expired"].includes(body.status))) {
+        return c.json({ error: "Invalid correction, scope or expiry" }, 400);
+      }
+      const patch = Object.fromEntries(["fact", "status", "scope", "projectId", "expiresAt"].filter(key => body[key] !== undefined).map(key => [key, body[key]]));
+      if (patch.scope === "global") patch.projectId = null;
+      if (patch.status === "active") patch.reviewStatus = "user_confirmed";
+      const result = store.update(id, patch, body.expectedRevision ?? body.expectedUpdatedAt);
       if (result.error) return c.json(result, result.error === "not_found" ? 404 : result.error === "conflict" ? 409 : 400);
+      agent.summaryManager?.clearCache?.();
+      await engine.updateConfig?.({}, { agentId: agent.id });
       return c.json(result);
     } catch (err) {
       return c.json({ error: err.message }, err instanceof AgentNotFoundError ? 404 : 500);
@@ -826,7 +788,18 @@ export function createConfigRoute(engine: any) {
       if (!Number.isSafeInteger(id) || id <= 0) return c.json({ error: "Invalid memory id" }, 400);
       const { store, isTemp } = getStoreForAgent(agent.id);
       if (isTemp) tempStore = store;
+      const body = (await safeJson(c)) || {};
+      const expected = body.expectedRevision ?? body.expectedUpdatedAt;
+      if (expected !== undefined) {
+        const current = store.getById(id);
+        if (!current) return c.json({ error: "Memory not found" }, 404);
+        if ((typeof expected === "number" ? current.revision : current.updated_at) !== expected) {
+          return c.json({ error: "conflict", current }, 409);
+        }
+      }
       if (!store.delete(id)) return c.json({ error: "Memory not found" }, 404);
+      agent.summaryManager?.clearCache?.();
+      await engine.updateConfig?.({}, { agentId: agent.id });
       return c.json({ ok: true });
     } catch (err) {
       return c.json({ error: err.message }, err instanceof AgentNotFoundError ? 404 : 500);

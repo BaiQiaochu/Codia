@@ -154,7 +154,7 @@ export class ModelQualificationService {
         let payloadObserved = false;
         let httpStatus = 0;
         const usageRequest = this.engine.usageLedger?.start?.({
-          requestId, model: { provider: selected.model.provider, modelId: selected.model.id, api: selected.model.api }, costRates: selected.model.cost,
+          requestId, model: { ...selected.model, modelId: selected.model.id }, maxOutputTokens: reservation.maxOutputTokens, costRates: selected.model.cost,
           usageContext: { source: { subsystem: 'utility', operation: 'model_capability_qualification', surface: 'settings', trigger: 'manual' }, attribution: { kind: 'utility', agentId: this.engine.currentAgentId || null } },
           metadata: { qualificationId: report.id, suiteVersion: QUALIFICATION_SUITE_VERSION, capability, configFingerprint: selected.fingerprint },
         });

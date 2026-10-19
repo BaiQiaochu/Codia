@@ -14,6 +14,8 @@
 
 import fs from "fs";
 import path from "path";
+import { isCompiledMemoryEligible } from "../lib/memory/compiled-memory-state.ts";
+import { memoryContentHash } from "../lib/memory/memory-lifecycle.ts";
 import { createChannelTicker } from "../lib/channels/channel-ticker.ts";
 import { Type } from "../lib/pi-sdk/index.ts";
 import {
@@ -801,7 +803,7 @@ export class ChannelRouter {
           readFile(path.join(agentDir, "ishiki.md"))].filter(Boolean).join("\n\n");
 
     // Memory and user profile can change at runtime; read them from disk.
-    const memoryMd = readFile(path.join(agentDir, "memory", "memory.md"));
+    const memoryMd = isCompiledMemoryEligible(path.join(agentDir, "memory")) ? readFile(path.join(agentDir, "memory", "memory.md")) : "";
     const userMd = readFile(path.join(engine.userDir, "user.md"));
     const memoryContext = memoryMd?.trim()
       ? (isZh ? `\n\n你的记忆：\n${memoryMd}` : `\n\nYour memory:\n${memoryMd}`)
@@ -1338,16 +1340,16 @@ export class ChannelRouter {
 
   _getPreviousChannelMemoryFacts(factStore, sessionId) {
     if (typeof factStore?.getBySession !== "function") return [];
-    return factStore.getBySession(sessionId) || [];
+    return (factStore.getBySession(sessionId) || []).filter(fact => !["superseded", "expired", "conflict", "deleted"].includes(fact.status));
   }
 
   _clearPreviousChannelMemoryFacts(factStore, sessionId, previousFacts = null) {
-    if (typeof factStore?.delete !== "function") return;
+    if (typeof factStore?.update !== "function") return;
     const facts = Array.isArray(previousFacts)
       ? previousFacts
       : this._getPreviousChannelMemoryFacts(factStore, sessionId);
     for (const fact of facts) {
-      if (fact?.id != null) factStore.delete(fact.id);
+      if (fact?.id != null && fact.reviewStatus !== "user_confirmed") factStore.update(fact.id, { status: "superseded" }, fact.revision ?? fact.updated_at);
     }
   }
 
@@ -1411,7 +1413,10 @@ export class ChannelRouter {
         needClose = true;
       }
 
+      const generation = factStore.generation;
       const previousFacts = this._getPreviousChannelMemoryFacts(factStore, sessionId);
+      const sourceRevision = memoryContentHash(JSON.stringify(payload));
+      if (previousFacts.some(fact => fact.sourceRevision === sourceRevision && fact.extractorVersion === "channel-summary.v2")) return;
       const rawSummary = await callText({
         api, model,
         apiKey: api_key,
@@ -1439,19 +1444,35 @@ export class ChannelRouter {
       });
       const summaryText = this._normalizeChannelMemorySummary(rawSummary);
 
+      if (!this._resolveMemoryMasterEnabled(agentId, { agentInstance }) || factStore.generation !== generation) return;
       const now = new Date();
-      this._clearPreviousChannelMemoryFacts(factStore, sessionId, previousFacts);
       if (this._isEmptyChannelMemorySummary(summaryText)) {
+        this._clearPreviousChannelMemoryFacts(factStore, sessionId, previousFacts);
         console.log(`\x1b[90m[channel] ${agentId} memory cleared/no durable summary (#${channelName})\x1b[0m`);
         return;
       }
 
-      factStore.add({
+      const entry = {
         fact: `[#${channelName}] ${summaryText}`,
         tags: [isZhMem ? "频道" : "channel", channelName],
-        time: now.toISOString().slice(0, 16),
-        session_id: sessionId,
-      });
+        time: now.toISOString().slice(0, 16), session_id: sessionId, channelId: channelName,
+        observedAt: now.toISOString(), sourceRevision, extractorVersion: "channel-summary.v2",
+        status: "candidate", reviewStatus: "unverified",
+        sourceRefs: [
+          { kind: "session", sessionId, revision: sourceRevision, evidenceHash: memoryContentHash(contextText) },
+          ...(Array.isArray(payload?.messages) ? payload.messages.slice(-100).map(message => ({ kind: "message", sessionId,
+            messageId: message.id || message.messageId || null, author: message.sender || null,
+            observedAt: message.timestamp || null, evidenceHash: memoryContentHash(message.body || "") })) : []),
+        ],
+      };
+      const existing = previousFacts.find(fact => fact.reviewStatus !== "user_confirmed");
+      if (existing && typeof factStore.update === "function") {
+        const result = factStore.update(existing.id, entry, existing.revision ?? existing.updated_at);
+        if (result.error) return; // Never overwrite a concurrent user correction.
+      } else {
+        factStore.add(entry);
+      }
+      this._clearPreviousChannelMemoryFacts(factStore, sessionId, previousFacts.filter(fact => fact.id !== existing?.id));
 
       console.log(`\x1b[90m[channel] ${agentId} memory saved (#${channelName}, ${summaryText.length} chars)\x1b[0m`);
     } catch (err) {

@@ -15,6 +15,7 @@ import {
   createCachePreservingCompactionResult,
   shouldHardTruncateCachePreservingCompaction,
   stripInlineMediaFromCompactionPreparation,
+  withCompactionEvidenceEpoch,
 } from "../../core/session-compactor.ts";
 import {
   normalizeProviderContextMessages,
@@ -35,6 +36,7 @@ import {
 import { convertAgentMessagesToLlm } from "../pi-sdk/index.ts";
 import { createModuleLogger } from "../debug-log.ts";
 import { normalizeRequestThinkingLevel } from "../../core/session-thinking-level.ts";
+import { captureMemoryEvidenceEpoch, memoryAgentDirFromSessionPath } from "../memory/prompt-guard.ts";
 
 const log = createModuleLogger("compaction-guard");
 
@@ -158,8 +160,18 @@ export function createCompactionGuardExtension(opts = {}) {
         const model = ctx?.model;
         if (!preparation || !model) return { cancel: true };
 
+        const sessionPath = ctx.sessionManager?.getSessionFile?.() || null;
+        const memoryAgentDir = ctx.sessionManager?.__memoryAgentDir || memoryAgentDirFromSessionPath(sessionPath);
+        const memoryEvidenceEpoch = memoryAgentDir ? captureMemoryEvidenceEpoch(memoryAgentDir, {
+          messages: [
+            ...(preparation.messagesToSummarize || []), ...(preparation.turnPrefixMessages || []),
+            ...(preparation.previousSummary ? [{ role: "compactionSummary", summary: preparation.previousSummary }] : []),
+          ],
+        }) : null;
         const compactionMode = readCompactionMode(event, ctx);
-        if (compactionMode === COMPACTION_MODES.PI_COMPATIBLE) {
+        // Native SDK compaction bypasses agent.streamFn and cannot carry source
+        // epochs. Memory-enabled sessions must use the guarded implementation.
+        if (compactionMode === COMPACTION_MODES.PI_COMPATIBLE && !memoryAgentDir) {
           log.log("[L3] pi-compatible compaction selected; falling through to Pi SDK native summarizer");
           return undefined;
         }
@@ -189,7 +201,7 @@ export function createCompactionGuardExtension(opts = {}) {
             `> threshold=${threshold} (ctx=${contextWindow}), keep=${keepRecentTokens}`
           );
 
-          return { compaction: truncation };
+          return { compaction: withCompactionEvidenceEpoch(truncation, memoryAgentDir, memoryEvidenceEpoch) };
         }
 
         if (event.signal?.aborted) return { cancel: true };
@@ -228,7 +240,6 @@ export function createCompactionGuardExtension(opts = {}) {
           log.warn("[L3] cache recovery compaction: reasoning replay unavailable, historical thinking cleared for this compaction");
         }
         const systemPrompt = ctx.getSystemPrompt?.() || builtContext?.systemPrompt || "";
-        const sessionPath = ctx.sessionManager?.getSessionFile?.() || null;
         const fit = shouldHardTruncateCachePreservingCompaction({
           preparation,
           model,
@@ -249,7 +260,7 @@ export function createCompactionGuardExtension(opts = {}) {
             `[L3] cache-preserving request hard-truncate: requestTokens=${fit.budget.totalTokens} ` +
             `> threshold=${fit.threshold} (ctx=${fit.contextWindow}), keep=${keepRecentTokens}`
           );
-          return { compaction: truncation };
+          return { compaction: withCompactionEvidenceEpoch(truncation, memoryAgentDir, memoryEvidenceEpoch) };
         }
 
         // PI 1.x keeps configured providers, OAuth refresh, request headers and
@@ -291,6 +302,9 @@ export function createCompactionGuardExtension(opts = {}) {
           requestThinking = requestMetadataOverride ? thinkingLevel : requestThinkingLevel,
           requestReasoning = requestMetadataOverride ? reasoningLevel : requestReasoningLevel,
         } = {}) => ({
+          sessionPath,
+          agentDir: memoryAgentDir,
+          memoryEvidenceEpoch,
           preparation,
           model,
           systemPrompt,
@@ -358,7 +372,7 @@ export function createCompactionGuardExtension(opts = {}) {
           `[L3] cache-preserving compaction: tokensBefore=${compaction.tokensBefore} ` +
           `firstKept=${compaction.firstKeptEntryId}`
         );
-        return { compaction };
+        return { compaction: withCompactionEvidenceEpoch(compaction, memoryAgentDir, memoryEvidenceEpoch) };
       } catch (err) {
         log.warn(`[L3] session_before_compact hook error (cancelled): ${err?.message || err}`);
         return { cancel: true };

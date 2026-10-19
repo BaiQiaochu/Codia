@@ -881,7 +881,7 @@ export function createCompanyService(ctx) {
     return channel;
   }
 
-  async function reportTask(input = {}) {
+  async function reportTask(input = {}, runtime = {}) {
     const company = await ensureCompany(input.companyId);
     const tasks = await store.listTasks(company.id);
     const target = findReportTargetTask(tasks, input);
@@ -896,7 +896,7 @@ export function createCompanyService(ctx) {
     if (target.source?.runId && target.status === "queued") throw Object.assign(new Error("Task is waiting for dependencies"), { status: 409 });
     const report = cleanText(input.report || input.content || input.text);
     let status = normalizeTaskStatus(input.status, report ? "reported" : "in_progress");
-    const acceptanceResults = safeArray(input.acceptanceResults);
+    const acceptanceResults = input.acceptanceResults === undefined ? safeArray(target.acceptanceResults) : safeArray(input.acceptanceResults);
     const artifacts = input.artifacts === undefined ? safeArray(target.artifacts) : safeArray(input.artifacts);
     const finalReport = report || target.report || "";
     let acceptanceFailure = "";
@@ -913,6 +913,7 @@ export function createCompanyService(ctx) {
     }
     const patch = {
       status,
+      ...(typeof runtime.sessionPath === "string" && runtime.sessionPath ? { sessionPath: runtime.sessionPath } : {}),
       report: finalReport,
       artifacts,
       ...(input.acceptanceResults !== undefined ? { acceptanceResults } : {}),
@@ -937,6 +938,22 @@ export function createCompanyService(ctx) {
     }
     if (updated?.source?.runId) await dispatchWorkflowRun(company.id, updated.source.runId);
     return updated;
+  }
+
+  // Called only by the owner-only task console route. This does not advance the
+  // workflow, dispatch dependencies, mirror a message, or accept agent claims.
+  async function reviewTask(taskId, input = {}) {
+    return store.updateTask(taskId, current => {
+      if ((current.deliveryRevision || 0) !== input.expectedRevision) throw Object.assign(new Error("delivery_changed"), { status: 409 });
+      const criteria = safeArray(current.acceptanceCriteria);
+      const items = safeArray(input.items);
+      if (!criteria.length || items.length !== criteria.length || items.some(item => !item || typeof item !== "object") || new Set(items.map(item => item.criterion)).size !== criteria.length
+        || !criteria.every(criterion => items.some(item => item.criterion === criterion && ["pass", "fail"].includes(item.verdict) && typeof item.note === "string" && item.note.trim()))) {
+        throw Object.assign(new Error("review_every_criterion_with_evidence"), { status: 400 });
+      }
+      return { humanReview: { version: input.version, revision: input.expectedRevision,
+        reviewedAt: nowIso(), reviewedBy: input.reviewedBy, source: "human_owner", items: items.map(item => ({ criterion: item.criterion, verdict: item.verdict, note: item.note.slice(0, 4000) })) } };
+    });
   }
 
   function assignFromCanvas(input = {}) {
@@ -1110,6 +1127,7 @@ export function createCompanyService(ctx) {
     postChannelReply,
     updateChannelStatus,
     reportTask,
+    reviewTask,
     assignCommand,
     assignFromCanvas,
     cancelWorkflowRun,

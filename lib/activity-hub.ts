@@ -84,6 +84,8 @@ function normalizeEntry(entry: any, existing: any, resolveSessionIdForPath: any 
     parentTaskId: pickStr(entry.parentTaskId, existing?.parentTaskId ?? null),
     phaseLabel: pickStr(entry.phaseLabel, existing?.phaseLabel ?? null),
     tokens: pickNum(entry.tokens, existing?.tokens ?? null),
+    // Runtime snapshots are immutable per run; later status updates cannot replace history.
+    ...(existing?.environment || entry.environment ? {environment:structuredClone(existing?.environment || entry.environment)} : {}),
     ...(entry.runBudget || existing?.runBudget ? { runBudget: structuredClone(entry.runBudget || existing.runBudget) } : {}),
     stepKind: pickStr(entry.stepKind, existing?.stepKind ?? null),
     startedAt: pickNum(existing?.startedAt, pickNum(entry.startedAt, null)),

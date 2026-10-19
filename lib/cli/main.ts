@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // @ts-nocheck
 import fs from "node:fs";
+import { commandUsage } from "./usage-maintenance.ts";
 import os from "node:os";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
@@ -1038,6 +1039,9 @@ function zhHelpText() {
   codia doctor [--json]
   codia health [--json]
   codia session list|new|switch|messages|export
+  codia usage report
+  codia usage budget [set <JSON>]
+  codia usage retention <agentId> [set <JSON> | apply --confirm]
   codia models list|set|switch
   codia agents list|switch|create
   codia skills [--agent-id <id>]
@@ -1814,6 +1818,7 @@ async function dispatch(client, command, args, opts) {
     commandInteractive,
     commandSessions,
     commandModels,
+    commandUsage,
     commandAgents,
     commandSkills,
     commandCommands,

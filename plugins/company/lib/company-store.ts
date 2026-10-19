@@ -172,7 +172,21 @@ export class CompanyStore {
       const state = this._read();
       const index = state.tasks.findIndex((task) => task.id === taskId);
       if (index < 0) return null;
-      const next = { ...state.tasks[index], ...patch, id: state.tasks[index].id, updatedAt: new Date().toISOString() };
+      const previous = state.tasks[index];
+      const changes = typeof patch === "function" ? patch(structuredClone(previous)) : patch;
+      const now = new Date().toISOString();
+      // Only observed status transitions establish execution boundaries. A report
+      // edit cannot forge timestamps or retrofit legacy unknown execution dates.
+      const terminal = new Set(["completed", "failed", "cancelled"]);
+      const nextStatus = changes.status ?? previous.status;
+      const startedAt = previous.startedAt || (nextStatus === "in_progress" && previous.status !== "in_progress" ? now : null);
+      const finishedAt = previous.finishedAt || (terminal.has(nextStatus) && !terminal.has(previous.status) ? now : null);
+      const fields = ["report", "artifacts", "acceptanceCriteria", "acceptanceResults"];
+      const changed = fields.some(key => Object.hasOwn(changes, key) && JSON.stringify(changes[key]) !== JSON.stringify(previous[key]));
+      const next = { ...previous, ...changes, id: previous.id, companyId: previous.companyId,
+        startedAt, finishedAt, updatedAt: now,
+        deliveryRevision: (previous.deliveryRevision || 0) + (changed ? 1 : 0),
+      };
       state.tasks[index] = next;
       this._write(state);
       return next;

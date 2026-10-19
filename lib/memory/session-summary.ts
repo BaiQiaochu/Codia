@@ -12,13 +12,15 @@ import { scrubPII } from "../pii-guard.ts";
 import { callText } from "../../core/llm-client.ts";
 import { getToolArgs, isToolCallBlock } from "../../core/llm-utils.ts";
 import { getLocale } from "../i18n.ts";
-import { readCompiledResetAt } from "./compiled-memory-state.ts";
+import { readCompiledResetAt, readCompiledGeneration, assertCompiledGeneration, isCompiledMemoryEligible } from "./compiled-memory-state.ts";
 import { attachPromptLayoutMetadata, buildUtilityPromptLayout } from "../llm/prompt-layout.ts";
 import {
   buildSourceTimeRange,
   formatZonedDateTime,
   resolveMemoryTimeZone,
 } from "./time-context.ts";
+import { captureMemoryEvidenceEpoch, assertMemoryEvidenceEpoch, guardMemoryContext } from "./prompt-guard.ts";
+import { memoryContentHash, scrubMemorySecrets } from "./memory-lifecycle.ts";
 import { createModuleLogger } from "../debug-log.ts";
 import { withMemoryReasoningBuffer } from "./llm-budget.ts";
 import {
@@ -35,6 +37,9 @@ export class SessionSummaryManager {
  * @param {string} summariesDir - summaries/ 目录的绝对路- */
   constructor(summariesDir) {
     this.summariesDir = summariesDir;
+    this.memoryDir = path.dirname(summariesDir);
+    this.agentDir = path.basename(this.memoryDir) === "memory" ? path.dirname(this.memoryDir) : this.memoryDir;
+    this._generation = readCompiledGeneration(this.memoryDir);
     fs.mkdirSync(summariesDir, { recursive: true });
     this._cache = new Map();          // sessionId -> summary data
     this._cachePopulated = false;     // 是否已做过全量扫描
@@ -49,10 +54,17 @@ export class SessionSummaryManager {
    * @returns {object|null}
    */
   getSummary(sessionId) {
-    if (this._cache.has(sessionId)) return this._cache.get(sessionId);
+    this._checkGeneration();
+    if (this._cache.has(sessionId)) {
+      const cached = this._cache.get(sessionId);
+      if (this._isCurrent(cached)) return cached;
+      this._cache.delete(sessionId);
+      return null;
+    }
     const fp = this._filePath(sessionId);
     try {
       const data = JSON.parse(fs.readFileSync(fp, "utf-8"));
+      if (!this._isCurrent(data)) return null;
       this._cache.set(sessionId, data);
       return data;
     } catch {
@@ -66,6 +78,11 @@ export class SessionSummaryManager {
    * @param {object} data
    */
   saveSummary(sessionId, data) {
+    this._checkGeneration();
+    if (data.memoryGeneration !== undefined) assertCompiledGeneration(this.memoryDir, data.memoryGeneration);
+    if (data.memoryEvidenceEpoch) assertMemoryEvidenceEpoch(this.agentDir, data.memoryEvidenceEpoch);
+    if (!this._isCurrent(data)) return false;
+    data = { ...data, summary: scrubMemorySecrets(data.summary || ""), snapshot: scrubMemorySecrets(data.snapshot || "") };
     const fp = this._filePath(sessionId);
     fs.mkdirSync(path.dirname(fp), { recursive: true });
     atomicWriteSync(fp, JSON.stringify(data, null, 2) + "\n");
@@ -84,7 +101,7 @@ export class SessionSummaryManager {
     const since = normalizeSince(opts.since);
     const dirty = [];
     for (const data of this._cache.values()) {
-      if (!data?.summary) continue;
+      if (!data?.summary || !this._isCurrent(data)) continue;
       if (since && !isAfter(data.updated_at || data.created_at, since)) continue;
       if (data.summary !== (data.snapshot || "")) {
         dirty.push(data);
@@ -96,10 +113,11 @@ export class SessionSummaryManager {
   /**
  * 标记 session 已被深度记忆处理（snapshot = summary- * @param {string} sessionId
    */
-  markProcessed(sessionId) {
+  markProcessed(sessionId, sourceRevision = null, expectedSummary = null) {
     const data = this.getSummary(sessionId);
-    if (!data) return;
+    if (!data || (expectedSummary !== null && data.summary !== expectedSummary)) return false;
 
+    data.extractedSourceRevision = sourceRevision;
     data.snapshot = data.summary;
     data.snapshot_at = new Date().toISOString();
     this.saveSummary(sessionId, data);
@@ -116,7 +134,7 @@ export class SessionSummaryManager {
     this._ensureCachePopulated();
     const summaries = [];
     for (const data of this._cache.values()) {
-      if (data?.summary) summaries.push(data);
+      if (data?.summary && this._isCurrent(data)) summaries.push(data);
     }
     summaries.sort((a, b) => (b.updated_at || "").localeCompare(a.updated_at || ""));
     return summaries;
@@ -124,12 +142,13 @@ export class SessionSummaryManager {
 
  /** */
   _ensureCachePopulated() {
+    this._checkGeneration();
     if (this._cachePopulated) return;
     const files = this._listFiles();
     for (const file of files) {
       try {
         const data = JSON.parse(fs.readFileSync(file, "utf-8"));
-        if (data?.session_id) this._cache.set(data.session_id, data);
+        if (data?.session_id && this._isCurrent(data)) this._cache.set(data.session_id, data);
       } catch {}
     }
     this._cachePopulated = true;
@@ -152,6 +171,30 @@ export class SessionSummaryManager {
       if (since && !isAfter(updated, since)) return false;
       return true;
     });
+  }
+
+  _isCurrent(data) {
+    const resetAt = readCompiledResetAt(this.memoryDir);
+    if (data.memoryGeneration !== undefined && data.memoryGeneration !== readCompiledGeneration(this.memoryDir)) return false;
+    if (resetAt && !isAfter(data.updated_at || data.created_at, resetAt)) return false;
+    const current = this._evidenceEpoch || captureMemoryEvidenceEpoch(this.agentDir);
+    const expected = data.memoryEvidenceEpoch;
+    if (!expected) return !this._hasDestructiveEvidence(current) && isCompiledMemoryEligible(this.memoryDir);
+    if (["lifecycleGeneration", "compiledGeneration", "experienceGeneration"].some(key => expected[key] !== current[key])) return false;
+    return !expected.expiresAt || (Number.isFinite(Date.parse(expected.expiresAt)) && Date.parse(expected.expiresAt) > Date.now());
+  }
+
+  _hasDestructiveEvidence(epoch) {
+    return epoch.lifecycleGeneration !== "0" || epoch.experienceGeneration !== "0" || !!readCompiledResetAt(this.memoryDir);
+  }
+
+  _checkGeneration() {
+    const current = readCompiledGeneration(this.memoryDir);
+    const evidence = captureMemoryEvidenceEpoch(this.agentDir);
+    const previous = this._evidenceEpoch;
+    if (current !== this._generation || (previous && ["lifecycleGeneration", "compiledGeneration", "experienceGeneration"].some(key => previous[key] !== evidence[key]))) this.clearCache();
+    this._generation = current;
+    this._evidenceEpoch = evidence;
   }
 
   clearCache() {
@@ -370,12 +413,35 @@ export class SessionSummaryManager {
     *
    */
   async createRollingSummaryDraft(sessionId, messages, resolvedModel, opts = {}) {
+    const generation = readCompiledGeneration(this.memoryDir);
     const resetAt = latestSince(opts.resetAt, readCompiledResetAt(path.dirname(this.summariesDir)));
+    if (resetAt) messages = messages.filter(message => message.timestamp && isAfter(message.timestamp, resetAt));
+    // Scrub stale tool returns and imported compaction/branch summaries before any
+    // source text is sent to the rolling-summary model. Source chats remain untouched.
+    const guardedContext = guardMemoryContext({ systemPrompt: "", messages }, this.agentDir);
+    messages = guardedContext.messages.filter(message => message.details?.revoked !== true);
     const existingRaw = this.getSummary(sessionId);
     const existing = resetAt && existingRaw && !isAfter(existingRaw.updated_at || existingRaw.created_at, resetAt)
       ? null
       : existingRaw;
     const prevSummary = existing?.summary || "";
+    let memoryEvidenceEpoch = captureMemoryEvidenceEpoch(this.agentDir, { messages: [
+      ...messages,
+      ...(existing ? [{ role: "compactionSummary", summary: prevSummary, details: { memoryEvidenceEpoch: existing.memoryEvidenceEpoch } }] : []),
+    ] });
+    let memoryReflectionSnapshot = opts.memoryReflectionSnapshot;
+    if (memoryReflectionSnapshot) {
+      let stale = !memoryReflectionSnapshot.memoryEvidenceEpoch
+        && (this._hasDestructiveEvidence(memoryEvidenceEpoch) || !isCompiledMemoryEligible(this.memoryDir));
+      if (memoryReflectionSnapshot.memoryEvidenceEpoch) {
+        try { assertMemoryEvidenceEpoch(this.agentDir, memoryReflectionSnapshot.memoryEvidenceEpoch); } catch { stale = true; }
+      }
+      if (stale) memoryReflectionSnapshot = { ...memoryReflectionSnapshot, existingMemory: "", userProfile: "" };
+      else if (memoryReflectionSnapshot.memoryEvidenceEpoch) memoryEvidenceEpoch = captureMemoryEvidenceEpoch(this.agentDir, { messages: [
+        { role: "compactionSummary", details: { memoryEvidenceEpoch } },
+        { role: "compactionSummary", details: { memoryEvidenceEpoch: memoryReflectionSnapshot.memoryEvidenceEpoch } },
+      ] });
+    }
 
  //
     const lastMessageCount = existing?.messageCount || 0;
@@ -398,11 +464,16 @@ export class SessionSummaryManager {
  // 按全量用户轮数计算摘要配额（预算反映对话整体体量，输入只传增量）
     const turnCount = messages.filter((m) => m.role === "user").length;
     const llmResult = await this._callRollingLLM(convText, prevSummary, resolvedModel, turnCount, {
-      memoryReflectionSnapshot: opts.memoryReflectionSnapshot,
+      memoryReflectionSnapshot,
       returnUsage: opts.returnUsage,
       usageTrigger: opts.usageTrigger,
     });
     let usage = typeof llmResult === "object" && llmResult !== null ? llmResult.usage || null : null;
+    const evidenceStillCurrent = () => {
+      if (readCompiledGeneration(this.memoryDir) !== generation) return false;
+      try { assertMemoryEvidenceEpoch(this.agentDir, memoryEvidenceEpoch); return true; } catch { return false; }
+    };
+    if (!evidenceStillCurrent()) return { summary: "", changed: false, data: null, usage, reason: "evidence_changed" };
     let newSummary = typeof llmResult === "object" && llmResult !== null ? llmResult.text : llmResult;
     if (!newSummary?.trim()) {
       return {
@@ -423,6 +494,7 @@ export class SessionSummaryManager {
         returnUsage: opts.returnUsage,
         usageTrigger: opts.usageTrigger,
       });
+      if (!evidenceStillCurrent()) return { summary: "", changed: false, data: null, usage, reason: "evidence_changed" };
       usage = typeof repairResult === "object" && repairResult !== null ? repairResult.usage || null : usage;
       newSummary = typeof repairResult === "object" && repairResult !== null ? repairResult.text : repairResult;
       if (!newSummary?.trim()) {
@@ -435,6 +507,10 @@ export class SessionSummaryManager {
       throw new Error(`rolling summary format invalid after ${repairsUsed} repair attempt(s): ${validation.issues.join("; ")}`);
     }
 
+    if (opts.isEnabled && !opts.isEnabled()) return { summary: "", changed: false, data: null, usage, reason: "learning_paused" };
+    if (readCompiledGeneration(this.memoryDir) !== generation) return { summary: "", changed: false, data: null, usage, reason: "generation_changed" };
+    try { assertMemoryEvidenceEpoch(this.agentDir, memoryEvidenceEpoch); }
+    catch { return { summary: "", changed: false, data: null, usage, reason: "evidence_changed" }; }
     const latestResetAt = latestSince(resetAt, readCompiledResetAt(path.dirname(this.summariesDir)));
     if (latestResetAt && !areMessagesAfter(messages, latestResetAt)) {
       return {
@@ -447,7 +523,8 @@ export class SessionSummaryManager {
     }
 
     // PII 鑴辨晱
-    const { cleaned: scrubbedRolling, detected: rollingDetected } = scrubPII(newSummary);
+    const { cleaned: scrubbedRolling, detected: rollingDetected } = scrubPII(scrubMemorySecrets(newSummary));
+    newSummary = scrubbedRolling;
     if (rollingDetected.length > 0) {
       log.warn(`PII detected in rolling summary (${rollingDetected.join(", ")}), redacted`);
       newSummary = scrubbedRolling;
@@ -461,6 +538,19 @@ export class SessionSummaryManager {
     const now = new Date().toISOString();
     const data = {
       session_id: sessionId,
+      memoryGeneration: generation,
+      memoryEvidenceEpoch,
+      projectId: opts.projectId || existing?.projectId || null,
+      channelId: opts.channelId || existing?.channelId || null,
+      sourceRefs: messages.map(message => ({
+        kind: "message", sessionId,
+        messageId: message.id || message.messageId || null,
+        runId: message.runId || opts.runId || null,
+        author: message.role,
+        evidenceHash: memoryContentHash(JSON.stringify(message.content || "")),
+        observedAt: message.timestamp || null,
+      })),
+      sourceRevision: memoryContentHash(JSON.stringify(messages.map(message => [message.id || null, message.timestamp || null, message.content]))),
       created_at: existing?.created_at || now,
       updated_at: now,
       summary: newSummary.trim(),

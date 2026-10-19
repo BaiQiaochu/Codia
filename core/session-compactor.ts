@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { USAGE_RESERVATION } from "../lib/llm/usage-budget-guard.ts";
 import {
   completeSimple,
   convertAgentMessagesToLlm,
@@ -11,6 +12,13 @@ import { buildSessionCacheSnapshot } from "./session-cache-snapshot.ts";
 import { runSessionSnapshotSideTask } from "../lib/llm/session-snapshot-side-task-runner.ts";
 import { buildCacheStrategyMetadata } from "../lib/llm/cache-strategy-contract.ts";
 import { normalizeProviderContextMessages } from "./provider-compat.ts";
+import {
+  assertMemoryEvidenceEpoch,
+  captureMemoryEvidenceEpoch,
+  guardMemoryContext,
+  memoryAgentDirFromSessionPath,
+  memoryEvidenceEpochMarker,
+} from "../lib/memory/prompt-guard.ts";
 
 const DEFAULT_HARD_TRUNCATE_THRESHOLD = 0.85;
 const COMPACTION_REQUEST_BUFFER_TOKENS = 1024;
@@ -373,7 +381,36 @@ async function emitSessionCompactEvent(session, compactionEntryId, fromExtension
   });
 }
 
-export async function appendCompactionResultToSession(session, result, { fromExtension = true } = {}) {
+/** Stamp the source epoch, never the completion time: SDK projection drops details. */
+export function withCompactionEvidenceEpoch(result, agentDir, memoryEvidenceEpoch) {
+  if (!agentDir) return result;
+  assertMemoryEvidenceEpoch(agentDir, memoryEvidenceEpoch);
+  const existingEpoch = result.details?.memoryEvidenceEpoch;
+  if (existingEpoch) {
+    assertMemoryEvidenceEpoch(agentDir, existingEpoch);
+    // A caller may have captured the revocation epoch before transformContext
+    // added retrieved evidence. Never widen that result's expiry on return.
+    memoryEvidenceEpoch = { ...memoryEvidenceEpoch,
+      expiresAt: [memoryEvidenceEpoch.expiresAt, existingEpoch.expiresAt].filter(Boolean).sort()[0] || null };
+  }
+  const marker = memoryEvidenceEpochMarker(memoryEvidenceEpoch);
+  return {
+    ...result,
+    summary: result.summary.startsWith(marker) ? result.summary : `${marker}\n${result.summary}`,
+    details: { ...result.details, memoryEvidenceEpoch },
+  };
+}
+
+export async function appendCompactionResultToSession(session, result, { fromExtension = true, agentDir = null } = {}) {
+  const memoryAgentDir = session.sessionManager?.__memoryAgentDir || agentDir || memoryAgentDirFromSessionPath(session.sessionManager?.getSessionFile?.());
+  if (memoryAgentDir) {
+    // The coordinator's hard-truncate placeholder is built synchronously and
+    // contains no derived evidence. Other unversioned summaries fail closed.
+    if (!result.details?.memoryEvidenceEpoch && result.details?.reason === "model-switch-truncation") {
+      result = withCompactionEvidenceEpoch(result, memoryAgentDir, captureMemoryEvidenceEpoch(memoryAgentDir));
+    }
+    assertMemoryEvidenceEpoch(memoryAgentDir, result.details?.memoryEvidenceEpoch);
+  }
   const compactionEntryId = session.sessionManager.appendCompaction(
     result.summary,
     result.firstKeptEntryId,
@@ -393,6 +430,9 @@ export async function createCachePreservingCompactionResult({
   messages,
   tools = [],
   sessionSnapshot = null,
+  sessionPath = null,
+  agentDir = null,
+  memoryEvidenceEpoch = null,
   cacheKeyParams = {},
   cacheMetadataOverride = null,
   customInstructions,
@@ -406,14 +446,45 @@ export async function createCachePreservingCompactionResult({
 }) {
   if (!preparation) throw new Error("Cache-preserving compaction requires preparation");
   if (!model) throw new Error("Cache-preserving compaction requires a model");
+  const sourceSessionPath = sessionPath || sessionSnapshot?.sessionPath || usageContext?.attribution?.sessionPath || "";
+  const memoryAgentDir = agentDir || memoryAgentDirFromSessionPath(sourceSessionPath);
+  // Capture before any await, including conversion and provider authentication.
+  let sourceEpoch = null;
+  if (memoryAgentDir) {
+    if (memoryEvidenceEpoch) assertMemoryEvidenceEpoch(memoryAgentDir, memoryEvidenceEpoch);
+    const observedEpoch = captureMemoryEvidenceEpoch(memoryAgentDir, {
+      messages: [
+        ...(preparation.messagesToSummarize || []), ...(preparation.turnPrefixMessages || []), ...(messages || []),
+        ...(preparation.previousSummary ? [{ role: "compactionSummary", summary: preparation.previousSummary }] : []),
+      ],
+    });
+    sourceEpoch = memoryEvidenceEpoch ? { ...memoryEvidenceEpoch,
+      expiresAt: [memoryEvidenceEpoch.expiresAt, observedEpoch.expiresAt].filter(Boolean).sort()[0] || null } : observedEpoch;
+    assertMemoryEvidenceEpoch(memoryAgentDir, sourceEpoch);
+  }
   preparation = stripInlineMediaFromCompactionPreparation(preparation);
   const rawMessagesToSummarize = Array.isArray(preparation.messagesToSummarize)
     ? preparation.messagesToSummarize
     : [];
-  const effectivePreparation = Array.isArray(messages)
+  let effectivePreparation = Array.isArray(messages)
     && (rawMessagesToSummarize.length === 0 || messages.length === rawMessagesToSummarize.length)
     ? { ...preparation, messagesToSummarize: messages }
     : preparation;
+  if (memoryAgentDir) {
+    const history = effectivePreparation.messagesToSummarize || [];
+    const prefix = effectivePreparation.turnPrefixMessages || [];
+    const previous = effectivePreparation.previousSummary
+      ? [{ role: "compactionSummary", summary: effectivePreparation.previousSummary }]
+      : [];
+    const guarded = guardMemoryContext({ systemPrompt, messages: [...history, ...prefix, ...previous] }, memoryAgentDir);
+    systemPrompt = guarded.systemPrompt;
+    effectivePreparation = {
+      ...effectivePreparation,
+      messagesToSummarize: guarded.messages.slice(0, history.length),
+      turnPrefixMessages: guarded.messages.slice(history.length, history.length + prefix.length),
+      ...(previous.length ? { previousSummary: guarded.messages.at(-1).summary } : {}),
+    };
+  }
   const seedCacheKeyParams = !cacheMetadataOverride
     ? (cacheKeyParamsFromSnapshot(sessionSnapshot) || cacheKeyParams)
     : cacheKeyParams;
@@ -428,6 +499,8 @@ export async function createCachePreservingCompactionResult({
 
   async function runRequest(request) {
     const rawLlmMessages = await convertToLlm(request.messages);
+    throwIfCompactionCancelled(signal);
+    if (memoryAgentDir) assertMemoryEvidenceEpoch(memoryAgentDir, sourceEpoch);
     const llmMessages = normalizeProviderContextMessages(rawLlmMessages, model, {
       mode: "chat",
       reasoningLevel: effectiveThinkingLevel,
@@ -449,11 +522,13 @@ export async function createCachePreservingCompactionResult({
       };
       const metadata = buildCacheStrategyMetadata(cacheMetadataOverride);
       const usageRequest = usageLedger?.start?.({
-        model: { provider: model?.provider ?? null, modelId: model?.id ?? null, api: model?.api ?? null },
+        model: { ...model, modelId: model?.id ?? null },
+        maxOutputTokens: request.maxTokens,
         usageContext,
         metadata,
         costRates: model?.cost,
       }) || null;
+      if (usageRequest) options[USAGE_RESERVATION] = { ledger: usageLedger, requestId: usageRequest.requestId };
       let response;
       try {
         response = streamFn
@@ -477,7 +552,7 @@ export async function createCachePreservingCompactionResult({
     }
 
     const snapshotForRequest = buildSessionCacheSnapshot({
-      sessionPath: sessionSnapshot?.sessionPath || "",
+      sessionPath: sourceSessionPath,
       reason: request.kind === "turn-prefix" ? "compaction.turn_prefix" : "compaction.history",
       model,
       cacheKeyParams: effectiveCacheKeyParams,
@@ -521,13 +596,14 @@ export async function createCachePreservingCompactionResult({
     text = await runRequest(requests[0]);
   }
 
+  throwIfCompactionCancelled(signal);
   const details = computeFileDetails(preparation.fileOps);
-  return {
+  return withCompactionEvidenceEpoch({
     summary: appendFileOperationContext(text, details),
     firstKeptEntryId: preparation.firstKeptEntryId,
     tokensBefore: preparation.tokensBefore,
     details,
-  };
+  }, memoryAgentDir, sourceEpoch);
 }
 
 function replaceSessionMessages(session) {
@@ -558,6 +634,8 @@ export async function runCachePreservingCompactionForSession(session, {
   directCompactionsInProgress.add(session);
 
   try {
+    const sessionPath = session.sessionManager.getSessionFile?.() || usageContext?.attribution?.sessionPath || "";
+    const memoryAgentDir = session.sessionManager?.__memoryAgentDir || memoryAgentDirFromSessionPath(sessionPath);
     const branchEntries = session.sessionManager.getBranch();
     if (emitLifecycle) {
       emitCompactionProgress(session, { type: "compaction_start", reason: lifecycleReason });
@@ -570,6 +648,13 @@ export async function runCachePreservingCompactionForSession(session, {
       throw new Error("Nothing to compact (session too small)");
     }
 
+    const sourceEpoch = memoryAgentDir ? captureMemoryEvidenceEpoch(memoryAgentDir, {
+      messages: [
+        ...(session.agent.state?.messages || []),
+        ...(preparation.messagesToSummarize || []), ...(preparation.turnPrefixMessages || []),
+        ...(preparation.previousSummary ? [{ role: "compactionSummary", summary: preparation.previousSummary }] : []),
+      ],
+    }) : null;
     const systemPrompt = session.agent.state?.systemPrompt ?? session.systemPrompt;
     const fit = shouldHardTruncateCachePreservingCompaction({
       preparation,
@@ -586,7 +671,8 @@ export async function runCachePreservingCompactionForSession(session, {
           `(${fit.budget.totalTokens} > ${fit.threshold}) and hard truncation is unavailable`
         );
       }
-      const result = await appendCompactionResultToSession(session, truncation, { fromExtension: true });
+      const guardedTruncation = withCompactionEvidenceEpoch(truncation, memoryAgentDir, sourceEpoch);
+      const result = await appendCompactionResultToSession(session, guardedTruncation, { fromExtension: true, agentDir: memoryAgentDir });
       if (emitLifecycle) {
         emitCompactionProgress(session, {
           type: "compaction_end",
@@ -608,6 +694,9 @@ export async function runCachePreservingCompactionForSession(session, {
     throwIfCompactionCancelled(signal);
 
     const result = await createCachePreservingCompactionResult({
+      sessionPath,
+      agentDir: memoryAgentDir,
+      memoryEvidenceEpoch: sourceEpoch,
       preparation,
       model,
       systemPrompt,
@@ -619,7 +708,7 @@ export async function runCachePreservingCompactionForSession(session, {
       cacheKeyParams: {
         thinkingLevel: session.thinkingLevel ?? session.agent.state?.thinkingLevel ?? "off",
       },
-      streamFn: session.agent.streamFn,
+      streamFn: session.agent.streamFunction ?? session.agent.streamFn,
       streamOptions: {
         sessionId: session.agent.sessionId,
         onPayload: session.agent.onPayload,
@@ -634,7 +723,7 @@ export async function runCachePreservingCompactionForSession(session, {
     });
 
     throwIfCompactionCancelled(signal);
-    const saved = await appendCompactionResultToSession(session, result, { fromExtension: true });
+    const saved = await appendCompactionResultToSession(session, result, { fromExtension: true, agentDir: memoryAgentDir });
     if (emitLifecycle) {
       emitCompactionProgress(session, {
         type: "compaction_end",

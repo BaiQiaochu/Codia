@@ -12,7 +12,7 @@ import { getLogicalDay } from "../time-utils.ts";
 import { callText } from "../../core/llm-client.ts";
 import { getLocale } from "../i18n.ts";
 import { atomicWriteSync, safeReadFile } from "../../shared/safe-fs.ts";
-import { normalizeCompiledLLMResult, normalizeCompiledSectionBody } from "./compiled-memory-state.ts";
+import { normalizeCompiledLLMResult, normalizeCompiledSectionBody, readCompiledGeneration, assertCompiledGeneration, isCompiledSectionEligible, readCompiledSectionEvidence, writeCompiledEligibility } from "./compiled-memory-state.ts";
 import { attachPromptLayoutMetadata, buildUtilityPromptLayout } from "../llm/prompt-layout.ts";
 import {
   buildCompileFactsPrompt,
@@ -27,6 +27,8 @@ import {
   hasFactSectionHeading,
   isEmptyFactSection as isEmptyRollingFactSection,
 } from "./rolling-summary-format.ts";
+import { captureMemoryEvidenceEpoch, assertMemoryEvidenceEpoch, guardMemoryContext } from "./prompt-guard.ts";
+import { scrubMemorySecrets } from "./memory-lifecycle.ts";
 import { createModuleLogger } from "../debug-log.ts";
 
 const log = createModuleLogger("memory-compile");
@@ -47,6 +49,41 @@ const COMPILE_PROMPT_BUILDERS = {
   compile_facts: buildCompileFactsPrompt,
 };
 
+function compilerAgentDir(memoryDir) {
+  return path.basename(memoryDir) === "memory" ? path.dirname(memoryDir) : memoryDir;
+}
+function summarySources(memoryDir, sessions) {
+  const agentDir = compilerAgentDir(memoryDir);
+  const messages = sessions.map(summary => ({ role: "compactionSummary", summary: summary.summary,
+    details: { memoryEvidenceEpoch: summary.memoryEvidenceEpoch }, session: summary }));
+  const guarded = guardMemoryContext({ systemPrompt: "", messages }, agentDir).messages.filter(message => !message.details?.revoked);
+  return { sessions: guarded.map(message => message.session), epoch: compileEpoch(memoryDir, guarded) };
+}
+function compiledSource(filePath) {
+  const memoryDir = path.dirname(filePath), section = path.basename(filePath);
+  if (!isCompiledSectionEligible(memoryDir, section)) return null;
+  const summary = safeReadFile(filePath, "").trim();
+  return summary ? { role: "compactionSummary", summary, details: { memoryEvidenceEpoch: readCompiledSectionEvidence(memoryDir, section) } } : null;
+}
+function compileEpoch(memoryDir, messages = []) {
+  const agentDir = compilerAgentDir(memoryDir);
+  for (const message of messages.filter(Boolean)) {
+    if (message.details?.memoryEvidenceEpoch) assertMemoryEvidenceEpoch(agentDir, message.details.memoryEvidenceEpoch);
+  }
+  return captureMemoryEvidenceEpoch(agentDir, { messages: messages.filter(Boolean) });
+}
+function assertCompileEpoch(memoryDir, generation, epoch) {
+  assertCompiledGeneration(memoryDir, generation);
+  assertMemoryEvidenceEpoch(compilerAgentDir(memoryDir), epoch);
+}
+function saveCompiledSection(outputPath, text, epoch, facts = []) {
+  atomicWrite(outputPath, text);
+  writeCompiledEligibility(path.dirname(outputPath), facts, { section: path.basename(outputPath), epoch });
+}
+function epochFingerprint(epoch) {
+  return [epoch.lifecycleGeneration, epoch.compiledGeneration, epoch.experienceGeneration, epoch.expiresAt || ""].join(":");
+}
+
 // ════════════════════════════
 // v3 四块独立编译 + assemble
 // ════════════════════════════
@@ -59,10 +96,12 @@ const COMPILE_PROMPT_BUILDERS = {
  * @returns {Promise<"compiled"|"skipped">}
  */
 export async function compileToday(summaryManager, outputPath, resolvedModel, opts = {}) {
+  const generation = readCompiledGeneration(path.dirname(outputPath));
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
   const { rangeStart } = getLogicalDay();
-  const sessions = summaryManager.getSummariesInRange(rangeStart, new Date(), { since: opts.since || null });
+  const rawSessions = summaryManager.getSummariesInRange(rangeStart, new Date(), { since: opts.since || null }).filter(s => !s.projectId && !s.channelId && !s.session_id?.startsWith("channel-"));
+  const { sessions, epoch } = summarySources(path.dirname(outputPath), rawSessions);
   const fpPath = outputPath + ".fingerprint";
 
  //
@@ -71,13 +110,14 @@ export async function compileToday(summaryManager, outputPath, resolvedModel, op
     try { fs.unlinkSync(fpPath); } catch {}
     const cur = safeReadFile(outputPath, "");
     if (cur.length > 0) atomicWrite(outputPath, "");
+    writeCompiledEligibility(path.dirname(outputPath), [], { section: path.basename(outputPath), epoch });
     return "compiled";
   }
 
-  const fpKeys = sessions.map((s) => `${s.session_id}:${s.updated_at}`);
+  const fpKeys = [...sessions.map((s) => `${s.session_id}:${s.updated_at}`), epochFingerprint(epoch)];
   const fp = computeFingerprint(fpKeys);
   try {
-    if (fs.readFileSync(fpPath, "utf-8").trim() === fp && fs.existsSync(outputPath)) return "skipped";
+    if (fs.readFileSync(fpPath, "utf-8").trim() === fp && fs.existsSync(outputPath) && isCompiledSectionEligible(path.dirname(outputPath), path.basename(outputPath))) return "skipped";
   } catch {}
 
   const input = sessions.map((s) => s.summary).join("\n\n---\n\n");
@@ -113,7 +153,8 @@ Output 3-5 coarse events, 1-2 sentences each. Max 180 words. Keep it short on qu
     "compile_today",
   );
 
-  atomicWrite(outputPath, normalizeCompiledLLMResult(result, "compileToday"));
+  assertCompileEpoch(path.dirname(outputPath), generation, epoch);
+  saveCompiledSection(outputPath, normalizeCompiledLLMResult(result, "compileToday"), epoch);
   fs.writeFileSync(fpPath, fp);
   return "compiled";
 }
@@ -122,13 +163,15 @@ Output 3-5 coarse events, 1-2 sentences each. Max 180 words. Keep it short on qu
  * 编译过去 7 天滑动窗口的摘要 -week.md
  * @param {object} resolvedModel
  */
-export async function compileWeek(summaryManager, outputPath, resolvedModel, opts: { since?: any } = {}) {
+export async function compileWeek(summaryManager, outputPath, resolvedModel, opts: Record<string, any> = {}) {
+  const generation = readCompiledGeneration(path.dirname(outputPath));
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000);
 
-  const sessions = summaryManager.getSummariesInRange(sevenDaysAgo, now, { since: opts.since || null });
+  const rawSessions = summaryManager.getSummariesInRange(sevenDaysAgo, now, { since: opts.since || null }).filter(s => !s.projectId && !s.channelId && !s.session_id?.startsWith("channel-"));
+  const { sessions, epoch } = summarySources(path.dirname(outputPath), rawSessions);
   const fpPath = outputPath + ".fingerprint";
 
   // 空 sessions 不写 fingerprint：同 compileToday 的理由，避免失败态被指纹锁死。
@@ -136,13 +179,14 @@ export async function compileWeek(summaryManager, outputPath, resolvedModel, opt
     try { fs.unlinkSync(fpPath); } catch {}
     const cur = safeReadFile(outputPath, "");
     if (cur.length > 0) atomicWrite(outputPath, "");
+    writeCompiledEligibility(path.dirname(outputPath), [], { section: path.basename(outputPath), epoch });
     return "compiled";
   }
 
-  const fpKeys = sessions.map((s) => `${s.session_id}:${s.updated_at}`);
+  const fpKeys = [...sessions.map((s) => `${s.session_id}:${s.updated_at}`), epochFingerprint(epoch)];
   const fp = computeFingerprint(fpKeys);
   try {
-    if (fs.readFileSync(fpPath, "utf-8").trim() === fp && fs.existsSync(outputPath)) return "skipped";
+    if (fs.readFileSync(fpPath, "utf-8").trim() === fp && fs.existsSync(outputPath) && isCompiledSectionEligible(path.dirname(outputPath), path.basename(outputPath))) return "skipped";
   } catch {}
 
   const input = sessions.map((s) => s.summary).join("\n\n---\n\n");
@@ -202,7 +246,8 @@ Output 3-5 weekly themes/events. Max 240 words. Do not output Markdown headings.
     "compile_week",
   );
 
-  atomicWrite(outputPath, normalizeCompiledLLMResult(result, "compileWeek"));
+  assertCompileEpoch(path.dirname(outputPath), generation, epoch);
+  saveCompiledSection(outputPath, normalizeCompiledLLMResult(result, "compileWeek"), epoch);
   fs.writeFileSync(fpPath, fp);
   return "compiled";
 }
@@ -212,20 +257,24 @@ Output 3-5 weekly themes/events. Max 240 words. Do not output Markdown headings.
  * @param {object} resolvedModel
  */
 export async function compileLongterm(weekMdPath, longtermPath, resolvedModel) {
+  const generation = readCompiledGeneration(path.dirname(longtermPath));
   fs.mkdirSync(path.dirname(longtermPath), { recursive: true });
 
-  const weekContent = safeReadFile(weekMdPath, "").trim();
+  const weekSource = compiledSource(weekMdPath);
+  const weekContent = weekSource?.summary || "";
 
   if (!weekContent) return "skipped";
 
   // fingerprint：week.md 内容没变就跳过，避免每天把同一批内容反复折叠
-  const fp = computeFingerprint([weekContent]);
+  const priorSource = compiledSource(longtermPath);
+  const epoch = compileEpoch(path.dirname(longtermPath), [weekSource, priorSource]);
+  const fp = computeFingerprint([weekContent, epochFingerprint(epoch)]);
   const fpPath = longtermPath + ".fingerprint";
   try {
-    if (fs.readFileSync(fpPath, "utf-8").trim() === fp && fs.existsSync(longtermPath)) return "skipped";
+    if (fs.readFileSync(fpPath, "utf-8").trim() === fp && fs.existsSync(longtermPath) && isCompiledSectionEligible(path.dirname(longtermPath), path.basename(longtermPath))) return "skipped";
   } catch {}
 
-  const prevLongterm = safeReadFile(longtermPath, "").trim();
+  const prevLongterm = priorSource?.summary || "";
 
   const isZh = _isZh();
   const input = prevLongterm
@@ -276,7 +325,8 @@ Max 240 words. Do not output Markdown headings. Do not start with #, ##, or ###;
     "compile_longterm",
   );
 
-  atomicWrite(longtermPath, normalizeCompiledLLMResult(result, "compileLongterm"));
+  assertCompileEpoch(path.dirname(longtermPath), generation, epoch);
+  saveCompiledSection(longtermPath, normalizeCompiledLLMResult(result, "compileLongterm"), epoch);
   fs.writeFileSync(fpPath, fp);
   return "compiled";
 }
@@ -285,17 +335,29 @@ Max 240 words. Do not output Markdown headings. Do not start with #, ##, or ###;
  * 从近期 session 摘要的 重要事实 / Key Facts 段编译 facts.md
  * @param {object} resolvedModel
  */
-export async function compileFacts(summaryManager, outputPath, resolvedModel, opts: { since?: any } = {}) {
+export async function compileFacts(summaryManager, outputPath, resolvedModel, opts: Record<string, any> = {}) {
+  const generation = readCompiledGeneration(path.dirname(outputPath));
+  if (opts.factStore?.getActive) {
+    // Rebuild from authoritative eligible records, never inherited lossy text.
+    const facts = opts.factStore.getActive({ excludeChannels: true }, 100);
+    const body = facts.map(f => `- ${f.fact} [memory:${f.memoryId || f.id}; revision:${f.revision}]`).join("\n");
+    assertCompiledGeneration(path.dirname(outputPath), generation);
+    saveCompiledSection(outputPath, body, compileEpoch(path.dirname(outputPath)), facts);
+    return "compiled";
+  }
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
   // 读取上一版 facts.md 作为继承基础（避免 30 天外的稳定属性丢失）
-  const prevFacts = safeReadFile(outputPath, "").trim();
+  const priorSource = compiledSource(outputPath);
+  const prevFacts = priorSource?.summary || "";
 
   // 取最近 30 天的新摘要，提取 重要事实 / Key Facts 段。
   // 兼容旧 H2 摘要和新 H3 摘要，避免调整 rolling summary 层级时丢老数据。
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 86400000);
-  const sessions = summaryManager.getSummariesInRange(thirtyDaysAgo, now, { since: opts.since || null });
+  const rawSessions = summaryManager.getSummariesInRange(thirtyDaysAgo, now, { since: opts.since || null }).filter(s => !s.projectId && !s.channelId && !s.session_id?.startsWith("channel-"));
+  const { sessions, epoch } = summarySources(path.dirname(outputPath), rawSessions);
+  const factEpoch = compileEpoch(path.dirname(outputPath), [priorSource, { role: "compactionSummary", details: { memoryEvidenceEpoch: epoch } }]);
 
   const factParts = [];
   const skippedSessionIds = [];
@@ -314,7 +376,7 @@ export async function compileFacts(summaryManager, outputPath, resolvedModel, op
 
   // 没有新摘要时：保留旧 facts 原样
   if (factParts.length === 0) {
-    if (!prevFacts) atomicWrite(outputPath, "");
+    if (!prevFacts) saveCompiledSection(outputPath, "", factEpoch);
     return "compiled";
   }
 
@@ -335,7 +397,8 @@ export async function compileFacts(summaryManager, outputPath, resolvedModel, op
     "compile_facts",
   );
 
-  atomicWrite(outputPath, normalizeCompiledLLMResult(result, "compileFacts"));
+  assertCompileEpoch(path.dirname(outputPath), generation, factEpoch);
+  saveCompiledSection(outputPath, normalizeCompiledLLMResult(result, "compileFacts"), factEpoch);
   return "compiled";
 }
 
@@ -352,7 +415,7 @@ export function readEditableFactsText(memoryDir) {
   const sourcePath = fs.existsSync(editablePath)
     ? editablePath
     : path.join(memoryDir, "facts.md");
-  return normalizeCompiledSectionBody(safeReadFile(sourcePath, ""));
+  return normalizeCompiledSectionBody(compiledSource(sourcePath)?.summary || "");
 }
 
 export function readCompiledMemorySections(memoryDir, opts: Record<string, any> = {}) {
@@ -364,28 +427,16 @@ export function readCompiledMemorySections(memoryDir, opts: Record<string, any> 
   }
   const factsPath = editableFactsEnabled ? editableFactsPath(memoryDir) : path.join(memoryDir, "facts.md");
   return {
-    facts: normalizeCompiledSectionBody(safeReadFile(factsPath, "")),
-    today: normalizeCompiledSectionBody(safeReadFile(path.join(memoryDir, "today.md"), "")),
-    week: normalizeCompiledSectionBody(safeReadFile(path.join(memoryDir, "week.md"), "")),
-    longterm: normalizeCompiledSectionBody(safeReadFile(path.join(memoryDir, "longterm.md"), "")),
+    facts: normalizeCompiledSectionBody(compiledSource(factsPath)?.summary || ""),
+    today: normalizeCompiledSectionBody(compiledSource(path.join(memoryDir, "today.md"))?.summary || ""),
+    week: normalizeCompiledSectionBody(compiledSource(path.join(memoryDir, "week.md"))?.summary || ""),
+    longterm: normalizeCompiledSectionBody(compiledSource(path.join(memoryDir, "longterm.md"))?.summary || ""),
   };
 }
 
-export function writeEditableFactsSection(memoryDir, facts, opts: Record<string, any> = {}) {
-  ensureEditableFactsBaseline(memoryDir, opts.summaryManager || null, {
-    seedFactsPath: path.join(memoryDir, "facts.md"),
-  });
-  const targetPath = editableFactsPath(memoryDir);
-  const normalizedFacts = normalizeCompiledSectionBody(String(facts ?? ""));
-  atomicWrite(targetPath, normalizedFacts ? `${normalizedFacts}\n` : "");
-  assemble(
-    targetPath,
-    path.join(memoryDir, "today.md"),
-    path.join(memoryDir, "week.md"),
-    path.join(memoryDir, "longterm.md"),
-    opts.memoryMdPath || path.join(memoryDir, "memory.md"),
-  );
-  return normalizedFacts;
+/** The parallel bulk writer was retired; edits must target sourced canonical records. */
+export function writeEditableFactsSection(_memoryDir, _facts, _opts: Record<string, any> = {}) {
+  throw Object.assign(new Error("Bulk compiled-facts editing has been retired. Correct individual sourced memories instead."), { code: "EDITABLE_FACTS_RETIRED" });
 }
 
 export function ensureEditableFactsBaseline(memoryDir, summaryManager = null, opts: Record<string, any> = {}) {
@@ -398,8 +449,9 @@ export function ensureEditableFactsBaseline(memoryDir, summaryManager = null, op
   let changed = false;
 
   if (!fs.existsSync(outputPath)) {
-    const seedFacts = normalizeCompiledSectionBody(safeReadFile(seedFactsPath, ""));
-    atomicWrite(outputPath, seedFacts ? `${seedFacts}\n` : "");
+    const seed = compiledSource(seedFactsPath);
+    const seedFacts = normalizeCompiledSectionBody(seed?.summary || "");
+    saveCompiledSection(outputPath, seedFacts ? `${seedFacts}\n` : "", compileEpoch(memoryDir, [seed]));
     changed = true;
   }
 
@@ -413,9 +465,18 @@ export function ensureEditableFactsBaseline(memoryDir, summaryManager = null, op
 }
 
 export async function compileEditableFacts(summaryManager, outputPath, resolvedModel, opts: Record<string, any> = {}) {
+  const generation = readCompiledGeneration(path.dirname(outputPath));
+  if (opts.factStore?.getActive) {
+    // Rebuild from authoritative eligible records, never inherited lossy text.
+    const facts = opts.factStore.getActive({ excludeChannels: true }, 100);
+    const body = facts.map(f => `- ${f.fact} [memory:${f.memoryId || f.id}; revision:${f.revision}]`).join("\n");
+    assertCompiledGeneration(path.dirname(outputPath), generation);
+    saveCompiledSection(outputPath, body, compileEpoch(path.dirname(outputPath)), facts);
+    return "compiled";
+  }
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   const statePath = opts.statePath || path.join(path.dirname(outputPath), EDITABLE_FACTS_STATE_FILE);
-  const summaries = getAllSummariesForFacts(summaryManager);
+  const { sessions: summaries } = summarySources(path.dirname(outputPath), getAllSummariesForFacts(summaryManager));
   const baseline = ensureEditableFactsBaseline(path.dirname(outputPath), summaryManager, {
     ...opts,
     outputPath,
@@ -453,7 +514,9 @@ export async function compileEditableFacts(summaryManager, outputPath, resolvedM
     return "compiled";
   }
 
-  const prevFacts = normalizeCompiledSectionBody(safeReadFile(outputPath, ""));
+  const priorSource = compiledSource(outputPath);
+  const prevFacts = normalizeCompiledSectionBody(priorSource?.summary || "");
+  const epoch = compileEpoch(path.dirname(outputPath), [priorSource, ...sessions.map(summary => ({ role: "compactionSummary", summary: summary.summary, details: { memoryEvidenceEpoch: summary.memoryEvidenceEpoch } }))]);
   const newFacts = factParts.join("\n");
   const combined = prevFacts
     ? `${prevFacts}\n${newFacts}`
@@ -469,7 +532,8 @@ export async function compileEditableFacts(summaryManager, outputPath, resolvedM
     "compile_facts",
   );
 
-  atomicWrite(outputPath, normalizeCompiledLLMResult(result, "compileEditableFacts"));
+  assertCompileEpoch(path.dirname(outputPath), generation, epoch);
+  saveCompiledSection(outputPath, normalizeCompiledLLMResult(result, "compileEditableFacts"), epoch);
   if (nextWatermark) writeEditableFactsState(statePath, nextWatermark);
   return "compiled";
 }
@@ -483,14 +547,13 @@ export async function compileEditableFacts(summaryManager, outputPath, resolvedM
  * @param {string} memoryMdPath
  */
 export function assemble(factsPath, todayPath, weekPath, longtermPath, memoryMdPath) {
-  const read = (p) => { try { return fs.readFileSync(p, "utf-8").trim(); } catch { return ""; } };
-
-  const facts    = normalizeCompiledSectionBody(read(factsPath));
-  const today    = normalizeCompiledSectionBody(read(todayPath));
-  const week     = normalizeCompiledSectionBody(read(weekPath));
-  const longterm = normalizeCompiledSectionBody(read(longtermPath));
-
-  atomicWrite(memoryMdPath, buildCompiledMemoryMarkdown({ facts, today, week, longterm }));
+  const memoryDir = path.dirname(memoryMdPath);
+  const generation = readCompiledGeneration(memoryDir);
+  const sources = [factsPath, todayPath, weekPath, longtermPath].map(compiledSource);
+  const epoch = compileEpoch(memoryDir, sources);
+  const [facts, today, week, longterm] = sources.map(source => normalizeCompiledSectionBody(source?.summary || ""));
+  assertCompileEpoch(memoryDir, generation, epoch);
+  saveCompiledSection(memoryMdPath, buildCompiledMemoryMarkdown({ facts, today, week, longterm }), epoch);
 }
 
 export function buildCompiledMemoryMarkdown({ facts = "", today = "", week = "", longterm = "" } = {}) {
@@ -577,7 +640,7 @@ function computeFingerprint(keys) {
 }
 
 function atomicWrite(filePath, content) {
-  atomicWriteSync(filePath, content);
+  atomicWriteSync(filePath, scrubMemorySecrets(content));
 }
 
 function readEditableFactsState(statePath) {
@@ -603,10 +666,10 @@ function writeEditableFactsState(statePath, lastCompiledSummaryUpdatedAt) {
 function getAllSummariesForFacts(summaryManager) {
   if (!summaryManager) return [];
   if (typeof summaryManager.getAllSummaries === "function") {
-    return summaryManager.getAllSummaries().filter((s) => s?.summary);
+    return summaryManager.getAllSummaries().filter((s) => s?.summary && !s.projectId && !s.channelId && !s.session_id?.startsWith("channel-"));
   }
   if (typeof summaryManager.getSummariesInRange === "function") {
-    return summaryManager.getSummariesInRange(new Date(0), new Date()).filter((s) => s?.summary);
+    return summaryManager.getSummariesInRange(new Date(0), new Date()).filter((s) => s?.summary && !s.projectId && !s.channelId && !s.session_id?.startsWith("channel-"));
   }
   return [];
 }

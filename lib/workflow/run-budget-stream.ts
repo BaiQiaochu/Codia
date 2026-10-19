@@ -12,7 +12,7 @@ function hasUnsupportedMedia(value: any, depth = 0): boolean {
 /** Install on the actual isolated session before its first provider request.
  * The object is only supplied through trusted server context, never script args.
  */
-export function installRunBudgetStreamGuard(session: any, budget: RunBudget) {
+export function installRunBudgetStreamGuard(session: any, budget: RunBudget, getCurrentModel?: () => any) {
   const agent = session?.agent;
   // SDK 1.x exposes the active transport as streamFunction; streamFn is the
   // constructor option and an older-runtime compatibility slot only.
@@ -24,6 +24,7 @@ export function installRunBudgetStreamGuard(session: any, budget: RunBudget) {
     const messages = context?.messages || [];
     if (messages.some((message: any) => Array.isArray(message.content) && message.content.some((part: any) => ['image', 'audio', 'video'].includes(part.type)))) throw new Error('media budget accounting is unsupported');
     if (options.signal?.aborted) throw new Error('run aborted before model admission');
+    if (getCurrentModel) budget.assertModel(getCurrentModel());
     const reservation = budget.reserve(model);
     const outer = createAssistantMessageEventStream();
     const remainingMs = Math.max(1, budget.limits.maxDurationMs - (Date.now() - budget.startedAt));
@@ -56,6 +57,7 @@ export function installRunBudgetStreamGuard(session: any, budget: RunBudget) {
           cacheRetention: 'none', transport: 'sse',
           onPayload: async (payload: any, resolved: any) => {
             budget.assertActive();
+            if (getCurrentModel) budget.assertModel(getCurrentModel());
             // Preserve the host's observer, but clamp after it and after sampling overrides.
             const candidate = await options.onPayload?.(payload, resolved) ?? payload;
             if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) throw new Error('invalid bounded provider payload');

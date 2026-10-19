@@ -1,19 +1,19 @@
 /* global URL */
 
-function trimTrailingSlash(value) {
+function trimTrailingSlash(value: unknown) {
   return String(value || "").trim().replace(/\/+$/, "");
 }
 
-function lower(value) {
+function lower(value: unknown) {
   return typeof value === "string" ? value.toLowerCase() : "";
 }
 
-function isMiniMaxHost(hostname) {
+function isMiniMaxHost(hostname: unknown) {
   const host = lower(hostname);
   return host === "api.minimaxi.com" || host === "api.minimax.io";
 }
 
-function hostnameOf(baseUrl) {
+function hostnameOf(baseUrl: unknown) {
   try {
     return lower(new URL(String(baseUrl || "")).hostname);
   } catch {
@@ -21,7 +21,7 @@ function hostnameOf(baseUrl) {
   }
 }
 
-export function isMiniMaxProvider(provider, baseUrl = "") {
+export function isMiniMaxProvider(provider: unknown, baseUrl = "") {
   const providerId = lower(provider);
   if (providerId === "minimax" || providerId === "minimax-token-plan") return true;
   return false;
@@ -98,7 +98,7 @@ export function shouldUseBearerAuth({ provider, api, baseUrl }: any = {}) {
   return false;
 }
 
-export function buildAnthropicMessagesUrl(baseUrl) {
+export function buildAnthropicMessagesUrl(baseUrl: unknown) {
   const base = trimTrailingSlash(baseUrl);
   if (/\/v\d+\/messages$/i.test(base)) return base;
   if (/\/messages$/i.test(base)) return base;
@@ -106,7 +106,7 @@ export function buildAnthropicMessagesUrl(baseUrl) {
   return `${base}/v1/messages`;
 }
 
-export function buildOpenAiModelsUrl(baseUrl) {
+export function buildOpenAiModelsUrl(baseUrl: unknown) {
   const base = trimTrailingSlash(baseUrl);
   if (/\/models$/i.test(base)) return base;
   if (/\/v\d+\/(?:chat\/completions|completions|responses)$/i.test(base)) {
@@ -115,7 +115,7 @@ export function buildOpenAiModelsUrl(baseUrl) {
   return `${base}/models`;
 }
 
-export function buildAnthropicModelsUrl(baseUrl, opts = {}) {
+export function buildAnthropicModelsUrl(baseUrl: unknown, opts = {}) {
   const raw = trimTrailingSlash(baseUrl);
   if (/\/v\d+\/models$/i.test(raw)) return `${raw}?limit=1000`;
   if (/\/v\d+$/i.test(raw)) return `${raw}/models?limit=1000`;

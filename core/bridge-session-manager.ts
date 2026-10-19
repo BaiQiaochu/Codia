@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { installUsageBudgetGuard, isUsageAccounted, hasUsageBudgetGuard } from "../lib/llm/usage-budget-guard.ts";
 /**
  * Manages bridge sessions for external social platforms.
  *
@@ -6,6 +7,7 @@
  * and message injection here.
  */
 import fs from "fs";
+import { installMemoryContextGuard } from '../lib/memory/prompt-guard.ts';
 import path from "path";
 import { createAgentSession, SessionManager } from "../lib/pi-sdk/index.ts";
 import { createDefaultSettings } from "./session-defaults.ts";
@@ -97,8 +99,8 @@ function buildPromptMediaOptions(opts) {
   };
 }
 
-function recordBridgeAssistantUsage({ ledger, event, sessionPath, agent, model, bridgeContext }) {
-  if (!ledger || event?.type !== "message_end" || event.message?.role !== "assistant") return null;
+export function recordBridgeAssistantUsage({ ledger, event, session = null, sessionPath, agent, model, bridgeContext }) {
+  if (!ledger || hasUsageBudgetGuard(session) || event?.type !== "message_end" || event.message?.role !== "assistant" || isUsageAccounted(event.message)) return null;
   const conversationType = bridgeContext?.chatType === "channel" ? "channel" : "dm";
   const conversationId = bridgeContext?.sessionKey || bridgeContext?.chatId || sessionPath || "unknown";
   const usageContext = bridgeContext?.isBridgeSession
@@ -131,6 +133,7 @@ function recordBridgeAssistantUsage({ ledger, event, sessionPath, agent, model, 
         },
       };
   const modelMeta = {
+    ...model,
     provider: model?.provider ?? null,
     modelId: model?.id ?? null,
     api: model?.api ?? null,
@@ -146,13 +149,14 @@ function recordBridgeAssistantUsage({ ledger, event, sessionPath, agent, model, 
   const errorMessage = event.message?.errorMessage || event.message?.error?.message || null;
   if (event.message?.stopReason === "error" || errorMessage) {
     const request = ledger.start({
+      observationOnly: true,
       model: modelMeta,
       usageContext,
       costRates: model?.cost,
     });
     return ledger.recordError(request.requestId, new Error(errorMessage || "provider request failed"));
   }
-  return null;
+  return ledger.record({ model: modelMeta, usage: null, usageContext, costRates: model?.cost });
 }
 
 function withVisionExtension(resourceLoader, getBridge, getSessionPath, isEnabled, warn, resolveSessionFile, getTargetModel) {
@@ -726,9 +730,14 @@ export class BridgeSessionManager {
         modelRuntime: mm.modelRuntime,
         ...sessionOpts,
       });
+      installMemoryContextGuard(session, agent.agentDir);
 
       const activeSessionPath = session.sessionManager?.getSessionFile?.() || null;
       sessionPathRef.current = activeSessionPath;
+      installUsageBudgetGuard(session, () => this._deps.getUsageLedger?.(), () => ({
+        source: { subsystem: bridgeContext?.isBridgeSession ? 'phone' : 'session', operation: 'reply', surface: 'bridge', trigger: 'user' },
+        attribution: { kind: 'session', agentId: agent.id, sessionPath: activeSessionPath, conversationId: bridgeContext?.sessionKey || bridgeContext?.chatId || null },
+      }), model => mm.availableModels?.find(item => item.id === model.id && item.provider === model.provider));
       if (activeToolNames.length) {
         session.setActiveToolsByName?.(activeToolNames);
       }
@@ -778,6 +787,7 @@ export class BridgeSessionManager {
       let providerError = null;
       const unsub = session.subscribe((event) => {
         recordBridgeAssistantUsage({
+          session,
           ledger: this._deps.getUsageLedger?.(),
           event,
           sessionPath: activeSessionPath,
@@ -1135,6 +1145,7 @@ export class BridgeSessionManager {
       modelRuntime: mm.modelRuntime,
       ...sessionOpts,
     });
+    installMemoryContextGuard(session, agent.agentDir);
     if (activeToolNames.length) {
       session.setActiveToolsByName?.(activeToolNames);
     }

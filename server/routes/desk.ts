@@ -13,6 +13,7 @@ import path from "path";
 import crypto from "crypto";
 import { execFileSync } from "child_process";
 import { Hono } from "hono";
+import { createAutomationRunService, readAutomationHealth } from "../../lib/desk/automation-health.ts";
 import { safeJson } from "../hono-helpers.ts";
 import { parseSkillMetadata } from "../../lib/skills/skill-metadata.ts";
 import { installSkillPackageFromPath } from "../../lib/skills/skill-package-installer.ts";
@@ -273,6 +274,7 @@ async function searchWorkspaceFiles(root, query, { limit = WORKSPACE_SEARCH_LIMI
 }
 
 export function createDeskRoute(engine: any, hub: any) {
+  const automationRuns = createAutomationRunService();
   const route = new Hono<any>();
 
   /** 从所有 agent 的 activityStore 中按 ID 查找 entry */
@@ -1129,9 +1131,27 @@ export function createDeskRoute(engine: any, hub: any) {
 
   /** 列出 cron 任务 */
   route.get("/desk/cron", async (c) => {
-    const store = getCronStore(engine, c);
-    if (!store) return c.json({ jobs: [] });
-    return c.json({ jobs: store.listJobs() });
+    try {
+      const store = getCronStore(engine, c);
+      if (!store) return deskRouteError(c, "cron_store_unavailable", "Desk not initialized", 503);
+      return c.json({ jobs: store.listJobs() });
+    } catch (err) { return deskRouteError(c, "cron_read_failed", err.message, 503); }
+  });
+
+  /** Health/history reads are local and never dispatch an executor. */
+  route.get("/desk/cron/:id/health", async (c) => {
+    try {
+      const service = getCronStore(engine, c);
+      if (!service) return deskRouteError(c, "cron_store_unavailable", "Desk not initialized", 503);
+      const store = service.getRunStore?.() || service;
+      const id = c.req.param("id");
+      const job = store.listJobs().find(job => job.id === id);
+      if (!job) return deskRouteError(c, "cron_not_found", "cron job not found", 404);
+      const owner = job.actorAgentId || job.legacyRef?.agentId || engine.currentAgentId;
+      if (c.req.query("agentId") && c.req.query("agentId") !== owner) return deskRouteError(c, "cron_owner_mismatch", "cron owner mismatch", 403);
+      const running = automationRuns.isRunning(store, id) || hub?.scheduler?.getCronScheduler?.(owner)?.isRunning?.(id) === true;
+      return c.json(readAutomationHealth(store, id, { running }));
+    } catch (err) { return deskRouteError(c, "cron_health_read_failed", err.message, 503); }
   });
 
   /** 操作 cron 任务 */
@@ -1257,17 +1277,26 @@ export function createDeskRoute(engine: any, hub: any) {
       }
 
       case "run-now": {
-        if (!params.id) return c.json({ error: "id required" });
-        if (!hub?.scheduler?.runAgentCronNow) {
-          return c.json({ error: "scheduler unavailable" }, 503);
+        if (!params.id || typeof params.requestId !== "string" || !/^[A-Za-z0-9._:-]{8,128}$/.test(params.requestId)) {
+          return c.json({ error: "id and valid requestId required" }, 400);
         }
+        if (!hub?.scheduler?.runAgentCronNow) return c.json({ error: "scheduler unavailable" }, 503);
         try {
-          const agentId = c.req.query("agentId") || engine.currentAgentId || engine.agent?.id;
+          const job = store.listJobs().find(job => job.id === params.id);
+          if (!job) return c.json({ error: "cron job not found" }, 404);
+          const agentId = job.actorAgentId || job.legacyRef?.agentId || c.req.query("agentId") || engine.currentAgentId || engine.agent?.id;
           if (!agentId) return c.json({ error: "agentId required" }, 400);
-          const result = await hub.scheduler.runAgentCronNow(agentId, params.id);
-          return c.json({ ok: true, result, jobs: store.listJobs() });
+          if (c.req.query("agentId") && c.req.query("agentId") !== agentId) return c.json({ error: "cron owner mismatch" }, 403);
+          if (!job.prompt?.trim()) return c.json({ error: "saved prompt required" }, 400);
+          validateRouteExecutor(normalizeRouteExecutor(job.executor));
+          const running = hub.scheduler.getCronScheduler?.(agentId)?.isRunning?.(params.id) === true;
+          const runStore = store.getRunStore?.() || store;
+          const result = automationRuns.start(runStore, params.id, params.requestId,
+            () => hub.scheduler.runAgentCronNow(agentId, params.id, { requestId: params.requestId }),
+            { running, reviewedRunKey: params.reviewedRunKey });
+          return c.json({ ok: true, ...result }, result.duplicate ? 200 : 202);
         } catch (err) {
-          return c.json({ error: err.message }, 500);
+          return c.json({ error: err.message }, /running|review/.test(err.message) ? 409 : 503);
         }
       }
 

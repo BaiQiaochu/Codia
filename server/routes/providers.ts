@@ -874,7 +874,7 @@ export function createProvidersRoute(engine: any) {
       await refreshProviderModels();
       return c.json({ ok: true });
     } catch (err) {
-      const status = err.message?.includes("not found") ? 404 : 500;
+      const status = err.message?.includes("not found") ? 404 : /pricing configuration changed/i.test(err.message || "") ? 409 : /pricing/i.test(err.message || "") ? 400 : 500;
       return c.json({ error: err.message }, status);
     }
   });

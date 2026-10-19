@@ -1027,6 +1027,7 @@ export function createCharacterCardService(engine) {
   function importFacts(agentId, facts) {
     if (facts.length === 0) return 0;
     const normalized = facts.map((entry) => ({
+      ...entry,
       fact: entry.fact,
       tags: entry.tags || [],
       time: entry.time || null,
@@ -1034,13 +1035,11 @@ export function createCharacterCardService(engine) {
     }));
     const agent = engine.getAgent?.(agentId);
     if (agent?.factStore) {
-      agent.factStore.importAll(normalized);
-      return normalized.length;
+      return agent.factStore.importAll(normalized);
     }
     const store = new FactStore(path.join(engine.agentsDir, agentId, "memory", "facts.db"));
     try {
-      store.importAll(normalized);
-      return normalized.length;
+      return store.importAll(normalized);
     } finally {
       store.close();
     }

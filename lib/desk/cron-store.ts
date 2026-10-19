@@ -76,6 +76,7 @@ export class CronStore {
     this._runsDir = runsDir;
     this._idPrefix = options.idPrefix || "job";
     this._jobs = [];
+    this._manualRequests = [];
     this._nextNum = 1;
     this._runLineCounts = new Map();
     this._load();
@@ -92,13 +93,11 @@ export class CronStore {
       if (err.code === "ENOENT") {
  // 首次启动，文件不存在，静默处-
         this._jobs = [];
+        this._manualRequests = [];
         this._nextNum = 1;
         return;
       }
-      console.error("[CronStore] 读取 jobs 文件失败:", err.message);
-      this._jobs = [];
-      this._nextNum = 1;
-      return;
+      throw new Error(`Unable to read cron jobs: ${err.message}`);
     }
 
     let data;
@@ -112,14 +111,18 @@ export class CronStore {
         data = JSON.parse(tmpRaw);
         console.error("[CronStore] 主 JSON 损坏，已从 .tmp 恢复");
       } catch {
-        console.error("[CronStore] JSON parse failed and no usable .tmp file exists; resetting to empty state");
-        this._jobs = [];
-        this._nextNum = 1;
-        return;
+        throw new Error("Unable to read cron jobs JSON; no usable recovery file");
       }
     }
 
-    this._jobs = Array.isArray(data.jobs) ? data.jobs : [];
+    if (!data || !Array.isArray(data.jobs) || (data.manualRequests !== undefined && !Array.isArray(data.manualRequests))) {
+      throw new Error("Invalid cron jobs or manual request ledger");
+    }
+    if ((data.manualRequests || []).some(row => !row || typeof row.jobId !== "string" || typeof row.requestId !== "string" || !["claimed", "success", "error", "skipped"].includes(row.status))) {
+      throw new Error("Invalid cron manual request ledger record");
+    }
+    this._jobs = data.jobs;
+    this._manualRequests = data.manualRequests || [];
     this._nextNum = data.nextNum ?? (this._jobs.length + 1);
 
  // 旧数据清-
@@ -157,6 +160,7 @@ export class CronStore {
     fs.mkdirSync(path.dirname(this._jobsPath), { recursive: true });
     const data = JSON.stringify({
       jobs: this._jobs,
+      manualRequests: this._manualRequests,
       nextNum: this._nextNum,
     }, null, 2) + "\n";
  //
@@ -457,6 +461,34 @@ export class CronStore {
     this._save();
   }
 
+  /** Durable single-process manual receipts. Never expire idempotency keys automatically. */
+  getManualRun(id, requestId) {
+    this._load();
+    const rows = this._manualRequests.filter(row => row.jobId === id);
+    const receipt = requestId ? rows.find(row => row.requestId === requestId) : rows.at(-1);
+    return receipt ? clonePlainObject(receipt) : null;
+  }
+
+  claimManualRun(id, requestId) {
+    if (typeof requestId !== "string" || !/^[A-Za-z0-9._:-]{8,128}$/.test(requestId)) throw new Error("valid requestId required");
+    this._load();
+    if (!this._jobs.some(job => job.id === id)) throw new Error("cron job not found");
+    const existing = this._manualRequests.find(row => row.jobId === id && row.requestId === requestId);
+    if (existing) return { receipt: clonePlainObject(existing), duplicate: true };
+    const receipt = { jobId: id, requestId, status: "claimed", startedAt: new Date().toISOString(), trigger: "manual" };
+    this._manualRequests.push(receipt);
+    this._save(); // Must succeed before the caller dispatches any executor.
+    return { receipt: clonePlainObject(receipt), duplicate: false };
+  }
+
+  finishManualRun(id, requestId, result) {
+    this._load();
+    const receipt = this._manualRequests.find(row => row.jobId === id && row.requestId === requestId);
+    if (!receipt || receipt.status !== "claimed") return;
+    Object.assign(receipt, result, { jobId: id, requestId, trigger: "manual", finishedAt: new Date().toISOString() });
+    this._save();
+  }
+
   // ════════════════════════════
  // 运行历史
   // ════════════════════════════
@@ -466,6 +498,7 @@ export class CronStore {
     *
    */
   logRun(jobId, run) {
+    if (typeof jobId !== "string" || !/^[A-Za-z0-9_-]+$/.test(jobId)) throw new Error("invalid cron job id");
     const filePath = path.join(this._runsDir, `${jobId}.jsonl`);
     const line = JSON.stringify({ ...run, timestamp: new Date().toISOString() }) + "\n";
     fs.mkdirSync(this._runsDir, { recursive: true });
@@ -510,16 +543,21 @@ export class CronStore {
    * @returns {object[]}
    */
   getRunHistory(jobId, limit = 20) {
+    if (typeof jobId !== "string" || !/^[A-Za-z0-9_-]+$/.test(jobId)) throw new Error("invalid cron job id");
     const filePath = path.join(this._runsDir, `${jobId}.jsonl`);
     try {
       const raw = fs.readFileSync(filePath, "utf-8");
       const lines = raw.trim().split("\n").filter(Boolean);
       return lines
         .slice(-limit)
-        .map(line => { try { return JSON.parse(line); } catch { return null; } })
-        .filter(Boolean);
-    } catch {
-      return [];
+        .map(line => {
+          const run = JSON.parse(line);
+          if (!run || typeof run !== "object" || Array.isArray(run)) throw new Error("invalid history record");
+          return run;
+        });
+    } catch (error) {
+      if (error.code === "ENOENT") return [];
+      throw new Error(`Unable to read cron history: ${error.message}`);
     }
   }
 

@@ -1,4 +1,7 @@
+import { installUsageBudgetGuard, isUsageAccounted, hasUsageBudgetGuard } from "../lib/llm/usage-budget-guard.ts";
 import { installRunBudgetStreamGuard } from "../lib/workflow/run-budget-stream.ts";
+import { guardMemoryContext, installMemoryContextGuard, installMemoryAppendGuard, sanitizeMemoryPrompt } from '../lib/memory/prompt-guard.ts';
+import { resolveMemoryProjectId, buildTrustedMemoryContext, persistMemoryRuntimeSnapshot } from '../lib/memory/runtime-context.ts';
 import type { RunBudget } from "../lib/workflow/run-budget.ts";
 import { createResolvedRuntimeSnapshot } from "../lib/workflow/runtime-snapshot.ts";
 import { isAgentReviewPending, assertAgentReviewActive } from './agent-review-turns.ts';
@@ -236,8 +239,8 @@ function buildPromptMediaOptions(opts) {
   };
 }
 
-function recordAssistantUsage({ ledger, event, sessionPath, sessionId = null, agentId, model, source, attribution }) {
-  if (!ledger || event?.type !== "message_end" || event.message?.role !== "assistant") return null;
+export function recordAssistantUsage({ ledger, event, session = null, sessionPath, sessionId = null, agentId, model, source, attribution }) {
+  if (!ledger || hasUsageBudgetGuard(session) || event?.type !== "message_end" || event.message?.role !== "assistant" || isUsageAccounted(event.message)) return null;
   const usageContext = {
     source,
     attribution: attribution || {
@@ -248,6 +251,7 @@ function recordAssistantUsage({ ledger, event, sessionPath, sessionId = null, ag
     },
   };
   const modelMeta = {
+    ...model,
     provider: model?.provider ?? null,
     modelId: model?.id ?? null,
     api: model?.api ?? null,
@@ -263,13 +267,14 @@ function recordAssistantUsage({ ledger, event, sessionPath, sessionId = null, ag
   const errorMessage = event.message?.errorMessage || event.message?.error?.message || null;
   if (event.message?.stopReason === "error" || errorMessage) {
     const request = ledger.start({
+      observationOnly: true,
       model: modelMeta,
       usageContext,
       costRates: model?.cost,
     });
     return ledger.recordError(request.requestId, new Error(errorMessage || "provider request failed"));
   }
-  return null;
+  return ledger.record({ model: modelMeta, usage: null, usageContext, costRates: model?.cost });
 }
 
 function collectAssistantTextFromMessage(message) {
@@ -1335,12 +1340,13 @@ export class SessionCoordinator {
     }
 
     // Per-session prompt snapshot.
-    const promptSnapshot = restoredPromptSnapshot?.systemPrompt
+    const rawPromptSnapshot = restoredPromptSnapshot?.systemPrompt
       ?? agent.buildSystemPrompt({
         forceMemoryEnabled: frozenMemoryEnabled,
         ...(agentHasExperienceSwitch ? { forceExperienceEnabled: frozenExperienceEnabled } : {}),
         targetModel: promptPatchModel,
       });
+    const promptSnapshot = agent.agentDir ? sanitizeMemoryPrompt(rawPromptSnapshot, path.join(agent.agentDir, 'memory')) : rawPromptSnapshot;
     const appendSystemPromptSnapshot = restoredPromptSnapshot?.appendSystemPrompt
       ?? (() => {
         const parts = [
@@ -1463,6 +1469,7 @@ export class SessionCoordinator {
     // New sessions pass a model. Restored sessions read the model from JSONL.
     if (effectiveModel) sessionOpts.model = effectiveModel;
     const { session, modelFallbackMessage } = await createAgentSession(sessionOpts);
+    installMemoryAppendGuard(session, agent.agentDir);
     if (modelFallbackMessage) {
       log.warn(`session model fallback: ${modelFallbackMessage}`);
     }
@@ -1501,6 +1508,10 @@ export class SessionCoordinator {
       }
     }
     const creatingAgentId = ownerAgentId;
+    installUsageBudgetGuard(session, () => this._d.getUsageLedger?.(), () => ({
+      source: { subsystem: 'session', operation: 'reply', surface: 'desktop', trigger: 'user' },
+      attribution: { kind: 'session', agentId: creatingAgentId, sessionPath, sessionId: session.sessionManager?.getSessionId?.() || null },
+    }), model => findModel(this._d.getModels().availableModels, model.id, model.provider));
     const manifestDefaults = sessionPath ? {
       ownerAgentId: creatingAgentId,
       domain: "desktop",
@@ -1534,6 +1545,7 @@ export class SessionCoordinator {
     if (manifest?.sessionId) sessionEntry.sessionId = manifest.sessionId;
     const unsub = session.subscribe((event) => {
       recordAssistantUsage({
+          session,
         ledger: this._d.getUsageLedger?.(),
         event,
         sessionPath,
@@ -1702,7 +1714,7 @@ export class SessionCoordinator {
     }
 
     if (restoredPromptSnapshot?.finalSystemPrompt) {
-      this._applyFinalPromptSnapshot(session, restoredPromptSnapshot.finalSystemPrompt);
+      this._applyFinalPromptSnapshot(session, agent.agentDir ? sanitizeMemoryPrompt(restoredPromptSnapshot.finalSystemPrompt, path.join(agent.agentDir, 'memory')) : restoredPromptSnapshot.finalSystemPrompt);
     }
     const finalSystemPrompt = this._getFinalSystemPrompt(session);
     if (restore && sessionPath && snapshotToolNames !== null) {
@@ -1740,6 +1752,7 @@ export class SessionCoordinator {
         experienceEnabled: frozenExperienceEnabled,
         visibleInSessionList: (sessionEntry as DynamicRecord).visibleInSessionList === true,
         workspaceFolders: workspaceScope.workspaceFolders,
+        memoryProjectId: resolveMemoryProjectId(effectiveCwd),
         authorizedFolders: folderScope.authorizedFolders,
         permissionMode: initialPermissionMode,
         accessMode: initialAccessMode,
@@ -1768,6 +1781,22 @@ export class SessionCoordinator {
       if (Object.keys(metaPatch).length > 0) {
         await this.writeSessionMeta(sessionPath, metaPatch);
       }
+    }
+
+    // A restore must never retrofit today's environment onto legacy conversation history.
+    // For previously recorded sessions the helper preserves the first snapshot and marks changes ambiguous.
+    if (sessionPath && (!restore || fs.existsSync(`${sessionPath}.memory-runtime.json`))) {
+      try {
+        let appVersion = null;
+        if (agent.productDir) {
+          try { appVersion = JSON.parse(fs.readFileSync(path.join(agent.productDir, '..', 'package.json'), 'utf8')).version || null; } catch {}
+        }
+        const environment = buildTrustedMemoryContext({
+          cwd: effectiveCwd, sessionPath, appVersion,
+          bridgeMetadata: agent._cb?.getEngine?.()?.getBridgeContextForSessionPath?.(sessionPath),
+        });
+        persistMemoryRuntimeSnapshot(sessionPath, {...environment, cwd: effectiveCwd, provenance: 'recorded'});
+      } catch (error) { log.warn(`Session memory environment unavailable: ${error.message}`); }
     }
 
     // LRU eviction by lastTouchedAt, skipping the focused and streaming sessions.
@@ -2124,6 +2153,10 @@ export class SessionCoordinator {
       ?? session.thinkingLevel
       ?? "off";
     const cachePrefixContract = cacheContract as CachePrefixContractLike | null | undefined;
+    const snapshotOwner = this._d?.getAgentById?.(entry.agentId) || this._d?.getAgent?.();
+    const safeContext = snapshotOwner?.agentDir ? guardMemoryContext({
+      systemPrompt: cachePrefixContract?.systemPrompt ?? this._getFinalSystemPrompt(session) ?? '', messages: snapshotMessages,
+    }, snapshotOwner.agentDir) : { systemPrompt: cachePrefixContract?.systemPrompt ?? this._getFinalSystemPrompt(session) ?? '', messages: snapshotMessages };
     return buildSessionCacheSnapshotValue({
       sessionPath: resolved.key || sessionPath,
       reason,
@@ -2131,9 +2164,9 @@ export class SessionCoordinator {
       cacheKeyParams: {
         thinkingLevel: thinkingLevel || "off",
       },
-      systemPrompt: cachePrefixContract?.systemPrompt ?? this._getFinalSystemPrompt(session) ?? "",
+      systemPrompt: safeContext.systemPrompt,
       tools: cachePrefixContract?.tools ?? (Array.isArray(state.tools) ? state.tools : []),
-      messages: snapshotMessages,
+      messages: safeContext.messages,
     });
   }
 
@@ -4229,6 +4262,13 @@ export class SessionCoordinator {
     entry.cachePrefixGuardInstalled = true;
     entry.cachePrefixOriginalStreamFn = originalStreamFn;
     agent[streamSlot] = async (model, context, options) => {
+      const owner = this._d?.getAgentById?.(entry.agentId) || this._d?.getAgent?.();
+      const guarded = owner?.agentDir ? guardMemoryContext(context, owner.agentDir) : context;
+      if (guarded.systemPrompt !== context.systemPrompt) {
+        this._applyFinalPromptSnapshot(entry.session, guarded.systemPrompt);
+        this._renewCachePrefixContract(sessionPath, entry, 'memory-revocation', { model, context: guarded });
+      }
+      context = guarded;
       this._assertCachePrefixContract(sessionPath, entry, { model, context });
       return originalStreamFn.call(agent, model, context, options);
     };
@@ -4557,6 +4597,7 @@ export class SessionCoordinator {
         tools: actTools,
         customTools: [...actCustomTools, ...extraCustomTools],
       });
+      installMemoryContextGuard(session, targetAgent?.agentDir);
 
       if (opts.runBudget) {
         try {
@@ -4567,7 +4608,7 @@ export class SessionCoordinator {
           }
           session.setAutoCompactionEnabled(false);
           session.setAutoRetryEnabled(false);
-          installRunBudgetStreamGuard(session, opts.runBudget);
+          installRunBudgetStreamGuard(session, opts.runBudget, () => findModel(this._d.getModels().availableModels, execModel.id, execModel.provider));
         } catch (error) {
           session.dispose();
           cleanupTempSession();
@@ -4605,6 +4646,11 @@ export class SessionCoordinator {
       }
 
       childSessionPath = session.sessionManager?.getSessionFile?.() || null;
+      installUsageBudgetGuard(session, () => this._d.getUsageLedger?.(), () => ({
+        source: { subsystem: opts.subagentContext ? 'subagent' : 'automation', operation: 'run', surface: 'system', trigger: opts.subagentContext ? 'tool' : 'scheduled', actor: { agentId: targetAgent.id } },
+        attribution: { kind: 'session', agentId: targetAgent.id, sessionPath: opts.parentSessionPath || childSessionPath,
+          childSessionPath, taskId: opts.subagentTaskId || null, runId: opts.runId || opts.workflowRunId || null, jobId: opts.jobId || opts.cronJobId || null },
+      }), model => findModel(this._d.getModels().availableModels, model.id, model.provider));
       traceContext = this._startLifecycleTrace({
         sessionPath: childSessionPath,
         agentId: targetAgent.id || opts.agentId || this._d.getActiveAgentId?.(),
@@ -4630,6 +4676,7 @@ export class SessionCoordinator {
           ? opts.parentSessionPath
           : null;
         recordAssistantUsage({
+          session,
           ledger: this._d.getUsageLedger?.(),
           event,
           sessionPath: childSessionPath,

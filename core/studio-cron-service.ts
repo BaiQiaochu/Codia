@@ -142,6 +142,23 @@ export class StudioCronService {
     return this._getStore().getRunHistory(id, limit);
   }
 
+  // Bind a request to one studio for the lifetime of its asynchronous completion.
+  getRunStore() {
+    return this._getStore();
+  }
+
+  getManualRun(id, requestId) {
+    return this._getStore().getManualRun(id, requestId);
+  }
+
+  claimManualRun(id, requestId) {
+    return this._getStore().claimManualRun(id, requestId);
+  }
+
+  finishManualRun(id, requestId, result) {
+    return this._getStore().finishManualRun(id, requestId, result);
+  }
+
   _getStore() {
     const studioId = assertValidPathSegment(this._getStudioId(), "studioId");
     if (!this._store || this._storeStudioId !== studioId) {

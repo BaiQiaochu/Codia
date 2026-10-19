@@ -16,7 +16,7 @@ export const parameters = Type.Object({
     passed: Type.Boolean(),
     evidence: Type.String({ description: "Concrete evidence supporting the check; not hidden reasoning." }),
   }))),
-  artifacts: Type.Optional(Type.Array(Type.Any(), { description: "Optional artifacts produced by the task." })),
+  artifacts: Type.Optional(Type.Array(Type.Any(), { description: "Artifacts produced by the task. Prefer registered fileId/resourceId and version references; raw paths/URLs are not verified deliverables." })),
 });
 
 export async function execute(params = {}, ctx = {}) {
@@ -24,7 +24,7 @@ export async function execute(params = {}, ctx = {}) {
     ...params,
     channelId: params.channelId || ctx.channelId || ctx.conversationId,
     agentId: params.agentId || ctx.agentId,
-  });
+  }, { sessionPath: ctx.sessionPath || ctx.sessionManager?.getSessionFile?.() || null });
   return {
     content: [{
       type: "text",

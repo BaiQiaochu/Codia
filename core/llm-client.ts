@@ -1,4 +1,6 @@
 // @ts-nocheck
+import { FINAL_PROVIDER_RESPONSE } from "../lib/llm/usage-ledger.ts";
+import { usageCostRates } from "../lib/llm/usage-pricing.ts";
 import { AppError } from '../shared/errors.ts';
 import { errorBus } from '../shared/error-bus.ts';
 import { normalizeProviderMessageRoles, normalizeProviderPayload } from './provider-compat.ts';
@@ -224,18 +226,17 @@ async function readCodexResponsesStream(body) {
   if (buffer.trim()) consumeBlock(buffer);
 
   const outputText = textDeltas.join("").trim() || doneText.trim();
-  const usage = completedResponse?.usage || events.find((event) => event?.usage)?.usage || null;
-  if (outputText) {
-    return {
-      output_text: outputText,
-      ...(usage ? { usage } : {}),
-    };
-  }
-  if (completedResponse) return completedResponse;
-  return {
-    output: events,
-    ...(usage ? { usage } : {}),
-  };
+  // A completed snapshot owns final usage; never borrow earlier partial counters
+  // when the terminal response itself omitted usage.
+  const usage = completedResponse !== null
+    ? completedResponse.usage ?? null
+    : events.find((event) => event?.usage)?.usage || null;
+  const data = outputText
+    ? { ...(completedResponse || {}), output_text: outputText, ...(usage ? { usage } : {}) }
+    : completedResponse || { output: events, ...(usage ? { usage } : {}) };
+  // This envelope is created by the host reader, not accepted from SSE JSON.
+  // EOF and [DONE] without response.completed do not establish final usage.
+  return { data, completed: completedResponse !== null };
 }
 
 function buildGeminiNativeParts(content) {
@@ -304,6 +305,7 @@ export async function callText({
   usageLedger,
 }) {
   const modelObj = typeof model === "object" && model !== null ? model : null;
+  const effectiveCostRates = usageCostRates(modelObj);
   const modelId = modelObj ? modelObj.id : String(model || "");
   const providerId = modelObj?.provider || provider || "custom";
   const explicitMaxTokens = positiveInteger(maxTokens);
@@ -431,11 +433,13 @@ export async function callText({
   }));
 
   const usageRequest = usageLedger?.start?.({
-    model: { provider: providerId, modelId, api },
+    model: { ...modelObj, provider: providerId, modelId, api },
+    maxOutputTokens: explicitMaxTokens,
     usageContext,
-    costRates: modelObj?.cost,
+    costRates: effectiveCostRates,
   }) || null;
   let observedUsagePayload = null;
+  let observedUsageIsFinal = false;
   let usageRequestClosed = false;
 
   try {
@@ -461,9 +465,14 @@ export async function callText({
 
   let rawText = "";
   let data;
+  let usedStreamReader = false;
+  let streamCompleted = false;
   try {
     if (res.ok && api === "openai-codex-responses" && res.body && typeof res.body.getReader === "function") {
-      data = await readCodexResponsesStream(res.body);
+      usedStreamReader = true;
+      const streamed = await readCodexResponsesStream(res.body);
+      data = streamed.data;
+      streamCompleted = streamed.completed;
       rawText = JSON.stringify(data);
     } else {
       rawText = await res.text();
@@ -494,6 +503,9 @@ export async function callText({
     }
     throw new AppError('UNKNOWN', { message, context: { model: modelId, status: res.status } });
   }
+  observedUsageIsFinal = (!usedStreamReader || streamCompleted)
+    && data !== null && typeof data === "object" && !data.error
+    && !["failed", "incomplete", "cancelled", "in_progress", "queued"].includes(data.status);
   observedUsagePayload = api === "google-generative-ai" ? normalizeGeminiNativeUsage(data) : data?.usage ?? null;
 
   let text = "";
@@ -559,20 +571,21 @@ export async function callText({
     });
   }
 
-  const rawUsage = observedUsagePayload;
-  const usage = normalizeLlmUsage(rawUsage, { costRates: modelObj?.cost });
+  // Preserve existing partial-text behavior, but never settle incomplete SSE usage.
+  const rawUsage = observedUsageIsFinal ? observedUsagePayload : null;
+  const usage = normalizeLlmUsage(rawUsage, { costRates: effectiveCostRates });
   logLlmUsage({
     source: "utility",
     api,
     provider: providerId,
     modelId,
     usage: rawUsage,
-    costRates: modelObj?.cost,
+    costRates: effectiveCostRates,
   });
   usageLedger?.finish?.(usageRequest?.requestId, {
     usage: rawUsage,
     model: { provider: providerId, modelId, api },
-    costRates: modelObj?.cost,
+    costRates: effectiveCostRates,
   });
   usageRequestClosed = true;
 
@@ -581,9 +594,10 @@ export async function callText({
     if (usageRequest?.requestId && !usageRequestClosed) {
       const status = err?.name === "AbortError" || err?.type === "aborted" ? "aborted" : "error";
       usageLedger?.recordError?.(usageRequest.requestId, err, status, {
+        [FINAL_PROVIDER_RESPONSE]: observedUsageIsFinal && err?.code === "LLM_EMPTY_RESPONSE",
         usage: observedUsagePayload,
         model: { provider: providerId, modelId, api },
-        costRates: modelObj?.cost,
+        costRates: effectiveCostRates,
       });
     }
     throw err;

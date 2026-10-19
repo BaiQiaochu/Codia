@@ -26,6 +26,7 @@ type CronExecutionResult = CronRunDetails | null | undefined | void;
 
 type CronError = Error & {
   skipped?: boolean;
+  runDetails?: CronRunDetails;
 };
 
 type CronSchedulerOptions = {
@@ -101,7 +102,7 @@ export function createCronScheduler({
     await Promise.allSettled(dispatched);
   }
 
-  function track(job: CronJob, options: { throwOnError?: boolean; scheduledAt?: string } = {}) {
+  function track(job: CronJob, options: { throwOnError?: boolean; scheduledAt?: string; requestId?: string } = {}) {
     running.add(job.id);
     const promise = executeTrackedJob(job, options);
     pending.add(promise);
@@ -133,11 +134,11 @@ export function createCronScheduler({
     catch (err) { log.error(`completion notification failed: ${err instanceof Error ? err.message : err}`); }
   }
 
-  async function executeTrackedJob(job: CronJob, { throwOnError = false, scheduledAt }: { throwOnError?: boolean; scheduledAt?: string } = {}) {
+  async function executeTrackedJob(job: CronJob, { throwOnError = false, scheduledAt, requestId }: { throwOnError?: boolean; scheduledAt?: string; requestId?: string } = {}) {
     log.log(`run job: ${job.label} (${job.id})`);
     debugLog()?.log("cron", `run ${job.id} (${job.label})`);
     const startedAt = new Date().toISOString();
-    const periodDetails = scheduledAt ? { scheduledAt, dedupeKey: `${job.id}:${scheduledAt}` } : {};
+    const periodDetails = scheduledAt ? { scheduledAt, dedupeKey: `${job.id}:${scheduledAt}`, trigger: "scheduled" } : { ...(requestId ? { requestId } : {}), trigger: "manual" };
 
     try {
       const executionResult = await runWithTimeout(job);
@@ -155,14 +156,14 @@ export function createCronScheduler({
       const message = cronError?.message || String(err);
 
       if (cronError?.skipped) {
-        cronStore.logRun(job.id, { ...periodDetails, status: "skipped", startedAt, finishedAt });
+        cronStore.logRun(job.id, { ...periodDetails, status: "skipped", startedAt, finishedAt, error: message });
         debugLog()?.log("cron", `job skipped ${job.id}: ${message}`);
         if (scheduledAt && cronStore.claimRun) cronStore.markRun(job.id, { success: false, skipped: true, scheduledAt });
         notifyDone(job, { status: "skipped" });
         return { status: "skipped", error: message };
       }
 
-      cronStore.logRun(job.id, { ...periodDetails, status: "error", startedAt, finishedAt, error: message });
+      cronStore.logRun(job.id, { ...cronError?.runDetails, ...periodDetails, status: "error", startedAt, finishedAt, error: message });
       cronStore.markRun(job.id, { success: false, ...(scheduledAt ? { scheduledAt } : {}) });
       log.error(`job failed ${job.id}: ${message}`);
       debugLog()?.error("cron", `job failed ${job.id}: ${message}`);
@@ -186,12 +187,12 @@ export function createCronScheduler({
     await Promise.allSettled([...pending]);
   }
 
-  async function runNow(job: CronJob) {
+  async function runNow(job: CronJob, { requestId }: { requestId?: string } = {}) {
     if (running.has(job.id) || running.size >= maxConcurrentJobs) {
       throw Object.assign(new Error("cron concurrency limit reached"), { skipped: true });
     }
-    return track(job, { throwOnError: true });
+    return track(job, { throwOnError: true, requestId });
   }
 
-  return { start, stop, checkJobs, runNow };
+  return { start, stop, checkJobs, runNow, isRunning: (jobId: string) => running.has(jobId) };
 }

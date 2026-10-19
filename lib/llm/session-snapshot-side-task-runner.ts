@@ -1,5 +1,7 @@
 // @ts-nocheck
+import { USAGE_RESERVATION } from "./usage-budget-guard.ts";
 import { completeSimple } from "../pi-sdk/index.ts";
+import { guardMemoryContext, memoryAgentDirFromSessionPath } from '../memory/prompt-guard.ts';
 import {
   assertSessionSnapshotRequest,
   buildSessionSnapshotRequestContract,
@@ -61,6 +63,12 @@ export async function runSessionSnapshotSideTask({
   if (includeTools) {
     context.tools = snapshot.tools || [];
   }
+  const memoryAgentDir = memoryAgentDirFromSessionPath(snapshot.sessionPath);
+  if (memoryAgentDir && guardMemoryContext(context, memoryAgentDir) !== context) {
+    // A strict cached prefix may not be reused after forgetting. Recreate it,
+    // rather than silently reporting a successful strict-cache request.
+    throw new Error('Memory evidence changed; recreate the session snapshot before this side task');
+  }
   const requestContract = buildSessionSnapshotRequestContract({
     snapshot,
     model,
@@ -85,12 +93,14 @@ export async function runSessionSnapshotSideTask({
     strict: true,
   });
   const usageRequest = usageLedger?.start?.({
-    model: { provider: model?.provider ?? null, modelId: model?.id ?? null, api: model?.api ?? null },
+    model: { ...model, modelId: model?.id ?? null },
+    maxOutputTokens: requestOptions.maxTokens,
     usageContext,
     metadata,
     costRates: model?.cost,
   }) || null;
 
+  if (usageRequest) requestOptions[USAGE_RESERVATION] = { ledger: usageLedger, requestId: usageRequest.requestId };
   let response;
   try {
     response = streamFn

@@ -142,7 +142,7 @@ export function createHostApi(deps) {
           throw new Error(`workflow token budget exhausted (spent ${budget.spent()})`);
         }
 
-        const isoOpts = { ...baseIsoOpts, signal };
+        const isoOpts = { ...baseIsoOpts, signal, workflowRunId: journal?.metadata?.runId || baseIsoOpts.workflowRunId || baseIsoOpts.runId || null };
         if (threadId) {
           isoOpts.subagentThreadId = threadId;
           isoOpts.subagentThreadKind = threadKind;

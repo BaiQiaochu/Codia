@@ -10,6 +10,9 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { applyMemoryRetention, deferExtractionForBudget, readRetentionPolicy, withCurrentRetentionPolicy } from "./retention-policy.ts";
+import { openExperienceStore } from "../experience-store.ts";
+import { buildRecordedMemoryContext } from "./runtime-context.ts";
 import { debugLog } from "../debug-log.ts";
 import {
   compileToday,
@@ -21,9 +24,10 @@ import {
   editableFactsPath,
   ensureEditableFactsBaseline,
 } from "./compile.ts";
-import { processDirtySessions } from "./deep-memory.ts";
+import { extractSessionExperiences, EXPERIENCE_EXTRACTOR_VERSION } from "../experience-extractor.ts";
+import { processDirtySessions, summarySourceRevision } from "./deep-memory.ts";
 import { getLogicalDay } from "../time-utils.ts";
-import { readCompiledResetAt } from "./compiled-memory-state.ts";
+import { readCompiledResetAt, readCompiledGeneration, assertCompiledGeneration } from "./compiled-memory-state.ts";
 import { isAgentPhoneSessionPath } from "../conversations/agent-phone-session.ts";
 import { buildSourceTimeRange } from "./time-context.ts";
 import { writeCacheSnapshotObservation } from "./cache-snapshot-observation.ts";
@@ -82,7 +86,7 @@ function readSessionMessages(filePath, opts = {}) {
         if (role === "user" || role === "assistant") {
           const ts = entry.timestamp ? Date.parse(entry.timestamp) : NaN;
           if (since && (Number.isNaN(ts) || ts <= since)) continue;
-          messages.push({ role, content, timestamp: entry.timestamp || null });
+          messages.push({ role, content, timestamp: entry.timestamp || null, id: entry.id || entry.message.id || null, runId: entry.runId || entry.message.runId || null });
           if (entry.timestamp) lastTimestamp = entry.timestamp;
         }
       }
@@ -157,7 +161,7 @@ export function createMemoryTicker(opts) {
     agentDir,
     summaryManager,
       factStore,
-    getResolvedMemoryModel,
+    getResolvedMemoryModel: resolveMemoryModel,
     onCompiled,
     sessionDir,
     memoryMdPath,
@@ -176,6 +180,7 @@ export function createMemoryTicker(opts) {
       getSessionIdForPath,
       memoryDir = path.dirname(memoryMdPath),
     } = opts;
+  const getResolvedMemoryModel = () => ({ ...resolveMemoryModel(), usageAgentId: agentId });
   const _memoryReflectionRunner = memoryReflectionRunner || { runMemoryReflection: defaultRunMemoryReflection };
 
   /** */
@@ -225,6 +230,10 @@ export function createMemoryTicker(opts) {
       const metaPath = path.join(path.dirname(sessionPath), "session-meta.json");
       const meta = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
       const snapshot = meta[path.basename(sessionPath)]?.memoryReflectionSnapshot;
+      // Legacy snapshots contain copied memory; a reset must not feed it back to a model.
+      if (snapshot && _getCompiledResetAt()) {
+        return { ...snapshot, existingMemory: "", userProfile: "" };
+      }
       return snapshot && typeof snapshot === "object" && !Array.isArray(snapshot)
         ? snapshot
         : null;
@@ -521,6 +530,7 @@ export function createMemoryTicker(opts) {
     trigger,
   }) {
     const startedAt = Date.now();
+    const generation = readCompiledGeneration(memoryDir);
     let baseMemoryMd = "";
     let requestModel = null;
     let diagnosticModel = null;
@@ -588,6 +598,8 @@ export function createMemoryTicker(opts) {
         throw err;
       }
 
+      assertCompiledGeneration(memoryDir, generation);
+      if (!_isSessionMemoryOn(sessionPath)) return "";
       if (mode === "write" && reflection?.data) {
         summaryManager.saveSummary(sessionId, reflection.data);
       }
@@ -613,6 +625,7 @@ export function createMemoryTicker(opts) {
       _markSuccess("cacheSnapshotReflection");
       return observation.summaryPreview;
     } catch (err) {
+      if (readCompiledGeneration(memoryDir) !== generation || !_isSessionMemoryOn(sessionPath)) return "";
       const metadata = err?.cacheMetadata || {};
       _markFailure("cacheSnapshotReflection", err);
       if (err?.stack) {
@@ -649,7 +662,25 @@ export function createMemoryTicker(opts) {
     }
   }
 
+  // Unknown legacy history retains its existing boundaries. Explicitly mixed history is paused,
+  // never relabeled as global merely because a single applicability scope cannot be proven.
+  function _isHistoricalEnvironmentUnambiguous(sessionPath) {
+    const environment = buildRecordedMemoryContext(sessionPath);
+    return !environment.environmentDiagnostics.includes('ambiguous_recorded_environment');
+  }
+  function _createSummaryEnvironmentGuard() {
+    const sources = new Map(listAllSessions(sessionDir).map(entry => [_sessionIdentityForPath(entry.filePath), entry.filePath]));
+    return summary => {
+      const source = sources.get(summary.session_id);
+      return !source || _isHistoricalEnvironmentUnambiguous(source);
+    };
+  }
+
   async function _doRollingSummary(sessionPath, trigger = "threshold") {
+    if (!_isHistoricalEnvironmentUnambiguous(sessionPath)) {
+      _markFailure("rollingSummary", new Error("ambiguous_recorded_environment: 会话包含多个运行环境，已暂停记忆与经验学习；请新建会话继续。"));
+      return;
+    }
     if (_summaryInProgress.has(sessionPath)) return; // 并发保护
     _summaryInProgress.add(sessionPath);
     try {
@@ -662,7 +693,20 @@ export function createMemoryTicker(opts) {
       const rollingOptions = {
         resetAt: since || resetAt,
         timeZone: _getTimezone(),
+        isEnabled: () => _isSessionMemoryOn(sessionPath) && _isHistoricalEnvironmentUnambiguous(sessionPath),
       };
+      try {
+        const meta = JSON.parse(fs.readFileSync(path.join(path.dirname(sessionPath), "session-meta.json"), "utf8"))[path.basename(sessionPath)] || {};
+        rollingOptions.projectId = meta.memoryProjectId || null;
+        rollingOptions.channelId = meta.channelId || null;
+        rollingOptions.runId = meta.runId || null;
+      } catch {}
+      const recorded = buildRecordedMemoryContext(sessionPath);
+      if (recorded.provenance === 'recorded') {
+        rollingOptions.projectId = recorded.projectId;
+        rollingOptions.channelId = recorded.channel;
+        rollingOptions.runId = recorded.runId;
+      }
       const memoryReflectionSnapshot = _readMemoryReflectionSnapshot(sessionPath);
       if (memoryReflectionSnapshot) {
         rollingOptions.memoryReflectionSnapshot = memoryReflectionSnapshot;
@@ -787,9 +831,10 @@ export function createMemoryTicker(opts) {
             await compileEditableFacts(summaryManager, editableFactsPath(memoryDir), getResolvedMemoryModel(), {
               since: resetAt,
               seedFactsPath: factsMdPath,
+              factStore,
             });
           } else {
-            await compileFacts(summaryManager, factsMdPath, getResolvedMemoryModel(), { since: resetAt });
+            await compileFacts(summaryManager, factsMdPath, getResolvedMemoryModel(), { since: resetAt, factStore });
           }
           _markDailyStepCompleted("compileFacts", context);
           _markSuccess("compileFacts");
@@ -813,7 +858,7 @@ export function createMemoryTicker(opts) {
  //
       if (!_dailyStepsCompleted.has("deepMemory")) {
         try {
-          const { processed, factsAdded } = await processDirtySessions(
+          const extraction = await processDirtySessions(
             summaryManager,
             factStore,
             getResolvedMemoryModel(),
@@ -821,9 +866,19 @@ export function createMemoryTicker(opts) {
               since: resetAt,
               timeZone: _getTimezone(),
               getSourceTimeRange: _createSourceTimeRangeResolver(),
+              isEnabled: _isMemoryMasterOn,
+              isSessionEnabled: _createSummaryEnvironmentGuard(),
             },
           );
+          const { processed, factsAdded, failed = 0, quarantined = 0, deferred = 0 } = extraction;
+          _health.deepMemory.extraction = extraction;
+          if (failed || quarantined || deferred) throw new Error(`Memory extraction incomplete: ${failed} failed, ${quarantined} quarantined, ${deferred} deferred`);
           _markDailyStepCompleted("deepMemory", context);
+          if (factsAdded > 0 && factStore?.getActive) {
+            await compileFacts(summaryManager, _factsSourcePath(), getResolvedMemoryModel(), { since: resetAt, factStore });
+            assemble(_factsSourcePath(), todayMdPath, weekMdPath, longtermMdPath, memoryMdPath);
+            onCompiled?.();
+          }
           if (processed > 0) {
             console.log(`\x1b[90m[memory-ticker] deep-memory: ${processed} session, ${factsAdded} 条新事实\x1b[0m`);
           }
@@ -858,6 +913,18 @@ export function createMemoryTicker(opts) {
   function _checkDailyJob() {
     if (_stopped) return;
     if (!_isMemoryMasterOn()) return;
+    _trackJob(_retryExperienceExtractions());
+    if (agentDir && factStore?.db) {
+      let experience;
+      try {
+        const policy = readRetentionPolicy(memoryDir);
+        if (policy.completedExtractionDays !== null || policy.ordinaryEventDays !== null) {
+          experience = openExperienceStore(agentDir);
+          withCurrentRetentionPolicy(memoryDir, undefined, current => applyMemoryRetention(factStore, experience, current));
+        }
+      } catch (error) { debugLog()?.error('memory', `History retention deferred: ${error?.message || 'maintenance unavailable'}`); }
+      finally { experience?.close(); }
+    }
     const context = _restoreDailyProgress();
     if (_lastDailyJobDate !== context.logicalDate) {
       _trackJob(_doDaily());
@@ -902,9 +969,56 @@ export function createMemoryTicker(opts) {
     try {
       await _doRollingSummary(sessionPath, "session_end");
       await _doCompileTodayAndAssemble();
+      const summary = summaryManager.getSummary?.(sessionKey);
+      await _extractExperienceCandidates(sessionPath, summary);
     } catch (err) {
       console.error(`\x1b[90m[memory-ticker] notifySessionEnd 失败: ${err.message}\x1b[0m`);
     }
+  }
+
+  async function _extractExperienceCandidates(sessionPath, summary) {
+    if (!agentDir || !summary?.summary || opts.getExperienceEnabled?.() !== true || !_isSessionMemoryOn(sessionPath)) return;
+    const environment = buildRecordedMemoryContext(sessionPath);
+    if (!_isHistoricalEnvironmentUnambiguous(sessionPath)) return;
+    const version = `experience:${EXPERIENCE_EXTRACTOR_VERSION}`;
+    const sourceRevision = summarySourceRevision(summary);
+    const key = crypto.createHash("sha256").update(`${summary.session_id}:${sourceRevision}:${version}`).digest("hex");
+    const claim = factStore.beginExtraction?.(key, { sessionId: summary.session_id, sourceRevision, extractorVersion: version, sourceRefs: summary.sourceRefs || [], projectId: environment.projectId });
+    if (claim && claim.status !== "running") return;
+    const generation = readCompiledGeneration(memoryDir);
+    const isEnabled = () => opts.getExperienceEnabled?.() === true && _isSessionMemoryOn(sessionPath) && _isHistoricalEnvironmentUnambiguous(sessionPath) && readCompiledGeneration(memoryDir) === generation;
+    try {
+      const experienceDir = path.join(agentDir, "experience");
+      const result = await extractSessionExperiences(summary.summary, experienceDir, path.join(experienceDir, "index.md"), getResolvedMemoryModel(), {
+        ...environment,
+        sessionId: summary.session_id, sourceRevision,
+        sourceRefs: (summary.sourceRefs || []).filter(ref => ref.messageId).slice(-40).map(ref => ({ type: "message", id: ref.messageId, revision: summary.sourceRevision, author: ref.author })),
+        messageIds: (summary.sourceRefs || []).map(ref => ref.messageId).filter(Boolean).slice(-40),
+        isEnabled,
+      });
+      if (!isEnabled()) throw new Error("Experience extraction paused or generation changed");
+      if (result.status === "failed") throw new Error(result.error || "Experience extraction failed");
+      if (claim) factStore.commitExtraction(key, [], claim);
+    } catch (error) {
+      if (claim && !deferExtractionForBudget(factStore, key, claim, error)) factStore.failExtraction(key, error, claim);
+      debugLog()?.error("memory", "Experience extraction retained in the persistent retry queue");
+    }
+  }
+
+  let _experienceRetryRunning = false;
+  async function _retryExperienceExtractions() {
+    if (_experienceRetryRunning || opts.getExperienceEnabled?.() !== true || !_isMemoryMasterOn() || !factStore.getExtractionJobs) return;
+    _experienceRetryRunning = true;
+    try {
+      const pending = factStore.getExtractionJobs().filter(job => job.extractorVersion === `experience:${EXPERIENCE_EXTRACTOR_VERSION}` && ((job.status === "failed" && (!job.nextRetryAt || job.nextRetryAt <= new Date().toISOString())) || (job.status === "running" && job.leaseUntil <= new Date().toISOString()))).slice(0, 5);
+      const sessions = new Map(listAllSessions(sessionDir).map(entry => [_sessionIdentityForPath(entry.filePath), entry.filePath]));
+      for (const job of pending) {
+        const summary = summaryManager.getSummary?.(job.sessionId);
+        const sessionPath = sessions.get(job.sessionId);
+        if (!summary || summarySourceRevision(summary) !== job.sourceRevision || !sessionPath) { factStore.cancelExtraction?.(job.key, "source missing or superseded"); continue; }
+        if (_isSessionMemoryOn(sessionPath)) await _extractExperienceCandidates(sessionPath, summary);
+      }
+    } finally { _experienceRetryRunning = false; }
   }
 
   /**
@@ -972,6 +1086,7 @@ export function createMemoryTicker(opts) {
 
   async function _tickCore() {
     if (!_isMemoryMasterOn()) return;
+    await _retryExperienceExtractions();
     await _recoverUnsummarized(); // 补偿崩溃/重启前未收尾的 session
     const todayStr = getLogicalDay().logicalDate;
     if (_lastDailyJobDate !== todayStr) {
@@ -1033,6 +1148,7 @@ export function createMemoryTicker(opts) {
 
   function getHealthStatus() {
     const snapshot = {};
+    try { snapshot.budget = getResolvedMemoryModel().usageLedger?.getBudgetReport?.(agentId); } catch {}
     for (const key of _stepKeys) snapshot[key] = { ..._health[key] };
     return snapshot;
   }

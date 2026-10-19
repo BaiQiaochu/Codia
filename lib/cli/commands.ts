@@ -48,6 +48,8 @@ export async function dispatchCliCommand(client, command, args, opts, handlers) 
       return await requireHandler(handlers, "commandInteractive", command)(client, args, opts);
     case "sessions":
       return await requireHandler(handlers, "commandSessions", command)(client, args, opts);
+    case "usage":
+      return await requireHandler(handlers, "commandUsage", command)(client, args, opts);
     case "models":
       return await requireHandler(handlers, "commandModels", command)(client, args, opts);
     case "agents":

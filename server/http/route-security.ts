@@ -399,6 +399,13 @@ function isSettingsReadRoute(verb: string, routePath: string): boolean {
     || routePath === "/api/user-profile"
     || routePath === "/api/memories"
     || routePath === "/api/memories/health"
+    || routePath === "/api/memories/experiences"
+    || routePath === "/api/memories/extractions"
+    || routePath === "/api/memories/runs"
+    || routePath === "/api/memories/projects"
+    || /^\/api\/memories\/\d+\/evidence$/.test(routePath)
+    || routePath === "/api/memories/maintenance"
+    || routePath === "/api/usage/budget"
     || routePath === "/api/memories/compiled"
     || routePath === "/api/memories/export"
     || /^\/api\/agents\/[^/]+\/config$/.test(routePath);
@@ -458,6 +465,12 @@ function isDeskFileWriteRoute(verb: string, routePath: string): boolean {
 }
 
 function isSettingsWriteRoute(verb, routePath) {
+  if (verb === "PATCH" && routePath === "/api/usage/budget") return true;
+  if (["PATCH", "POST"].includes(verb) && routePath === "/api/memories/maintenance") return true;
+  if (verb === "PATCH" && /^\/api\/memories\/experiences\/[^/]+$/.test(routePath)) return true;
+  if (verb === "POST" && /^\/api\/memories\/experiences\/[^/]+\/(?:review|attempt)$/.test(routePath)) return true;
+  if (verb === "POST" && routePath === "/api/memories/batch") return true;
+  if (verb === "POST" && routePath === "/api/memories/extractions/retry") return true;
   if ((verb === "PATCH" || verb === "DELETE") && /^\/api\/memories\/\d+$/.test(routePath)) return true;
   if (verb === "POST" && routePath === "/api/preferences/setup-complete") return true;
   if (verb === "PATCH" && /^\/api\/experiments\/[^/]+$/.test(routePath)) return true;
