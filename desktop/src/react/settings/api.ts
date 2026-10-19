@@ -20,15 +20,24 @@ function pwaBridge(): PwaBridge | undefined {
   return (window as typeof window & { __CODIA_PWA__?: PwaBridge }).__CODIA_PWA__;
 }
 
+export class CodiaFetchError extends Error {
+  constructor(message: string, public readonly status: number, public readonly payload: Record<string, unknown> | null) {
+    super(message);
+    this.name = 'CodiaFetchError';
+  }
+}
+
 async function buildFetchError(path: string, res: Response): Promise<Error> {
+  let payload: Record<string, unknown> | null = null;
   let detail = res.statusText || 'Request failed';
   try {
     const text = await res.text();
     if (text) {
       const trimmed = text.trim();
       try {
-        const payload = JSON.parse(trimmed) as { error?: unknown; message?: unknown };
-        const message = payload.error || payload.message;
+        const parsed: unknown = JSON.parse(trimmed);
+        payload = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : null;
+        const message = payload?.error || payload?.message;
         detail = typeof message === 'string' && message.trim()
           ? message.trim()
           : trimmed.slice(0, ERROR_BODY_LIMIT);
@@ -39,7 +48,7 @@ async function buildFetchError(path: string, res: Response): Promise<Error> {
   } catch {
     // Keep the status text if the response body cannot be read.
   }
-  return new Error(`codiaFetch ${path}: ${res.status} ${detail}`);
+  return new CodiaFetchError(`codiaFetch ${path}: ${res.status} ${detail}`, res.status, payload);
 }
 
 export function codiaUrl(path: string, opts: CodiaUrlOptions = {}): string {

@@ -45,12 +45,15 @@ export interface UsageLedgerEntry {
     childAgentId?: string | null;
     childSessionPath?: string | null;
     taskId?: string | null;
+    runId?: string | null;
+    jobId?: string | null;
   };
   model: {
     provider?: string | null;
     modelId?: string | null;
     api?: string | null;
   };
+  costBasis?: 'configured_estimate' | 'provider_reported' | 'unknown';
   usage: NormalizedUsage | null;
   error: {
     name?: string | null;
@@ -65,12 +68,17 @@ export interface LoadLlmUsageEntriesOptions {
 }
 
 export async function loadLlmUsageEntries(options: number | LoadLlmUsageEntriesOptions = 500): Promise<UsageLedgerEntry[]> {
+  return (await loadLlmUsageReport(options)).entries;
+}
+
+export interface UsageCompleteness { persistent: boolean; statisticsStartedAt: string; storedEntries: number; matchingEntries: number; returnedEntries: number; truncated: boolean; droppedEntries: number; firstReturnedAt: string | null; lastReturnedAt: string | null; }
+export async function loadLlmUsageReport(options: number | LoadLlmUsageEntriesOptions = 500): Promise<{entries: UsageLedgerEntry[]; completeness?: UsageCompleteness}> {
   const params = usageQueryParams(options);
   const query = params.toString();
   const res = await codiaFetch(`/api/usage/llm${query ? `?${query}` : ''}`);
   const data: unknown = await res.json();
-  if (!isUsageResponse(data)) return [];
-  return data.entries;
+  if (res.ok === false || !isUsageResponse(data)) throw new Error('用量统计读取失败');
+  return data;
 }
 
 function usageQueryParams(options: number | LoadLlmUsageEntriesOptions) {
@@ -102,7 +110,7 @@ function cleanDateParam(value: string | null | undefined) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function isUsageResponse(value: unknown): value is { entries: UsageLedgerEntry[] } {
+function isUsageResponse(value: unknown): value is { entries: UsageLedgerEntry[]; completeness?: UsageCompleteness } {
   if (!value || typeof value !== 'object') return false;
   const entries = (value as { entries?: unknown }).entries;
   return Array.isArray(entries);

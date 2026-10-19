@@ -33,7 +33,7 @@ describe("experience tools toggle", () => {
     expect(fs.existsSync(path.join(dir, "experience"))).toBe(false);
   });
 
-  it("works normally when enabled", async () => {
+  it("retains candidates for review but never recalls them automatically", async () => {
     const dir = tempDir();
     recordEntry(path.join(dir, "experience"), path.join(dir, "experience.md"), "workflow", "Use small patches.");
     const tools = createExperienceTools(dir, { isEnabled: () => true });
@@ -41,6 +41,7 @@ describe("experience tools toggle", () => {
 
     const result = await recall.execute("call-1", { category: "workflow" });
 
-    expect(result.content[0].text).toContain("Use small patches.");
+    expect(result.content[0].text).toContain("No enabled, verified experience");
+    expect(result.details.memoryIds).toEqual([]);
   });
 });

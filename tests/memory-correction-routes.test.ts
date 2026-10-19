@@ -5,7 +5,7 @@ import { classifyHttpRoute } from '../server/http/route-security.ts';
 import { createConfigRoute } from '../server/routes/config.ts';
 
 describe('agent-local memory correction API', () => {
-  it('isolates equal fact IDs in different agents and preserves import evidence/status', async () => {
+  it('isolates equal fact IDs in different agents and explicitly rejects retired import', async () => {
     const a = new FactStore(':memory:');
     const b = new FactStore(':memory:');
     try {
@@ -24,8 +24,9 @@ describe('agent-local memory correction API', () => {
       expect(a.searchFullText('alpha')).toEqual([]);
       expect(b.searchFullText('Beta')).toHaveLength(1);
       const imported = await app.request('/api/memories/import?agentId=alpha', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ facts: [{ fact: 'Imported archive', source: 'document:v2', status: 'expired' }] }) });
-      expect(imported.status).toBe(200);
-      expect(a.getAll()[0]).toMatchObject({ source: 'document:v2', status: 'expired' });
+      expect(imported.status).toBe(410);
+      expect((await imported.json()).code).toBe('unsafe_memory_format_retired');
+      expect(a.getAll()).toEqual([]);
     } finally { a.close(); b.close(); }
   });
   it('classifies correction routes as settings writes', () => {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../../stores';
 import { codiaFetch } from '../../hooks/use-codia-fetch';
 import { AgentAvatar, resolveAgentDisplayInfo } from '../../utils/agent-display';
@@ -71,33 +71,53 @@ export function AutomationJobsSection({
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(currentAgentId);
   const [openJobs, setOpenJobs] = useState<Record<string, boolean>>({});
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [modelsError, setModelsError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const requestVersion = useRef(0);
+  const modelRequestVersion = useRef(0);
+
   const loadData = useCallback(async () => {
+    const version = ++requestVersion.current;
     try {
-      const [cronRes, modelsRes] = await Promise.all([
-        codiaFetch('/api/desk/cron'),
-        codiaFetch('/api/models'),
-      ]);
-      const cronData = await cronRes.json();
-      const modelsData = await modelsRes.json().catch(() => ({ models: [] }));
-      const modelOptions = (modelsData.models || [])
-        .filter((model: { id?: string; provider?: string }) => model.id && model.provider)
-        .map((model: { id: string; provider: string; name?: string }) => ({
-          id: model.id,
-          provider: model.provider,
-          name: model.name,
-        }));
-      const nextJobs = Array.isArray(cronData.jobs) ? cronData.jobs : [];
-      setJobs(nextJobs);
-      setAvailableModels(modelOptions);
-      updateBadge(nextJobs);
+      const response = await codiaFetch('/api/desk/cron');
+      const data = await response.json();
+      if (response.ok === false || !Array.isArray(data.jobs)) throw new Error('计划读取失败');
+      if (version !== requestVersion.current) return;
+      setJobs(data.jobs);
+      updateBadge(data.jobs);
+      setLoaded(true);
+      setLoadError(null);
+      setRefreshVersion(value => value + 1);
     } catch (error) {
-      console.error('[automation] load failed:', error);
+      if (version === requestVersion.current) setLoadError(error instanceof Error ? error.message : '计划读取失败');
+    }
+  }, []);
+
+  const loadModels = useCallback(async () => {
+    const version = ++modelRequestVersion.current;
+    try {
+      const response = await codiaFetch('/api/models');
+      const data = await response.json();
+      if (response.ok === false || !Array.isArray(data.models)) throw new Error('模型列表读取失败');
+      if (version !== modelRequestVersion.current) return;
+      setAvailableModels(data.models.filter((model: ModelOption) => model.id && model.provider));
+      setModelsError(null);
+    } catch (error) {
+      if (version === modelRequestVersion.current) setModelsError(error instanceof Error ? error.message : '模型列表读取失败');
     }
   }, []);
 
   useEffect(() => {
     void loadData();
+    const timer = setInterval(() => { void loadData(); }, 15_000);
+    return () => { clearInterval(timer); requestVersion.current += 1; };
   }, [currentAgentId, loadData]);
+  useEffect(() => {
+    void loadModels();
+    return () => { modelRequestVersion.current += 1; };
+  }, [loadModels]);
 
   const mutateJob = useCallback(async (payload: Record<string, unknown>, fallbackMessage: string) => {
     try {
@@ -127,7 +147,7 @@ export function AutomationJobsSection({
   }, [mutateJob]);
 
   const updateJob = useCallback(async (jobId: string, fields: Record<string, unknown>) => {
-    await mutateJob({ action: 'update', id: jobId, ...fields }, '保存任务计划失败');
+    return mutateJob({ action: 'update', id: jobId, ...fields }, '保存任务计划失败');
   }, [mutateJob]);
 
   const scopedAgentIds = useMemo(
@@ -216,6 +236,7 @@ export function AutomationJobsSection({
   return (
     <>
       <div className={styles.toolbar}>
+        <button className={styles.textButton} type="button" onClick={() => void loadData()}>刷新计划</button>
         <button
           className={styles.iconButton}
           type="button"
@@ -230,8 +251,11 @@ export function AutomationJobsSection({
           </svg>
         </button>
       </div>
+      {loadError && <p role="alert" className={styles.healthWarning}>计划读取失败：{loadError}{loaded ? '；仍显示上次成功读取的数据。' : ''}</p>}
+      {modelsError && <p role="alert" className={styles.healthWarning}>模型读取失败：{modelsError} <button type="button" onClick={() => void loadModels()}>重试模型列表</button></p>}
+      {!loaded && !loadError && <p role="status">正在读取计划…</p>}
       <div className={fp.automationList} id={listId}>
-        {tabs.length === 0 ? (
+        {!loaded ? null : tabs.length === 0 ? (
           <div className={fp.automationEmpty}>{emptyMessage || t('automation.empty')}</div>
         ) : (
           <>
@@ -250,6 +274,7 @@ export function AutomationJobsSection({
                 <AutomationCard
                   key={job.id}
                   job={job}
+                  refreshVersion={refreshVersion}
                   availableModels={availableModels}
                   open={openJobs[job.id] === true}
                   onToggleOpen={() => setOpenJobs(previous => ({ ...previous, [job.id]: previous[job.id] !== true }))}

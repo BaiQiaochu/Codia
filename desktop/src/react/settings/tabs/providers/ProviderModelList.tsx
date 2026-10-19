@@ -428,7 +428,7 @@ export function ProviderModelList({ providerId, summary, onRefresh }: {
             })}
           </div>
           {editing && (
-            <ModelEditPanel modelId={editing.id} providerId={providerId} anchorEl={editing.anchor} onClose={() => setEditing(null)} onRefresh={onRefresh} />
+            <ModelEditPanel key={`${providerId}:${editing.id}`} modelId={editing.id} providerId={providerId} anchorEl={editing.anchor} onClose={() => setEditing(null)} onRefresh={onRefresh} />
           )}
         </div>
       )}

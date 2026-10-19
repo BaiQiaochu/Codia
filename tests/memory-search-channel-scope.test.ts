@@ -43,14 +43,14 @@ describe("search_memory channel scope", () => {
     return result.content?.[0]?.text || "";
   }
 
-  it("keeps unscoped instances unchanged and does not expose cross_channel in the schema", async () => {
+  it("excludes channel facts without trusted scope and does not expose a bypass in the schema", async () => {
     const tool = createMemorySearchTool(factStore);
 
     const text = await runSearch(tool, { query: "pizza" });
 
     expect(text).toContain("pineapple");
-    expect(text).toContain("[#alpha]");
-    expect(text).toContain("[#beta]");
+    expect(text).not.toContain("[#alpha]");
+    expect(text).not.toContain("[#beta]");
     expect(JSON.stringify(tool.parameters)).not.toContain("cross_channel");
   });
 

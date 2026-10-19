@@ -616,3 +616,12 @@
     line-height: 1.6;
     margin: var(--space-sm) 0 0;
 }
+
+.healthPanel { border: 1px solid var(--overlay-light); border-radius: var(--radius-sm); padding: var(--space-sm); overflow-wrap: anywhere; }
+.healthHeader { display: flex; justify-content: space-between; align-items: center; gap: var(--space-sm); }
+.healthPanel p { margin: 6px 0; font-size: 0.78rem; }
+.healthWarning { color: var(--danger); font-size: 0.78rem; overflow-wrap: anywhere; }
+.runHistory { margin: 8px 0; padding-left: 20px; max-height: 240px; overflow-y: auto; font-size: 0.78rem; }
+.runHistory li { margin-bottom: 8px; }
+.resultPreview { white-space: pre-wrap; max-height: 320px; overflow: auto; padding: var(--space-sm); background: var(--bg); border: 1px solid var(--overlay-light); }
+.runConfirm { padding: var(--space-sm); border: 1px solid var(--overlay-medium); border-radius: var(--radius-sm); font-size: 0.78rem; }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Collapse, SelectWidget, type SelectOption } from '../../ui';
 import { useStore } from '../../stores';
 import { resolveAgentDisplayInfo } from '../../utils/agent-display';
@@ -10,6 +10,7 @@ import {
   modelSelectValue,
   modelValueFromSelect,
 } from './automation-utils';
+import { AutomationHealthPanel } from './AutomationHealthPanel';
 import { ScheduleEditor } from './ScheduleEditor';
 import { SchedulePolicyEditor, validScheduleTimezone, type MisfirePolicy } from './SchedulePolicyEditor';
 import {
@@ -35,6 +36,7 @@ function jobTitle(job: CronJob) {
 
 export function AutomationCard({
   job,
+  refreshVersion = 0,
   availableModels,
   open,
   onToggleOpen,
@@ -43,12 +45,13 @@ export function AutomationCard({
   onUpdate,
 }: {
   job: CronJob;
+  refreshVersion?: number;
   availableModels: ModelOption[];
   open: boolean;
   onToggleOpen: () => void;
   onToggleEnabled: (id: string) => void;
   onRemove: (id: string) => void;
-  onUpdate: (id: string, fields: Record<string, unknown>) => Promise<void> | void;
+  onUpdate: (id: string, fields: Record<string, unknown>) => Promise<boolean | void> | void;
 }) {
   const t = window.t ?? ((p: string) => p);
   const agents = useStore(s => s.agents);
@@ -74,14 +77,28 @@ export function AutomationCard({
     fallbackAgentYuan,
   });
 
+  type EditableField = 'label' | 'schedule' | 'prompt' | 'model' | 'timezone' | 'misfirePolicy';
+  const edited = useRef(new Set<EditableField>());
+  const revisions = useRef<Record<EditableField, number>>({ label: 0, schedule: 0, prompt: 0, model: 0, timezone: 0, misfirePolicy: 0 });
+  const saveInFlight = useRef(false);
+  const [saving, setSaving] = useState(false);
+  const markEdited = (field: EditableField) => { edited.current.add(field); revisions.current[field]++; };
+
   useEffect(() => {
-    setLabel(jobTitle(job));
-    setScheduleDraft(scheduleDraftFromStored(job.type, job.schedule));
-    setScheduleDirty(false);
-    setPrompt(job.prompt || '');
-    setModel(modelSelectValue(job.model));
-    setTimezone(job.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
-    setMisfirePolicy(job.misfirePolicy || 'catch-up-once');
+    // A locally edited field stays owned by its edit revision, including when the
+    // user changes it back to the pre-save value while a request is in flight.
+    const adopt = <T,>(field: EditableField, value: T, next: T): T => {
+      if (!edited.current.has(field)) return next;
+      if (!saveInFlight.current && value === next) edited.current.delete(field);
+      return value;
+    };
+    setLabel(value => adopt('label', value, jobTitle(job)));
+    if (!edited.current.has('schedule')) setScheduleDraft(scheduleDraftFromStored(job.type, job.schedule));
+    setPrompt(value => adopt('prompt', value, job.prompt || ''));
+    setModel(value => adopt('model', value, modelSelectValue(job.model)));
+    const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    setTimezone(value => adopt('timezone', value, job.timezone || deviceZone));
+    setMisfirePolicy(value => adopt('misfirePolicy', value, job.misfirePolicy || 'catch-up-once'));
   }, [job]);
 
   const dirty =
@@ -93,6 +110,7 @@ export function AutomationCard({
     || model !== modelSelectValue(job.model);
 
   const updateScheduleDraft = (draft: ScheduleDraft) => {
+    markEdited('schedule');
     setScheduleDraft(draft);
     setScheduleDirty(true);
   };
@@ -114,13 +132,28 @@ export function AutomationCard({
     return fields;
   };
 
+  const persist = async (fields: Record<string, unknown>) => {
+    if (saveInFlight.current || !Object.keys(fields).length) return;
+    const submittedRevisions = { ...revisions.current };
+    saveInFlight.current = true; setSaving(true);
+    try {
+      const saved = await onUpdate(job.id, fields);
+      if (saved === false) return;
+      for (const field of Object.keys(submittedRevisions) as EditableField[]) {
+        if (Object.hasOwn(fields, field) && revisions.current[field] === submittedRevisions[field]) {
+          edited.current.delete(field);
+          if (field === 'schedule') setScheduleDirty(false);
+        }
+      }
+    } finally { saveInFlight.current = false; setSaving(false); }
+  };
   const save = async () => {
     if (!validScheduleTimezone(timezone)) return;
-    const fields = updateFields();
-    if (Object.keys(fields).length) await onUpdate(job.id, fields);
+    await persist(updateFields());
   };
 
   const toggleEnabled = async () => {
+    if (saveInFlight.current) return;
     if (job.enabled) {
       onToggleEnabled(job.id);
       return;
@@ -130,7 +163,7 @@ export function AutomationCard({
       addToast(t('automation.promptRequired'), 'error');
       return;
     }
-    await onUpdate(job.id, { ...updateFields(), enabled: true });
+    await persist({ ...updateFields(), enabled: true });
   };
 
   return (
@@ -157,20 +190,21 @@ export function AutomationCard({
       </button>
       <Collapse open={open}>
         <div className={styles.details}>
+          <AutomationHealthPanel job={job} dirty={dirty} refreshVersion={refreshVersion} />
           <div className={styles.fieldGrid}>
             <label className={styles.field}>
               <span>{t('automation.field.label')}</span>
-              <input value={label} onChange={e => setLabel(e.target.value)} />
+              <input value={label} onChange={e => { markEdited('label'); setLabel(e.target.value); }} />
             </label>
           </div>
           <ScheduleEditor draft={scheduleDraft} onChange={updateScheduleDraft} />
-          <SchedulePolicyEditor timezone={timezone} misfirePolicy={misfirePolicy} onTimezoneChange={setTimezone} onMisfirePolicyChange={setMisfirePolicy} />
+          <SchedulePolicyEditor timezone={timezone} misfirePolicy={misfirePolicy} onTimezoneChange={value => { markEdited('timezone'); setTimezone(value); }} onMisfirePolicyChange={value => { markEdited('misfirePolicy'); setMisfirePolicy(value); }} />
           {isAgentSession ? (
             <label className={styles.field}>
               <span>{t('automation.field.prompt')}</span>
               <textarea
                 value={prompt}
-                onChange={e => setPrompt(e.target.value)}
+                onChange={e => { markEdited('prompt'); setPrompt(e.target.value); }}
                 placeholder={t('automation.promptPlaceholder', { agent: agentInfo.displayName })}
               />
             </label>
@@ -187,13 +221,13 @@ export function AutomationCard({
                   })),
                 ]}
                 value={model}
-                onChange={setModel}
+                onChange={value => { markEdited('model'); setModel(value); }}
               />
             </label>
           ) : null}
           <div className={styles.actions}>
-            <button className={styles.textButton} type="button" disabled={!dirty || !validScheduleTimezone(timezone)} onClick={save}>{t('common.confirm')}</button>
-            <button className={`${styles.textButton} ${styles.dangerButton}`} type="button" onClick={() => onRemove(job.id)}>{t('automation.delete')}</button>
+            <button className={styles.textButton} type="button" disabled={saving || !dirty || !validScheduleTimezone(timezone)} onClick={save}>{t('common.confirm')}</button>
+            <button className={`${styles.textButton} ${styles.dangerButton}`} type="button" disabled={saving} onClick={() => onRemove(job.id)}>{t('automation.delete')}</button>
           </div>
         </div>
       </Collapse>

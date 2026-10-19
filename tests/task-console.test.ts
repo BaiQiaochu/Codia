@@ -100,3 +100,22 @@ describe('template runtime diagnostics', () => {
     expect(diagnoseTemplateRuntime(engine, { maxTokens: -1, maxUsd: 2 }).budget.state).toBe('fail');
   });
 });
+
+describe('task delivery lifecycle invariants', () => {
+  it.each([
+    ['in_progress', 'running'], ['reported', 'awaiting_review'], ['completed', 'succeeded'],
+    ['failed', 'failed'], ['cancelled', 'cancelled'], ['assigned', 'queued'],
+    ['awaiting_approval', 'waiting_approval'],
+  ])('normalizes company %s without losing raw status', (rawStatus, status) => {
+    expect(normalizeConsoleRun({ id: 'c', status: rawStatus }, 'company')).toMatchObject({ rawStatus, status });
+  });
+  it('does not invent execution times from creation or report edits', async () => {
+    const service = { listCompanies: async () => [{ id: 'c' }], store: { listTasks: async () => [{ id: 'legacy', status: 'completed', createdAt: '2026-01-01', updatedAt: '2026-10-01' }] } };
+    const { runs } = await (await app(null, { getPlugin: () => ({ ctx: { _company: { service } } }) }).request('/api/task-console')).json();
+    expect(runs.find((r: any) => r.source === 'company')).toMatchObject({ startedAt: null, finishedAt: null, timeProvenance: { startedAt: 'unknown', finishedAt: 'unknown' } });
+  });
+  it('retains structured acceptance, artifact versions and real recorded boundaries', () => {
+    const run = normalizeConsoleRun({ id: 'c', status: 'reported', startedAt: '2026-10-19T10:00:00Z', acceptanceCriteria: ['sources'], acceptanceResults: [{ criterion: 'sources', passed: true, evidence: 'sf_a' }], artifacts: [{ fileId: 'sf_a', version: { sha256: 'abc' } }], dueAt: '2026-10-20', deliveryRevision: 2 }, 'company');
+    expect(run).toMatchObject({ status: 'awaiting_review', rawStatus: 'reported', startedAt: Date.parse('2026-10-19T10:00:00Z'), finishedAt: null, acceptance: { criteria: ['sources'], results: [{ criterion: 'sources', passed: true, evidence: 'sf_a' }] }, artifactDetails: [{ fileId: 'sf_a', version: { sha256: 'abc' } }], deliveryRevision: 2 });
+  });
+});

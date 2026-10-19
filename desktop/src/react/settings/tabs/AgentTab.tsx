@@ -10,16 +10,9 @@ import { YuanSelector } from './agent/YuanSelector';
 import { MemorySection } from './agent/AgentMemory';
 import { AgentToolsSection } from './agent/AgentToolsSection';
 import { FormalAgentFeatures } from './agent/FormalAgentFeatures';
-import { SettingsSection } from '../components/SettingsSection';
-import { SettingsRow } from '../components/SettingsRow';
-import { Toggle } from '../widgets/Toggle';
 import styles from '../Settings.module.css';
 import { normalizeYuanKey } from '../../utils/yuan';
 import { ProviderGroupHeader } from '../../ui';
-import {
-  type ExpCategory, parseExperience,
-  ExperienceBlock, putExperience,
-} from './agent/AgentExperience';
 
 const platform = window.platform;
 
@@ -85,7 +78,6 @@ export function AgentTab() {
   const [agentName, setAgentName] = useState('');
   const [identity, setIdentity] = useState('');
   const [ishiki, setIshiki] = useState('');
-  const [expCategories, setExpCategories] = useState<ExpCategory[]>([]);
   const [promptTemplateLoading, setPromptTemplateLoading] = useState(false);
   const [promptTemplates, setPromptTemplates] = useState<{ agentId: string; templates: PromptTemplatesResponse } | null>(null);
   const [promptTemplateKind, setPromptTemplateKind] = useState<PromptKind>('identity');
@@ -106,7 +98,6 @@ export function AgentTab() {
       setAgentName(settingsConfig.agent?.name || '');
       setIdentity(settingsConfig._identity || '');
       setIshiki(settingsConfig._ishiki || '');
-      setExpCategories(parseExperience(settingsConfig._experience || ''));
     }
   }, [settingsConfig]);
 
@@ -533,49 +524,13 @@ export function AgentTab() {
         hasUtilityModel={hasUtilityModel === true}
         memoryEnabled={memoryEnabled !== false}
         currentPins={currentPins}
+        experienceEnabled={experienceEnabled}
+        onExperienceChange={async (enabled) => {
+          const saved = await autoSaveConfig({ experience: { enabled } }, { silent: true });
+          if (saved) await loadSettingsConfig();
+        }}
       />
       <FormalAgentFeatures />
-
-      {/* 缁忛獙 */}
-      <SettingsSection title={t('settings.experience.title')}>
-        <SettingsRow
-          label={t('settings.experience.toggleLabel')}
-          hint={t('settings.experience.toggleHint')}
-          control={<Toggle
-            on={experienceEnabled}
-            onChange={async (on) => {
-              const saved = await autoSaveConfig({ experience: { enabled: on } }, { silent: true });
-              if (saved) await loadSettingsConfig();
-            }}
-          />}
-        />
-        <div style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-          {experienceEnabled === undefined ? null : experienceEnabled === false ? (
-            <div className={styles['exp-empty']}>{t('settings.experience.paused')}</div>
-          ) : expCategories.length === 0 ? (
-            <div className={styles['exp-empty']}>{t('settings.experience.empty')}</div>
-          ) : (
-            <div className={styles['exp-list']}>
-              {expCategories.map((cat) => (
-                <ExperienceBlock
-                  key={cat.name}
-                  category={cat}
-                  onSave={(updated) => {
-                    const next = expCategories.map(c => c.name === cat.name ? updated : c);
-                    setExpCategories(next);
-                    putExperience(store, next);
-                  }}
-                  onDelete={() => {
-                    const next = expCategories.filter(c => c.name !== cat.name);
-                    setExpCategories(next);
-                    putExperience(store, next);
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </SettingsSection>
 
       {/* 默认关闭项与后端 DEFAULT_DISABLED_TOOL_NAMES 保持同步。 */}
       <AgentToolsSection

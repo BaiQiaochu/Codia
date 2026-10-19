@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { codiaFetch } from '../hooks/use-codia-fetch';
 import { useStore } from '../stores';
 import { requestInputDraft } from '../utils/input-draft-events';
+import { takePendingTaskConsoleRun, TASK_CONSOLE_RUN_EVENT } from '../utils/task-console-navigation';
 import { clearPendingTemplateLaunch, markPendingTemplateLaunchUnknown, preparePendingTemplateLaunch, readPendingTemplateLaunch, type PendingTemplateLaunch } from '../utils/template-launch-pending';
 import { switchSession } from '../stores/session-actions';
 import { TASK_TEMPLATES } from '../../../../shared/task-console/templates';
@@ -11,20 +12,31 @@ import { EvaluationWorkbench } from './EvaluationWorkbench';
 import { TaskResultsPanel } from './TaskResultsPanel';
 import { ToolActionLedgerPanel } from './ToolActionLedgerPanel';
 import { WorkflowRecoveryPanel } from './WorkflowRecoveryPanel';
+import { CompanyDeliveryPanel } from './CompanyDeliveryPanel';
 
 type Approval = { id: string; kind: string; sessionPath: string | null };
 type Snapshot = { runs: ConsoleRun[]; approvals: Approval[]; interruptedApprovals?: Approval[]; limitations: string[] };
 type Preflight = { executionAllowed?: boolean; budgetContract?: { reason: string; note: string; reservationTokens: number | null; reservationUsd: number | null }; qualificationEvidence?: { reason: string };  environment?: { tools: { note: string; checks: { name: string; state: string; connection: string | null }[] }; directory: { reason: string } }; plan?: { steps: { id: string; instruction: string }[] }; checks: { id: string; label: string; state: string }[]; reason: string; modelId: string | null; draft: string; diagnostics?: { model: { inputModalities: string[]; visionConfigured: boolean; toolCalling: string; recentRecordedCalls: number; recentSuccessfulCalls: number; recentFailedCalls: number }; budget: { estimateUsd: number | null; note: string } } };
-const labels: Record<string, string> = { queued: '排队', running: '执行中', succeeded: '成功', failed: '失败', cancelled: '已取消', waiting_approval: '待审批', awaiting_approval: '待审批', blocked: '受阻', assigned: '已分配', partial_failure: '部分失败', recovery_required: '需恢复', unknown: '未知' };
+const labels: Record<string, string> = { awaiting_review: '已汇报待验收', queued: '排队', running: '执行中', succeeded: '成功', failed: '失败', cancelled: '已取消', waiting_approval: '待审批', awaiting_approval: '待审批', blocked: '受阻', assigned: '已分配', partial_failure: '部分失败', recovery_required: '需恢复', unknown: '未知' };
 const pendingLaunchState = (): { record: PendingTemplateLaunch | null; issue: string } => {
   try { return { record: readPendingTemplateLaunch(), issue: '' }; } catch (error) { return { record: null, issue: String(error) }; }
 };
+const timeSource = (value: string | undefined) => value === 'recorded' ? '已记录' : value === 'inferred' ? '推断' : '时间来源未知';
 const date = (value: number | null) => value === null ? '未知' : new Date(value).toLocaleString();
 
 export function TaskConsolePanel() {
   const [data, setData] = useState<Snapshot>({ runs: [], approvals: [], limitations: [] });
   const [error, setError] = useState('');
+  const [refreshToken, setRefreshToken] = useState(0);
+  const refreshRequest = useRef(0);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  useEffect(() => {
+    const select = () => { const id = takePendingTaskConsoleRun(); if (id) { setSelectedId(id); setTab('runs'); } };
+    window.addEventListener(TASK_CONSOLE_RUN_EVENT, select); select();
+    return () => window.removeEventListener(TASK_CONSOLE_RUN_EVENT, select);
+  }, []);
   const [tab, setTab] = useState<'runs' | 'templates' | 'evaluations'>('runs');
   const [templateId, setTemplateId] = useState(TASK_TEMPLATES[0].id);
   const [inputs, setInputs] = useState<Record<string, string>>({});
@@ -52,11 +64,14 @@ export function TaskConsolePanel() {
   selectedIdRef.current = selectedId;
   const close = () => useStore.getState().setActivePanel(null);
   const refresh = useCallback(async () => {
+    const request = ++refreshRequest.current;
     try {
       const response = await codiaFetch('/api/task-console');
       if (!response.ok) throw new Error(`读取失败 (${response.status})`);
-      setData(await response.json()); setError('');
-    } catch (err) { setError(String(err)); }
+      const result = await response.json();
+      if (mounted.current && request === refreshRequest.current) { setData(result); setError(''); }
+    } catch (err) { if (mounted.current && request === refreshRequest.current) setError(String(err)); }
+    finally { if (mounted.current && request === refreshRequest.current) setRefreshToken(token => token + 1); }
   }, []);
   useEffect(() => { void refresh(); const timer = setInterval(() => void refresh(), 5000); return () => clearInterval(timer); }, [refresh]);
   useEffect(() => { setMessages(null); }, [selectedId]);
@@ -165,14 +180,15 @@ export function TaskConsolePanel() {
           <section aria-label="已有运行"><h3>已有运行 ({data.runs.length})</h3>{data.runs.length === 0 && <p>尚无可展示的活动记录。</p>}
             {data.runs.map(run => <button type="button" className={styles.run} aria-pressed={run.id === selectedId} key={run.id} onClick={() => setSelectedId(run.id)}><strong>{run.title}</strong><span>{labels[run.status] || run.status} · {run.owner}</span><small>{date(run.startedAt)}</small></button>)}
           </section>
-          <section aria-label="运行详情"><h3>运行详情</h3>{!selected ? <p>选择一个运行，查看状态、来源和交付物。</p> : <>
-            <h4>{selected.title}</h4><dl><dt>记录 ID</dt><dd>{selected.id}</dd><dt>状态</dt><dd>{labels[selected.status] || selected.status}</dd><dt>负责人</dt><dd>{selected.owner}</dd><dt>开始 / 结束</dt><dd>{date(selected.startedAt)} / {date(selected.finishedAt)}</dd><dt>费用</dt><dd>未知。{selected.cost.reason}</dd><dt>Token</dt><dd>{selected.tokens ?? '未记录'}</dd>{selected.parentTaskId && <><dt>父任务</dt><dd>{selected.parentTaskId}</dd></>}</dl>
+          <section aria-label="运行详情"><h3>运行详情</h3>{!selected ? <p>{selectedId ? '该运行尚未找到或已不在保留记录中；可刷新重试。' : '选择一个运行，查看状态、来源和交付物。'}</p> : <>
+            <h4>{selected.title}</h4><dl><dt>记录 ID</dt><dd>{selected.id}</dd><dt>状态</dt><dd>{labels[selected.status] || selected.status}（原始：{selected.rawStatus || selected.status}）</dd><dt>负责人</dt><dd>{selected.owner}</dd><dt>开始 / 结束</dt><dd>{date(selected.startedAt)}（{timeSource(selected.timeProvenance?.startedAt)}） / {date(selected.finishedAt)}（{timeSource(selected.timeProvenance?.finishedAt)}）</dd><dt>费用</dt><dd>未知。{selected.cost.reason}</dd><dt>Token</dt><dd>{selected.tokens ?? '未记录'}</dd>{selected.parentTaskId && <><dt>父任务</dt><dd>{selected.parentTaskId}</dd></>}</dl>
             {selected.budget && <p>本地预算：已记录 {selected.budget.committedTokens} tokens / {selected.budget.committedUsd} USD；待确认预留 {selected.budget.reservedTokens} tokens / {selected.budget.reservedUsd} USD。{selected.budget.blockedReason || ''} {selected.budget.note}</p>}
             <p>{selected.summary}</p><h4>产物引用</h4>{selected.artifacts.length ? <ul>{selected.artifacts.map((a, i) => <li key={`${a}-${i}`}>{a}</li>)}</ul> : <p>该记录尚无结构化产物引用；可查看原会话中的结果。</p>}
-            {selected.sessionPath && <TaskResultsPanel sessionPath={selected.sessionPath} />}
+            {selected.source === 'company' && <CompanyDeliveryPanel taskId={selected.sourceId} refreshToken={refreshToken} openSession={openSession} />}
+            {selected.sessionPath && <TaskResultsPanel sessionPath={selected.sessionPath} refreshToken={refreshToken} />}
             {selected.sessionPath && <button type="button" onClick={() => void openSession(selected.sessionPath!)}>打开原会话</button>}
             {selected.source === 'workflow' && !selected.parentTaskId && selected.status === 'running' && <button type="button" disabled={busy} onClick={() => void stopRun(selected.sourceId)}>请求停止后续步骤</button>}
-            {selected.source === 'workflow' && <WorkflowRecoveryPanel runId={selected.parentTaskId || selected.sourceId} onPrepared={close} />}
+            {selected.source === 'workflow' && <WorkflowRecoveryPanel runId={selected.parentTaskId || selected.sourceId} refreshToken={refreshToken} onPrepared={close} />}
             {selected.source === 'activity' && <button type="button" onClick={() => void loadTranscript(selected)}>读取结果会话</button>}
             {messages !== null && <pre className={styles.transcript}>{messages}</pre>}
           </>}</section>

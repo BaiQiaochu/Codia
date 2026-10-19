@@ -133,7 +133,7 @@ describe("memory health route", () => {
     expect(data.content).toContain("today part");
   });
 
-  it("saves editable facts and rebuilds compiled memory when the experiment is enabled", async () => {
+  it("rejects retired bulk editing even when the legacy experiment is enabled", async () => {
     const agent = makeAgent(tmpDir);
     const memoryDir = path.dirname(agent.memoryMdPath);
     fs.writeFileSync(path.join(memoryDir, "facts.md"), "legacy facts", "utf-8");
@@ -153,13 +153,10 @@ describe("memory health route", () => {
     });
     const data = await res.json();
 
-    expect(res.status).toBe(200);
-    expect(data.ok).toBe(true);
-    expect(fs.readFileSync(path.join(memoryDir, "editable-facts.md"), "utf-8")).toBe("edited facts\n");
+    expect(res.status).toBe(410);
+    expect(data.code).toBe("sourced_memory_required");
+    expect(fs.existsSync(path.join(memoryDir, "editable-facts.md"))).toBe(false);
     expect(fs.readFileSync(path.join(memoryDir, "facts.md"), "utf-8")).toBe("legacy facts");
-    const memoryMd = fs.readFileSync(agent.memoryMdPath, "utf-8");
-    expect(memoryMd).toContain("edited facts");
-    expect(memoryMd).toContain("today part");
-    expect(engine.updateConfig).toHaveBeenCalledWith({}, { agentId: "codia" });
+    expect(engine.updateConfig).not.toHaveBeenCalled();
   });
 });

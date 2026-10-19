@@ -3,11 +3,12 @@ import os from "os";
 import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { callTextMock, factAddMock, factGetBySessionMock, factDeleteMock } = vi.hoisted(() => ({
+const { callTextMock, factAddMock, factGetBySessionMock, factDeleteMock, factUpdateMock } = vi.hoisted(() => ({
   callTextMock: vi.fn(),
   factAddMock: vi.fn(),
   factGetBySessionMock: vi.fn(),
   factDeleteMock: vi.fn(),
+  factUpdateMock: vi.fn(),
 }));
 
 vi.mock("../lib/i18n.js", () => ({
@@ -24,6 +25,7 @@ vi.mock("../lib/memory/fact-store.js", () => ({
     this.add = factAddMock;
     this.getBySession = factGetBySessionMock;
     this.delete = factDeleteMock;
+    this.update = factUpdateMock;
     this.close = vi.fn();
   }),
 }));
@@ -106,6 +108,7 @@ describe("ChannelRouter channel memory summaries", () => {
     factAddMock.mockReset();
     factGetBySessionMock.mockReset();
     factDeleteMock.mockReset();
+    factUpdateMock.mockReset().mockReturnValue({memory:{}});
     factGetBySessionMock.mockReturnValue([]);
   });
 
@@ -168,12 +171,13 @@ describe("ChannelRouter channel memory summaries", () => {
     expect(request.messages[0].content).toContain("Existing channel memory");
     expect(request.messages[0].content).toContain("stale sender id summary");
     expect(factGetBySessionMock).toHaveBeenCalledWith("channel-general");
-    expect(factDeleteMock).toHaveBeenCalledWith(3);
-    expect(factDeleteMock).toHaveBeenCalledWith(5);
-    expect(factAddMock).toHaveBeenCalledWith(expect.objectContaining({
+    expect(factUpdateMock).toHaveBeenCalledWith(3, expect.any(Object), undefined);
+    expect(factUpdateMock).toHaveBeenCalledWith(5, expect.any(Object), undefined);
+    expect(factUpdateMock).toHaveBeenCalledWith(3, expect.objectContaining({
       fact: "[#general] Nova confirmed channel memory should record actor actions.",
       session_id: "channel-general",
-    }));
+      status: "candidate",
+    }), undefined);
   });
 
   it("clears stale channel memory facts when the summarizer returns NO_MEMORY", async () => {
@@ -186,7 +190,7 @@ describe("ChannelRouter channel memory summaries", () => {
       messages: [{ sender: "user", timestamp: "2026-05-14 10:00:00", body: "ok" }],
     });
 
-    expect(factDeleteMock).toHaveBeenCalledWith(8);
+    expect(factUpdateMock).toHaveBeenCalledWith(8, expect.any(Object), undefined);
     expect(factAddMock).not.toHaveBeenCalled();
   });
 });

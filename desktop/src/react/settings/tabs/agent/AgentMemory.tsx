@@ -140,11 +140,13 @@ function MemoryHealthNotice({ health, error }: {
   );
 }
 
-export function MemorySection({ agentId, hasUtilityModel, memoryEnabled, currentPins }: {
+export function MemorySection({ agentId, hasUtilityModel, memoryEnabled, currentPins, experienceEnabled, onExperienceChange }: {
   agentId: string | null;
   hasUtilityModel: boolean;
   memoryEnabled: boolean;
   currentPins: string[];
+  experienceEnabled?: boolean;
+  onExperienceChange?: (enabled: boolean) => void;
 }) {
   const [pinInput, setPinInput] = useState('');
   const [health, setHealth] = useState<MemoryHealthPayload | null>(null);
@@ -221,7 +223,15 @@ export function MemorySection({ agentId, hasUtilityModel, memoryEnabled, current
         </p>
       )}
 
-      <div className={`${styles['memory-settings-content']} ${!hasUtilityModel || !memoryEnabled ? 'settings-disabled' : ''}`}>
+      <div className={styles['memory-settings-content']}>
+        {!memoryEnabled && <p className={styles['settings-inline-note']}>自动记忆已关闭；仍可查看来源、纠错和忘记已有记录。</p>}
+        {onExperienceChange && <div className={styles['settings-subsection']}>
+          <div className={styles['settings-subsection-header']}>
+            <h3 className={styles['settings-subsection-title']}>经验调用</h3>
+            <Toggle on={experienceEnabled === true} onChange={onExperienceChange} />
+          </div>
+          <p className={styles['settings-subsection-hint']}>开启后，仅使用已验证并启用且适用范围匹配的经验。可在下方记忆页面审查候选、运行证据和核实结果。</p>
+        </div>}
         <MemoryHealthNotice health={health} error={healthError} />
 
       <div className={styles['settings-subsection']}>
@@ -282,7 +292,7 @@ export function MemorySection({ agentId, hasUtilityModel, memoryEnabled, current
         </div>
       </div>
 
-      </div>{/* settings-disabled wrapper */}
+      </div>
     </SettingsSection>
   );
 }

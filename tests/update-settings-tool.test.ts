@@ -313,8 +313,8 @@ describe("update-settings-tool", () => {
     });
   });
 
-  describe("memory.facts editable memory boundary", () => {
-    it("rejects Agent fact edits while the editable memory experiment is disabled", async () => {
+  describe("memory.facts retired bulk-write boundary", () => {
+    it("rejects Agent fact edits while the legacy editable memory experiment is disabled", async () => {
       const { root, memoryDir, agent } = makeMemoryAgent("owner");
       try {
         fs.writeFileSync(path.join(memoryDir, "facts.md"), "Legacy facts\n", "utf-8");
@@ -336,7 +336,7 @@ describe("update-settings-tool", () => {
       }
     });
 
-    it("writes editable facts and rebuilds memory.md when the experiment is enabled", async () => {
+    it("rejects bulk fact edits even when the legacy experiment is enabled", async () => {
       const { root, memoryDir, agent } = makeMemoryAgent("owner");
       try {
         fs.writeFileSync(path.join(memoryDir, "facts.md"), "Legacy facts\n", "utf-8");
@@ -355,16 +355,15 @@ describe("update-settings-tool", () => {
         });
 
         expect(result.details.settingsUpdate).toMatchObject({
-          status: "applied",
+          status: "failed",
           key: "memory.facts",
         });
-        expect(fs.readFileSync(path.join(memoryDir, "editable-facts.md"), "utf-8")).toBe("User likes clean boundaries.\n");
-        const compiled = fs.readFileSync(path.join(memoryDir, "memory.md"), "utf-8");
-        expect(compiled).toContain("## Key facts");
-        expect(compiled).toContain("User likes clean boundaries.");
-        expect(compiled).toContain("Today stays read-only.");
-        expect(compiled).toContain("Week stays read-only.");
-        expect(compiled).toContain("Long-term stays read-only.");
+        expect(result.content[0].text).toContain("retired");
+        expect(result.content[0].text).toContain("individual sourced facts");
+        expect(fs.existsSync(path.join(memoryDir, "editable-facts.md"))).toBe(false);
+        expect(fs.existsSync(path.join(memoryDir, "memory.md"))).toBe(false);
+        expect(fs.readFileSync(path.join(memoryDir, "facts.md"), "utf-8")).toBe("Legacy facts\n");
+        expect(fs.readFileSync(path.join(memoryDir, "today.md"), "utf-8")).toBe("Today stays read-only.\n");
       } finally {
         fs.rmSync(root, { recursive: true, force: true });
       }

@@ -98,3 +98,27 @@ describe('registered task artifact history', () => {
   expect(mocks.preview).toHaveBeenCalledOnce();
   expect(mocks.fetch).toHaveBeenCalledTimes(1);
 });
+
+it('refreshes the same session, preserves version selections, and retries a failed background read', async () => {
+  mocks.fetch.mockResolvedValueOnce(ok({ files: [{ ...file, snapshots: [snapshot(1), snapshot(2)] }] }))
+    .mockResolvedValueOnce({ ok: false, json: async () => ({ error: 'offline' }) })
+    .mockResolvedValueOnce(ok({ files: [{ ...file, snapshots: [snapshot(1), snapshot(2)] }, { ...file, id: 'sf_b', displayName: 'New file' }] }));
+  const view = render(<TaskResultsPanel sessionPath="same" refreshToken={0} />);
+  await screen.findByText('Brief');
+  fireEvent.change(screen.getByLabelText('Brief 旧版本'), { target: { value: 'snap1' } });
+  view.rerender(<TaskResultsPanel sessionPath="same" refreshToken={1} />);
+  await screen.findByRole('alert');
+  expect((screen.getByLabelText('Brief 旧版本') as HTMLSelectElement).value).toBe('snap1');
+  fireEvent.click(screen.getByRole('button', { name: '刷新登记产物' }));
+  await screen.findByText('New file');
+  expect((screen.getByLabelText('Brief 旧版本') as HTMLSelectElement).value).toBe('snap1');
+});
+
+it('ignores older refresh responses within the same session', async () => {
+  let old: (v: unknown) => void = () => {};
+  mocks.fetch.mockImplementationOnce(() => new Promise(r => { old = r; })).mockResolvedValueOnce(ok({ files: [file] }));
+  const view = render(<TaskResultsPanel sessionPath="same" refreshToken={0} />);
+  view.rerender(<TaskResultsPanel sessionPath="same" refreshToken={1} />);
+  await screen.findByText('Brief'); old(ok({ files: [] }));
+  await waitFor(() => expect(screen.getByText('Brief')).toBeTruthy());
+});

@@ -3,14 +3,15 @@ import React from 'react';
 import { webcrypto } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-const mocks = vi.hoisted(() => ({ fetch: vi.fn(), close: vi.fn(), draft: vi.fn(), session: vi.fn() }));
+const mocks = vi.hoisted(() => ({ fetch: vi.fn(), close: vi.fn(), draft: vi.fn(), session: vi.fn(), tab: vi.fn() }));
 vi.mock('../hooks/use-codia-fetch', () => ({ codiaFetch: mocks.fetch }));
-vi.mock('../stores', () => ({ useStore: { getState: () => ({ setActivePanel: mocks.close }) } }));
+vi.mock('../stores', () => ({ useStore: { getState: () => ({ setActivePanel: mocks.close, setCurrentTab: mocks.tab }) } }));
 vi.mock('../stores/session-actions', () => ({ switchSession: mocks.session }));
 vi.mock('../utils/input-draft-events', () => ({ requestInputDraft: mocks.draft }));
 import { TaskConsolePanel } from './TaskConsolePanel';
+import { openTaskConsoleRun, takePendingTaskConsoleRun } from '../utils/task-console-navigation';
 beforeEach(() => { vi.stubGlobal('crypto', webcrypto); window.localStorage.clear(); });
-afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllGlobals(); window.localStorage.clear(); });
+afterEach(() => { cleanup(); takePendingTaskConsoleRun(); vi.clearAllMocks(); vi.unstubAllGlobals(); window.localStorage.clear(); });
 const response = (data: unknown) => ({ ok: true, json: async () => data });
 
 describe('task console UI', () => {
@@ -149,4 +150,41 @@ describe('task console UI', () => {
     render(<TaskConsolePanel />);
     expect(await screen.findByRole('alert')).toHaveProperty('textContent', expect.stringContaining('403'));
   });
+});
+it('manual parent refresh updates selected artifacts and recovery without selecting another run', async () => {
+  let generation = 0;
+  const run = { id: 'workflow:r', sourceId: 'r', source: 'workflow', title: 'Refresh run', status: 'running', owner: 'A', startedAt: 1, finishedAt: null, tokens: null, cost: { state: 'unknown', reason: 'unknown' }, artifacts: [], sessionPath: '/s' };
+  mocks.fetch.mockImplementation(async (url: string) => {
+    if (url === '/api/task-console') return response({ runs: [run], approvals: [], limitations: [] });
+    if (url.startsWith('/api/task-artifacts')) return response({ files: generation ? [{ id: 'sf_new', displayName: 'Fresh artifact' }] : [], capabilities: {} });
+    if (url.startsWith('/api/workflow-recovery')) return response({ canPrepare: false, blockedReason: generation ? 'now blocked' : 'running', actions: [] });
+    return response({ entries: [] });
+  });
+  render(<TaskConsolePanel />); fireEvent.click(await screen.findByText('Refresh run'));
+  await screen.findByText('尚无已登记文件。'); generation++;
+  fireEvent.click(screen.getByRole('button', { name: /^刷新$/ }));
+  await screen.findByText('Fresh artifact'); await screen.findByText('now blocked');
+  expect(screen.getAllByText('Refresh run')).toHaveLength(2);
+});
+it('opens a recorded evidence run across lazy mount and reports expired evidence without dispatch', async () => {
+  const run = { id: 'activity:evidence', sourceId: 'evidence', source: 'activity', title: 'Evidence run', status: 'failed', owner: 'A', startedAt: 1, finishedAt: 2, tokens: null, cost: { state: 'unknown', reason: 'unknown' }, artifacts: [] };
+  mocks.fetch.mockResolvedValue(response({ runs: [run], approvals: [], limitations: [] }));
+  expect(openTaskConsoleRun('activity:evidence')).toBe(true); expect(mocks.close).toHaveBeenCalledWith('task-console');
+  render(<TaskConsolePanel />); await screen.findByText('activity:evidence');
+  expect(screen.getAllByText('Evidence run')).toHaveLength(2);
+  expect(openTaskConsoleRun('workflow:removed')).toBe(true);
+  await screen.findByText('该运行尚未找到或已不在保留记录中；可刷新重试。');
+  expect(mocks.fetch.mock.calls.every(([, options]) => !options?.method || options.method === 'GET')).toBe(true);
+});
+it('rejects older list responses arriving after a newer manual refresh', async () => {
+  let first: (v: unknown) => void = () => {};
+  const run = { id: 'activity:new', sourceId: 'new', source: 'activity', title: 'Newest state', status: 'failed', owner: 'A', startedAt: 1, finishedAt: 2, cost: { state: 'unknown', reason: 'unknown' }, artifacts: [] };
+  let lists = 0;
+  mocks.fetch.mockImplementation((url: string) => {
+    if (url === '/api/task-console' && ++lists === 1) return new Promise(resolve => { first = resolve; });
+    return Promise.resolve(response({ runs: [run], approvals: [], limitations: [], entries: [] }));
+  });
+  render(<TaskConsolePanel />); fireEvent.click(screen.getByRole('button', { name: /^刷新$/ }));
+  await screen.findByText('Newest state'); first(response({ runs: [], approvals: [], limitations: [] }));
+  await waitFor(() => expect(screen.getByText('Newest state')).toBeTruthy());
 });

@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { UsageBudgetSettings } from './UsageBudgetSettings';
 import { SettingsSection } from '../../components/SettingsSection';
 import { useI18n } from '../../../hooks/use-i18n';
 import styles from '../../Settings.module.css';
-import { loadLlmUsageEntries, type UsageLedgerEntry } from './usage-ledger-actions';
+import { loadLlmUsageReport, type UsageCompleteness, type UsageLedgerEntry } from './usage-ledger-actions';
 import { DailyBars, ModelOrbit, RequestLedger, SplitRing, UsageLegend } from './UsageLedgerCharts';
 import { usageT } from './usage-ledger-i18n';
 import {
@@ -33,26 +34,32 @@ export function UsageLedgerSection() {
   const [view, setView] = useState<UsageView>('overall');
   const [period, setPeriod] = useState<UsagePeriod>('week');
   const [loading, setLoading] = useState(false);
+  const refreshId = useRef(0);
+  const [completeness, setCompleteness] = useState<UsageCompleteness>();
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
+    const id = ++refreshId.current;
     setLoading(true);
     setError(null);
     try {
       const [recent, dateWindow] = await Promise.all([
-        loadLlmUsageEntries(500),
-        loadLlmUsageEntries(usagePeriodDateRange(period)),
+        loadLlmUsageReport(500),
+        loadLlmUsageReport(usagePeriodDateRange(period)),
       ]);
-      setEntries(recent);
-      setDateWindowEntries(dateWindow);
+      if (id !== refreshId.current) return;
+      setEntries(recent.entries);
+      setDateWindowEntries(dateWindow.entries);
+      setCompleteness(recent.completeness);
     } catch (err) {
+      if (id !== refreshId.current) return;
       setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setLoading(false);
+      if (id === refreshId.current) setLoading(false);
     }
   }, [period]);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => { void refresh(); return () => { refreshId.current++; }; }, [refresh]);
 
   const totals = useMemo(() => {
     void locale;
@@ -73,6 +80,13 @@ export function UsageLedgerSection() {
     <SettingsSection title={usageT('settings.usage.title')} context={<RefreshButton loading={loading} onRefresh={refresh} />}>
       <div className={styles['usage-ledger']}>
         <div className={styles['usage-note']}>{usageT('settings.usage.note')}</div>
+        {completeness && <div className={styles['usage-note']}>
+          统计起点：{new Date(completeness.statisticsStartedAt).toLocaleString()} · {completeness.persistent ? '重启后保留' : '仅本次运行'}
+          {' · '}当前展示 {completeness.returnedEntries}/{completeness.matchingEntries} 条
+          {completeness.truncated && ' · 记录已截断，此金额仅为展示部分'}
+          {completeness.droppedEntries > 0 && ` · 更早 ${completeness.droppedEntries} 条已不在统计范围`}
+        </div>}
+        <UsageBudgetSettings />
         <UsageTabs view={view} onChange={setView} />
         <div className={styles['usage-view-frame']}>
           {error && <div className={styles['usage-error']}>{error}</div>}
@@ -146,7 +160,10 @@ function OverallView({ totals, models, requests }: { totals: UsageAggregate; mod
           <div className={styles['usage-hero-stats']}>
             <UsageHeroStat label={usageT('settings.usage.requests')} value={formatCompactNumber(totals.requests)} />
             <UsageHeroStat label={usageT('settings.usage.cacheRead')} value={formatCompactNumber(totals.cacheReadTokens)} />
-            <UsageHeroStat label={usageT('settings.usage.estimatedCost')} value={formatCost(totals.costTotal)} />
+            <UsageHeroStat label="已知部分金额（USD）" value={totals.knownCostCount ? formatCost(totals.costTotal) : '未知'} />
+          </div>
+          <div className={styles['usage-note']}>费用已知 {totals.knownCostCount} 次 · 未知 {totals.unknownCostCount} 次 · 覆盖率 {formatPercent(totals.costCoverage)}
+            <br />配置估算 {formatCost(totals.configuredEstimateUsd)} · 供应商报告 {formatCost(totals.providerReportedUsd)}（非已核对账单）
           </div>
           <UsageLegend />
         </div>
@@ -219,7 +236,7 @@ function UsageGroupRow({ group, totalTokens, compact = false }: { group: UsageAg
       <div className={styles['usage-group-main']}>
         <span className={styles['usage-group-title']} title={group.label}>{group.label}</span>
         <span className={styles['usage-group-meta']}>
-          {usageT('settings.usage.groupMeta', { requests: group.requests, errors: group.errors })}
+          {usageT('settings.usage.groupMeta', { requests: group.requests, errors: group.errors })} · 已知 {group.knownCostCount ? formatCost(group.costTotal) : '未知'} · 未知 {group.unknownCostCount} 次 · 覆盖率 {formatPercent(group.costCoverage)}
         </span>
       </div>
       <div className={styles['usage-group-numbers']}>

@@ -9225,3 +9225,38 @@ a.about-link:hover {
         gap: var(--space-xs);
     }
 }
+
+/* Source-visible memory governance shares the existing memory entry point. */
+.memory-governance-viewer { max-width: 820px; max-height: min(86vh, calc(100dvh - 32px)); }
+.memory-governance-tabs { display: flex; gap: 4px; padding: 10px 16px 0; border-bottom: 1px solid var(--overlay-light); }
+.memory-governance-tabs button { flex: 1; padding: 10px 8px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; }
+.memory-governance-tabs button[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--text); font-weight: 600; }
+.memory-governance-card { border: 1px solid var(--overlay-light); border-radius: var(--radius-md); padding: 16px; margin: 14px 0; min-width: 0; font-size: 0.82rem; line-height: 1.65; overflow-wrap: anywhere; }
+.memory-governance-card-heading { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.72rem; flex-wrap: wrap; }
+.memory-governance-badge { display: inline-block; padding: 1px 8px; border-radius: 12px; background: var(--overlay-subtle); color: var(--text); border: 1px solid var(--overlay-light); }
+.memory-governance-content { white-space: pre-wrap; font-size: 0.9rem; color: var(--text); margin: 10px 0; }
+.memory-governance-meta { color: var(--text-muted); font-size: 0.75rem; line-height: 1.65; margin: 5px 0; overflow-wrap: anywhere; }
+.memory-governance-notice { padding: 10px 12px; border-radius: var(--radius-md); background: var(--overlay-subtle); font-size: 0.78rem; line-height: 1.7; color: var(--text-light); }
+.memory-governance-error { padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--coral) 40%, transparent); border-radius: var(--radius-md); color: var(--coral); font-size: 0.8rem; overflow-wrap: anywhere; }
+.memory-governance-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.memory-governance-actions button { min-height: 32px; }
+.memory-governance-viewer button:disabled { opacity: 0.5; cursor: default; transform: none; }
+.memory-governance-details { margin: 12px 0; color: var(--text-light); }
+.memory-governance-details summary { cursor: pointer; color: var(--text); }
+.memory-governance-source { display: grid; gap: 3px; padding: 10px 0; border-bottom: 1px solid var(--overlay-light); font-size: 0.74rem; }
+.memory-governance-form { display: grid; gap: 12px; margin-top: 14px; border-top: 1px solid var(--overlay-light); padding-top: 14px; }
+.memory-governance-form label { display: grid; gap: 5px; min-width: 0; font-size: 0.78rem; color: var(--text-light); }
+.memory-governance-form input, .memory-governance-form select, .memory-governance-form textarea { box-sizing: border-box; width: 100%; min-width: 0; border: 1px solid var(--overlay-light); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text); padding: 8px; font: inherit; }
+.memory-governance-form textarea { min-height: 90px; resize: vertical; }
+.memory-governance-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.memory-governance-form .memory-governance-checkbox { display: flex; align-items: flex-start; gap: 8px; }
+.memory-governance-checkbox input { flex: 0 0 auto; width: auto; margin-top: 5px; }
+.memory-governance-confirm { margin-top: 12px; padding: 12px; background: var(--overlay-subtle); border-radius: var(--radius-sm); }
+.memory-governance-stats { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 12px 0; font-size: 0.76rem; }
+.memory-governance-empty { padding: 28px 12px; text-align: center; color: var(--text-muted); font-size: 0.82rem; }
+@media (max-width: 480px) {
+  .memory-governance-viewer { width: calc(100% - 16px); }
+  .memory-governance-card { padding: 12px; }
+  .memory-governance-fields { grid-template-columns: 1fr; }
+  .memory-governance-tabs { padding: 8px 8px 0; }
+}

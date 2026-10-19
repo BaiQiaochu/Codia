@@ -52,3 +52,23 @@ it('requires explicit abandonment confirmation', async () => {
   fireEvent.click(screen.getByText('确认放弃恢复'));
   await waitFor(() => expect(codiaFetch).toHaveBeenCalledWith('/api/workflow-recovery/run/cancel', { method: 'POST' }));
 });
+it('refreshes recovery for the same run without clearing an open confirmation', async () => {
+  vi.mocked(codiaFetch).mockResolvedValueOnce(response({ canPrepare: false, blockedReason: 'still running', actions: [] }))
+    .mockResolvedValueOnce(response({ canPrepare: true, blockedReason: null, actions: [] }));
+  const view = render(<WorkflowRecoveryPanel runId="r" refreshToken={0} onPrepared={() => {}} />);
+  await screen.findByText('still running'); fireEvent.click(screen.getByText('放弃此检查点恢复'));
+  view.rerender(<WorkflowRecoveryPanel runId="r" refreshToken={1} onPrepared={() => {}} />);
+  await waitFor(() => expect(screen.getByText('准备恢复草稿')).toBeEnabled());
+  expect(screen.getByText('确认放弃恢复')).toBeInTheDocument();
+});
+it('ignores late reads after switching runs and provides local read retry', async () => {
+  let old: (v: Response) => void = () => {};
+  vi.mocked(codiaFetch).mockImplementationOnce(() => new Promise(r => { old = r; }))
+    .mockResolvedValueOnce({ ok: false, json: async () => ({ error: 'temporarily unavailable' }) } as Response)
+    .mockResolvedValueOnce(response({ canPrepare: false, blockedReason: 'new run unknown effects', actions: [] }));
+  const view = render(<WorkflowRecoveryPanel runId="old" onPrepared={() => {}} />);
+  view.rerender(<WorkflowRecoveryPanel runId="new" onPrepared={() => {}} />);
+  await screen.findByRole('alert'); fireEvent.click(screen.getByText('刷新恢复记录'));
+  await screen.findByText('new run unknown effects'); old(response({ canPrepare: true, blockedReason: null, actions: [] }));
+  await waitFor(() => expect(screen.getByText('准备恢复草稿')).toBeDisabled());
+});

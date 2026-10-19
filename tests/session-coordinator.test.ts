@@ -1254,6 +1254,9 @@ describe("SessionCoordinator", () => {
     expect(prompt).not.toHaveBeenCalled();
 
     const budgetModel = { id: "bounded", provider: "test-provider", api: "openai-completions", contextWindow: 1000, maxTokens: 100, cost: { input: 1, output: 2 } };
+    // Live pricing validation only accepts models in the trusted current registry.
+    const configuredModels = coordinator._d.getModels();
+    coordinator._d.getModels = () => ({ ...configuredModels, availableModels: [...configuredModels.availableModels, budgetModel] });
     const limits = { maxTokens: 2000, maxUsd: 1, maxSteps: 2, maxDurationMs: 10000, maxOutputTokensPerCall: 20 };
     const budget = createRunBudget(limits, budgetModel);
     const boundedTools = vi.spyOn(coordinator._d, "buildTools");

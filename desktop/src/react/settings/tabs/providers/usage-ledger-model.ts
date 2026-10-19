@@ -17,6 +17,11 @@ export interface UsageAggregate {
   nonCachedTokens: number;
   totalTokens: number;
   costTotal: number;
+  knownCostCount: number;
+  unknownCostCount: number;
+  costCoverage: number | null;
+  configuredEstimateUsd: number;
+  providerReportedUsd: number;
   cacheHitCount: number;
   cacheObservedCount: number;
 }
@@ -42,7 +47,12 @@ export function aggregateEntries(key: string, label: string, entries: UsageLedge
     acc.cacheReadTokens += num(usage?.cache?.readTokens);
     acc.cacheWriteTokens += num(usage?.cache?.writeTokens);
     acc.totalTokens += num(usage?.totalTokens);
-    acc.costTotal += num(usage?.costTotal);
+    if (typeof usage?.costTotal === 'number' && Number.isFinite(usage.costTotal) && usage.costTotal >= 0) {
+      acc.costTotal += usage.costTotal;
+      acc.knownCostCount += 1;
+      if (entry.costBasis === 'configured_estimate') acc.configuredEstimateUsd += usage.costTotal;
+      if (entry.costBasis === 'provider_reported') acc.providerReportedUsd += usage.costTotal;
+    } else acc.unknownCostCount += 1;
     if (usage?.cache?.hit !== null && usage?.cache?.hit !== undefined) {
       acc.cacheObservedCount += 1;
       if (usage.cache.hit) acc.cacheHitCount += 1;
@@ -50,6 +60,7 @@ export function aggregateEntries(key: string, label: string, entries: UsageLedge
     return acc;
   }, emptyAggregate(key, label, entries));
 
+  aggregate.costCoverage = aggregate.requests ? aggregate.knownCostCount / aggregate.requests : null;
   aggregate.nonCachedTokens = Math.max(0, aggregate.totalTokens - aggregate.cacheReadTokens);
   return aggregate;
 }
@@ -153,8 +164,8 @@ export function formatPercent(value: number | null) {
   return value === null ? '-' : `${Math.round(value * 100)}%`;
 }
 
-export function formatCost(value: number) {
-  return value > 0 ? `$${value.toFixed(value < 0.01 ? 4 : 2)}` : '-';
+export function formatCost(value: number | null | undefined) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? `$${value.toFixed(value > 0 && value < 0.01 ? 4 : 2)}` : '-';
 }
 
 export function formatTime(value: string) {
@@ -187,6 +198,7 @@ function emptyAggregate(key: string, label: string, entries: UsageLedgerEntry[])
     nonCachedTokens: 0,
     totalTokens: 0,
     costTotal: 0,
+    knownCostCount: 0, unknownCostCount: 0, costCoverage: null, configuredEstimateUsd: 0, providerReportedUsd: 0,
     cacheHitCount: 0,
     cacheObservedCount: 0,
   };

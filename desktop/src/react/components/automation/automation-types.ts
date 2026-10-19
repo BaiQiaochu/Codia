@@ -29,6 +29,9 @@ export interface CronJob {
   misfirePolicy?: 'skip' | 'catch-up-once';
   nextRunAt?: string | null;
   lastRunAt?: string | null;
+  lastScheduledStatus?: string;
+  lastScheduledAt?: string;
+  consecutiveErrors?: number;
   createdAt?: string;
   model?: string | ModelRef;
   actorAgentId?: string;

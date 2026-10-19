@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { codiaFetch, codiaUrl } from '../hooks/use-codia-fetch';
 import { openFileRefPreview } from '../utils/remote-file-preview';
 import { inferKindByExt } from '../utils/file-kind';
@@ -36,7 +36,7 @@ async function readResponse(response: Response, fallback: string) {
   if (!response.ok) throw new Error(errors[data.error] || fallback);
   return data;
 }
-export function TaskResultsPanel({ sessionPath }: { sessionPath: string }) {
+export function TaskResultsPanel({ sessionPath, refreshToken = 0 }: { sessionPath: string; refreshToken?: number | string }) {
   const [snapshotAvailable, setSnapshotAvailable] = useState(false);
   const [snapshotPlatform, setSnapshotPlatform] = useState('未知');
   const [files, setFiles] = useState<ArtifactRecord[]>([]);
@@ -49,20 +49,29 @@ export function TaskResultsPanel({ sessionPath }: { sessionPath: string }) {
   const currentSession = useRef(sessionPath);
   const requestVersion = useRef(0);
   currentSession.current = sessionPath;
+  const listVersion = useRef(0);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useEffect(() => {
-    let active = true;
     requestVersion.current++;
     setSnapshotAvailable(false); setSnapshotPlatform('未知');
-    setFiles([]); setSelection({ fileId: '', before: '', after: '' }); setError(''); setNotice(''); setComparison(null); setBusy(''); setLoading(true);
-    void codiaFetch(`/api/task-artifacts?sessionPath=${encodeURIComponent(sessionPath)}`).then(response => readResponse(response, '无法读取登记产物')).then(data => {
-      if (active) {
-        setFiles(data.files || []);
-        setSnapshotAvailable(data.capabilities?.snapshotAvailable === true);
-        setSnapshotPlatform(data.capabilities?.platform || '未知');
-      }
-    }).catch(err => { if (active) setError(String(err instanceof Error ? err.message : err)); }).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+    setFiles([]); setSelection({ fileId: '', before: '', after: '' }); setError(''); setNotice(''); setComparison(null); setBusy('');
   }, [sessionPath]);
+  const refresh = useCallback(async () => {
+    const version = ++listVersion.current;
+    const current = () => mounted.current && currentSession.current === sessionPath && listVersion.current === version;
+    setLoading(true);
+    try {
+      const data = await readResponse(await codiaFetch(`/api/task-artifacts?sessionPath=${encodeURIComponent(sessionPath)}`), '无法读取登记产物');
+      if (!current()) return;
+      if (!Array.isArray(data.files)) throw new Error('产物响应无效，请刷新重试');
+      setFiles(data.files); setError('');
+      setSnapshotAvailable(data.capabilities?.snapshotAvailable === true);
+      setSnapshotPlatform(data.capabilities?.platform || '未知');
+    } catch (err) { if (current()) setError(String(err instanceof Error ? err.message : err)); }
+    finally { if (current()) setLoading(false); }
+  }, [sessionPath]);
+  useEffect(() => { void refresh(); }, [refresh, refreshToken]);
   const capture = async (file: ArtifactRecord) => {
     if (!snapshotAvailable) return;
     const session = sessionPath;
@@ -70,7 +79,8 @@ export function TaskResultsPanel({ sessionPath }: { sessionPath: string }) {
     try {
       const response = await codiaFetch(`/api/task-artifacts/${encodeURIComponent(file.id)}/snapshots?sessionPath=${encodeURIComponent(session)}`, { method: 'POST' });
       const data = await readResponse(response, '保存快照失败，请重试。');
-      if (currentSession.current !== session) return;
+      if (!mounted.current || currentSession.current !== session) return;
+      listVersion.current++; setLoading(false);
       setFiles(current => current.map(entry => entry.id === file.id ? { ...entry, snapshots: [...(entry.snapshots || []).filter(snapshot => snapshot.id !== data.snapshot.id), data.snapshot] } : entry));
       setNotice(data.created ? '已保存独立内容快照。之后修改原文件不会改变此版本。' : '内容与最新快照一致，未重复保存。');
     } catch (err) { if (currentSession.current === session) setError(String(err instanceof Error ? err.message : err)); }
@@ -94,7 +104,7 @@ export function TaskResultsPanel({ sessionPath }: { sessionPath: string }) {
     finally { if (currentSession.current === session) setBusy(''); }
   };
   const preview = (file: ArtifactRecord) => void openFileRefPreview({ id: file.id, fileId: file.id, path: '', name: name(file), ext: file.ext, kind: inferKindByExt(file.ext || ''), source: 'session-registry', resource: file.resource, version: file.version, status: file.status }, { origin: 'session', sessionPath });
-  return <section aria-label="已登记产物"><h4>已登记产物与版本</h4>
+  return <section aria-label="已登记产物"><h4>已登记产物与版本</h4><button type="button" onClick={() => void refresh()}>刷新登记产物</button>
     <p>手动保存内容快照后才有历史版本。每份文件最多 5 MiB，每个产物最多 10 版，每个会话最多 50 个快照、50 MiB。达到上限后拒绝新增，不自动删除历史或原文件。</p>
     {!loading && !snapshotAvailable && <p role="note">当前服务平台（{snapshotPlatform}）尚未提供安全内容快照能力。保存、快照预览/导出和内容比较暂不可用；原文件预览、导出及历史版本元数据仍保留。</p>}
     {error && <p role="alert">{error}</p>}

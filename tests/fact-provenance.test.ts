@@ -60,19 +60,20 @@ describe('fact correction lifecycle', () => {
       expect(copy.getById(1).status).toBe('expired');
       const conflict = store.update(id, { status: 'conflict' }, expired.updated_at).memory;
       expect(conflict.status).toBe('conflict');
-      expect(store.searchFullText('jasmine')).toHaveLength(1);
+      expect(store.searchFullText('jasmine')).toEqual([]);
+      expect(store.getAll()[0].status).toBe('conflict');
       expect(store.update(id, { status: 'unknown' }, conflict.updated_at).error).toBe('invalid_status');
       expect(store.update(id, { fact: ' ' }, conflict.updated_at).error).toBe('invalid_fact');
     } finally { store.close(); copy.close(); }
   });
 });
 
-it('search exposes evidence and a conflict warning instead of replacing provenance with retrieval mode', async () => {
+it('search withholds unresolved conflicts while governance retains their evidence', async () => {
   const store = new FactStore(':memory:');
   try {
     store.add({ fact: 'Conflicting preference', tags: ['preference'], source: 'document:original', status: 'conflict' });
     const result = await createMemorySearchTool(store).execute('test', { query: 'preference', tags: ['preference'] });
-    expect(result.content[0].text).toContain('[Source: document:original]');
-    expect(result.content[0].text).toContain('[Conflict: needs user review]');
+    expect(result.content[0].text).not.toContain('Conflicting preference');
+    expect(store.getAll()[0]).toMatchObject({source: 'document:original', status: 'conflict'});
   } finally { store.close(); }
 });

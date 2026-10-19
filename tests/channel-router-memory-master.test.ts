@@ -3,11 +3,12 @@ import os from "os";
 import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { callTextMock, factAddMock, factGetBySessionMock, factDeleteMock } = vi.hoisted(() => ({
+const { callTextMock, factAddMock, factGetBySessionMock, factDeleteMock, factUpdateMock } = vi.hoisted(() => ({
   callTextMock: vi.fn(),
   factAddMock: vi.fn(),
   factGetBySessionMock: vi.fn(),
   factDeleteMock: vi.fn(),
+  factUpdateMock: vi.fn(),
 }));
 
 vi.mock("../core/llm-client.js", () => ({
@@ -19,6 +20,7 @@ vi.mock("../lib/memory/fact-store.js", () => ({
     this.add = factAddMock;
     this.getBySession = factGetBySessionMock;
     this.delete = factDeleteMock;
+    this.update = factUpdateMock;
     this.close = vi.fn();
   }),
 }));
@@ -113,6 +115,7 @@ describe("ChannelRouter memory master fallback", () => {
     factAddMock.mockReset();
     factGetBySessionMock.mockReset();
     factDeleteMock.mockReset();
+    factUpdateMock.mockReset().mockReturnValue({memory:{}});
     factGetBySessionMock.mockReturnValue([]);
   });
 
@@ -199,12 +202,13 @@ describe("ChannelRouter memory master fallback", () => {
     expect(request.messages[0].content).toContain("已有频道记忆");
     expect(request.messages[0].content).toContain("butter: 旧摘要里还残留 sender id。");
     expect(factGetBySessionMock).toHaveBeenCalledWith("channel-general");
-    expect(factDeleteMock).toHaveBeenCalledWith(3);
-    expect(factDeleteMock).toHaveBeenCalledWith(5);
-    expect(factAddMock).toHaveBeenCalledWith(expect.objectContaining({
+    expect(factUpdateMock).toHaveBeenCalledWith(3, expect.any(Object), undefined);
+    expect(factUpdateMock).toHaveBeenCalledWith(5, expect.any(Object), undefined);
+    expect(factUpdateMock).toHaveBeenCalledWith(3, expect.objectContaining({
       fact: "[#general] Codia 确认频道摘要需要按角色行动记录。",
       session_id: "channel-general",
-    }));
+      status: "candidate",
+    }), undefined);
   });
 
   it("clears stale channel memory facts when the summarizer finds no durable memory", async () => {
@@ -217,7 +221,7 @@ describe("ChannelRouter memory master fallback", () => {
       messages: [{ sender: "user", timestamp: "2026-05-14 10:00:00", body: "嗯" }],
     });
 
-    expect(factDeleteMock).toHaveBeenCalledWith(8);
+    expect(factUpdateMock).toHaveBeenCalledWith(8, expect.any(Object), undefined);
     expect(factAddMock).not.toHaveBeenCalled();
   });
 

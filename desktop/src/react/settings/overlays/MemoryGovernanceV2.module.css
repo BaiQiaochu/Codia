@@ -1,0 +1,19 @@
+.filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
+.filters label, .runFields label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; min-width: 0; }
+.filters input, .filters select, .runFields input, .runFields select { width: 100%; min-width: 0; box-sizing: border-box; padding: 7px; border: 1px solid var(--border-color, #8885); border-radius: 6px; background: var(--bg-secondary, transparent); color: inherit; }
+.search { grid-column: 1 / -1; }
+.filterActions, .pagination, .selection { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.pagination { justify-content: flex-end; font-size: 12px; }
+.group { margin: 16px 0; min-width: 0; }
+.group h4 { font-size: 13px; overflow-wrap: anywhere; margin: 8px 0; }
+.selectionLabel { display: flex; align-items: center; gap: 6px; padding-top: 8px; font-size: 12px; }
+.preview, .results, .runDetails { padding: 12px; border: 1px solid var(--border-color, #8885); border-radius: 8px; margin: 10px 0; overflow-wrap: anywhere; }
+.preview ul, .results ul { padding-left: 20px; max-height: 220px; overflow: auto; }
+.preview li, .results li { margin: 6px 0; white-space: pre-wrap; }
+.runFields { display: grid; gap: 10px; }
+.runDetails { font-size: 12px; }
+.runDetails p { margin: 5px 0; }
+.externalWarning { border-left: 3px solid var(--warning-color, #bc8121); padding-left: 10px; }
+@media (max-width: 600px) { .filters { grid-template-columns: 1fr; } }
+.evidenceText { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 260px; overflow: auto; padding: 8px; background: var(--bg-secondary, #8881); border-radius: 6px; }
+.messageEvidence { margin-top: 10px; }

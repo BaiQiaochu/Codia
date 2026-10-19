@@ -46,9 +46,10 @@ describe("experience tools", () => {
       content: "Remember to preserve owner session identity.",
     });
 
-    expect(recordResult.details).toEqual({
+    expect(recordResult.details).toMatchObject({
       category: "Design Notes",
       content: "Remember to preserve owner session identity.",
+      state: "candidate",
     });
 
     const docs = listExperienceDocuments(path.join(tmpDir, "experience"));
@@ -61,8 +62,8 @@ describe("experience tools", () => {
     expect(indexText).toContain("# Design Notes");
 
     const recallResult = await recallTool.execute("call-2", { category: "Design Notes" });
-    expect(recallResult.content[0].text).toContain("# Design Notes");
-    expect(recallResult.content[0].text).toContain("1. Remember to preserve owner session identity.");
+    expect(recallResult.content[0].text).toContain("No enabled, verified experience");
+    expect(recallResult.details).toMatchObject({ memoryIds: [] });
   });
 
   it("keeps stored content but blocks recall and record while paused", async () => {
@@ -92,6 +93,7 @@ describe("experience tools", () => {
 
     enabled = true;
     const resumedRecall = await recallTool.execute("call-4", { category: "writing workflow" });
-    expect(resumedRecall.content[0].text).toContain("Keep the source of truth explicit.");
+    expect(resumedRecall.content[0].text).toContain("No enabled, verified experience");
+    expect(listExperienceDocuments(path.join(tmpDir, "experience"))[0].body).toContain("Keep the source of truth explicit.");
   });
 });

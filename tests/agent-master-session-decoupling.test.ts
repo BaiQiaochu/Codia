@@ -38,6 +38,7 @@ vi.mock("../lib/compat/index.js", () => ({
 }));
 
 import { Agent } from "../core/agent.js";
+import { writeCompiledEligibility } from "../lib/memory/compiled-memory-state.ts";
 
 function bootstrapAgentDir(rootDir) {
   const agentsDir = path.join(rootDir, "agents");
@@ -153,6 +154,16 @@ describe("agent prompt cache decoupling", () => {
     expect(onSnapshot).toContain("MEMORY_MD_BEACON");
     expect(offSnapshot).not.toContain("MEMORY_MD_BEACON");
 
+    await agent.dispose();
+  });
+
+  it("does not inject expired compiled evidence when building a fresh snapshot", async () => {
+    const agent = makeAgent(agentsDir, tmpDir);
+    await agent.init(() => {});
+    writeCompiledEligibility(path.join(agentsDir, "test-agent", "memory"), [{ expiresAt: "2000-01-01T00:00:00Z" }]);
+    const prompt = agent.buildSystemPrompt({ forceMemoryEnabled: true });
+    expect(prompt).not.toContain("MEMORY_MD_BEACON");
+    expect(prompt).toContain("PINNED_MEMORY_BEACON");
     await agent.dispose();
   });
 

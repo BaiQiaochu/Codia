@@ -8,12 +8,14 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
 const mocks = vi.hoisted(() => ({
-  loadLlmUsageEntries: vi.fn(),
+  loadLlmUsageReport: vi.fn(),
 }));
 
 vi.mock('../../settings/tabs/providers/usage-ledger-actions', () => ({
-  loadLlmUsageEntries: (options?: unknown) => mocks.loadLlmUsageEntries(options),
+  loadLlmUsageReport: async (options?: unknown) => ({ entries: await mocks.loadLlmUsageReport(options), completeness: null }),
 }));
+
+vi.mock('../../settings/tabs/providers/UsageBudgetSettings', () => ({ UsageBudgetSettings: () => null }));
 
 vi.mock('../../hooks/use-i18n', () => ({
   useI18n: () => ({ locale: 'zh-CN' }),
@@ -38,7 +40,7 @@ describe('UsageLedgerSection', () => {
   });
 
   it('groups usage by category and model and requests an explicit daily date window', async () => {
-    mocks.loadLlmUsageEntries.mockResolvedValue([
+    mocks.loadLlmUsageReport.mockResolvedValue([
       {
         requestId: 'req-1',
         startedAt: '2026-05-25T00:00:00.000Z',
@@ -80,7 +82,7 @@ describe('UsageLedgerSection', () => {
     render(<UsageLedgerSection />);
 
     expect(await screen.findByText('用量仅作参考，具体以供应商统计为准。')).toBeInTheDocument();
-    expect(mocks.loadLlmUsageEntries).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.loadLlmUsageReport).toHaveBeenCalledWith(expect.objectContaining({
       since: expect.any(String),
       until: expect.any(String),
     }));

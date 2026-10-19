@@ -1,0 +1,31 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { beforeEach, afterEach, it, expect, vi } from 'vitest';
+vi.mock('../lib/memory/compile.ts',()=>({compileToday:vi.fn().mockResolvedValue('compiled'),compileWeek:vi.fn().mockResolvedValue('compiled'),compileLongterm:vi.fn().mockResolvedValue('compiled'),compileFacts:vi.fn().mockResolvedValue('compiled'),compileEditableFacts:vi.fn().mockResolvedValue('compiled'),assemble:vi.fn(),editableFactsPath:(dir:string)=>path.join(dir,'editable-facts.md'),ensureEditableFactsBaseline:vi.fn()}));
+vi.mock('../lib/experience-extractor.ts',()=>({EXPERIENCE_EXTRACTOR_VERSION:'candidate-v1',extractSessionExperiences:vi.fn()}));
+vi.mock('../core/llm-client.ts',()=>({callText:vi.fn().mockResolvedValue('[]')}));
+import { extractSessionExperiences } from '../lib/experience-extractor.ts';
+import { createMemoryTicker } from '../lib/memory/memory-ticker.ts';
+import { FactStore } from '../lib/memory/fact-store.ts';
+let root:string, store:FactStore, ticker:any, sessionPath:string, makeTicker:()=>any;
+beforeEach(()=>{
+  vi.clearAllMocks();root=fs.mkdtempSync(path.join(os.tmpdir(),'experience-ticker-'));
+  const memoryDir=path.join(root,'memory'),sessionDir=path.join(root,'sessions');fs.mkdirSync(memoryDir);fs.mkdirSync(sessionDir);
+  sessionPath=path.join(sessionDir,'s1.jsonl');fs.writeFileSync(sessionPath,JSON.stringify({type:'message',id:'m1',timestamp:new Date().toISOString(),message:{role:'user',content:'task'}})+'\n');
+  store=new FactStore(path.join(memoryDir,'facts.db'));
+  const summary={session_id:'s1',summary:'### Key Facts\nNone\n\n### Events\n'+('A task produced an unverified candidate. '.repeat(5)),updated_at:new Date().toISOString(),snapshot:'',projectId:null,sourceRefs:[{kind:'message',messageId:'m1',author:'user'}]};
+  const summaryManager={rollingSummary:vi.fn(),getSummary:()=>summary,getDirtySessions:()=>[],getAllSummaries:()=>[summary]};
+  makeTicker=()=>createMemoryTicker({agentId:'a',agentDir:root,memoryDir,sessionDir,summaryManager,factStore:store,getResolvedMemoryModel:()=>({}),getMemoryMasterEnabled:()=>true,getExperienceEnabled:()=>true,memoryMdPath:path.join(memoryDir,'memory.md'),todayMdPath:path.join(memoryDir,'today.md'),weekMdPath:path.join(memoryDir,'week.md'),longtermMdPath:path.join(memoryDir,'longterm.md'),factsMdPath:path.join(memoryDir,'facts.md')});
+  ticker=makeTicker();
+});
+afterEach(async()=>{await ticker?.stop();store.close();fs.rmSync(root,{recursive:true,force:true});});
+it('retries failed experience extraction from a persistent source job after ticker recreation',async()=>{
+  vi.mocked(extractSessionExperiences).mockResolvedValueOnce({extracted:0,status:'failed',error:'provider unavailable'}).mockResolvedValueOnce({extracted:1,status:'succeeded'});
+  ticker.notifyTurn(sessionPath);await ticker.notifySessionEnd(sessionPath);
+  const job=store.getExtractionJobs()[0];expect(job).toMatchObject({status:'failed',extractorVersion:'experience:candidate-v1',attempts:1});
+  expect(vi.mocked(extractSessionExperiences).mock.calls[0][4]).toMatchObject({sessionId:'s1',projectId:null,sourceRefs:[{type:'message',id:'m1'}]});
+  await ticker.stop();store.retryExtraction(job.key);ticker=makeTicker();await ticker.tick();
+  expect(store.getExtractionJobs()[0].status).toBe('succeeded');expect(extractSessionExperiences).toHaveBeenCalledTimes(2);
+  ticker.notifyTurn(sessionPath);await ticker.notifySessionEnd(sessionPath);expect(extractSessionExperiences).toHaveBeenCalledTimes(2);
+});

@@ -8,7 +8,11 @@ function createCronStore() {
     removeJob: vi.fn(() => true),
     toggleJob: vi.fn(() => ({ id: "job_1", enabled: false })),
     updateJob: vi.fn(() => ({ id: "job_1", label: "Updated job" })),
-    listJobs: vi.fn(() => [{ id: "job_1", label: "Test job" }]),
+    listJobs: vi.fn(() => [{ id: "job_1", label: "Test job", prompt: "synthetic" }]),
+    getRunHistory: vi.fn(() => []),
+    getManualRun: vi.fn(() => null),
+    claimManualRun: vi.fn((_id, requestId) => ({ receipt: { requestId, status: "claimed" }, duplicate: false })),
+    finishManualRun: vi.fn(),
     getJob: vi.fn((id) => ({ id, label: "Test job" })),
   };
 }
@@ -75,11 +79,13 @@ describe("desk cron route", () => {
       body: JSON.stringify({
         action: "run-now",
         id: "job_1",
+        requestId: "manual-test-request",
       }),
     });
 
-    expect(res.status).toBe(200);
-    expect(runAgentCronNow).toHaveBeenCalledWith("codia", "job_1");
+    expect(res.status).toBe(202);
+    expect(cronStore.claimManualRun).toHaveBeenCalledWith("job_1", "manual-test-request");
+    expect(runAgentCronNow).toHaveBeenCalledWith("codia", "job_1", { requestId: "manual-test-request" });
   });
 
   it("returns 400 for invalid cron expressions", async () => {
