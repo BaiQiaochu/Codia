@@ -11,7 +11,7 @@ import { SessionFileRegistry } from '../lib/session-files/session-file-registry.
 import { classifyHttpRoute } from '../server/http/route-security.ts';
 const dirs: string[] = [];
 afterEach(() => { vi.restoreAllMocks(); dirs.splice(0).forEach(p => fs.rmSync(p, { recursive: true, force: true })); });
-async function setup(deny = false) {
+async function setup(deny = false, withArtifact = true) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'team-review-')); dirs.push(home);
   const agentsDir = path.join(home, 'agents'); const sessionPath = path.join(agentsDir, 'a', 'sessions', 'a.jsonl');
   fs.mkdirSync(path.dirname(sessionPath), { recursive: true }); fs.writeFileSync(sessionPath, '{}\n');
@@ -21,7 +21,7 @@ async function setup(deny = false) {
   const resourceService = new ResourceService({ agentsDir, sessionFiles: registry, runtimeContext: runtime });
   const resourceAccess = new ResourceAccessService({ resourceService, ...(deny ? { authorizeCapability: () => ({ allowed: false }) } : {}) });
   const service = createCompanyService({ dataDir: path.join(home, 'company') });
-  await service.store.addTasks([{ id: 't', companyId: 'c', status: 'reported', title: 'Test', report: 'result', sessionPath, acceptanceCriteria: ['accurate'], acceptanceResults: [{ criterion: 'accurate', passed: true, evidence: file.id }], artifacts: [{ fileId: file.id }] }]);
+  await service.store.addTasks([{ id: 't', companyId: 'c', status: 'reported', title: 'Test', report: 'result', sessionPath, acceptanceCriteria: ['accurate'], acceptanceResults: [{ criterion: 'accurate', passed: true, evidence: withArtifact ? file.id : 'Report text checked' }], artifacts: withArtifact ? [{ fileId: file.id }] : [] }]);
   const engine = { codiaHome: home, agentsDir, listAgents: () => [], getRuntimeContext: () => runtime, getResourceAccessService: () => resourceAccess,
     getSessionFile: (id: string, options: any) => registry.get(id, options), listSessionFiles: (p: string) => registry.list(p),
     pluginManager: { getPlugin: () => ({ ctx: { _company: { service } } }) } };
@@ -33,20 +33,35 @@ async function setup(deny = false) {
 describe('owner-only team delivery review', () => {
   it('separates self-report and manual review, binds review to exact content, and invalidates after changes', async () => {
     const x = await setup(); const first = await (await x.get()).json();
-    expect(first.review.state).toBe('unreviewed'); expect(first.artifacts[0].state).toBe('available');
-    expect(first.artifacts[0].resource.links.content).toContain('/api/resources/');
+    expect(first.review.state).toBe('unreviewed');
     expect(first.criteria[0].selfReport.passed).toBe(true);
-    expect((await x.review(first.version)).status).toBe(200);
-    expect((await (await x.get()).json()).review.state).toBe('current');
-    fs.writeFileSync(x.filePath, 'different result');
-    const changed = await (await x.get()).json();
-    expect(changed.review.state).toBe('stale'); expect(changed.version).not.toBe(first.version);
-    expect((await x.review(first.version)).status).toBe(409);
+    if (process.platform === 'linux') {
+      expect(first.artifacts[0].state).toBe('available');
+      expect(first.artifacts[0].resource.links.content).toContain('/api/resources/');
+      expect((await x.review(first.version)).status).toBe(200);
+      expect((await (await x.get()).json()).review.state).toBe('current');
+      fs.writeFileSync(x.filePath, 'different result');
+      const changed = await (await x.get()).json();
+      expect(changed.review.state).toBe('stale'); expect(changed.version).not.toBe(first.version);
+      expect((await x.review(first.version)).status).toBe(409);
+    } else {
+      // Node does not provide the required opened-descriptor path binding here.
+      expect(first.artifacts[0].state).toBe('unversioned');
+      expect(first.artifacts[0].sha256).toBeUndefined(); expect(first.artifacts[0].resource).toBeUndefined();
+      expect((await x.review(first.version)).status).toBe(409);
+      fs.writeFileSync(x.filePath, 'different result');
+      const changed = await (await x.get()).json();
+      expect(changed.artifacts[0].state).toBe('unversioned'); expect(changed.review.state).toBe('unreviewed');
+      expect((await x.review(changed.version)).status).toBe(409);
+      expect((await x.service.store.listTasks())[0].humanReview).toBeUndefined();
+    }
     expect((await x.service.store.listTasks())[0].status).toBe('reported');
   });
-  it('invalidates stale review when a report/criterion changes and rejects stale writes', async () => {
-    const x = await setup(); const first = await (await x.get()).json(); await x.review(first.version);
-    await x.service.store.updateTask('t', { report: 'new report' });
+  it.each(['report', 'criterion'] as const)('invalidates text-only review when a %s changes and rejects stale writes', async field => {
+    const x = await setup(false, false); const first = await (await x.get()).json();
+    expect(first.artifacts).toEqual([]); expect((await x.review(first.version)).status).toBe(200);
+    expect((await (await x.get()).json()).review.state).toBe('current');
+    await x.service.store.updateTask('t', field === 'report' ? { report: 'new report' } : { acceptanceCriteria: ['complete'] });
     expect((await (await x.get()).json()).review.state).toBe('stale');
     expect((await x.review(first.version)).status).toBe(409);
   });
@@ -68,16 +83,28 @@ describe('owner-only team delivery review', () => {
   });
 });
 it('invalidates approval even if content changes with the same size and restored mtime', async () => {
-  const x = await setup(); const beforeStat = fs.statSync(x.filePath); const first = await (await x.get()).json(); await x.review(first.version);
+  const x = await setup(); const beforeStat = fs.statSync(x.filePath); const first = await (await x.get()).json();
+  expect((await x.review(first.version)).status).toBe(process.platform === 'linux' ? 200 : 409);
   fs.writeFileSync(x.filePath, 'other result'); fs.utimesSync(x.filePath, beforeStat.atime, beforeStat.mtime);
   expect(fs.statSync(x.filePath).size).toBe(beforeStat.size);
-  expect((await (await x.get()).json()).review.state).toBe('stale');
+  const changed = await (await x.get()).json();
+  if (process.platform === 'linux') {
+    expect(changed.review.state).toBe('stale'); expect(changed.version).not.toBe(first.version);
+    expect((await x.review(first.version)).status).toBe(409);
+  } else {
+    expect(changed.artifacts[0].state).toBe('unversioned'); expect(changed.review.state).toBe('unreviewed');
+    expect(changed.artifacts[0].sha256).toBeUndefined(); expect(changed.artifacts[0].resource).toBeUndefined();
+    expect((await x.review(changed.version)).status).toBe(409);
+    expect((await x.service.store.listTasks())[0].humanReview).toBeUndefined();
+  }
 });
 it('rejects incomplete or forged review evidence and does not accept a client reviewer identity', async () => {
-  const x = await setup(); const first = await (await x.get()).json();
+  const x = await setup(false, false); const first = await (await x.get()).json();
   const res = await x.app.request('/api/task-console/company/t/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ version: first.version, reviewedBy: 'somebody-else', items: [{ criterion: 'accurate', verdict: 'pass', note: '' }] }) });
   expect(res.status).toBe(400); expect((await x.service.store.listTasks())[0].humanReview).toBeUndefined();
-  await x.review(first.version); expect((await x.service.store.listTasks())[0].humanReview.reviewedBy).not.toBe('somebody-else');
+  const valid = await x.app.request('/api/task-console/company/t/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ version: first.version, reviewedBy: 'somebody-else', items: [{ criterion: 'accurate', verdict: 'pass', note: 'Checked report text' }] }) });
+  expect(valid.status).toBe(200);
+  expect((await x.service.store.listTasks())[0].humanReview).toMatchObject({ reviewedBy: 'principal_local_user_u_s_no_node', source: 'human_owner' });
 });
 
 
@@ -90,21 +117,23 @@ it('fails closed when a registered resource ancestor is swapped after authorizat
   const file = x.registry.registerFile({ sessionPath: x.sessionPath, filePath: allowedPath });
   await x.service.store.updateTask('t', { artifacts: [{ fileId: file.id }] });
   const resolve = x.resourceAccess.resolveContent.bind(x.resourceAccess);
-  vi.spyOn(x.resourceAccess, 'resolveContent').mockImplementation((id, context) => {
+  const resolveSpy = vi.spyOn(x.resourceAccess, 'resolveContent').mockImplementation((id, context) => {
     const authorized = resolve(id, context);
-    fs.renameSync(allowed, `${allowed}-original`); fs.symlinkSync(other, allowed, 'dir');
+    fs.renameSync(allowed, `${allowed}-original`); fs.symlinkSync(other, allowed, process.platform === 'win32' ? 'junction' : 'dir');
     return authorized;
   });
   const body = await (await x.get()).json();
-  expect(body.artifacts[0].state).not.toBe('available');
+  expect(resolveSpy).toHaveBeenCalledOnce(); expect(fs.realpathSync(allowed)).toBe(fs.realpathSync(other));
+  expect(body.artifacts[0].state).toBe('unversioned');
   expect(body.artifacts[0].sha256).toBeUndefined(); expect(body.artifacts[0].resource).toBeUndefined();
 });
 
-it('fails closed on a platform without verified descriptor-path binding', async () => {
+it.each(['win32', 'darwin'] as const)('fails closed on %s without verified descriptor-path binding', async platform => {
   const x = await setup();
-  vi.spyOn(process, 'platform', 'get').mockReturnValue('win32');
+  vi.spyOn(process, 'platform', 'get').mockReturnValue(platform);
   const body = await (await x.get()).json();
   expect(body.artifacts[0].state).toBe('unversioned');
-  expect(body.artifacts[0].sha256).toBeUndefined();
+  expect(body.artifacts[0].sha256).toBeUndefined(); expect(body.artifacts[0].resource).toBeUndefined();
   expect((await x.review(body.version)).status).toBe(409);
+  expect((await x.service.store.listTasks())[0].humanReview).toBeUndefined();
 });

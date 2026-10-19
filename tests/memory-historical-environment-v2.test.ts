@@ -10,9 +10,10 @@ import {callText} from '../core/llm-client.ts';
 import {createMemoryTicker} from '../lib/memory/memory-ticker.ts';
 import {FactStore} from '../lib/memory/fact-store.ts';
 import {buildTrustedMemoryContext,buildRecordedMemoryContext,persistMemoryRuntimeSnapshot} from '../lib/memory/runtime-context.ts';
-let root:string,sessionPath:string,store:FactStore,ticker:any,makeTicker:()=>any,summaryManager:any;
+let root:string,projectId:string,sessionPath:string,store:FactStore,ticker:any,makeTicker:()=>any,summaryManager:any;
 beforeEach(()=>{
  vi.clearAllMocks();root=fs.mkdtempSync(path.join(os.tmpdir(),'codia-history-env-'));
+ const canonicalRoot=fs.realpathSync(root);projectId=`workspace:${process.platform==='win32'?canonicalRoot.toLowerCase():canonicalRoot}`;
  const memoryDir=path.join(root,'memory'),sessionDir=path.join(root,'sessions');fs.mkdirSync(memoryDir);fs.mkdirSync(sessionDir);fs.mkdirSync(path.join(root,'.git'));
  fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({dependencies:{example:'^1'}}));fs.writeFileSync(path.join(root,'package-lock.json'),JSON.stringify({packages:{'node_modules/example':{version:'1.0.0'}}}));
  sessionPath=path.join(sessionDir,'s1.jsonl');fs.writeFileSync(sessionPath,JSON.stringify({type:'message',id:'m1',timestamp:new Date().toISOString(),message:{role:'user',content:'synthetic task'}})+'\n');
@@ -31,9 +32,9 @@ it('extracts and retries using the recorded historical environment after metadat
  vi.mocked(extractSessionExperiences).mockResolvedValueOnce({extracted:0,status:'failed',error:'synthetic failure'}).mockResolvedValueOnce({extracted:1,status:'succeeded'});
  ticker.notifyTurn(sessionPath);await ticker.notifySessionEnd(sessionPath);
  const first=vi.mocked(extractSessionExperiences).mock.calls[0][4];
- expect(first).toMatchObject({projectId:`workspace:${root}`,channel:'old-channel',appVersion:'1.0.0',dependencyVersions:{example:'1.0.0'}});
+ expect(first).toMatchObject({projectId:projectId,channel:'old-channel',appVersion:'1.0.0',dependencyVersions:{example:'1.0.0'}});
  const job=store.getExtractionJobs()[0];await ticker.stop();store.retryExtraction(job.key);ticker=makeTicker();await ticker.tick();
- expect(vi.mocked(extractSessionExperiences).mock.calls[1][4]).toMatchObject({projectId:`workspace:${root}`,channel:'old-channel',appVersion:'1.0.0',dependencyVersions:{example:'1.0.0'}});
+ expect(vi.mocked(extractSessionExperiences).mock.calls[1][4]).toMatchObject({projectId:projectId,channel:'old-channel',appVersion:'1.0.0',dependencyVersions:{example:'1.0.0'}});
  // Live recall deliberately follows the present environment, unlike historical extraction.
  expect(buildTrustedMemoryContext({sessionPath,appVersion:'2.0.0'})).toMatchObject({channel:'new-channel',appVersion:'2.0.0',dependencyVersions:{example:'2.0.0'}});
 });
@@ -60,10 +61,10 @@ it('preserves the first snapshot and suspends learning after resumed session env
  expect(ticker.getHealthStatus().deepMemory.extraction).toMatchObject({deferred:1});
 });
 it('uses memory project scope instead of the user session classification for rolling summaries',async()=>{
- fs.writeFileSync(path.join(root,'sessions/session-meta.json'),JSON.stringify({'s1.jsonl':{projectId:'project-user-selected',memoryProjectId:`workspace:${root}`,channelId:'old-channel'}}));
+ fs.writeFileSync(path.join(root,'sessions/session-meta.json'),JSON.stringify({'s1.jsonl':{projectId:'project-user-selected',memoryProjectId:projectId,channelId:'old-channel'}}));
  vi.mocked(extractSessionExperiences).mockResolvedValue({extracted:0,status:'succeeded'});
  ticker.notifyTurn(sessionPath);await ticker.notifySessionEnd(sessionPath);
- expect(summaryManager.rollingSummary.mock.calls[0][3]).toMatchObject({projectId:`workspace:${root}`,channelId:'old-channel'});
+ expect(summaryManager.rollingSummary.mock.calls[0][3]).toMatchObject({projectId:projectId,channelId:'old-channel'});
 });
 
 it('rejects facts at commit if the session environment changes during extraction',async()=>{

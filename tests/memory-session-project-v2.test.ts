@@ -40,11 +40,14 @@ import { SessionCoordinator } from "../core/session-coordinator.js";
 
 describe("SessionCoordinator", () => {
   let tempDir;
+  let projectId;
 
   beforeEach(() => {
     vi.clearAllMocks();
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codia-session-coordinator-"));
     fs.mkdirSync(path.join(tempDir,".git"));
+    const canonicalRoot = fs.realpathSync(tempDir);
+    projectId = `workspace:${process.platform === "win32" ? canonicalRoot.toLowerCase() : canonicalRoot}`;
     sessionManagerCreateMock.mockReturnValue({ getCwd: () => "/tmp/workspace" });
     sessionManagerOpenMock.mockReturnValue({ getCwd: () => "/tmp/workspace" });
     createAgentSessionMock.mockResolvedValue({
@@ -160,8 +163,8 @@ describe("SessionCoordinator", () => {
     await coordinator.createSession(sessionMgr, tempDir, true, null, { restore: true });
     expect(JSON.parse(fs.readFileSync(metaPath, "utf-8"))[path.basename(sessionFile)].projectId).toBe("project-user-selected");
 
-    expect(initialRuntime).toMatchObject({environment:{projectId:`workspace:${tempDir}`,appVersion:"1.0.0"}});
-    expect(JSON.parse(fs.readFileSync(metaPath,"utf8"))[path.basename(sessionFile)].memoryProjectId).toBe(mode==="legacy"?undefined:`workspace:${tempDir}`);
+    expect(initialRuntime).toMatchObject({environment:{projectId:projectId,appVersion:"1.0.0"}});
+    expect(JSON.parse(fs.readFileSync(metaPath,"utf8"))[path.basename(sessionFile)].memoryProjectId).toBe(mode==="legacy"?undefined:projectId);
     if(mode==="legacy")expect(fs.existsSync(runtimeFile)).toBe(false);
     else expect(JSON.parse(fs.readFileSync(runtimeFile,"utf8"))).toMatchObject({environment:{appVersion:"1.0.0"},...(mode==="changed"?{ambiguous:true}:{})});
 
