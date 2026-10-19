@@ -97,7 +97,7 @@ jobs:
           const stat = fs.lstatSync(helper);
           assert(stat.isFile() && stat.size > 0, 'Missing or invalid PTY spawn-helper');
           console.log('PTY helper before repair:', helper, 'mode=' + (stat.mode & 0o777).toString(8));
-          execFileSync('lipo', ['-verify_arch', process.arch === 'x64' ? 'x86_64' : 'arm64', helper], { stdio: 'inherit' });
+          execFileSync('lipo', [helper, '-verify_arch', process.arch === 'x64' ? 'x86_64' : 'arm64'], { stdio: 'inherit' });
           fs.chmodSync(helper, 0o755);
           fs.accessSync(helper, fs.constants.X_OK);
           console.log('PTY helper after repair: mode=' + (fs.statSync(helper).mode & 0o777).toString(8));
@@ -196,7 +196,7 @@ jobs:
             executable(ptyHelper);
             assert((fs.statSync(ptyHelper).mode & 0o777) === 0o755, 'Packaged PTY helper must retain mode 0755');
             fs.accessSync(ptyHelper, fs.constants.X_OK);
-            execFileSync('lipo', ['-verify_arch', arch === 'x64' ? 'x86_64' : 'arm64', ptyHelper], { stdio: 'inherit' });
+            execFileSync('lipo', [ptyHelper, '-verify_arch', arch === 'x64' ? 'x86_64' : 'arm64'], { stdio: 'inherit' });
             const sourceHelper = path.join(root, 'dist-server', `mac-${arch}`, path.relative(server, ptyHelper));
             assert(fs.readFileSync(ptyHelper).equals(fs.readFileSync(sourceHelper)), 'Packaged PTY helper bytes changed');
             report.ptyHelper = { file: path.relative(resources, ptyHelper), mode: (fs.statSync(ptyHelper).mode & 0o777).toString(8), sha256: digest(fs.readFileSync(ptyHelper)) };
@@ -225,8 +225,8 @@ jobs:
             const helper = path.join(resources, 'computer-use/macos/codia-computer-use-helper');
             executable(helper);
             const architecture = arch === 'x64' ? 'x86_64' : 'arm64';
-            execFileSync('lipo', ['-verify_arch', architecture, helper], { stdio: 'inherit' });
-            execFileSync('lipo', ['-verify_arch', architecture, path.join(unpacked, `${product}.app`, 'Contents/MacOS', product)], { stdio: 'inherit' });
+            execFileSync('lipo', [helper, '-verify_arch', architecture], { stdio: 'inherit' });
+            execFileSync('lipo', [path.join(unpacked, `${product}.app`, 'Contents/MacOS', product), '-verify_arch', architecture], { stdio: 'inherit' });
           }
           async function hashFile(file) {
             const hash = crypto.createHash('sha256');
