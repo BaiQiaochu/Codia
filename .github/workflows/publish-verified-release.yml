@@ -31,7 +31,7 @@ jobs:
           MULTI_RUN = 39194362899  # Publication still requires completed/success for this exact run.
           MULTI = 'fd02cc0285ca8bc07b5630c32bd53a54819696d7'
           TAG = 'v0.3.3'
-          NODE_HASH = 'c43590e66f725c30d0dd1352643c2fc8490cfd0fd06ce6829261afcb1b5bf62b'
+          NODE_HASH = '4573185d56580da2b890ba34a85a409257640f1c5632eade4300137266194d18'
           ROOT = pathlib.Path('release-assets')
           def require(condition, message):
               if not condition: raise RuntimeError(message)
@@ -288,7 +288,7 @@ jobs:
           MULTI_RUN = 39194362899  # Publication still requires completed/success for this exact run.
           MULTI = 'fd02cc0285ca8bc07b5630c32bd53a54819696d7'
           TAG = 'v0.3.3'
-          NODE_HASH = 'c43590e66f725c30d0dd1352643c2fc8490cfd0fd06ce6829261afcb1b5bf62b'
+          NODE_HASH = '4573185d56580da2b890ba34a85a409257640f1c5632eade4300137266194d18'
           ROOT = pathlib.Path('release-assets')
           def require(condition, message):
               if not condition: raise RuntimeError(message)
