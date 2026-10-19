@@ -1,0 +1,241 @@
+name: Package Linux and macOS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Source is deliberately pinned; adding this workflow does not alter the release.
+env:
+  SOURCE_REF: c2f80c003c6d32199957eda70b01b7029ac68081
+  CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+  PUPPETEER_SKIP_DOWNLOAD: 'true'
+
+jobs:
+  package:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Linux-x64
+            runner: ubuntu-22.04
+            platform: linux
+            arch: x64
+          - label: macOS-x64
+            runner: macos-15-intel
+            platform: darwin
+            arch: x64
+          - label: macOS-arm64
+            runner: macos-15
+            platform: darwin
+            arch: arm64
+    defaults:
+      run:
+        shell: bash
+        working-directory: source
+    steps:
+      - name: Check out exact release source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_REF }}
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          architecture: ${{ matrix.arch }}
+          cache: npm
+          cache-dependency-path: source/package-lock.json
+      - name: Verify native runner and release version
+        env:
+          EXPECTED_PLATFORM: ${{ matrix.platform }}
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          node -e 'if(process.platform!==process.env.EXPECTED_PLATFORM || process.arch!==process.env.EXPECTED_ARCH) throw Error("Native runner mismatch"); if(require("./package.json").version!=="0.3.3") throw Error("Unexpected release version");'
+          test "$(git rev-parse HEAD)" = "$SOURCE_REF"
+      - name: Install Linux packaging prerequisites
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 libarchive-tools libfuse2
+      - name: Check Swift toolchain
+        if: runner.os == 'macOS'
+        run: swift --version
+      - name: Install locked dependencies
+        run: node scripts/ci-install-dependencies.mjs
+      - name: Check source tree
+        run: npm run audit:source-tree -- --strict
+      - name: Build current version without version-bumping release scripts
+        run: |
+          npm run generate:professional-icon
+          npm run build:computer-use-helper
+          npm run build:client
+          node scripts/prepare-codia-live2d.mjs --check
+          npm run build:server
+          # build-server verifies the official Node archive SHA-256 before extraction.
+          # Preserve its complete upstream license with the bundled runtime.
+          node -e 'const fs=require("node:fs");const os=process.platform==="darwin"?"mac":process.platform;fs.copyFileSync(`.cache/node-runtime/node-v24.15.0-${process.platform}-${process.arch}/LICENSE`, `dist-server/${os}-${process.arch}/Node-LICENSE.txt`);'
+          git diff --exit-code -- package.json package-lock.json
+      - name: Package Linux without publishing
+        if: runner.os == 'Linux'
+        run: npx --no-install electron-builder --linux deb AppImage --x64 --publish never
+      - name: Package unsigned macOS without publishing or notarization
+        if: runner.os == 'macOS'
+        run: npx --no-install electron-builder --mac dmg zip --${{ matrix.arch }} --publish never -c.mac.identity=null -c.mac.notarize=false
+      - name: Verify package resources, native runtime, containers and SHA-256
+        env:
+          EXPECTED_PLATFORM: ${{ matrix.platform }}
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          cat > "$RUNNER_TEMP/verify-multiplatform-package.cjs" <<'CODIA_VERIFY_EOF'
+          #!/usr/bin/env node
+          'use strict';
+          // Run from the release checkout; resolves dependencies there, not beside this helper.
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const crypto = require('node:crypto');
+          const { createRequire } = require('node:module');
+          const { execFileSync } = require('node:child_process');
+          const root = process.cwd();
+          const rootRequire = createRequire(path.join(root, 'package.json'));
+          const asar = rootRequire('@electron/asar');
+          const pkg = rootRequire('./package.json');
+          const platform = process.env.EXPECTED_PLATFORM;
+          const arch = process.env.EXPECTED_ARCH;
+          function assert(condition, message) { if (!condition) throw new Error(message); }
+          assert(['linux', 'darwin'].includes(platform), 'Unsupported platform');
+          assert(['x64', 'arm64'].includes(arch), 'Unsupported architecture');
+          assert(platform === process.platform && arch === process.arch, 'Native host mismatch');
+          assert(pkg.version === '0.3.3', 'Unexpected version');
+          const commit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+          assert(commit === process.env.SOURCE_REF, 'Release source commit mismatch');
+          const product = pkg.build.productName;
+          const mac = platform === 'darwin';
+          const unpacked = path.join(root, 'dist', mac ? (arch === 'arm64' ? 'mac-arm64' : 'mac') : 'linux-unpacked');
+          const resources = mac ? path.join(unpacked, `${product}.app`, 'Contents', 'Resources') : path.join(unpacked, 'resources');
+          const archive = path.join(resources, 'app.asar');
+          const source = path.join(root, 'desktop/src/assets/codia/live2d');
+          const server = path.join(resources, 'server');
+          const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+          function walk(dir, prefix = '') {
+            return fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name, 'en')).flatMap(e =>
+              e.isDirectory() ? walk(path.join(dir, e.name), `${prefix}${e.name}/`) : [`${prefix}${e.name}`]);
+          }
+          function nonempty(file) { assert(fs.statSync(file).size > 0, `Empty resource: ${file}`); }
+          function executable(file) { nonempty(file); assert((fs.statSync(file).mode & 0o111) !== 0, `Not executable: ${file}`); }
+          const packedPkg = JSON.parse(asar.extractFile(archive, 'package.json').toString());
+          assert(packedPkg.version === pkg.version, 'Packaged app version mismatch');
+          const report = {
+            commit, workflowCommit: process.env.GITHUB_SHA, run: process.env.GITHUB_RUN_ID,
+            version: pkg.version, platform, arch, live2d: [], artifacts: [],
+            acceptance: 'Package integrity and native server dependency smoke checks only; GUI/GPU and end-user installation unverified.',
+            macSigning: mac ? 'Unsigned and not notarized; Gatekeeper acceptance is not claimed.' : null,
+          };
+          for (const relative of walk(source).filter(file => !file.endsWith('.d.ts'))) {
+            const original = fs.readFileSync(path.join(source, relative));
+            const packed = asar.extractFile(archive, `desktop/dist-renderer/assets/codia/live2d/${relative}`);
+            assert(original.equals(packed), `Packaged Live2D mismatch: ${relative}`);
+            // Server build intentionally excludes JavaScript from these static copies.
+            if (!relative.endsWith('.js')) {
+              const copy = fs.readFileSync(path.join(server, 'desktop/dist-renderer/assets/codia/live2d', relative));
+              assert(original.equals(copy), `Server Live2D mismatch: ${relative}`);
+            }
+            report.live2d.push({ file: relative, bytes: original.length, sha256: digest(original) });
+          }
+          const refs = JSON.parse(fs.readFileSync(path.join(source, 'model/Codia.model3.json'), 'utf8')).FileReferences;
+          for (const relative of [refs.Moc, ...refs.Textures, refs.DisplayInfo, refs.Physics, refs.Pose,
+            ...(refs.Expressions || []).map(e => e.File), ...Object.values(refs.Motions || {}).flat().map(m => m.File)].filter(Boolean)) {
+            nonempty(path.join(source, 'model', relative));
+          }
+          const nodeLicense = fs.readFileSync(path.join(server, 'Node-LICENSE.txt'));
+          const upstreamNodeLicense = fs.readFileSync(path.join(root, '.cache/node-runtime', `node-v24.15.0-${platform}-${arch}`, 'LICENSE'));
+          assert(nodeLicense.length > 0 && nodeLicense.equals(upstreamNodeLicense), 'Bundled Node license missing or changed');
+          report.nodeLicense = { file: 'server/Node-LICENSE.txt', bytes: nodeLicense.length, sha256: digest(nodeLicense) };
+          const node = path.join(server, 'node');
+          executable(node);
+          executable(path.join(server, 'codia-server'));
+          nonempty(path.join(server, 'bootstrap.js'));
+          nonempty(path.join(server, 'bundle/index.js'));
+          const smoke = `
+          const assert = require('node:assert/strict');
+          assert.equal(process.platform, ${JSON.stringify(platform)});
+          assert.equal(process.arch, ${JSON.stringify(arch)});
+          assert.equal(process.versions.node, '24.15.0');
+          const Database = require('better-sqlite3');
+          const db = new Database(':memory:');
+          assert.equal(db.prepare('SELECT 42 AS result').get().result, 42); db.close();
+          const pty = require('node-pty');
+          const child = pty.spawn('/bin/sh', ['-c', 'printf CODIA_PTY_OK'], { cols: 80, rows: 24, env: process.env });
+          let output = ''; child.onData(text => { output += text; });
+          const timer = setTimeout(() => { child.kill(); throw Error('PTY smoke timeout'); }, 10000);
+          child.onExit(({exitCode}) => { clearTimeout(timer); assert.equal(exitCode, 0); assert.match(output, /CODIA_PTY_OK/); console.log('Native SQLite and PTY smoke passed'); });
+          `;
+          execFileSync(node, ['-e', smoke], { cwd: server, stdio: 'inherit', timeout: 20000 });
+          if (mac) {
+            const helper = path.join(resources, 'computer-use/macos/codia-computer-use-helper');
+            executable(helper);
+            const architecture = arch === 'x64' ? 'x86_64' : 'arm64';
+            execFileSync('lipo', ['-verify_arch', architecture, helper], { stdio: 'inherit' });
+            execFileSync('lipo', ['-verify_arch', architecture, path.join(unpacked, `${product}.app`, 'Contents/MacOS', product)], { stdio: 'inherit' });
+          }
+          async function hashFile(file) {
+            const hash = crypto.createHash('sha256');
+            for await (const bytes of fs.createReadStream(file)) hash.update(bytes);
+            return hash.digest('hex');
+          }
+          (async () => {
+            for (const ext of mac ? ['dmg', 'zip'] : ['deb', 'AppImage']) {
+              const { Arch, getArtifactArchName } = rootRequire('builder-util');
+              const artifactArch = getArtifactArchName(Arch[arch], ext);
+              const name = `${product}-${pkg.version}-${mac ? 'macOS' : 'Linux'}-${artifactArch}.${ext}`;
+              const file = path.join(root, 'dist', name);
+              nonempty(file);
+              if (ext === 'dmg') execFileSync('hdiutil', ['verify', file], { stdio: 'inherit' });
+              if (ext === 'zip') execFileSync('unzip', ['-tq', file], { stdio: 'inherit' });
+              if (ext === 'deb') {
+                const architecture = execFileSync('dpkg-deb', ['--field', file, 'Architecture'], { encoding: 'utf8' }).trim();
+                assert(architecture === 'amd64', 'Debian architecture mismatch');
+                execFileSync('dpkg-deb', ['--info', file], { stdio: 'inherit' });
+              }
+              if (ext === 'AppImage') {
+                const fd = fs.openSync(file, 'r'); const magic = Buffer.alloc(11);
+                try { fs.readSync(fd, magic, 0, magic.length, 0); } finally { fs.closeSync(fd); }
+                assert(magic.subarray(0, 4).equals(Buffer.from([127, 69, 76, 70])) && magic[8] === 65 && magic[9] === 73 && magic[10] === 2, 'Invalid type-2 AppImage header');
+              }
+              report.artifacts.push({ name, bytes: fs.statSync(file).size, sha256: await hashFile(file) });
+            }
+            fs.writeFileSync('dist/build-provenance.json', JSON.stringify(report, null, 2) + '\n');
+            fs.writeFileSync('dist/SHA256SUMS.txt', report.artifacts.map(a => `${a.sha256}  ${a.name}`).join('\n') + '\n');
+            console.log(JSON.stringify(report, null, 2));
+          })().catch(error => { console.error(error); process.exitCode = 1; });
+          CODIA_VERIFY_EOF
+          node "$RUNNER_TEMP/verify-multiplatform-package.cjs"
+      - name: Upload packages and verification report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Codia-0.3.3-${{ matrix.label }}-${{ env.SOURCE_REF }}
+          path: |
+            source/dist/*.deb
+            source/dist/*.AppImage
+            source/dist/*.dmg
+            source/dist/*.zip
+            source/dist/build-provenance.json
+            source/dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Codia-${{ matrix.label }}-diagnostics-${{ github.run_id }}
+          path: |
+            source/artifacts/
+            source/dist/builder-debug.yml
+            source/dist/builder-effective-config.yaml
+          if-no-files-found: ignore
+          retention-days: 7
