@@ -1,0 +1,231 @@
+name: Audit original Windows v0.3.3 artifacts
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+
+jobs:
+  audit:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Prepare static audit script
+        run: |
+          @'
+          import hashlib, json, os, pathlib, re, shutil, struct, urllib.request
+          ROOT = pathlib.Path.cwd()
+          OUT = ROOT / 'audit-report'
+          OUT.mkdir(exist_ok=True)
+          RUN = 39157457223
+          IDS = {'installer': 12147981293, 'portable': 12148036166}
+          def write(name, value):
+              (OUT / name).write_text(json.dumps(value, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+          def digest(path):
+              h = hashlib.sha256()
+              with path.open('rb') as f:
+                  for b in iter(lambda: f.read(8*1024*1024), b''): h.update(b)
+              return h.hexdigest()
+          def api(path):
+              req = urllib.request.Request('https://api.github.com/repos/BaiQiaochu/Codia/' + path, headers={'Authorization': 'Bearer '+os.environ['GH_TOKEN'], 'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+              with urllib.request.urlopen(req, timeout=60) as r: return json.load(r)
+          if os.environ.get('AUDIT_PHASE') == 'metadata':
+              run = api(f'actions/runs/{RUN}')
+              assert run['conclusion'] == 'success', 'Original run did not succeed'
+              assert run['head_sha'] == 'c2f80c003c6d32199957eda70b01b7029ac68081', 'Unexpected source commit'
+              result = {'run': {k:run.get(k) for k in ['id','html_url','head_sha','status','conclusion','event','created_at']}, 'artifacts':{}}
+              for kind, aid in IDS.items():
+                  a = api(f'actions/artifacts/{aid}')
+                  assert not a['expired'] and a['workflow_run']['id'] == RUN
+                  assert a['workflow_run']['head_sha'] == run['head_sha']
+                  result['artifacts'][kind] = {k:a.get(k) for k in ['id','name','size_in_bytes','digest','created_at','expires_at','workflow_run']}
+              write('original-metadata.json', result)
+              raise SystemExit(0)
+          meta = json.loads((OUT/'original-metadata.json').read_text(encoding='utf-8'))
+          installer = sorted((ROOT/'original-installer').rglob('*.exe'))
+          assert len(installer) == 1, f'Expected one installer, found {len(installer)}'
+          exe = installer[0]
+          provs = list((ROOT/'original-installer').rglob('build-provenance.json'))
+          assert len(provs) == 1, 'Missing or ambiguous original provenance'
+          p = json.loads(provs[0].read_text(encoding='utf-8-sig'))
+          assert p['commit'] == meta['run']['head_sha'] and str(p['run']) == str(RUN) and p['version'] == '0.3.3'
+          sha = digest(exe)
+          assert any(x['name'] == exe.name and x['sha256'].lower() == sha and x['bytes'] == exe.stat().st_size for x in p['artifacts']), 'Installer does not match original build provenance'
+          shutil.copy2(provs[0], OUT/'build-provenance.json')
+          # Split only the original installer bytes. The original artifact ZIP is not reconstructed.
+          CHUNK = 350_000_000
+          assert CHUNK < exe.stat().st_size <= CHUNK*2, 'Expected exactly two bounded parts'
+          parts = []
+          with exe.open('rb') as f:
+              for index in (1,2):
+                  folder = ROOT / f'installer-part-{index:02}'
+                  folder.mkdir(exist_ok=True)
+                  dest = folder / f'{exe.name}.part{index:02}'
+                  remaining = CHUNK
+                  with dest.open('wb') as out:
+                      while remaining:
+                          b = f.read(min(8*1024*1024,remaining))
+                          if not b: break
+                          out.write(b); remaining -= len(b)
+                  parts.append({'order':index,'name':dest.name,'bytes':dest.stat().st_size,'sha256':digest(dest)})
+              assert not f.read(1)
+          h = hashlib.sha256()
+          for part in parts:
+              with (ROOT/f"installer-part-{part['order']:02}"/part['name']).open('rb') as f:
+                  for b in iter(lambda:f.read(8*1024*1024),b''):h.update(b)
+          assert h.hexdigest() == sha
+          write('installer-parts.json', {'original_name':exe.name,'original_bytes':exe.stat().st_size,'original_sha256':sha,'parts':parts,'reconstruction':'Extract both artifact ZIPs; concatenate raw .part01 then .part02 bytes. Verify size and SHA256. Do not concatenate the artifact ZIP files.'})
+          licenses, packages, fonts, binaries, links, archives = [], [], [], [], [], []
+          license_re = re.compile(r'(licen[cs]e|notice|copying|copyright|third.?party|^ofl(?:[.\-_]|$)|^authors(?:[.\-_]|$))',re.I)
+          source_re = re.compile(r'(readme|release.?notes|source|offer)',re.I)
+          url_re = re.compile(r'https?://[^\s<>\x00\"\']+')
+          def inspect(logical, size, get_bytes, actual=None):
+              name = pathlib.PurePosixPath(logical).name
+              low = logical.lower()
+              kind = None
+              if license_re.search(name): kind = 'license-or-notice'
+              elif name.lower() == 'package.json': kind = 'package-metadata'
+              elif source_re.search(name) and any(x in low for x in ('git','node','electron','font')) and size <= 10_000_000: kind = 'source-context'
+              if kind:
+                  data = get_bytes()
+                  assert len(data) == size, f'Truncated content: {logical}'
+                  key = hashlib.sha256(logical.encode()).hexdigest()[:20] + '-' + re.sub(r'[^A-Za-z0-9._-]','_',name)[:100]
+                  dest = OUT/'evidence'/key
+                  dest.parent.mkdir(exist_ok=True)
+                  dest.write_bytes(data)
+                  record = {'path':logical,'bytes':size,'sha256':hashlib.sha256(data).hexdigest(),'copy':'evidence/'+key,'kind':kind}
+                  (packages if kind == 'package-metadata' else licenses).append(record)
+                  text = data.decode('utf-8',errors='replace')
+                  for url in sorted(set(url_re.findall(text))): links.append({'path':logical,'url':url[:4096]})
+              if name.lower().endswith(('.woff','.woff2','.ttf','.otf','.ttc')):
+                  fonts.append({'path':logical,'bytes':size,'sha256':digest(actual) if actual else hashlib.sha256(get_bytes()).hexdigest()})
+              if actual and name.lower().endswith(('.exe','.dll','.node')):
+                  binaries.append({'path':logical,'bytes':size,'sha256':digest(actual)})
+          
+          def scan_asar(path, logical):
+              # Read Electron ASAR's Chromium-pickle header, without importing/running application code.
+              with path.open('rb') as f:
+                  prefix = f.read(16)
+                  assert len(prefix) == 16
+                  size_pickle, header_size, payload_size, string_size = struct.unpack('<4I',prefix)
+                  assert size_pickle == 4 and 0 < string_size <= header_size <= 100_000_000 and payload_size+4 == header_size
+                  assert 16+string_size <= 8+header_size <= path.stat().st_size
+                  tree = json.loads(f.read(string_size))
+                  offset = 8+header_size
+                  entries = []
+                  def walk(node, prefix=''):
+                      for name, child in node.get('files',{}).items():
+                          assert name not in ('.','..') and '/' not in name and '\\' not in name
+                          rel = prefix + name
+                          if 'files' in child: walk(child, rel+'/'); continue
+                          if 'link' in child:
+                              entries.append({'path':rel,'link':child['link']}); continue
+                          size = int(child['size'])
+                          entries.append({'path':rel,'bytes':size,'unpacked':bool(child.get('unpacked'))})
+                          if child.get('unpacked'):
+                              # Unpacked files are separately inspected by the filesystem pass.
+                              assert (pathlib.Path(str(path)+'.unpacked')/rel).is_file(), f'Missing unpacked ASAR entry {rel}'
+                              continue
+                          start = offset + int(child['offset'])
+                          assert start >= offset and size >= 0 and start+size <= path.stat().st_size
+                          def get_bytes(start=start,size=size):
+                              f.seek(start); return f.read(size)
+                          inspect(logical+'!/'+rel,size,get_bytes)
+                  walk(tree)
+              archives.append({'path':logical,'bytes':path.stat().st_size,'sha256':digest(path),'entries':entries})
+          inventory = []
+          for root_name in ('original-installer','original-portable'):
+              root = ROOT/root_name
+              assert root.is_dir()
+              for path in sorted(root.rglob('*')):
+                  assert not path.is_symlink(), f'Unexpected symlink {path}'
+                  if not path.is_file():continue
+                  rel = path.relative_to(ROOT).as_posix()
+                  inventory.append({'path':rel,'bytes':path.stat().st_size})
+                  inspect(rel,path.stat().st_size,path.read_bytes,path)
+                  if path.suffix.lower() == '.asar': scan_asar(path,rel)
+          assert archives, 'No actual ASAR found in portable artifact'
+          write('files.json',inventory)
+          write('licenses.json',licenses)
+          write('packages.json',packages)
+          write('font-hashes.json',fonts)
+          write('native-binary-hashes.json',binaries)
+          write('source-links.json',links)
+          write('asar-inventory.json',archives)
+          # Only use PowerShell against existing native binaries, never launch them.
+          signatures = [str(exe.resolve())]
+          for path in sorted((ROOT/'original-portable').rglob('*.exe')):
+              if path.name.lower() in ('codia.exe','git.exe','node.exe','electron.exe'):
+                  signatures.append(str(path.resolve()))
+          write('signature-targets.json',signatures)
+          summary = f'''# Codia v0.3.3 original Windows artifact audit\n\nSource run: https://github.com/BaiQiaochu/Codia/actions/runs/{RUN}\nSource commit: {meta['run']['head_sha']}\nInstaller SHA256: {sha}\nInstaller bytes: {exe.stat().st_size}\n\nCollected {len(licenses)} license/notice/source-context files, {len(packages)} package metadata files, {len(fonts)} fonts, {len(binaries)} native binary hashes and {len(archives)} ASAR inventories. Full original evidence bytes are preserved under evidence/; JSON indexes retain original paths.\n\nNo application executable was launched. Existing artifacts were downloaded without rebuilding. The installer bytes matched the original build-provenance.json, and concatenated parts matched the original installer hash. The original artifact ZIP bytes are not reproduced.\n\nRead signatures.json for Authenticode status of the installer and all discovered Codia/git/node/electron executables. These statuses are runner observations, not malware or release-clearance assertions. Other native libraries are hashed but not signature-checked.\n\nThis report is evidence, not legal clearance: verify Git/GPL corresponding-source obligations, bundled Node/Electron third-party notices, font redistribution terms, and any missing package license or source offer before release. Package metadata declarations and URLs do not prove license compliance or that a source URL is available. The scan discovers named license/notice files and selected README/source files; it does not infer missing licenses or scan arbitrary application strings.\n'''
+          (OUT/'README.md').write_text(summary,encoding='utf-8')
+          assert sum(x.stat().st_size for x in OUT.rglob('*') if x.is_file()) < 350_000_000, 'Evidence report too large for bounded retrieval'
+          print(summary)
+          '@ | Set-Content -LiteralPath audit.py -Encoding utf8
+      - name: Verify immutable original artifact metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUDIT_PHASE: metadata
+        run: python audit.py
+      - name: Download original installer and provenance
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: '12147981293'
+          run-id: '39157457223'
+          repository: BaiQiaochu/Codia
+          github-token: ${{ github.token }}
+          path: original-installer
+          merge-multiple: true
+      - name: Download original portable folder
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: '12148036166'
+          run-id: '39157457223'
+          repository: BaiQiaochu/Codia
+          github-token: ${{ github.token }}
+          path: original-portable
+          merge-multiple: true
+      - name: Inspect existing bytes and prepare exact installer parts
+        run: python audit.py
+      - name: Inspect Authenticode signatures without launching binaries
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $targets = Get-Content -LiteralPath audit-report/signature-targets.json -Raw | ConvertFrom-Json
+          $records = @(
+            foreach ($target in $targets) {
+              $s = Get-AuthenticodeSignature -LiteralPath $target
+              $f = Get-Item -LiteralPath $target
+              [ordered]@{
+                path = [System.IO.Path]::GetRelativePath($PWD.Path, $target).Replace('\', '/')
+                bytes = $f.Length
+                sha256 = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant()
+                status = $s.Status.ToString()
+                statusMessage = $s.StatusMessage
+                signatureType = $s.SignatureType.ToString()
+                signerSubject = $s.SignerCertificate.Subject
+                signerThumbprint = $s.SignerCertificate.Thumbprint
+                signerNotBefore = $s.SignerCertificate.NotBefore
+                signerNotAfter = $s.SignerCertificate.NotAfter
+                timestampSubject = $s.TimeStamperCertificate.Subject
+                productVersion = $f.VersionInfo.ProductVersion
+                fileVersion = $f.VersionInfo.FileVersion
+              }
+            }
+          )
+          ConvertTo-Json -InputObject $records -Depth 8 | Set-Content -LiteralPath audit-report/signatures.json -Encoding utf8
+          $records | ForEach-Object { "$($_.path): $($_.status)" } | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY
+          Get-Content -LiteralPath audit-report/README.md | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY
+      - name: Upload compact original-byte evidence report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Codia-v0.3.3-Windows-original-audit
+          path: audit-report/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
