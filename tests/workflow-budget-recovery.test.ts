@@ -5,7 +5,6 @@ import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createWorkflowTool } from '../lib/tools/workflow-tool.ts';
 import { WorkflowJournal } from '../lib/workflow/journal.ts';
-import { createWorkflowRecoveryRoute } from '../server/routes/workflow-recovery.ts';
 
 const dirs: string[] = [];
 afterEach(() => {
@@ -13,7 +12,7 @@ afterEach(() => {
 });
 const script = "export const meta = { name: 'bounded recovery', description: 'regression' }; await agent('first', { access: 'read' }); return await agent('second', { access: 'read' });";
 const ctx = { sessionManager: { getSessionFile: () => '/session', getCwd: () => '/workspace' } };
-const blocked = /Cumulative workflow budget accounting cannot be safely restored/;
+const blocked = /Cumulative workflow budget (accounting cannot be safely restored|exhausted)/;
 
 function fixture() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'workflow-budget-recovery-'));
@@ -29,8 +28,7 @@ function fixture() {
   const deps = { executeIsolated, getDeferredStore: () => store, getJournalDir: () => journalDir, getUsageLedger: () => ledger };
   const tool = createWorkflowTool(deps);
   const journalFile = runId => path.join(journalDir, `${runId}.jsonl`);
-  const route = createWorkflowRecoveryRoute({ listAgents: () => [{ id: 'agent' }], getAgent: () => ({ agentDir: dir }) });
-  return { tool, deps, entries, executeIsolated, store, journalFile, route };
+  return { tool, deps, entries, executeIsolated, store, journalFile };
 }
 
 describe('workflow cumulative budget recovery safety', () => {
@@ -76,25 +74,22 @@ describe('workflow cumulative budget recovery safety', () => {
     expect(fs.existsSync(`${f.journalFile(first.details.taskId)}.resume`)).toBe(false);
   });
 
-  it.each([{ budgetTokens: 1000 }, { maxSteps: 10 }, { maxDurationMs: 10000 }])('uses the same blocker for direct execution, inspection, and recovery draft: %j', async args => {
+  it.each([{ budgetTokens: 1000 }, { maxSteps: 10 }, { maxDurationMs: 10000 }])('restores a settled versioned ledger and reuses completed actions: %j', async args => {
     const f = fixture();
     const first = await f.tool.execute('first', { script, args }, undefined, undefined, ctx);
     await vi.waitFor(() => expect(f.store.resolve).toHaveBeenCalled());
     const journal = WorkflowJournal.load(f.journalFile(first.details.taskId));
     const inspection = journal.inspectRecovery();
-    expect(inspection).toMatchObject({ canPrepare: false, blockedReason: expect.stringMatching(blocked) });
-    // Even a valid, apparently unused allowance cannot be restored from these
-    // journals: completed checkpoints are not a cumulative usage ledger.
+    expect(inspection).toMatchObject({ canPrepare: true, blockedReason: null });
     const resumed = await f.tool.execute('resume', { script, args, resumeFromRunId: first.details.taskId }, undefined, undefined, ctx);
-    expect(resumed.details.error).toContain(inspection.blockedReason);
-    const response = await f.route.request(`/workflow-recovery/${first.details.taskId}`);
-    expect(await response.json()).toMatchObject({ canPrepare: false, blockedReason: inspection.blockedReason });
-    const draft = await f.route.request(`/workflow-recovery/${first.details.taskId}/draft`, { method: 'POST' });
-    expect(draft.status).toBe(409);
-    expect(await draft.json()).toMatchObject({ error: inspection.blockedReason });
+    await vi.waitFor(() => expect(f.store.resolve).toHaveBeenCalledTimes(2));
+    const restored = WorkflowJournal.load(f.journalFile(resumed.details.taskId)).budgetState;
+    expect(restored.steps).toBe(journal.budgetState.steps);
+    expect(restored.tokens).toBe(journal.budgetState.tokens);
+    expect(restored.elapsedMs).toBeGreaterThanOrEqual(journal.budgetState.elapsedMs);
     expect(f.executeIsolated).toHaveBeenCalledTimes(2);
-    expect(f.store.defer).toHaveBeenCalledTimes(1);
-    expect(fs.existsSync(`${f.journalFile(first.details.taskId)}.resume`)).toBe(false);
+    expect(f.store.defer).toHaveBeenCalledTimes(2);
+    expect(fs.existsSync(`${f.journalFile(first.details.taskId)}.resume`)).toBe(true);
   });
 
   it('also refuses trusted RunBudget contracts when called outside the recovery UI', () => {

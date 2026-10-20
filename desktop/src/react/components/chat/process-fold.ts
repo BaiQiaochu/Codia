@@ -304,7 +304,19 @@ export function buildTranscriptRenderItems(
     i = cursor;
   }
 
-  return rendered;
+  const byRun = new Map<string, ProcessFoldRenderItem>();
+  return rendered.filter(entry => {
+    if (entry.type !== 'process_fold') return true;
+    const runId = entry.items[0]?.item.data.runId;
+    if (!runId || entry.items.some(message => message.item.data.runId !== runId)) return true;
+    entry.id = `process-run-${runId}`;
+    const previous = byRun.get(runId);
+    if (!previous) { byRun.set(runId, entry); return true; }
+    previous.items.push(...entry.items);
+    previous.stats = collectStats(previous.items);
+    previous.active ||= entry.active;
+    return false;
+  });
 }
 
 function fallbackTranslate(key: string, vars?: Record<string, string | number>): string {

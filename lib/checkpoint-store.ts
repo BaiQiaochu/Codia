@@ -25,8 +25,9 @@ export class CheckpointStore {
     let stat;
     try {
       stat = fs.statSync(filePath);
-    } catch {
-      return null;
+    } catch (error) {
+      if (error.code === "ENOENT") return null;
+      throw error;
     }
 
     if (stat.size > maxSizeKb * 1024) return null;

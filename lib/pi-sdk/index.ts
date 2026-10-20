@@ -28,6 +28,7 @@ import {
   PI_BUILTIN_TOOL_NAMES,
 } from "./session-options.ts";
 import { installAssistantStreamGuard } from "./stream-guard.ts";
+import { executionRunSessionOptions, installExecutionRun } from "./execution-run.ts";
 import {
   createFindTool,
   createGrepTool,
@@ -43,9 +44,12 @@ export { createAssistantMessageEventStream } from "@earendil-works/pi-ai/utils/e
 export { SessionManager, SettingsManager } from "@earendil-works/pi-coding-agent";
 
 export async function createAgentSession(options) {
-  const result = await rawCreateAgentSession(normalizeCreateAgentSessionOptions(options));
+  const { executionControl, ...sdkOptions } = options;
+  const controlled = executionControl ? executionRunSessionOptions(sdkOptions, executionControl) : sdkOptions;
+  const result = await rawCreateAgentSession(normalizeCreateAgentSessionOptions(controlled));
   installProviderRuntimeCompat(result.session);
   installAssistantStreamGuard(result.session);
+  if (executionControl) installExecutionRun(result.session, executionControl);
   return result;
 }
 

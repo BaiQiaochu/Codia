@@ -3,6 +3,16 @@ import { buildProcessFoldSummary, buildTranscriptRenderItems } from '../../compo
 import type { ChatListItem } from '../../stores/chat-types';
 
 describe('process fold summary fallback', () => {
+  it('keeps one process card across explicit continuations with the same run ID', () => {
+    const process = (id: string): ChatListItem => ({ type: 'message', data: {
+      id, role: 'assistant', runId: 'run-1',
+      blocks: [{ type: 'tool_group', collapsed: true, tools: [{ id, name: 'read', done: true, success: true }] }],
+    } });
+    const items: ChatListItem[] = [process('a'), { type: 'message', data: { id: 'continue', role: 'user', text: 'Continue' } }, process('b')];
+    const cards = buildTranscriptRenderItems(items, { isStreaming: true }).filter(item => item.type === 'process_fold');
+    expect(cards).toHaveLength(1);
+    expect(cards[0]).toMatchObject({ id: 'process-run-run-1', active: true, stats: { toolCount: 2 } });
+  });
   it('uses Chinese fallback copy when runtime i18n is unavailable', () => {
     const text = buildProcessFoldSummary(
       { toolCount: 13, thinkingCount: 5, unsuccessfulCount: 1 },

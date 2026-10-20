@@ -1,5 +1,8 @@
 import { installUsageBudgetGuard, isUsageAccounted, hasUsageBudgetGuard } from "../lib/llm/usage-budget-guard.ts";
 import { installRunBudgetStreamGuard } from "../lib/workflow/run-budget-stream.ts";
+import { executionContext, findExecutionRun, loadExecutionRun, moveSessionWithExecutionRunSync, RunController } from "../lib/execution/run-controller.ts";
+import { isExecutionPaused } from "../shared/execution-run.ts";
+import { cancelSessionSubmissions } from "../lib/execution/submission-gate.ts";
 import { guardMemoryContext, installMemoryContextGuard, installMemoryAppendGuard, sanitizeMemoryPrompt } from '../lib/memory/prompt-guard.ts';
 import { resolveMemoryProjectId, buildTrustedMemoryContext, persistMemoryRuntimeSnapshot } from '../lib/memory/runtime-context.ts';
 import type { RunBudget } from "../lib/workflow/run-budget.ts";
@@ -646,6 +649,43 @@ export class SessionCoordinator {
   get session() { return this._session; }
   get sessionStarted() { return this._sessionStarted; }
   get sessions() { return this._sessions; }
+
+  _executionControl(sessionPath) {
+    if (!sessionPath) return new RunController();
+    const control = loadExecutionRun(sessionPath, run => this._d.emitEvent?.({ type: "execution_run", run }, sessionPath));
+    const store = this._d.getDeferredResultStore?.();
+    for (const id of control.snapshot()?.pendingTasks || []) {
+      const task = store?.query?.(id);
+      if (task && task.status !== "pending") control.finishTask(id);
+    }
+    return control;
+  }
+
+  _beginExecutionRun(session) {
+    const run = session?.codiaRunControl;
+    if (!run) return null;
+    run.begin();
+    return run.enter();
+  }
+
+  getExecutionRun(sessionPath) { return this._executionControl(sessionPath).snapshot(); }
+  acknowledgeExecutionRun(sessionPath, runId, revision, toolIds) {
+    return this._executionControl(sessionPath).acknowledgeResults(runId, revision, toolIds);
+  }
+
+  async resumeExecutionRun(sessionPath, runId, revision) {
+    const run = this._executionControl(sessionPath);
+    run.resume(runId, revision);
+    // The revision is consumed synchronously before any await.
+    const pending = this.promptSession(sessionPath,
+      "Continue the paused task from the recorded progress. Check current files and completed tool results; do not repeat completed writes. Keep the original goal and permissions.",
+      {});
+    pending.catch(error => {
+      log.warn(`resume task failed: ${error?.message || error}`);
+      if (run.canContinueAutomatically()) run.pause("resume_failed");
+    });
+    return run.snapshot();
+  }
 
   setPendingModel(model) { this._pendingModel = model; }
   get pendingModel() { return this._pendingModel; }
@@ -1465,6 +1505,7 @@ export class SessionCoordinator {
       resourceLoader,
       tools: sessionTools,
       customTools: sessionCustomTools,
+      executionControl: this._executionControl(sessionMgr?.getSessionFile?.()),
     };
     // New sessions pass a model. Restored sessions read the model from JSONL.
     if (effectiveModel) sessionOpts.model = effectiveModel;
@@ -2440,6 +2481,8 @@ export class SessionCoordinator {
     const sp = this._session.sessionManager?.getSessionFile?.();
     const promptEntry = sp ? this._resolveSessionEntry(sp)?.entry : null;
     if (promptEntry?._promptInFlight) throw new Error("session_busy");
+    const releaseRun = this._beginExecutionRun(this._session);
+    opts?.onExecutionStarted?.();
     if (sp) {
       const entry = this._sessions.get(sp);
       if (entry) entry.lastTouchedAt = Date.now();
@@ -2503,12 +2546,14 @@ export class SessionCoordinator {
       });
       this._endLifecycleTrace(traceContext, { status: "completed" });
     } catch (err) {
+      releaseRun?.(true);
       this._endLifecycleTrace(traceContext, {
         status: err?.message?.includes("aborted") ? "aborted" : "failed",
         error: err,
       });
       throw err;
     } finally {
+      releaseRun?.();
       if (promptEntry) promptEntry._promptInFlight = false;
       if (sp) this._d.emitEvent?.({ type: "session_status", isStreaming: false }, sp);
     }
@@ -2564,6 +2609,8 @@ export class SessionCoordinator {
     if (!entry) throw new Error(t("error.sessionNotInCache", { path: sessionPath }));
     assertAgentReviewActive(this._d.getEngine?.(), sessionPath, opts?.reviewRequestId);
     if (entry._promptInFlight || isAgentReviewPending(this._d.getEngine?.(), sessionPath, opts?.reviewRequestId)) throw new Error("session_busy");
+    const releaseRun = this._beginExecutionRun(entry.session);
+    opts?.onExecutionStarted?.();
     if (sessionPath === this.currentSessionPath && this._session !== entry.session) {
       this._session = entry.session;
     }
@@ -2636,12 +2683,14 @@ export class SessionCoordinator {
       });
       this._endLifecycleTrace(traceContext, { status: "completed" });
     } catch (err) {
+      releaseRun?.(true);
       this._endLifecycleTrace(traceContext, {
         status: err?.message?.includes("aborted") ? "aborted" : "failed",
         error: err,
       });
       throw err;
     } finally {
+      releaseRun?.();
       if (visibilityPersistPromise) await visibilityPersistPromise;
       entry._promptInFlight = false;
       this._d.emitEvent?.({ type: "session_status", isStreaming: false }, traceSessionPath);
@@ -2760,9 +2809,11 @@ export class SessionCoordinator {
   }
 
   async abortSession(sessionPath) {
+    cancelSessionSubmissions(sessionPath);
     const resolved = this._resolveSessionEntry(sessionPath);
     const entry = resolved?.entry;
     const key = resolved?.key || sessionPath;
+    findExecutionRun(key)?.cancel();
     const pending = this._prePromptAbortControllers.get(key);
     if (pending) {
       pending.abort();
@@ -3217,6 +3268,8 @@ export class SessionCoordinator {
    * @private
    */
   _forceReleaseStreamingSession(entry, sessionPath, reason) {
+    cancelSessionSubmissions(sessionPath);
+    entry?.session?.codiaRunControl?.cancel();
     if (!entry?.session?.isStreaming) return false;
 
     const session = entry.session;
@@ -4320,7 +4373,7 @@ export class SessionCoordinator {
     const newPath = path.join(agent.sessionDir, activitySessionFile);
     try {
       fs.mkdirSync(agent.sessionDir, { recursive: true });
-      fs.renameSync(oldPath, newPath);
+      moveSessionWithExecutionRunSync(oldPath, newPath);
       agent._memoryTicker?.notifyPromoted(newPath);
       log.log(`promoted activity session: ${activitySessionFile} (agent=${agent.id})`);
       return newPath;
@@ -4361,11 +4414,16 @@ export class SessionCoordinator {
       return { sessionPath: null, replyText: "", error: "aborted" };
     }
 
+    const inheritedExecutionControl = executionContext.getStore()
+      || ((opts.subagentContext || opts.workflowContext || opts.subagentTaskId) ? findExecutionRun(opts.parentSessionPath) : undefined);
     if ((opts.workflowRuntimeGuard || opts.runBudget) && opts.forceLocalRuntime !== true && isWukongRuntimeAgent(targetAgent)) {
       throw new Error("Workflow runtime version pinning is unavailable for the external Wukong runtime.");
     }
     if (opts.forceLocalRuntime !== true && isWukongRuntimeAgent(targetAgent)) {
       try {
+        if (inheritedExecutionControl) {
+          throw new Error("External Wukong execution cannot enforce this task's shared model/tool allowance. Enable the configured local fallback or choose a local assistant.");
+        }
         const result = await executeWukongAgentRuntimeTask({
           agent: targetAgent,
           engine: this._d,
@@ -4420,6 +4478,7 @@ export class SessionCoordinator {
     let tempSessionMgr;
     let traceContext = null;
     let childSessionPath = null;
+    let executionControl: RunController | undefined;
     let isResumedSession = false;
     const cleanupTempSession = () => {
       const sp = tempSessionMgr?.getSessionFile?.();
@@ -4586,6 +4645,8 @@ export class SessionCoordinator {
           throw new Error("Budgeted execution cannot delegate outside its run budget.");
         }
       }
+      executionControl = inheritedExecutionControl
+        || (opts.persist ? this._executionControl(tempSessionMgr?.getSessionFile?.()) : new RunController());
       const { session } = await createAgentSession({
         cwd: execCwd,
         sessionManager: tempSessionMgr,
@@ -4596,6 +4657,7 @@ export class SessionCoordinator {
         resourceLoader: execResourceLoader,
         tools: actTools,
         customTools: [...actCustomTools, ...extraCustomTools],
+        executionControl,
       });
       installMemoryContextGuard(session, targetAgent?.agentDir);
 
@@ -4773,7 +4835,8 @@ export class SessionCoordinator {
         this._recordLifecyclePhase(traceContext, "model.stream.start", {
           summary: "model stream started",
         });
-        await session.prompt(prompt);
+        if (!executionControl.snapshot()) executionControl.begin();
+        await executionControl.run(() => session.prompt(prompt));
       } finally {
         opts.signal?.removeEventListener("abort", abortHandler);
         await teardownIsolatedSession("finally");
@@ -4789,7 +4852,8 @@ export class SessionCoordinator {
 
       const sessionPath = session.sessionManager?.getSessionFile?.() || null;
       const finalReplyText = stripClosedInternalNarrationBlocks(replyText || finalAssistantText);
-      const completionError = isolatedCompletionError(finalStopReason, finalErrorMessage);
+      const executionRun = executionControl.snapshot();
+      const completionError = isExecutionPaused(executionRun) ? 'run_paused' : isolatedCompletionError(finalStopReason, finalErrorMessage);
 
       if (!opts.persist && !isResumedSession && sessionPath) {
         try { fs.unlinkSync(sessionPath); } catch {
@@ -4802,6 +4866,7 @@ export class SessionCoordinator {
           stopReason: finalStopReason,
           sessionFiles,
           toolErrors,
+          executionRun,
         };
       }
 
@@ -4812,6 +4877,7 @@ export class SessionCoordinator {
         stopReason: finalStopReason,
         sessionFiles,
         toolErrors,
+        executionRun,
       };
     } catch (err) {
       log.error(`isolated execution failed: ${err.message}`);
@@ -4822,7 +4888,7 @@ export class SessionCoordinator {
       if (!opts.persist && tempSessionMgr) {
         cleanupTempSession();
       }
-      return { sessionPath: null, replyText: "", error: err.message };
+      return { sessionPath: opts.persist ? childSessionPath : null, replyText: "", error: err.message, executionRun: executionControl?.snapshot() || null };
     } finally {
       if (childSessionPath && bm.isRunning(childSessionPath)) {
         try { await bm.closeBrowserForSession(childSessionPath); } catch (err) {

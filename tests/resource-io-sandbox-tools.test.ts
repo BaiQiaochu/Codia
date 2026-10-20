@@ -96,6 +96,7 @@ describe("ResourceIO sandbox file tools", () => {
     };
     const keyFor = (ref: any) => ref.path || "";
     const resourceIO = {
+      writeExpectedVersion: undefined as undefined | ((ref: any, content: any, expected: any) => Promise<any>),
       stat: vi.fn(async (ref) => {
         failLocal("stat", ref);
         calls.push({ method: "stat", ref });
@@ -150,6 +151,11 @@ describe("ResourceIO sandbox file tools", () => {
         };
       }),
     };
+    resourceIO.writeExpectedVersion = vi.fn(async (ref, content, options) => {
+      const current = await resourceIO.stat(ref);
+      expect(options).toEqual(current.version);
+      return resourceIO.write(ref, content);
+    });
     const { workspace, tools } = makeToolsWithResourceIO(resourceIO);
     const read = tools.find((tool) => tool.name === "read");
     const write = tools.find((tool) => tool.name === "write");

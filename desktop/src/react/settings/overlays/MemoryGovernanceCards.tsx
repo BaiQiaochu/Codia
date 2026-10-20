@@ -114,12 +114,11 @@ function parseDependencies(value: string): Record<string, string> | null {
   return Object.fromEntries(entries);
 }
 
-export function ExperienceCard({ entry, busy, onTransition, onReview, onRevise, onAttempt, onOpenRun, agentId, projects = [] }: {
+export function ExperienceCard({ entry, busy, onTransition, onReview, onRevise, onAttempt, agentId, projects = [] }: {
   entry: ExperienceItem;
   agentId: string;
   projects?: MemoryProject[];
   onAttempt: (entry: ExperienceItem, runId: string) => Promise<boolean>;
-  onOpenRun: (runId: string) => boolean;
   busy: boolean;
   onTransition: (entry: ExperienceItem, state: ExperienceState) => Promise<boolean>;
   onReview: (entry: ExperienceItem, review: Record<string, unknown>) => Promise<boolean>;
@@ -129,7 +128,6 @@ export function ExperienceCard({ entry, busy, onTransition, onReview, onRevise, 
   const [evidenceOrigin, setEvidenceOrigin] = useState<'recorded_run' | 'external_manual'>('recorded_run');
   const [selectedRun, setSelectedRun] = useState<RecordedMemoryRun | null>(null);
   const [adoptedKey, setAdoptedKey] = useState<string | null>(null);
-  const [navigationNotice, setNavigationNotice] = useState('');
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState('');
   const [scope, setScope] = useState<'project' | 'global'>('project');
@@ -198,13 +196,11 @@ export function ExperienceCard({ entry, busy, onTransition, onReview, onRevise, 
       {entry.sourceRefs.map((ref, i) => <p key={i}>来源：{ref.type} · {ref.id}{ref.author ? ` · 作者 ${ref.author}` : ''}{ref.revision ? ` · 版本 ${ref.revision}` : ''}{ref.excerpt ? ` · ${ref.excerpt}` : ''}</p>)}
       {entry.evidence.map(evidence => <div key={evidence.id} className={styles['memory-governance-source']}>
         <strong>{evidence.contentRevision && entry.contentRevision && evidence.contentRevision !== entry.contentRevision ? '历史版本证据 · ' : ''}运行 {evidence.runId} · {evidence.outcome === 'success' ? '成功' : evidence.outcome === 'failure' ? '失败' : '未知'}</strong>
-        {evidence.evidenceOrigin === 'recorded_run' && <button type="button" className={buttonClass} disabled={busy} onClick={() => setNavigationNotice(onOpenRun(evidence.runId) ? '已打开此运行的任务详情；可关闭记忆窗口查看。' : '此运行不能跳转到任务详情，请核对来源记录。')}>查看任务详情</button>}
         <span>{evidence.evidenceOrigin === 'recorded_run' ? '已记录运行证据 · 人工核实' : '外部人工证据 · 人工提供，未自动解析'}</span><span>{evidence.summary}</span><span>证据：{evidence.evidenceRef}</span>
         <span>环境：{evidence.environment.platform || '未记录'} {evidence.environment.appVersion || ''} · 项目 {evidence.environment.projectId || '未记录'}</span>
         <span>依赖：{Object.entries(evidence.environment.dependencyVersions || {}).map(([key, value]) => `${key}=${value}`).join(' · ') || '未记录'} · 核实者：{evidence.reviewerId} · {readableTime(evidence.verifiedAt)} · 使用版本 {evidence.experienceRevision}</span>
       </div>)}
     </details>
-    {navigationNotice && <p role="status">{navigationNotice}</p>}
     {entry.withdrawalReason && <p className={styles['memory-governance-meta']}>撤回原因：{entry.withdrawalReason}</p>}
     <div className={actionsClass}>
       {entry.state !== 'withdrawn' && <button type="button" className={buttonClass} disabled={busy || reviewing || editing} onClick={startReview}>记录核实结果</button>}
@@ -238,7 +234,7 @@ export function ExperienceCard({ entry, busy, onTransition, onReview, onRevise, 
       <p>请填写实际运行和检查过的证据。未知结果不能晋升为已验证；一次核实不代表普遍有效。</p>
       <label>证据来源<select aria-label="证据来源" value={evidenceOrigin} disabled={busy} onChange={event => { setEvidenceOrigin(event.target.value as 'recorded_run' | 'external_manual'); setApprovedKey(null); }}><option value="recorded_run">已记录的真实运行</option><option value="external_manual">外部人工证据</option></select></label>
       {evidenceOrigin === 'recorded_run' ? <>
-        <MemoryRunPicker agentId={agentId} busy={busy} projects={projects} selected={selectedRun} onOpenRun={onOpenRun} onSelect={run => { setSelectedRun(run); setApprovedKey(null); }} />
+        <MemoryRunPicker agentId={agentId} busy={busy} projects={projects} selected={selectedRun} onSelect={run => { setSelectedRun(run); setApprovedKey(null); }} />
         <button type="button" className={buttonClass} disabled={busy || !selectedRun || adopted} onClick={async () => { if (selectedRun && adoptionKey && await onAttempt(entry, selectedRun.runId)) setAdoptedKey(adoptionKey); }}>本次实际采用了这条经验</button>
         <p className={styles['memory-governance-meta']}>{adopted ? '此运行的采用关联已记录；重复提交不会增加计数。' : '仅在实际执行时使用了当前版本经验后点击。选择运行、检索或打开详情均不算采用。'}</p>
       </> : <>

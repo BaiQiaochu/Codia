@@ -100,7 +100,7 @@ describe("CodiaEngine.buildTools session external sandbox grants", () => {
 
     const sandboxOpts = createSandboxedTools.mock.calls.at(-1)[2];
     expect(sandboxOpts.getSandboxNetworkEnabled()).toBe(true);
-    if (process.platform !== "win32") {
+    {
       prefs = { sandbox: true, sandbox_network: false };
       expect(sandboxOpts.getSandboxNetworkEnabled()).toBe(false);
     }
@@ -145,7 +145,7 @@ describe("CodiaEngine.buildTools session external sandbox grants", () => {
     expect(sandboxOpts.getExternalReadPaths()).toEqual([]);
   });
 
-  it("keeps Windows restricted-token command sandbox networking enabled at the tool boundary", () => {
+  it("preserves disabled networking so the Windows boundary can reject an unsupported policy", () => {
     tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "codia-engine-win32-sandbox-network-"));
     const originalPlatform = process.platform;
     Object.defineProperty(process, "platform", { value: "win32", configurable: true });
@@ -179,7 +179,7 @@ describe("CodiaEngine.buildTools session external sandbox grants", () => {
       });
 
       const sandboxOpts = createSandboxedTools.mock.calls.at(-1)[2];
-      expect(sandboxOpts.getSandboxNetworkEnabled()).toBe(true);
+      expect(sandboxOpts.getSandboxNetworkEnabled()).toBe(false);
     } finally {
       Object.defineProperty(process, "platform", { value: originalPlatform, configurable: true });
     }

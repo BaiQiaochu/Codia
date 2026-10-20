@@ -3,6 +3,7 @@ import type { ToolCall } from '../stores/chat-types';
 type ToolCallLikeEvent = {
   id?: unknown;
   toolCallId?: unknown;
+  parentToolCallId?: unknown;
   name?: unknown;
   args?: Record<string, unknown>;
 };
@@ -19,6 +20,7 @@ export function toolCallFromStartEvent(event: ToolCallLikeEvent): ToolCall {
   const id = toolCallIdFromEvent(event);
   return {
     ...(id ? { id } : {}),
+    ...(normalizeToolCallId(event.parentToolCallId) ? { parentToolCallId: normalizeToolCallId(event.parentToolCallId) } : {}),
     name: typeof event.name === 'string' ? event.name : '',
     args: event.args,
     done: false,

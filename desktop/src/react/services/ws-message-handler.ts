@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- server WebSocket payloads are dynamic JSON. */
 
 import { streamBufferManager } from '../hooks/use-stream-buffer';
+import { publishExecutionRun } from './execution-run-events';
 import { dispatchStreamKey } from './stream-key-dispatcher';
 import { useStore } from '../stores';
 import { updateKeyed } from '../stores/create-keyed-slice';
@@ -119,7 +120,7 @@ function isFocusedSessionMessage(msg: any): boolean {
 const REACT_CHAT_EVENTS = new Set([
   'text_delta', 'thinking_start', 'thinking_delta', 'thinking_end',
   'mood_start', 'mood_text', 'mood_end',
-  'tool_start', 'tool_end', 'turn_end',
+  'tool_start', 'tool_end', 'tool_progress', 'turn_end',
   'content_block', 'plugin_card',
   'media_generation_start', 'media_generation_end', 'deferred_result',
   'compaction_start', 'compaction_end',
@@ -395,6 +396,10 @@ function applyInputSessionConfirmationBlock(msg: any): void {
 //
 
 export function handleServerMessage(msg: any): void {
+  if (msg.type === 'execution_run') {
+    publishExecutionRun(msg.sessionPath, msg.run);
+    return;
+  }
   rememberSessionLocatorFromMessage(msg);
   const state = useStore.getState();
 

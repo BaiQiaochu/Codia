@@ -265,7 +265,7 @@ export interface TodoItem {
 }
 
 // ── 浮动面板类型 ──
-export type ActivePanel = 'task-console' | 'activity' | 'automation' | 'skills' | 'bridge' | 'social' | null;
+export type ActivePanel = 'activity' | 'automation' | 'skills' | 'bridge' | 'social' | null;
 export type IdeActivityPanel =
   | 'explorer'
   | 'search'

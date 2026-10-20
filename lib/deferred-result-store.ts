@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { atomicWriteSync } from "../shared/safe-fs.ts";
+import { executionContext, findExecutionRun } from "./execution/run-controller.ts";
 
 const CLEANUP_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -95,8 +96,10 @@ export class DeferredResultStore {
       result: null,
       reason: null,
       delivered: false,
+      runId: (executionContext.getStore() || findExecutionRun(sessionRef.sessionPath))?.snapshot()?.runId || null,
     });
     this._save();
+    (executionContext.getStore() || findExecutionRun(sessionRef.sessionPath))?.retainTask(taskId);
   }
 
   resolve(taskId, result) {
@@ -105,6 +108,7 @@ export class DeferredResultStore {
     task.status = "resolved";
     task.result = result;
     this._save();
+    findExecutionRun(task.sessionPath)?.finishTask(taskId);
 
     for (const cb of this._resultCbs) {
       try { cb(taskId, task.sessionPath, result, task.meta); } catch {}
@@ -125,6 +129,7 @@ export class DeferredResultStore {
     task.status = "failed";
     task.reason = reason;
     this._save();
+    findExecutionRun(task.sessionPath)?.finishTask(taskId);
 
     for (const cb of this._failCbs) {
       try { cb(taskId, task.sessionPath, reason, task.meta); } catch {}
@@ -142,8 +147,10 @@ export class DeferredResultStore {
   retry(taskId, sessionPath, meta = {}) {
     const existing = this._tasks.get(taskId);
     const sessionRef = normalizeSessionRef(sessionPath, this._getSessionIdForPath);
+    const run = executionContext.getStore() || findExecutionRun(sessionRef.sessionPath);
     const next = {
       status: "pending",
+      runId: run?.snapshot()?.runId || null,
       sessionId: sessionRef.sessionId,
       sessionPath: sessionRef.sessionPath,
       sessionRef: sessionRef.sessionRef,
@@ -162,6 +169,7 @@ export class DeferredResultStore {
       this._tasks.set(taskId, next);
     }
     this._save();
+    run?.retainTask(taskId);
   }
 
   abort(taskId, reason) {
@@ -170,6 +178,7 @@ export class DeferredResultStore {
     task.status = "aborted";
     task.reason = reason || "user aborted";
     this._save();
+    findExecutionRun(task.sessionPath)?.finishTask(taskId);
 
     for (const cb of this._failCbs) {
       try { cb(taskId, task.sessionPath, task.reason, task.meta); } catch {}
@@ -192,6 +201,7 @@ export class DeferredResultStore {
       delete task.suppressedAt;
       delete task.suppressionReason;
       this._save();
+      findExecutionRun(task.sessionPath)?.finishTask(taskId);
     }
   }
 
@@ -207,6 +217,7 @@ export class DeferredResultStore {
     task.suppressedAt = Date.now();
     task.suppressionReason = reason;
     this._save();
+    findExecutionRun(task.sessionPath)?.finishTask(taskId);
     return true;
   }
 

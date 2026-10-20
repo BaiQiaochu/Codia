@@ -5,6 +5,7 @@
  * 支持-session 并发：所-session 事件平等广播，前端按 sessionPath 路由
  */
 import { Hono } from "hono";
+import { redactLogText } from "../../lib/log-redactor.ts";
 import { randomUUID } from "node:crypto";
 import { MoodParser, ThinkTagParser, CardParser } from "../../core/events.ts";
 import { extractBlocks, resolveMediaGenerationBlocks } from "../block-extractors.ts";
@@ -476,6 +477,8 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
   }
 
   function emitStreamEvent(sessionPath, ss, event) {
+    const run = engine.getExecutionRun?.(sessionPath);
+    if (run) event = { ...event, runId: run.runId, runRevision: run.revision };
     const entry = appendSessionStreamEvent(ss, event);
  // Phase 4: 始终广播所有事件，前端按 sessionPath 路由到对应 panel
     broadcast(createSessionStreamEventWsMessage({
@@ -824,7 +827,15 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
     if (ss.pendingPromptQueue.length >= MAX_QUEUED_PROMPTS_PER_SESSION) {
       return { ok: false, reason: "queue_full", queuedCount: ss.pendingPromptQueue.length };
     }
-    ss.pendingPromptQueue.push(prompt);
+    const queued = { ...prompt, deadline: prompt.deadline || Date.now() + 15 * 60_000 };
+    ss.pendingPromptQueue.push(queued);
+    const expiry = setTimeout(() => {
+      const current = sessionState.get(sessionPath);
+      if (!current?.pendingPromptQueue?.includes(queued)) return;
+      current.pendingPromptQueue = current.pendingPromptQueue.filter(item => item !== queued);
+      sendSessionError(sessionPath, `排队已超过 15 分钟，请重新提交：${String(queued.text || '').slice(0, 120)}`, { terminal: false });
+    }, Math.max(1, queued.deadline - Date.now()));
+    expiry.unref?.();
     return { ok: true, queuedCount: ss.pendingPromptQueue.length };
   }
 
@@ -839,6 +850,7 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
   function schedulePromptQueueDrain(sessionPath) {
     const ss = sessionState.get(sessionPath);
     if (!ss || ss.drainingPromptQueue) return;
+    if (["pausing", "paused", "needs_attention"].includes(engine.getExecutionRun?.(sessionPath)?.status)) return;
     if (ss.isStreaming || engine.isSessionStreaming?.(sessionPath)) return;
     if (!Array.isArray(ss.pendingPromptQueue) || ss.pendingPromptQueue.length === 0) return;
 
@@ -848,9 +860,14 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
       if (!current) return;
       let retryDelayMs = 0;
       try {
+        if (["pausing", "paused", "needs_attention"].includes(engine.getExecutionRun?.(sessionPath)?.status)) return;
         if (current.isStreaming || engine.isSessionStreaming?.(sessionPath)) return;
         const next = current.pendingPromptQueue.shift();
         if (!next) return;
+        if (Date.now() >= next.deadline) {
+          sendSessionError(sessionPath, `排队已过期，请重新提交：${String(next.text || '').slice(0, 120)}`, { terminal: false });
+          return;
+        }
         try {
           await hub.send(next.text, next.options);
         } catch (err) {
@@ -1054,6 +1071,8 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
         ss.hasError = true;
         sendSessionError(sessionPath, event.assistantMessageEvent.error || "Unknown error", { replayable: true });
       }
+    } else if (event.type === "execution_run") {
+      broadcast({ type: "execution_run", run: event.run, sessionPath });
     } else if (event.type === "tool_execution_start") {
       if (!ss) return;
       flushPendingTurnInputConsumptions(sessionPath, ss, event.message);
@@ -1067,14 +1086,21 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
       emitStreamEvent(sessionPath, ss, {
         type: "tool_start",
         id: event.toolCallId || undefined,
+        parentToolCallId: event.parentToolCallId || undefined,
         name: event.toolName || "",
         args,
+      });
+    } else if (event.type === "tool_execution_update") {
+      if (ss) emitStreamEvent(sessionPath, ss, {
+        type: "tool_progress", id: event.toolCallId, parentToolCallId: event.parentToolCallId,
+        name: event.toolName, progress: toolProgressSummary(event.partialResult),
       });
     } else if (event.type === "tool_execution_end") {
       if (!ss) return;
       emitStreamEvent(sessionPath, ss, {
         type: "tool_end",
         id: event.toolCallId || undefined,
+        parentToolCallId: event.parentToolCallId || undefined,
         name: event.toolName || "",
         success: !event.isError,
         durationMs: Number.isFinite(event.durationMs) ? event.durationMs : undefined,
@@ -1555,7 +1581,10 @@ export function createChatRoute(engine, hub, { upgradeWebSocket, runtimeDiagnost
             if (msg.type === "abort") {
               const abortPath = await requireSessionPath(msg, ws); if (!abortPath) return;
               const abortSs = getState(abortPath);
-              if (abortSs) abortSs.isAborted = true;
+              if (abortSs) {
+                abortSs.isAborted = true;
+                abortSs.pendingPromptQueue = [];
+              }
               if (engine.isSessionStreaming(abortPath)) {
                 try { await hub.abort(abortPath); } catch {}
               }
@@ -1907,4 +1936,12 @@ async function generateSessionTitle(engine: any, notify: any, opts: any = {}) {
     console.error("[chat] failed to generate session title:", err.message);
     return false;
   }
+}
+
+function toolProgressSummary(result: any): string {
+  const detail = result?.details?.progress ?? result?.details?.message;
+  if (typeof detail === "string") return redactLogText(detail.slice(0, 2000));
+  return redactLogText((Array.isArray(result?.content) ? result.content : [])
+    .filter(item => item?.type === "text" && typeof item.text === "string")
+    .slice(0, 4).map(item => item.text.slice(0, 500)).join("\n"));
 }

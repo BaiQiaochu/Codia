@@ -20,8 +20,8 @@ export function MemoryProjectSelect({ label, value, projects, disabled, onChange
   </select></label>;
 }
 
-export function MemoryRunPicker({ agentId, busy, projects, selected, onSelect, onOpenRun }: {
-  agentId: string; busy: boolean; projects: MemoryProject[]; selected: RecordedMemoryRun | null; onOpenRun: (runId: string) => boolean; onSelect: (run: RecordedMemoryRun | null) => void;
+export function MemoryRunPicker({ agentId, busy, projects, selected, onSelect }: {
+  agentId: string; busy: boolean; projects: MemoryProject[]; selected: RecordedMemoryRun | null; onSelect: (run: RecordedMemoryRun | null) => void;
 }) {
   const [runs, setRuns] = useState<RecordedMemoryRun[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,9 +33,8 @@ export function MemoryRunPicker({ agentId, busy, projects, selected, onSelect, o
   const [limitations, setLimitations] = useState<string[]>([]);
   const [openError, setOpenError] = useState('');
   const [opening, setOpening] = useState(false);
-  const [navigationNotice, setNavigationNotice] = useState('');
   const openGeneration = useRef(0);
-  useEffect(() => { ++openGeneration.current; setOpening(false); setOpenError(''); setNavigationNotice(''); const current = openGeneration; return () => { ++current.current; }; }, [selected?.runId]);
+  useEffect(() => { ++openGeneration.current; setOpening(false); setOpenError(''); const current = openGeneration; return () => { ++current.current; }; }, [selected?.runId]);
   useEffect(() => {
     const abort = new AbortController();
     let active = true;
@@ -87,10 +86,7 @@ export function MemoryRunPicker({ agentId, busy, projects, selected, onSelect, o
       <p>平台：{selected.environment.platform || '未记录'} · 应用版本：{selected.environment.appVersion || '未记录'}</p>
       <p>依赖：{Object.entries(selected.environment.dependencyVersions || {}).map(([key, value]) => `${key}=${value}`).join(' · ') || '未记录'}</p>
       <p>证据引用：{selected.evidenceRef || '未记录'}</p>
-      <details><summary>查看执行结果与成果引用</summary>
-        <button type="button" className={styles['memory-action-btn']} disabled={busy} onClick={() => setNavigationNotice(onOpenRun(selected.runId) ? '已打开此运行的任务详情；可关闭记忆窗口查看，未自动核实结果。' : '此运行不能跳转到任务详情，请检查保存的摘要与来源。')}>查看任务详情</button>
-        <p>打开任务详情会离开记忆页；未保存的核实内容不会提交。</p>
-        {navigationNotice && <p role="status">{navigationNotice}</p>}
+      <details><summary>查看执行结果与文件引用</summary>
         <p className={v2.evidenceText}>{selected.summary || '没有已保存的执行摘要或错误摘录；不能据此推断执行成功。'}</p>
         <p>这是执行记录的摘要，完整日志未在此加载；仍需人工核对实际结果。</p>
         {!selected.artifacts?.length && <p>没有已保存的成果引用。</p>}

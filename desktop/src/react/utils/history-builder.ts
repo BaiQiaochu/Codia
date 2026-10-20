@@ -25,6 +25,7 @@ export interface HistoryApiResponse {
   messages: Array<{
     id?: string;
     entryId?: string;
+    runId?: string;
     role: string;
     content: string;
     thinking?: string;
@@ -479,7 +480,7 @@ export function buildItemsFromHistory(data: HistoryApiResponse): ChatListItem[] 
         });
       }
 
-      const msg: ChatMessage = { id, sourceEntryId: m.entryId, role: 'assistant', blocks, timestamp };
+      const msg: ChatMessage = { id, sourceEntryId: m.entryId, role: 'assistant', blocks, timestamp, runId: m.runId };
       if (blocks.length > 0) {
         items.push({ type: 'message', data: msg });
       }

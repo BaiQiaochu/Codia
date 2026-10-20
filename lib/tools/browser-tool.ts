@@ -6,6 +6,7 @@ import { t } from "../i18n.ts";
 import { toolOk } from "./tool-result.ts";
 import { getToolSessionPath } from "./tool-session.ts";
 import { redactLogText } from "../log-redactor.ts";
+import { saveToolOutput } from "./full-output.ts";
 import { summarizeBrowserActionParams } from "./browser-action-log.ts";
 import { VISION_AUXILIARY_DISABLED_ERROR } from "../../core/vision-auxiliary-policy.ts";
 import { modelSupportsImageInput } from "../../shared/model-capabilities.ts";
@@ -27,7 +28,7 @@ function browserError(rawMsg, details = {}) {
 }
 
 export function createBrowserTool(getSessionPath, options = {}) {
-  const browser = BrowserManager.instance();
+  const browser = options.browserManager || BrowserManager.instance();
   const screenshotEnabled = options.screenshotEnabled !== false;
   const actionValues = screenshotEnabled
     ? BROWSER_ACTIONS
@@ -314,7 +315,9 @@ export function createBrowserTool(getSessionPath, options = {}) {
             const truncated = result.length > 30000
               ? `${result.slice(0, 30000)}${t("error.browserOutputTruncated")}`
               : result;
-            return toolOk(truncated, { action: "evaluate", ...await statusFields(sessionPath) });
+            const fullOutput = result.length > 30000 ? saveToolOutput(result, sessionPath, options.registerSessionFile) : null;
+            return toolOk(fullOutput ? `${truncated}\nCaptured result: ${fullOutput.fullOutputPath} (read with offset/limit; maximum 2 MiB).` : truncated,
+              { action: "evaluate", ...fullOutput, ...await statusFields(sessionPath) });
           }
 
           case "show": {

@@ -120,7 +120,7 @@ describe('ChannelWorkflowWindow render', () => {
     expect(screen.getByRole('dialog', { name: '工作流可视窗口' })).toBeInTheDocument();
     expect(screen.getByText('工作流画布')).toBeInTheDocument();
     expect(screen.queryByText('Codia 工作流画布')).not.toBeInTheDocument();
-    expect(screen.getByText('频道输入')).toBeInTheDocument();
+    expect(screen.getByText('Agent 小队输入')).toBeInTheDocument();
     expect(screen.getByText('调度器')).toBeInTheDocument();
 
     await waitFor(() => expect(screen.getByText('修复阅读器图片')).toBeInTheDocument());
@@ -154,7 +154,7 @@ describe('ChannelWorkflowWindow render', () => {
     await waitFor(() => expect(screen.getByText('自定义任务 1')).toBeInTheDocument());
     expect(window.localStorage.getItem('codia.channel.workflow.ch_crew')).not.toBeNull();
     expect(screen.queryByText('暂无工作流任务')).not.toBeInTheDocument();
-    expect(screen.getByText('频道输入')).toBeInTheDocument();
+    expect(screen.getByText('Agent 小队输入')).toBeInTheDocument();
   });
 
   it('adds only one custom node and does not expand stale agent activity into workflow nodes', async () => {
@@ -244,8 +244,8 @@ describe('ChannelWorkflowWindow render', () => {
     expect(codiaFetchMock).not.toHaveBeenCalled();
     expect(screen.getByRole('region', { name: '工作流页面' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '执行' }));
-    expect(screen.getByRole('dialog', { name: '关联执行频道' })).toBeInTheDocument();
-    expect(screen.queryByRole('dialog', { name: /新建频道/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: '关联执行Agent 小队' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: /新建Agent 小队/ })).not.toBeInTheDocument();
   });
 
   it('restores a legacy standalone draft on cold home startup before any chat is opened', async () => {

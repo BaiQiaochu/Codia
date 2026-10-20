@@ -55,7 +55,7 @@ jobs:
           EXPECTED_PLATFORM: ${{ matrix.platform }}
           EXPECTED_ARCH: ${{ matrix.arch }}
         run: |
-          node -e 'if(process.platform!==process.env.EXPECTED_PLATFORM || process.arch!==process.env.EXPECTED_ARCH) throw Error("Native runner mismatch"); if(require("./package.json").version!=="0.3.4") throw Error("Unexpected release version");'
+          node -e 'if(process.platform!==process.env.EXPECTED_PLATFORM || process.arch!==process.env.EXPECTED_ARCH) throw Error("Native runner mismatch"); if(require("./package.json").version!=="0.3.5") throw Error("Unexpected release version");'
           test "$(git rev-parse HEAD)" = "$SOURCE_REF"
       - name: Install Linux packaging prerequisites
         if: runner.os == 'Linux'
@@ -143,7 +143,7 @@ jobs:
           assert(['linux', 'darwin'].includes(platform), 'Unsupported platform');
           assert(['x64', 'arm64'].includes(arch), 'Unsupported architecture');
           assert(platform === process.platform && arch === process.arch, 'Native host mismatch');
-          assert(pkg.version === '0.3.4', 'Unexpected version');
+          assert(pkg.version === '0.3.5', 'Unexpected version');
           const commit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
           assert(commit === process.env.SOURCE_REF, 'Release source commit mismatch');
           const product = pkg.build.productName;
@@ -263,7 +263,7 @@ jobs:
       - name: Upload packages and verification report
         uses: actions/upload-artifact@v4
         with:
-          name: Codia-0.3.4-${{ matrix.label }}-${{ env.SOURCE_REF }}
+          name: Codia-0.3.5-${{ matrix.label }}-${{ env.SOURCE_REF }}
           path: |
             source/dist/*.deb
             source/dist/*.AppImage

@@ -8,6 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { atomicWriteSync } from "../shared/safe-fs.ts";
 import { redactLogValue } from "./log-redactor.ts";
+import { executionContext, findExecutionRun } from "./execution/run-controller.ts";
 
 const DEFAULT_TIMEOUT = 5 * 60 * 1000; // 5 分钟
 
@@ -60,6 +61,8 @@ export class ConfirmStore {
       this._history.delete(confirmId);
       throw error;
     }
+    const releaseWait = (executionContext.getStore() || findExecutionRun(sessionPath))?.waitForApproval(confirmId);
+    if (releaseWait) promise.then(releaseWait, releaseWait);
     return { confirmId, promise };
   }
 

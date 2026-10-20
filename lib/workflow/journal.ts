@@ -19,6 +19,7 @@ export class WorkflowJournal {
     this._replayHits = 0;
     this._metadata = null;
     this._finished = false;
+    this._budgetState = null;
   }
 
   static computeKey(prompt, opts) {
@@ -44,7 +45,9 @@ export class WorkflowJournal {
       try { entry = JSON.parse(line); } catch {
         throw new Error("Workflow journal is corrupt; inspect external results before recovery.");
       }
-      if (entry.kind === "finished") {
+      if (entry.kind === "budget") {
+        journal._budgetState = entry.state;
+      } else if (entry.kind === "finished") {
         journal._finished = true;
       } else if (entry.kind === "metadata") {
         if (journal._metadata) throw new Error("Workflow journal contains duplicate run metadata.");
@@ -87,6 +90,23 @@ export class WorkflowJournal {
   }
 
   assertRecoveryBudgetSupported(requestedArgs) {
+    if (this._metadata?.version === 2 && this._budgetState) {
+      const state = this._budgetState;
+      if (state.version !== 1 || (state.maxTokens != null && state.usageKnown !== true)
+        || [...this._entries.values()].some(entry => entry.status === "running")
+        || state.steps < this._entries.size
+        || ![state.steps, state.elapsedMs, state.tokens].every(value => Number.isFinite(value) && value >= 0)
+        || !Number.isSafeInteger(state.maxSteps) || state.maxSteps <= 0
+        || !Number.isSafeInteger(state.maxDurationMs) || state.maxDurationMs <= 0) {
+        throw new Error("Cumulative workflow budget accounting cannot be safely restored from an unfinished or incomplete ledger.");
+      }
+      if (state.steps >= state.maxSteps || state.elapsedMs >= state.maxDurationMs
+        || (state.maxTokens != null && state.tokens >= state.maxTokens)
+        || state.runBudget?.blockedReason || state.runBudget?.reservations?.length) {
+        throw new Error("Cumulative workflow budget exhausted or provider usage uncertain; a new budget requires review.");
+      }
+      return;
+    }
     if (this._metadata?.budgetContract) {
       throw new Error("This budgeted template requires a new reviewed budget after checking prior usage and effects; unbounded checkpoint replay is disabled.");
     }
@@ -142,6 +162,14 @@ export class WorkflowJournal {
       this._entries.set(entry.nodeSeq, structuredClone(entry));
     }
   }
+
+  recordBudget(state) {
+    const snapshot = structuredClone(state);
+    this._appendLine({ kind: "budget", state: snapshot, ts: Date.now() });
+    this._budgetState = snapshot;
+  }
+
+  get budgetState() { return this._budgetState ? structuredClone(this._budgetState) : null; }
 
   actionId(nodeSeq, key) {
     return this._entries.get(nodeSeq)?.actionId || `${this._metadata?.originRunId || this._metadata?.runId || "workflow"}:${nodeSeq}:${key}`;

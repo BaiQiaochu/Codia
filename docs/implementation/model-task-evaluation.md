@@ -54,8 +54,7 @@ node scripts/model-task-evaluation-cli.mjs
 node scripts/model-task-evaluation-cli.mjs --mock \
   --output artifacts/model-task-mock-report.json
 
-npx vitest run tests/model-task-evaluation.test.ts tests/evaluation-report.test.ts \
-  desktop/src/react/components/EvaluationWorkbench.test.tsx --maxWorkers=2
+npx vitest run tests/model-task-evaluation.test.ts --maxWorkers=2
 ```
 
 Successful `--mock` output is not a model quality baseline. Do not describe a
@@ -193,3 +192,13 @@ Metric definitions:
 - Baseline differences are candidate minus baseline. Unknown cost deltas remain
   null. Estimated versus provider-reported counts remain visible, so mixed cost
   bases are not silently described as provider billing savings.
+
+## Agent runtime evaluation
+
+The separate `npm run eval:agent-runtime` command runs production SDK and tool
+paths against an isolated deterministic local model server. It grades actual
+files, commands, tool traces, cancellation and recovery. It does not change the
+30-case text/decision benchmark above. Missing native components are reported
+as environment blockers; add `-- --require-all` to require every capability.
+See [the Loop and Harness implementation record](2026-10-20-loop-harness.md)
+for results, configuration, recovery formats and unverified environments.

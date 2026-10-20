@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { ToolActionMetadata } from '../../shared/task-console/tool-actions.ts';
+import type { ToolActionMetadata } from '../../shared/tool-actions.ts';
 import { approvalDigest } from '../permission/approval-binding.ts';
 
 export type ActionState = 'planned' | 'running' | 'succeeded' | 'unknown';

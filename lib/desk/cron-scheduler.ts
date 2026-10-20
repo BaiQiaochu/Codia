@@ -26,6 +26,7 @@ type CronExecutionResult = CronRunDetails | null | undefined | void;
 
 type CronError = Error & {
   skipped?: boolean;
+  paused?: boolean;
   runDetails?: CronRunDetails;
 };
 
@@ -154,6 +155,13 @@ export function createCronScheduler({
       const finishedAt = new Date().toISOString();
       const cronError = err as CronError;
       const message = cronError?.message || String(err);
+      if (cronError?.paused) {
+        const details = { ...cronError.runDetails, ...periodDetails, status: 'paused', startedAt, finishedAt, error: message };
+        cronStore.logRun(job.id, details);
+        cronStore.markRun(job.id, { success: false, ...(scheduledAt ? { scheduledAt } : {}) });
+        notifyDone(job, details);
+        return details;
+      }
 
       if (cronError?.skipped) {
         cronStore.logRun(job.id, { ...periodDetails, status: "skipped", startedAt, finishedAt, error: message });

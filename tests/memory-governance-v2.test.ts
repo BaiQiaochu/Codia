@@ -72,7 +72,7 @@ describe('memory governance v2 HTTP composition', () => {
     expect((await (await send(`/experiences/${entry.id}/attempt`,attempt)).json()).entry.stats.attempted).toBe(1);
     const duplicate=await (await send(`/experiences/${entry.id}/attempt`,attempt)).json();expect(duplicate.added).toBe(false);expect(duplicate.entry.stats.attempted).toBe(1);
     const reviewed=await send(`/experiences/${entry.id}/review`,{...attempt,evidenceOrigin:'recorded_run',eventId:'review-real',summary:'Human inspected the actual report',outcome:'success',environment:{projectId:'forged'},evidenceRef:'forged'});
-    expect(reviewed.status).toBe(200);const body=await reviewed.json();expect(body.entry.state).toBe('candidate');expect(body.entry.evidence[0]).toMatchObject({evidenceOrigin:'recorded_run',evidenceRef:'task-console:workflow:actual',environment:{projectId:`workspace:${dir}`},runSnapshot:{status:'succeeded'}});
+    expect(reviewed.status).toBe(200);const body=await reviewed.json();expect(body.entry.state).toBe('candidate');expect(body.entry.evidence[0]).toMatchObject({evidenceOrigin:'recorded_run',evidenceRef:'recorded-run:workflow:actual',environment:{projectId:`workspace:${dir}`},runSnapshot:{status:'succeeded'}});
     expect((await send(`/experiences/${entry.id}/attempt`,{...attempt,runId:'fabricated'})).status).toBe(404);
     principal.kind='agent';expect((await send(`/experiences/${entry.id}/attempt`,attempt)).status).toBe(403);
   });

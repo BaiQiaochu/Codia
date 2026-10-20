@@ -51,7 +51,7 @@ describe("submitDesktopSessionMessage", () => {
     releaseFirstPrompt();
     await expect(first).resolves.toMatchObject({ text: null, toolMedia: [] });
     await expect(second).resolves.toMatchObject({ text: null, toolMedia: [] });
-    expect(engine.promptSession).toHaveBeenNthCalledWith(2, "/tmp/session.jsonl", "second", undefined);
+    expect(engine.promptSession).toHaveBeenNthCalledWith(2, "/tmp/session.jsonl", "second", { onExecutionStarted: expect.any(Function) });
     expect(engine.emitEvent).toHaveBeenCalledWith(
       expect.objectContaining({ type: "session_status", isStreaming: true }),
       "/tmp/session.jsonl",
@@ -79,6 +79,7 @@ describe("submitDesktopSessionMessage", () => {
       "/tmp/session.jsonl",
       "[attached_video: /tmp/demo.mp4]\nwatch this",
       {
+        onExecutionStarted: expect.any(Function),
         videos: [{ type: "video", data: "AAAA", mimeType: "video/mp4" }],
         videoAttachmentPaths: ["/tmp/demo.mp4"],
       },
@@ -106,6 +107,7 @@ describe("submitDesktopSessionMessage", () => {
       "/tmp/session.jsonl",
       "[attached_audio: /tmp/demo.wav]\nlisten to this",
       {
+        onExecutionStarted: expect.any(Function),
         audios: [{ type: "audio", data: "BASE64", mimeType: "audio/wav" }],
         audioAttachmentPaths: ["/tmp/demo.wav"],
       },
@@ -146,6 +148,7 @@ describe("submitDesktopSessionMessage", () => {
       "/tmp/session.jsonl",
       "describe this",
       {
+        onExecutionStarted: expect.any(Function),
         images: [image],
       },
     );
@@ -190,7 +193,7 @@ describe("submitDesktopSessionMessage", () => {
         label: "notes.md",
         kind: "attachment",
       })}\n[attachment] notes.md`,
-      undefined,
+      { onExecutionStarted: expect.any(Function) },
     );
   });
 

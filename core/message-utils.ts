@@ -62,6 +62,7 @@ function pushSessionMessage(messages, entry) {
     entry.type === "custom" &&
     (
       entry.customType === DEFERRED_RESULT_RECORD_TYPE
+      || entry.customType === 'codia-execution-run'
       || entry.customType === 'codia-input-presentation'
       || entry.customType === 'codia-agent-review'
       || entry.customType === TURN_INPUT_PRESENTATION_EVENT_TYPE
@@ -115,7 +116,7 @@ export function parseSessionHistoryText(raw) {
   try {
     const parsed = JSON.parse(text);
     const messages = messagesFromJsonValue(parsed);
-    if (messages.length > 0) return messages;
+    if (messages.length > 0) return withExecutionRunIds(messages);
   } catch {
     // Fall back to JSONL parsing.
   }
@@ -129,7 +130,19 @@ export function parseSessionHistoryText(raw) {
       // Skip corrupted lines.
     }
   }
-  return messages;
+  return withExecutionRunIds(messages);
+}
+
+function withExecutionRunIds(messages: MutableSessionMessage[]) {
+  let runId: string | undefined;
+  return messages.filter(message => {
+    if (message.customType === 'codia-execution-run') {
+      runId = message.data?.schemaVersion === 1 && typeof message.data.runId === 'string' ? message.data.runId : undefined;
+      return false;
+    }
+    if (runId) message.runId = runId;
+    return true;
+  });
 }
 
 /** Extract and strip <think>/<thinking>/<reflect> tags from plain text. */
@@ -244,7 +257,7 @@ export async function loadSessionHistoryMessages(_engine, explicitPath) {
       for (const entry of manager.getBranch()) {
         pushSessionMessage(messages, entry);
       }
-      if (messages.length > 0) return messages;
+      if (messages.length > 0) return withExecutionRunIds(messages);
     }
   } catch {
     // Fall back to compatible JSON/JSONL parsing below.

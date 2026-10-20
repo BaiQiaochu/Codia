@@ -67,7 +67,7 @@ function listJoinedChannels({ channelsDir, agentsDir, agentId }) {
 }
 
 function formatChannelList(channels) {
-  const lines = ["# 频道", ""];
+  const lines = [`# ${t("channel.tab")}`, ""];
   for (const channel of channels) {
     const parts = [
       `name: ${channel.name}`,

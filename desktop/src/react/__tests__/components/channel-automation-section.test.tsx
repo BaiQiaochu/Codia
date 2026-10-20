@@ -37,7 +37,7 @@ describe('ChannelAutomationSection', () => {
     const { ChannelAutomationSection } = await import('../../components/channels/ChannelAutomationSection');
     render(<ChannelAutomationSection />);
 
-    expect(screen.getByText('请先选择一个频道查看任务计划')).toBeInTheDocument();
+    expect(screen.getByText('请先选择一个 Agent 小队查看任务计划')).toBeInTheDocument();
     expect(screen.queryByTestId('automation-jobs-section')).not.toBeInTheDocument();
   });
 

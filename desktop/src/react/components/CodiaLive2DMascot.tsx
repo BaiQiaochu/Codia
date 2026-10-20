@@ -19,14 +19,6 @@ export function CodiaLive2DMascot({
   assets, enabled = false, gpuSafeMode = false, hardwareAccelerationEnabled = true, className,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [animationDisabled, setAnimationDisabled] = useState(() => {
-    try { return localStorage.getItem('codia.mascot.static') === 'true'; } catch { return false; }
-  });
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const toggleAnimation = () => setAnimationDisabled(value => {
-    try { localStorage.setItem('codia.mascot.static', String(!value)); } catch { /* Storage may be unavailable. */ }
-    return !value;
-  });
   const [state, setState] = useState<'disabled' | 'loading' | 'live2d' | 'error'>('disabled');
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
@@ -37,7 +29,7 @@ export function CodiaLive2DMascot({
     const canvas = canvasRef.current;
     // Respect Electron's existing graphics setup. Software WebGL2 may still be
     // available in safe mode; the runtime reports failed initialization.
-    if (!canvas || !enabled || animationDisabled) {
+    if (!canvas || !enabled) {
       setState('disabled');
       setError('');
       return;
@@ -67,7 +59,7 @@ export function CodiaLive2DMascot({
       disposeHandle();
     };
     const visibility = () => handle?.setVisible(inView && !document.hidden);
-    const motion = () => handle?.setReducedMotion(media.matches || reduceMotion);
+    const motion = () => handle?.setReducedMotion(media.matches);
     const resize = new ResizeObserver(() => handle?.resize());
     const intersection = new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; visibility(); });
     const contextLost = (event: Event) => {
@@ -86,7 +78,7 @@ export function CodiaLive2DMascot({
     void (async () => {
       try {
         const loaded = await loadCodiaLive2D(canvas, {
-          modelUrl, shaderPath, signal: controller.signal, reducedMotion: media.matches || reduceMotion, onError: fail,
+          modelUrl, shaderPath, signal: controller.signal, reducedMotion: media.matches, onError: fail,
         });
         if (!active || controller.signal.aborted || failed) { loaded.dispose(); return; }
         handle = loaded;
@@ -106,20 +98,16 @@ export function CodiaLive2DMascot({
       canvas.removeEventListener('webglcontextlost', contextLost);
       canvas.removeEventListener('webglcontextrestored', contextRestored);
     };
-  }, [enabled, modelUrl, shaderPath, gpuSafeMode, hardwareAccelerationEnabled, attempt, animationDisabled, reduceMotion]);
+  }, [enabled, modelUrl, shaderPath, gpuSafeMode, hardwareAccelerationEnabled, attempt]);
 
   return (
     <div className={`${styles.mascot}${className ? ` ${className}` : ''}`} data-codia-renderer={state} data-codia-load-error={error || undefined}>
       <canvas key={attempt} ref={canvasRef} className={styles.canvas} style={{ visibility: state === 'live2d' ? 'visible' : 'hidden' }}
         role="img" aria-label="Codia 吉祥物" aria-hidden={state !== 'live2d'} />
       {state !== 'live2d' && <span className={styles.status} role={state === 'error' ? 'alert' : 'status'}>
-        {animationDisabled ? '动画已关闭' : error ? `Live2D 加载或渲染失败：${error}` : state === 'loading' ? '正在加载 Live2D…' : 'Live2D 未启用'}
+        {error ? `Live2D 加载或渲染失败：${error}` : state === 'loading' ? '正在加载 Live2D…' : 'Live2D 未启用'}
       </span>}
-      <div className={styles.controls}>
-        {state === 'error' && !animationDisabled && <button type="button" onClick={() => setAttempt(value => value + 1)}>重试 Live2D</button>}
-        <button type="button" onClick={toggleAnimation} aria-pressed={animationDisabled}>{animationDisabled ? '启用动画' : '关闭动画'}</button>
-        {!animationDisabled && <button type="button" onClick={() => setReduceMotion(value => !value)} aria-pressed={reduceMotion}>减少动态效果</button>}
-      </div>
+      {state === 'error' && <button className={styles.retry} type="button" onClick={() => setAttempt(value => value + 1)}>重试 Live2D</button>}
     </div>
   );
 }

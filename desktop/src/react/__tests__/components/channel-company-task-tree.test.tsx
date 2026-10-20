@@ -167,7 +167,7 @@ describe('ChannelWorkspacePanel company task tree', () => {
     expect(await screen.findByText('整理验收清单')).toBeInTheDocument();
     expect(container.querySelector('[data-task-depth="2"]')).toBeTruthy();
 
-    fireEvent.change(screen.getByPlaceholderText('输入项目目标，自动拆成任务树并派发给频道成员'), {
+    fireEvent.change(screen.getByPlaceholderText('输入项目目标，自动拆成任务树并派发给 Agent 小队成员'), {
       target: { value: '完成阅读器模式修复' },
     });
     fireEvent.click(screen.getByText('拆解并派发'));
@@ -191,7 +191,7 @@ describe('ChannelWorkspacePanel company task tree', () => {
     render(<ChannelWorkspacePanel />);
 
     expect(await screen.findByText('调度总监')).toBeInTheDocument();
-    expect(screen.getByText('跨频道任务分派')).toBeInTheDocument();
+    expect(screen.getByText('跨 Agent 小队任务分派')).toBeInTheDocument();
     expect(screen.getByText('阻塞点')).toBeInTheDocument();
     expect(screen.getByText('待复核输出')).toBeInTheDocument();
     expect(screen.getAllByText('管理A').length).toBeGreaterThan(0);

@@ -11,7 +11,6 @@ import { RegionalErrorBoundary } from './components/RegionalErrorBoundary';
 
 const SkillViewerOverlay = lazy(() => import('./components/SkillViewerOverlay').then(m => ({ default: m.SkillViewerOverlay })));
 const PreviewPanel = lazy(() => import('./components/PreviewPanel').then(m => ({ default: m.PreviewPanel })));
-const TaskConsolePanel = lazy(() => import('./components/TaskConsolePanel').then(m => ({ default: m.TaskConsolePanel })));
 const ActivityPanel = lazy(() => import('./components/ActivityPanel').then(m => ({ default: m.ActivityPanel })));
 const AutomationPanel = lazy(() => import('./components/AutomationPanel').then(m => ({ default: m.AutomationPanel })));
 const SkillsPanel = lazy(() => import('./components/SkillsPanel').then(m => ({ default: m.SkillsPanel })));
@@ -237,6 +236,7 @@ function App() {
   const jianOpen = useStore(s => s.jianOpen);
   const currentTab = useStore(s => s.currentTab);
   const channelTotalUnread = useStore(s => s.channelTotalUnread);
+  const channelsEnabled = useStore(s => s.channelsEnabled);
   const browserRunning = useAnyBrowserRunning();
   const welcomeVisible = useStore(s => s.welcomeVisible);
   const currentSessionPath = useStore(s => s.currentSessionPath);
@@ -455,14 +455,13 @@ function App() {
               <div><strong>Codia</strong><span>小豆蔻 · AI 工作室</span></div>
             </div>
             <nav className="codia-primary-nav" aria-label="主导航">
-              <button type="button" className={`codia-nav-item${activePanel === 'task-console' ? ' active' : ''}`} onClick={() => { switchTab('chat'); useStore.getState().setActivePanel('task-console'); }}><ClockCounterClockwise weight="fill" /><span>任务与成果</span></button>
               <div className={`codia-chat-nav-row${currentTab === 'chat' && activePanel === null ? ' active' : ''}`}>
                 <button type="button" className="codia-nav-item" onClick={goChat}><ChatCircleDots weight="fill" /><span>聊天</span></button>
                 <button type="button" className="codia-new-chat-btn" id="newSessionBtn" title={t('sidebar.newChat')} aria-label={t('sidebar.newChat')} onClick={() => { goChat(); void createNewSession(); }}>
                   <Plus size={17} weight="bold" aria-hidden="true" />
                 </button>
               </div>
-              <button type="button" className={`codia-nav-item${currentTab === 'channels' ? ' active' : ''}`} onClick={() => switchTab('channels')}><UsersThree weight="fill" /><span>Agent 小队</span>{channelTotalUnread > 0 && <span className="codia-nav-badge" aria-label={`${channelTotalUnread} 条未读消息`}>{channelTotalUnread > 99 ? '99+' : channelTotalUnread}</span>}</button>
+              <button type="button" className={`codia-nav-item${currentTab === 'channels' ? ' active' : ''}`} onClick={() => switchTab('channels')}><UsersThree weight="fill" /><span>{t('channel.tab')}</span>{channelTotalUnread > 0 && <span className="codia-nav-badge" aria-label={`${channelTotalUnread} 条未读消息`}>{channelTotalUnread > 99 ? '99+' : channelTotalUnread}</span>}</button>
               <button type="button" className={`codia-nav-item${currentTab === 'workflow' ? ' active' : ''}`} onClick={() => void goWorkflow()}><FlowArrow weight="fill" /><span>工作流</span></button>
               <button
                 type="button"
@@ -571,7 +570,7 @@ function App() {
                   </>
                 ) : (
                   <div className="channel-select-empty">
-                    {t('channel.selectHint')}
+                    {t(channelsEnabled ? 'channel.selectHint' : 'channel.disabledHint')}
                   </div>
                 )}
               </div>
@@ -598,7 +597,6 @@ function App() {
 
           {/* Floating panels render into main-content */}
           <Suspense fallback={null}>
-            {activePanel === 'task-console' && <TaskConsolePanel />}
             {activePanel === 'activity' && <ActivityPanel />}
             {activePanel === 'automation' && <AutomationPanel />}
             {activePanel === 'skills' && <SkillsPanel />}

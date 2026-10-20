@@ -7,6 +7,8 @@ import { installUsageBudgetGuard, isUsageAccounted, hasUsageBudgetGuard } from "
  * and message injection here.
  */
 import fs from "fs";
+import { executionRunForSession } from "../lib/execution/run-controller.ts";
+import { isExecutionPaused } from "../shared/execution-run.ts";
 import { installMemoryContextGuard } from '../lib/memory/prompt-guard.ts';
 import path from "path";
 import { createAgentSession, SessionManager } from "../lib/pi-sdk/index.ts";
@@ -727,6 +729,8 @@ export class BridgeSessionManager {
       const { session } = await createAgentSession({
         cwd: homeCwd,
         sessionManager: mgr,
+        executionControl: executionRunForSession(mgr.getSessionFile?.(), run =>
+          this._deps.emitEvent?.({ type: "execution_run", run }, mgr.getSessionFile?.())),
         modelRuntime: mm.modelRuntime,
         ...sessionOpts,
       });
@@ -840,6 +844,9 @@ export class BridgeSessionManager {
         const nativeMediaTurn = this._deps.beginCurrentTurnNativeMedia?.(activeSessionPath, opts);
         try {
           await session.prompt(promptText, promptOpts);
+          if (isExecutionPaused(session.codiaRunControl?.snapshot())) {
+            throw new Error("run_paused: open the original conversation to inspect progress and continue");
+          }
           if (providerError) throw new Error(providerError);
         } finally {
           this._deps.endCurrentTurnNativeMedia?.(nativeMediaTurn);
@@ -1142,6 +1149,8 @@ export class BridgeSessionManager {
     const { session } = await createAgentSession({
       cwd: homeCwd,
       sessionManager: mgr,
+      executionControl: executionRunForSession(mgr.getSessionFile?.(), run =>
+        this._deps.emitEvent?.({ type: "execution_run", run }, mgr.getSessionFile?.())),
       modelRuntime: mm.modelRuntime,
       ...sessionOpts,
     });

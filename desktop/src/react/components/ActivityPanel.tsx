@@ -269,6 +269,7 @@ function ActivityCard({
       <div className={fp.actCardMeta}>
         {durationText && <span className={fp.actCardDuration}>{durationText}</span>}
         {a.status === 'error' && <span style={DANGER_COLOR_STYLE}>{t('activity.error')}</span>}
+        {a.status === 'paused' && <span>{t('runControl.paused')}</span>}
         {a.sessionFile && <span className={fp.actCardViewHint}>{t('activity.viewSession')}</span>}
       </div>
     </div>

@@ -211,6 +211,7 @@ export function createHostApi(deps) {
         const beforeDispatch = () => {
           checkActive();
           consumeWorkflowStep(executionLimits);
+          deps.onBudgetChange?.();
           if (journalKey) journal.record(seq, journalKey, null, "running", { access: opts.access, threadId, runtimeSnapshot });
           dispatched = true;
         };
@@ -245,11 +246,13 @@ export function createHostApi(deps) {
             result = res?.replyText ?? "";
           }
           if (journalKey) journal.record(seq, journalKey, result, "ok", { access: opts.access, threadId, runtimeSnapshot });
+          deps.onBudgetChange?.();
           onAgentEvent({ phase: "done", nodeId, threadId, threadKind });
           return result;
         } catch (err) {
           onAgentEvent({ phase: "fail", nodeId, threadId, threadKind, error: err?.message || String(err) });
           if (journalKey && dispatched) journal.record(seq, journalKey, null, opts.access === "read" ? "error" : "unknown", { access: opts.access, threadId, runtimeSnapshot });
+          deps.onBudgetChange?.();
           throw err;
         }
         } catch (err) {

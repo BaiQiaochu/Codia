@@ -484,8 +484,10 @@ export async function deleteChannel(channelId: string): Promise<void> {
 
 export async function toggleChannelsEnabled(): Promise<boolean> {
   const s = useStore.getState();
+  if (s.channelsTogglePending) return s.channelsEnabled;
   const newEnabled = !s.channelsEnabled;
-  useStore.setState({ channelsEnabled: newEnabled });
+  let confirmed = s.channelsEnabled;
+  useStore.setState({ channelsTogglePending: true, channelsToggleError: null });
 
   try {
     await codiaFetch('/api/channels/toggle', {
@@ -493,14 +495,18 @@ export async function toggleChannelsEnabled(): Promise<boolean> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ enabled: newEnabled }),
     });
+    confirmed = newEnabled;
+    useStore.setState({ channelsEnabled: confirmed });
     if (newEnabled) {
       await loadChannels();
       await hydrateCurrentChannelIfNeeded();
     }
   } catch (err) {
     console.error('[channels] toggle backend failed:', err);
-    useStore.setState({ channelsEnabled: s.channelsEnabled });
-    return s.channelsEnabled;
+    useStore.setState({ channelsEnabled: confirmed, channelsToggleError: window.t('channel.toggleFailed') });
+    return confirmed;
+  } finally {
+    useStore.setState({ channelsTogglePending: false });
   }
 
   return newEnabled;

@@ -1,0 +1,23 @@
+.notice {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border-left: 3px solid var(--accent, #aa85d8);
+  border-radius: 0 12px 12px 0;
+  background: var(--bg-secondary, #f4effb);
+  color: var(--text-primary, #493e60);
+  max-width: 40rem;
+}
+.notice p { margin: 6px 0; }
+.notice small { display: block; line-height: 1.5; }
+.actions { display: flex; gap: 8px; margin: 10px 0; }
+.notice button {
+  padding: 6px 12px;
+  border: 1px solid var(--border-color, #dfd1f2);
+  border-radius: 8px;
+  color: inherit;
+  background: var(--bg-primary, #fff);
+  cursor: pointer;
+}
+.notice button:disabled { opacity: .55; cursor: default; }
+.notice code { overflow-wrap: anywhere; }
+.notice label { display: block; margin: 8px 0; }

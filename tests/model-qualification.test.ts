@@ -2,10 +2,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Hono } from 'hono';
 import { ModelQualificationService, getModelQualificationService, QUALIFICATION_TTL_MS } from '../lib/model-qualification/index.ts';
 import { buildQualificationCase, buildQualificationPayload, validateQualificationResponse, QUALIFICATION_MARKER } from '../lib/model-qualification/cases.ts';
-import { createModelQualificationRoute } from '../server/routes/model-qualification.ts';
 import { createUsageLedger } from '../lib/llm/usage-ledger.ts';
 
 const homes: string[] = [];
@@ -234,29 +232,6 @@ describe('fixed capability validators and provider adapters', () => {
     const model = { id: 'fixture', provider: 'fixture', api: 'openai-responses', maxTokens: 2048 };
     const payload = buildQualificationPayload({ input: [], max_output_tokens: 99999, n: 5 }, model, 'structured', 128);
     expect(payload).toMatchObject({ max_output_tokens: 128, n: 1, text: { format: { type: 'json_schema', strict: true } } });
-  });
-});
-
-describe('model qualification REST route', () => {
-  it('keeps reads noncalling, validates manual intent and ignores untrusted pass evidence', async () => {
-    const { engine } = engineFixture(); const app = new Hono(); app.route('/api', createModelQualificationRoute(engine));
-    expect((await (await app.request('/api/models/qualification')).json()).qualification.state).toBe('unknown');
-    expect(engine.modelRegistry.streamSimple).not.toHaveBeenCalled();
-    const request = (body: unknown) => app.request('/api/models/qualification', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    expect((await request({ budget, qualification: { state: 'pass' } })).status).toBe(400);
-    const response = await request({ manual: true, budget, capabilities: ['text', 'tool'], qualification: { state: 'pass' }, credentials: 'IGNORED', endpoint: 'https://evil.invalid' });
-    expect(response.status).toBe(200);
-    const data = await response.json(); expect(data.qualification.state).toBe('pass');
-    expect(engine.modelRegistry.streamSimple).toHaveBeenCalledTimes(2);
-    expect(data.report.results[2].status).toBe('not-run');
-    expect((await app.request('/api/models/qualification?modelId=fixture-model')).status).toBe(400);
-    expect((await app.request('/api/models/qualification', { method: 'POST', body: '{' })).status).toBe(400);
-  });
-  it('never reflects resolver secrets into HTTP errors', async () => {
-    const { engine } = engineFixture(); engine.resolveModelWithCredentials.mockImplementation(() => { throw new Error('credential=NEVER_PERSIST_THIS_KEY'); });
-    const app = new Hono(); app.route('/api', createModelQualificationRoute(engine));
-    const response = await app.request('/api/models/qualification', { method: 'POST', body: JSON.stringify({ manual: true, budget }) });
-    expect(response.status).toBe(422); expect(await response.text()).not.toContain('NEVER_PERSIST');
   });
 });
 

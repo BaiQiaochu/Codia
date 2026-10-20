@@ -167,7 +167,7 @@ export class BrowserManager {
     this._browserPreferences = normalizeBrowserPreferences({});
 
     // 根据环境选择 transport：fork 模式用 IPC，spawn 模式用 WS
-    this._transport = process.send ? new IpcTransport() : new WsTransport();
+    this._transport = options.transport || (process.send ? new IpcTransport() : new WsTransport());
 
     // 注册消息处理器（IPC 立即生效，WS 在 attach 时生效）
     this._transport.onMessage((msg) => {

@@ -10,8 +10,10 @@ import { createHostApi } from "../workflow/host-api.ts";
 import { createLimiter } from "../workflow/concurrency.ts";
 import { createWorkflowExecutionLimits } from "../workflow/limits.ts";
 import { WorkflowJournal } from "../workflow/journal.ts";
+import { RunBudget } from "../workflow/run-budget.ts";
 import { getToolSessionPath, getToolSessionCwd } from "./tool-session.ts";
 import { toolOk, toolError } from "./tool-result.ts";
+import { executionContext, findExecutionRun } from "../execution/run-controller.ts";
 
 const WORKFLOW_DEADLINE_MS = 10 * 60 * 1000;
 const WORKFLOW_TIMEOUT_BACKSTOP_MS = WORKFLOW_DEADLINE_MS + 30 * 1000;
@@ -105,13 +107,13 @@ function workflowResultToText(result) {
   return text;
 }
 
-function makeBudget(ledger, taskId, budgetTotal) {
+function makeBudget(ledger, taskId, budgetTotal, previousTokens = 0) {
   const total = typeof budgetTotal === "number" && budgetTotal > 0 ? budgetTotal : null;
   function spent() {
-    if (!ledger?.list || !taskId) return 0;
+    if (!ledger?.list || !taskId) return previousTokens;
     const { entries } = ledger.list({ attributionKind: "subagent" });
-    if (!entries?.length) return 0;
-    let sum = 0;
+    if (!entries?.length) return previousTokens;
+    let sum = previousTokens;
     for (const entry of entries) {
       const attr = entry.attribution;
       if (attr?.parentTaskId === taskId || attr?.subagentTaskId === taskId) {
@@ -123,6 +125,20 @@ function makeBudget(ledger, taskId, budgetTotal) {
   return {
     total,
     spent,
+    modelCalls: () => {
+      if (!ledger?.list || !taskId) return null;
+      return (ledger.list({ attributionKind: "subagent" }).entries || []).filter(entry =>
+        entry.attribution?.parentTaskId === taskId || entry.attribution?.subagentTaskId === taskId).length;
+    },
+    known: (dispatchedSteps) => {
+      if (!dispatchedSteps) return true;
+      if (!ledger?.list || !taskId) return false;
+      const rows = (ledger.list({ attributionKind: "subagent" }).entries || []).filter(entry =>
+        entry.attribution?.parentTaskId === taskId || entry.attribution?.subagentTaskId === taskId);
+      return rows.length >= dispatchedSteps && rows.every(entry =>
+        Number.isFinite(usageTokens(entry.usage)) && usageTokens(entry.usage) > 0
+        && entry.status !== "unknown" && entry.usageStatus !== "unknown");
+    },
     remaining: () => total == null ? Infinity : Math.max(0, total - spent()),
   };
 }
@@ -199,7 +215,7 @@ export function createWorkflowTool(deps) {
       let replayJournal = null;
       let journal;
       const metadata = {
-        version: 1, runId: taskId, originRunId: taskId, ownerPid: process.pid,
+        version: 2, runId: taskId, originRunId: taskId, ownerPid: process.pid,
         definitionKey: WorkflowJournal.computeKey(params.script, { args: params.args, agentId, cwd, parentSessionId, parentSessionPath, runtimeVersion: deps.requireRuntimeSnapshot ? 2 : 1, runtimeSnapshot, ...(ctx?.runBudget ? { budgetContract: { limits: ctx.runBudget.limits, model: ctx.runBudget.model } } : {}) }),
         runtimeSnapshot: runtimeSnapshot ?? null,
         ...(ctx?.runBudget ? { budgetContract: { limits: ctx.runBudget.limits, modelId: ctx.runBudget.model.id } } : {}),
@@ -212,6 +228,16 @@ export function createWorkflowTool(deps) {
           replayJournal = WorkflowJournal.load(journalPath(journalDir, params.resumeFromRunId));
           replayJournal.assertCompatible(metadata);
           replayJournal.assertRecoveryBudgetSupported(params.args);
+          const saved = replayJournal.budgetState;
+          if (saved) {
+            executionLimits.dispatchedSteps = saved.steps;
+            executionLimits.startedAt = Date.now() - saved.elapsedMs;
+            if (saved.runBudget) {
+              if (!ctx?.runBudget) throw new Error("Original monetary budget is required for recovery.");
+              ctx.runBudget = new RunBudget(ctx.runBudget.limits, ctx.runBudget.model, Date.now, saved.runBudget);
+              boundedContext.runBudget = ctx.runBudget;
+            }
+          }
           metadata.originRunId = replayJournal.metadata.originRunId || params.resumeFromRunId;
           replayJournal.claimRecovery(taskId);
         }
@@ -224,16 +250,34 @@ export function createWorkflowTool(deps) {
       store.defer(taskId, sessionInputForPath(deps, parentSessionPath), { type: "workflow", summary });
       runStore?.register?.(taskId, { parentSessionId, parentSessionPath, summary });
       hub?.upsert({ id: taskId, kind: "workflow", status: "running", sessionId: parentSessionId, sessionPath: parentSessionPath, agentId, summary, startedAt, ...runBudgetEvidence() });
-      const unsubscribeBudget = ctx?.runBudget?.subscribe?.(() => hub?.upsert({ id: taskId, ...runBudgetEvidence() }));
       const nodeSequence = { value: 0 };
 
       const controller = new AbortController();
+      const parentRun = executionContext.getStore() || findExecutionRun(parentSessionPath);
+      const stopFromParent = () => controller.abort(parentRun.signal.reason || "parent task stopped");
+      if (parentRun?.signal.aborted) stopFromParent();
+      else parentRun?.signal.addEventListener("abort", stopFromParent, { once: true });
       activeRuns.set(taskId, controller);
-      const timeoutTimer = setTimeout(() => controller.abort(), Math.min(WORKFLOW_TIMEOUT_BACKSTOP_MS, executionLimits.maxDurationMs));
+      const remainingMs = Math.max(1, executionLimits.maxDurationMs - (Date.now() - executionLimits.startedAt));
+      const timeoutTimer = setTimeout(() => controller.abort(), Math.min(WORKFLOW_TIMEOUT_BACKSTOP_MS, remainingMs));
       if (timeoutTimer.unref) timeoutTimer.unref();
 
       const ledger = deps.getUsageLedger?.();
-      const budget = makeBudget(ledger, taskId, params.args?.budgetTokens ?? null);
+      const budget = makeBudget(ledger, taskId, params.args?.budgetTokens ?? null, replayJournal?.budgetState?.tokens || 0);
+      const checkpointBudget = () => journal.recordBudget({
+        version: 1, maxSteps: executionLimits.maxSteps, maxDurationMs: executionLimits.maxDurationMs,
+        maxTokens: budget.total, steps: executionLimits.dispatchedSteps,
+        elapsedMs: Math.max(0, Date.now() - executionLimits.startedAt), tokens: budget.spent(),
+        modelCalls: (budget.modelCalls() == null || (replayJournal && replayJournal.budgetState?.modelCalls == null))
+          ? null : (replayJournal?.budgetState?.modelCalls || 0) + budget.modelCalls(),
+        usageKnown: budget.known(executionLimits.dispatchedSteps - (replayJournal?.budgetState?.steps || 0)),
+        runBudget: ctx?.runBudget?.exportState?.() || null,
+      });
+      checkpointBudget();
+      const unsubscribeBudget = ctx?.runBudget?.subscribe?.(() => {
+        checkpointBudget();
+        hub?.upsert({ id: taskId, ...runBudgetEvidence() });
+      });
       const limiter = makeLimiter();
       const nodeSessionDir = workflowSessionDir(deps, taskId);
       const onAgentEvent = buildAgentEventHandler({ taskId, parentSessionId, parentSessionPath, summary, hub, threadStore, deps });
@@ -265,6 +309,7 @@ export function createWorkflowTool(deps) {
           requireRuntimeSnapshot: deps.requireRuntimeSnapshot === true,
           assertRuntimeSnapshot: deps.getRuntimeSnapshot ? () => assertResolvedRuntimeSnapshot(runtimeSnapshot, deps.getRuntimeSnapshot()) : undefined,
           executionLimits,
+          onBudgetChange: checkpointBudget,
         });
         return runWorkflowScript(childScript, childHostApi, {
           signal: controller.signal,
@@ -298,12 +343,14 @@ export function createWorkflowTool(deps) {
         requireRuntimeSnapshot: deps.requireRuntimeSnapshot === true,
         assertRuntimeSnapshot: deps.getRuntimeSnapshot ? () => assertResolvedRuntimeSnapshot(runtimeSnapshot, deps.getRuntimeSnapshot()) : undefined,
         executionLimits,
+        onBudgetChange: checkpointBudget,
         runWorkflow,
       });
 
       runWorkflowScript(params.script, hostApi, { signal: controller.signal, deadlineMs: executionLimits.maxDurationMs })
         .then(({ result }) => {
           const text = workflowResultToText(result);
+          checkpointBudget();
           journal.finish();
           const finishedAt = Date.now();
           const replayHits = (replayJournal?.replayHits ?? 0) + (journal?.replayHits ?? 0);
@@ -324,7 +371,7 @@ export function createWorkflowTool(deps) {
           const cancelled = controller.signal.reason === "cancelled by user";
           controller.abort();
           let reason = err?.message || String(err);
-          try { journal.finish(); } catch (persistError) { reason += `; journal persistence failed: ${persistError.message}`; }
+          try { checkpointBudget(); journal.finish(); } catch (persistError) { reason += `; journal persistence failed: ${persistError.message}`; }
           const finishedAt = Date.now();
           store.fail(taskId, reason);
           if (cancelled) runStore?.abort?.(taskId, reason);
@@ -333,7 +380,10 @@ export function createWorkflowTool(deps) {
           hub?.upsert({ id: taskId, status: terminalStatus, finishedAt, ...runBudgetEvidence() });
           deps.emitEvent?.({ type: "block_update", taskId, patch: { streamStatus: terminalStatus, finishedAt } }, parentSessionPath);
         })
-        .finally(() => { clearTimeout(timeoutTimer); activeRuns.delete(taskId); unsubscribeBudget?.(); });
+        .finally(() => {
+          clearTimeout(timeoutTimer); activeRuns.delete(taskId); unsubscribeBudget?.();
+          parentRun?.signal.removeEventListener("abort", stopFromParent);
+        });
 
       return toolOk(
         t("tool.workflow.dispatched", { summary, taskId }),

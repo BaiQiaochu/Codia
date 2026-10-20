@@ -47,7 +47,7 @@ import { loadConfig } from "../lib/memory/config-loader.ts";
 import { callText } from "../core/llm-client.ts";
 import { runAgentPhoneSession, runAgentSession } from "./agent-executor.ts";
 import { createModuleLogger, debugLog } from "../lib/debug-log.ts";
-import { getLocale } from "../lib/i18n.ts";
+import { getLocale, t } from "../lib/i18n.ts";
 import { extractBlocks, resolveMediaGenerationBlocksWithDeferredResults } from "../server/block-extractors.ts";
 
 const log = createModuleLogger("channel");
@@ -266,7 +266,7 @@ export class ChannelRouter {
     const notMemberResult = (action) => ({
       content: [{
         type: "text",
-        text: isZh ? "操作失败：你已不在这个频道中。" : "Action failed: you are no longer a member of this channel.",
+        text: t("error.agentNotChannelMember", { channel: channelName }),
       }],
       details: { action, error: "not a channel member" },
     });
@@ -274,7 +274,7 @@ export class ChannelRouter {
     return [
       {
         name: "channel_read_context",
-        label: isZh ? "读取频道上下文" : "Read channel context",
+        label: t("channel.readContext"),
         description: isZh
           ? "读取当前群聊频道的最近消息。数据源是频道聊天记录 Truth，不是本轮 phone session。"
           : "Read recent messages from the current channel. The source is the channel transcript Truth, not this phone session.",
@@ -286,7 +286,7 @@ export class ChannelRouter {
         execute: async (_toolCallId, params = {}) => {
           if (!fs.existsSync(channelFile)) {
             return {
-              content: [{ type: "text", text: isZh ? "频道不存在。" : "Channel not found." }],
+              content: [{ type: "text", text: t("error.channelNotExists", { channel: channelName }) }],
               details: { action: "read_context", error: "channel not found" },
             };
           }
@@ -298,7 +298,7 @@ export class ChannelRouter {
               type: "text",
               text: messages.length > 0
                 ? formatMessagesForLLM(messages)
-                : (isZh ? "频道暂无消息。" : "No channel messages."),
+                : (t("error.channelNoMessages")),
             }],
             details: { action: "read_context", channel: channelName, messageCount: messages.length },
           };
@@ -306,7 +306,7 @@ export class ChannelRouter {
       },
       {
         name: "channel_reply",
-        label: isZh ? "发送频道消息" : "Send channel message",
+        label: t("channel.sendMessage"),
         description: isZh
           ? "把本轮回复发送到当前频道。只有这个工具的 content 会写入群聊；普通生成文本只留在手机动态里。"
           : "Send this turn's reply to the current channel. Only this tool's content is posted; ordinary generated text stays in phone activity.",
@@ -328,19 +328,19 @@ export class ChannelRouter {
           }
           if (decided) {
             return {
-              content: [{ type: "text", text: isZh ? "本轮已经完成过频道决定。" : "This phone turn already made a channel decision." }],
+              content: [{ type: "text", text: t("channel.decisionComplete") }],
               details: { action: "reply", error: "already decided" },
             };
           }
           if (engine.isChannelsEnabled && !engine.isChannelsEnabled()) {
             return {
-              content: [{ type: "text", text: isZh ? "发送失败：频道功能已关闭。" : "Send failed: channels are disabled." }],
+              content: [{ type: "text", text: t("channel.disabled") }],
               details: { action: "reply", error: "channels disabled" },
             };
           }
           if (!fs.existsSync(channelFile)) {
             return {
-              content: [{ type: "text", text: isZh ? "发送失败：频道不存在。" : "Send failed: channel not found." }],
+              content: [{ type: "text", text: t("error.channelNotExists", { channel: channelName }) }],
               details: { action: "reply", error: "channel not found" },
             };
           }
@@ -398,7 +398,7 @@ export class ChannelRouter {
         execute: async (_toolCallId, params = {}) => {
           if (decided) {
             return {
-              content: [{ type: "text", text: isZh ? "本轮已经完成过频道决定。" : "This phone turn already made a channel decision." }],
+              content: [{ type: "text", text: t("channel.decisionComplete") }],
               details: { action: "pass", error: "already decided" },
             };
           }
@@ -667,7 +667,7 @@ export class ChannelRouter {
         channelName,
         "replying",
         proactive
-          ? (isZh ? "收到频道提醒，正在查看群聊" : "Received channel reminder and is reading")
+          ? (t("channel.readingReminder"))
           : (isZh ? "正在查看群聊消息" : "Reading channel messages"),
         {
           messageCount: newMessages.length,
@@ -727,7 +727,7 @@ export class ChannelRouter {
         agentId,
         channelName,
         "error",
-        isZh ? "没有调用频道回复工具" : "Did not call a channel decision tool",
+        t("channel.missingDecision"),
         {
           messageCount: newMessages.length,
           ...(sessionPath ? { sessionPath } : {}),
@@ -739,8 +739,8 @@ export class ChannelRouter {
       await this._recordPhoneActivity(
         agentId,
         channelName,
-        "error",
-        isZh ? "处理频道消息失败" : "Failed to process channel messages",
+        err.message?.includes("run_paused") ? "paused" : "error",
+        err.message?.includes("run_paused") ? t("runControl.paused") : t("channel.processingFailed"),
         { error: err.message },
       );
       return { replied: false };
@@ -766,7 +766,7 @@ export class ChannelRouter {
       agentId,
       channelName,
       "viewed",
-      isZh ? `已查看 ${newMessages.length} 条新频道消息` : `Viewed ${newMessages.length} new channel message(s)`,
+      t("channel.viewedMessages", { count: String(newMessages.length) }),
       {
         messageCount: newMessages.length,
         totalUnreadCount: deliveryWindow?.totalUnreadCount ?? newMessages.length,

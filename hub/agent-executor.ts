@@ -9,6 +9,8 @@ import path from "path";
 import { createAgentSession, SessionManager } from "../lib/pi-sdk/index.ts";
 import { debugLog } from "../lib/debug-log.ts";
 import { t } from "../lib/i18n.ts";
+import { executionRunForSession, loadExecutionRun } from "../lib/execution/run-controller.ts";
+import { isExecutionPaused } from "../shared/execution-run.ts";
 import { createDefaultSettings } from "../core/session-defaults.ts";
 import { teardownSessionResources } from "../core/session-teardown.ts";
 import {
@@ -114,7 +116,24 @@ function assertAgentPhoneEnabled(engine) {
  * @param {boolean} [opts.readOnly=false] allow only read-oriented tools
  * @returns {Promise<string>} captured response text with transient mood blocks removed
  */
-export async function runAgentSession(agentId, rounds, { engine, signal, sessionSuffix = "temp", ephemeralDir, systemAppend, keepSession = false, noMemory = false, noTools = false, readOnly = false } = {}) {
+type AgentSessionOptions = {
+  engine: {
+    getAgent(id: string): any;
+    getHomeCwd(id: string): string | null;
+    createSessionContext(): any;
+    emitEvent?(event: unknown, sessionPath?: string | null): void;
+  };
+  signal?: AbortSignal;
+  sessionSuffix?: string;
+  ephemeralDir?: string;
+  systemAppend?: string;
+  keepSession?: boolean;
+  noMemory?: boolean;
+  noTools?: boolean;
+  readOnly?: boolean;
+};
+
+export async function runAgentSession(agentId: string, rounds: Array<{ text: string; capture?: boolean }>, { engine, signal, sessionSuffix = "temp", ephemeralDir, systemAppend, keepSession = false, noMemory = false, noTools = false, readOnly = false }: AgentSessionOptions) {
   // Resolve the long-lived agent instance.
   const agent = engine.getAgent(agentId);
   if (!agent) {
@@ -161,6 +180,8 @@ export async function runAgentSession(agentId, rounds, { engine, signal, session
   const { session } = await createAgentSession({
     cwd,
     sessionManager: tempSessionMgr,
+    executionControl: executionRunForSession(tempSessionMgr.getSessionFile?.(), run =>
+      engine.emitEvent?.({ type: "execution_run", run }, tempSessionMgr.getSessionFile?.())),
     settingsManager: createDefaultSettings(),
     modelRuntime: ctx.modelRuntime,
     model,
@@ -190,14 +211,24 @@ export async function runAgentSession(agentId, rounds, { engine, signal, session
 
   debugLog()?.log("agent-executor", `${agentId} session started (${rounds.length} rounds)`);
 
+  const runControl = session.codiaRunControl;
+  let releaseRun;
   try {
+    runControl?.begin();
+    releaseRun = runControl?.enter();
     for (const round of rounds) {
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       isCapturing = !!round.capture;
       if (round.capture) capturedText = "";
-      await session.prompt(round.text);
+      if (runControl) await runControl.run(() => session.prompt(round.text));
+      else await session.prompt(round.text);
+      if (isExecutionPaused(runControl?.snapshot())) throw new Error("run_paused");
     }
+  } catch (error) {
+    releaseRun?.(true);
+    throw error;
   } finally {
+    releaseRun?.();
     if (signal && onAbort) signal.removeEventListener("abort", onAbort);
     await teardownSessionResources({
       session,
@@ -212,6 +243,12 @@ export async function runAgentSession(agentId, rounds, { engine, signal, session
     const sessionPath = session.sessionManager?.getSessionFile?.();
     if (sessionPath) {
       try { fs.unlinkSync(sessionPath); } catch {}
+      // Accounting for disposable, completed sessions has the same lifetime.
+      if (runControl?.snapshot()?.status === "completed") {
+        for (const suffix of [".run.json", ".run.json.history"]) {
+          try { fs.unlinkSync(sessionPath + suffix); } catch {}
+        }
+      }
     }
   }
 
@@ -383,6 +420,8 @@ export async function freshCompactAgentPhoneSession(agentId, {
   const { session } = await createAgentSession({
     cwd,
     sessionManager,
+    executionControl: executionRunForSession(sessionManager.getSessionFile?.(), run =>
+      engine.emitEvent?.({ type: "execution_run", run }, sessionManager.getSessionFile?.())),
     settingsManager: createDefaultSettings(),
     modelRuntime: ctx.modelRuntime,
     model,
@@ -481,7 +520,8 @@ export async function runAgentPhoneSession(agentId, rounds, {
   const existingSessionPath = resolveAgentPhoneRuntimeSessionPath(agentDir, runtime);
   const refreshNow = now instanceof Date ? now : new Date(now);
   const existingSessionExists = !!(existingSessionPath && fs.existsSync(existingSessionPath));
-  const openedExistingSession = shouldReuseAgentPhoneSession({
+  const pausedExistingRun = existingSessionExists && isExecutionPaused(loadExecutionRun(existingSessionPath).snapshot());
+  const openedExistingSession = pausedExistingRun || shouldReuseAgentPhoneSession({
     meta: runtime,
     sessionExists: existingSessionExists,
     now: refreshNow,
@@ -528,6 +568,8 @@ export async function runAgentPhoneSession(agentId, rounds, {
   const { session } = await createAgentSession({
     cwd,
     sessionManager,
+    executionControl: executionRunForSession(sessionManager.getSessionFile?.(), run =>
+      engine.emitEvent?.({ type: "execution_run", run }, sessionManager.getSessionFile?.())),
     settingsManager: createDefaultSettings(),
     modelRuntime: ctx.modelRuntime,
     model,
@@ -616,7 +658,7 @@ export async function runAgentPhoneSession(agentId, rounds, {
       toolCallCount += 1;
       if (event.toolName) toolCallNames.push(event.toolName);
       if (event.toolName === "channel_reply") {
-        recordLiveActivity("channel_reply", "replying", "正在发送频道消息");
+        recordLiveActivity("channel_reply", "replying", t("channel.sendingMessage"));
       } else if (event.toolName === "channel_pass") {
         recordLiveActivity("channel_pass", "no_reply", "正在选择本轮不发言");
       }
@@ -653,7 +695,11 @@ export async function runAgentPhoneSession(agentId, rounds, {
 
   debugLog()?.log("agent-executor", `${agentId} phone session started (${conversationType}:${conversationId}, ${rounds.length} rounds)`);
 
+  const runControl = session.codiaRunControl;
+  let releaseRun;
   try {
+    runControl?.begin();
+    releaseRun = runControl?.enter();
     for (const round of rounds) {
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       isCapturing = !!round.capture;
@@ -661,10 +707,17 @@ export async function runAgentPhoneSession(agentId, rounds, {
         capturedText = "";
         lastLiveActivity = null;
       }
-      const promptResult = await session.prompt(round.text);
+      const promptResult = runControl
+        ? await runControl.run(() => session.prompt(round.text))
+        : await session.prompt(round.text);
+      if (isExecutionPaused(runControl?.snapshot())) throw new Error("run_paused");
       stopReason = promptResult?.stopReason || stopReason;
     }
+  } catch (error) {
+    releaseRun?.(true);
+    throw error;
   } finally {
+    releaseRun?.();
     if (signal && onAbort) signal.removeEventListener("abort", onAbort);
     try { unregisterPhoneAbort(); } catch {}
     await teardownSessionResources({

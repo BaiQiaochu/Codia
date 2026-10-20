@@ -1,7 +1,6 @@
-.mascot { position: relative; display: grid; aspect-ratio: 1; }
+.mascot { position: relative; display: grid; width: 100%; aspect-ratio: 1; }
 .canvas { grid-area: 1 / 1; display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; pointer-events: none; }
 
-.status { font-size: 0.75rem; color: var(--text-secondary); overflow-wrap: anywhere; padding: 0.25rem; }
-.controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
-.controls button { background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.35rem 0.6rem; font: inherit; font-size: 0.75rem; cursor: pointer; }
-.controls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.status { position: absolute; inset: 50% auto auto 50%; width: min(90%, 11rem); transform: translate(-50%, -50%); font-size: 0.75rem; color: var(--text-secondary); overflow-wrap: anywhere; text-align: center; }
+.retry { position: absolute; left: 50%; bottom: 0.45rem; transform: translateX(-50%); background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.35rem 0.6rem; font: inherit; font-size: 0.75rem; cursor: pointer; }
+.retry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

@@ -4,8 +4,8 @@ import { createHash, randomUUID } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { performance } from 'node:perf_hooks';
 import redactor from '../shared/log-redactor.cjs';
-import { cleanCost, cleanVersions, parseModelTaskReport, compareModelTaskReports } from '../shared/task-console/model-task-report.mjs';
-export { parseModelTaskReport, compareModelTaskReports, summarizeModelTaskCases } from '../shared/task-console/model-task-report.mjs';
+import { cleanCost, cleanVersions, parseModelTaskReport, compareModelTaskReports } from '../shared/model-task-report.mjs';
+export { parseModelTaskReport, compareModelTaskReports, summarizeModelTaskCases } from '../shared/model-task-report.mjs';
 
 const CATEGORIES = ['success', 'failure', 'safety', 'recovery'];
 const OPERATORS = ['equals', 'unordered-equals', 'approximately', 'absent'];

@@ -15,7 +15,7 @@ describe('reader mode removal wiring', () => {
     expect(app).not.toContain('HomeNavigationMenus');
     expect(fs.existsSync(path.join(ROOT, 'components/HomeNavigationMenus.tsx'))).toBe(false);
     expect(app).toContain('<span>聊天</span>');
-    expect(app).toContain('<span>Agent 小队</span>');
+    expect(app).toContain("t('channel.tab')");
     expect(app).toContain('<span>工作流</span>');
     expect(app).not.toContain('ReaderSurface');
     expect(app).not.toContain('readerMode');

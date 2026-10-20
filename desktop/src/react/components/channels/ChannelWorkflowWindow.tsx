@@ -477,7 +477,7 @@ function activityState(activity: AgentPhoneActivity | undefined): WorkflowNode['
 }
 
 function latestActivitySummary(activity: AgentPhoneActivity | undefined) {
-  if (!activity) return '等待频道调度';
+  if (!activity) return teamWorkflowText('waiting', '等待Agent 小队调度');
   const time = activity.timestamp ? formatChannelTime(activity.timestamp) : '';
   return [activity.summary || activity.state, time].filter(Boolean).join(' · ');
 }
@@ -1147,15 +1147,15 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
 
   const handleBindExecutionChannel = useCallback(async () => {
     if (!channelsEnabled) {
-      setExecutionError('请先启用频道功能，再关联执行频道。');
+      setExecutionError(teamWorkflowText('enableFirst', '请先启用Agent 小队功能，再关联执行Agent 小队。'));
       return;
     }
     if (!executionChannelId && !executionChannelName.trim()) {
-      setExecutionError('请选择现有频道，或填写新频道名称。');
+      setExecutionError(teamWorkflowText('choose', '请选择现有Agent 小队，或填写新Agent 小队名称。'));
       return;
     }
     if (!executionChannelId && executionMembers.length < 2) {
-      setExecutionError('频道至少需要选择两个 Agent。');
+      setExecutionError(teamWorkflowText('members', 'Agent 小队至少需要选择两个 Agent。'));
       return;
     }
     setExecutionSetupBusy(true);
@@ -1165,7 +1165,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
         await openChannel(executionChannelId, false);
       } else {
         const createdId = await createChannel(executionChannelName.trim(), executionMembers);
-        if (!createdId) throw new Error('频道创建失败，请检查频道服务后重试。');
+        if (!createdId) throw new Error(teamWorkflowText('createFailed', 'Agent 小队创建失败，请检查Agent 小队服务后重试。'));
         setExecutionChannelId(createdId);
         localStorage.setItem(executionBindingKey, createdId);
       }
@@ -1497,7 +1497,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
       {
         id: 'channel-input',
         kind: 'input',
-        title: '频道输入',
+        title: teamWorkflowText('input', 'Agent 小队输入'),
         subtitle: workflowChannelName || '独立工作流草稿',
         meta: `${channelMessages.length} 条消息`,
         state: channelMessages.length > 0 ? 'done' : 'idle',
@@ -1510,7 +1510,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
         kind: 'scheduler',
         title: '调度器',
         subtitle: ticker?.running ? '正在轮询 Agent' : ticker?.queued ? '等待上一轮完成' : '等待触发',
-        meta: ticker?.active?.agentCount ? `${ticker.active.delivered ?? 0}/${ticker.active.agentCount} 已触达` : '频道调度',
+        meta: ticker?.active?.agentCount ? `${ticker.active.delivered ?? 0}/${ticker.active.agentCount} 已触达` : teamWorkflowText('scheduling', 'Agent 小队调度'),
         state: schedulerState,
         x: 310,
         y: 104,
@@ -1584,8 +1584,8 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
       nodes.push({
         id: `output:${agentId}`,
         kind: 'output',
-        title: '频道回报',
-        subtitle: latest?.state === 'no_reply' ? '本轮不发言' : latest?.state === 'idle' ? '已回写频道' : '等待回报',
+        title: teamWorkflowText('report', 'Agent 小队回报'),
+        subtitle: latest?.state === 'no_reply' ? '本轮不发言' : latest?.state === 'idle' ? teamWorkflowText('reported', '已回写Agent 小队') : '等待回报',
         meta: latest?.timestamp ? formatChannelTime(latest.timestamp) : '',
         state: nodeState === 'running' ? 'idle' : nodeState,
         x: 875,
@@ -2004,7 +2004,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
           nodeId: node.id,
           time: latestMessage?.timestamp ? formatChannelTime(latestMessage.timestamp) : '未触发',
           label: node.title,
-          input: detailText(latestMessage?.body, '暂无频道输入'),
+          input: detailText(latestMessage?.body, teamWorkflowText('noInput', '暂无Agent 小队输入')),
           output: detailText(node.meta, '等待调度'),
           state: node.state,
         });
@@ -2016,7 +2016,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
           nodeId: node.id,
           time: latestMessage?.timestamp ? formatChannelTime(latestMessage.timestamp) : '未触发',
           label: node.title,
-          input: detailText(latestMessage?.body, '等待频道输入'),
+          input: detailText(latestMessage?.body, teamWorkflowText('waitInput', '等待Agent 小队输入')),
           output: detailText(node.subtitle),
           failure: node.state === 'blocked' ? '上一轮任务尚未完成' : undefined,
           state: node.state,
@@ -2360,28 +2360,28 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
         </div>}
         {executionSetupOpen && <div className={styles.workflowSetupBackdrop}>
           <section className={styles.workflowSetupCard} role="dialog" aria-modal="true" aria-labelledby="workflowSetupTitle">
-            <h2 id="workflowSetupTitle">关联执行频道</h2>
+            <h2 id="workflowSetupTitle">{teamWorkflowText('linkTitle', '关联执行Agent 小队')}</h2>
             {!channelsEnabled && <div className={styles.workflowSetupNotice}>
-              频道功能当前已关闭。启用后才能关联频道和执行工作流。
+              {teamWorkflowText('disabled', 'Agent 小队功能当前已关闭。启用后才能关联Agent 小队和执行工作流。')}
               <button type="button" className={styles.workflowWindowButton} disabled={channelToggleBusy} onClick={async () => {
                 setChannelToggleBusy(true);
                 try {
                   const enabled = await toggleChannelsEnabled();
-                  if (!enabled) setExecutionError('频道功能启用失败，请重试。');
+                  if (!enabled) setExecutionError(teamWorkflowText('enableFailed', 'Agent 小队功能启用失败，请重试。'));
                   else setExecutionError('');
                 } finally { setChannelToggleBusy(false); }
-              }}>{channelToggleBusy ? '正在启用…' : '启用频道功能'}</button>
+              }}>{channelToggleBusy ? '正在启用…' : teamWorkflowText('enable', '启用Agent 小队功能')}</button>
             </div>}
             <label className={styles.workflowSetupField}>
-              <span>选择现有频道</span>
+              <span>{teamWorkflowText('existing', '选择现有Agent 小队')}</span>
               <select value={executionChannelId} onChange={event => { setExecutionChannelId(event.target.value); setExecutionError(''); }}>
-                <option value="">新建频道…</option>
+                <option value="">{teamWorkflowText('new', '新建Agent 小队…')}</option>
                 {channels.filter(channel => !channel.isDM).map(channel => <option key={channel.id} value={channel.id}>{channel.name || channel.id}</option>)}
               </select>
             </label>
             {!executionChannelId && <>
               <label className={styles.workflowSetupField}>
-                <span>新频道名称</span>
+                <span>{teamWorkflowText('name', '新Agent 小队名称')}</span>
                 <input value={executionChannelName} onChange={event => { setExecutionChannelName(event.target.value); setExecutionError(''); }} placeholder="例如：产品设计小队" />
               </label>
               <label className={styles.workflowSetupField}>
@@ -2394,7 +2394,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
             {executionError && <div className={styles.workflowSetupError} role="alert">{executionError}</div>}
             <div className={styles.workflowSetupActions}>
               <button type="button" className={styles.workflowWindowButton} onClick={() => setExecutionSetupOpen(false)}>取消</button>
-              <button type="button" className={styles.workflowWindowButton} disabled={executionSetupBusy || !channelsEnabled} onClick={() => void handleBindExecutionChannel()}>{executionSetupBusy ? '正在关联…' : '关联频道'}</button>
+              <button type="button" className={styles.workflowWindowButton} disabled={executionSetupBusy || !channelsEnabled} onClick={() => void handleBindExecutionChannel()}>{executionSetupBusy ? '正在关联…' : teamWorkflowText('link', '关联Agent 小队')}</button>
             </div>
           </section>
         </div>}
@@ -2531,7 +2531,7 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
                     <span>{supervisor.info.displayName}</span>
                   </button>
                 )) : (
-                  <div className={styles.workflowEditorHint}>暂无项目经理或管理员，总监群监督会在派发时使用频道成员兜底。</div>
+                  <div className={styles.workflowEditorHint}>{teamWorkflowText('fallback', '暂无项目经理或管理员，总监群监督会在派发时使用Agent 小队成员兜底。')}</div>
                 )}
               </div>
             </div>
@@ -2731,4 +2731,10 @@ export function ChannelWorkflowWindow({ open, onClose, pageMode = false, standal
     </div>
   );
   return pageMode ? workflowWindow : createPortal(workflowWindow, document.body);
+}
+
+function teamWorkflowText(key: string, fallback: string): string {
+  const fullKey = `channel.workflow.${key}`;
+  const translated = window.t?.(fullKey);
+  return translated && translated !== fullKey ? translated : fallback;
 }

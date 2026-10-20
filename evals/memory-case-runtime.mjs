@@ -124,7 +124,10 @@ function executeExperience(c, dir) {
     // processing timestamps are omitted because this is historical synthetic event replay.
     const audit = { state: current.state, stats: current.stats, evidenceOutcomes: current.evidence.filter(e => e.contentRevision === current.contentRevision).map(e => e.outcome), applicableNow: result.entries.length > 0 };
     const memoryText = `${EXPERIENCE_TRUST_NOTICE}\n${JSON.stringify({ audit })}${result.entries.map(e => '\n' + JSON.stringify({ content: e.content, applicability: e.applicability, verificationMethod: e.verificationMethod, sourceRefs: e.sourceRefs })).join('')}`;
-    return { memoryText, retrievedIds: result.entries.map(e => e.id), injectedIds: result.entries.map(e => e.id), expectedEvidenceCount: shouldRecall ? 1 : 0, retrievalRecall: shouldRecall ? Number(result.entries.length === 1) : null, estimatedTokens: Buffer.byteLength(memoryText), audit, assertionCount: 4 };
+    const recall = shouldRecall ? Number(result.entries.length === 1) : null;
+    return { memoryText, retrievedIds: result.entries.map(e => e.id), injectedIds: result.entries.map(e => e.id),
+      expectedEvidenceCount: shouldRecall ? 1 : 0, retrievalRecall: recall, injectionRecall: recall,
+      precisionAtK: recall, k: 1, estimatedTokens: Buffer.byteLength(memoryText), audit, assertionCount: 4 };
   } finally { if (store.db.open) store.close(); }
 }
 
@@ -132,6 +135,7 @@ function executeExperience(c, dir) {
 export function executeMemoryCase(c) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), `codia-eval-${c.id}-`));
   let store;
+  let measured = null;
   const started = performance.now();
   try {
     if (c.experience) return { ...executeExperience(c, dir), fixtureLatencyMs: performance.now() - started };
@@ -180,6 +184,16 @@ export function executeMemoryCase(c) {
     const result = new MemoryQueryService(store).query(query);
     const actualIds = new Set(result.results.map(r => r.id));
     const expected = c.expect;
+    const expectedIds = (expected.included || []).map(key => ids.get(key));
+    const relevant = new Set(expectedIds);
+    const hits = values => values.filter(id => relevant.has(id)).length;
+    measured = {
+      expectedEvidenceCount: expectedIds.length,
+      retrievalRecall: expectedIds.length ? hits(result.retrievedIds) / expectedIds.length : null,
+      injectionRecall: expectedIds.length ? hits(result.injectedIds) / expectedIds.length : null,
+      precisionAtK: expectedIds.length ? hits(result.injectedIds.slice(0, query.limit ?? 8)) / Math.max(1, query.limit ?? 8) : null,
+      k: query.limit ?? 8,
+    };
     for (const key of expected.included || []) { assert.ok(actualIds.has(ids.get(key)), `${c.id}: missing ${key}; returned ${[...actualIds]}`); assertionCount++; }
     for (const key of expected.excluded || []) { assert.ok(!actualIds.has(ids.get(key)), `${c.id}: leaked ${key}`); assertionCount++; }
     for (const text of expected.textIncludes || []) { assert.ok(result.text.includes(text), `${c.id}: missing text ${text}`); assertionCount++; }
@@ -199,12 +213,17 @@ export function executeMemoryCase(c) {
     }
     // Future rows deliberately exist only for boundary tests and must never enter model context.
     for (const row of result.results) assert.ok(!row.observedAt || Date.parse(row.observedAt) <= Date.parse(c.asOf));
-    const expectedIds = (expected.included || []).map(key => ids.get(key));
     return {
       memoryText: result.text, retrievedIds: result.retrievedIds, injectedIds: result.injectedIds,
-      expectedEvidenceCount: expectedIds.length,
-      retrievalRecall: expectedIds.length ? expectedIds.filter(id => result.retrievedIds.includes(id)).length / expectedIds.length : null,
+      ...measured,
       estimatedTokens: result.estimatedTokens, assertionCount, fixtureLatencyMs: performance.now() - started,
     };
+  } catch (error) {
+    const count = c.expect?.included?.length || 0;
+    error.retrievalMetrics = measured || (count ? {
+      expectedEvidenceCount: count, retrievalRecall: 0, injectionRecall: 0, precisionAtK: 0, k: c.query?.limit ?? 8,
+    } : null);
+    error.infrastructureFailure = ['MODULE_NOT_FOUND', 'ERR_MODULE_NOT_FOUND', 'SQLITE_CANTOPEN'].includes(error.code);
+    throw error;
   } finally { if (store?.db?.open) store.close(); fs.rmSync(dir, { recursive: true, force: true }); }
 }

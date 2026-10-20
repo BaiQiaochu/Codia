@@ -79,6 +79,8 @@ describe('channel-actions', () => {
     mockState.channelMessageCacheDirty = {};
     mockState.channelTotalUnread = 0;
     mockState.channelsEnabled = true;
+    mockState.channelsTogglePending = false;
+    mockState.channelsToggleError = null;
     mockState.channelInfoDescription = '';
     mockState.channelMemberRoles = {};
     mockState.channelAgentActivities = {};
@@ -534,6 +536,21 @@ describe('channel-actions', () => {
   });
 
   describe('toggleChannelsEnabled', () => {
+    it('blocks duplicate toggles and restores the confirmed state on rejection', async () => {
+      mockState.channelsEnabled = false;
+      let reject: (error: Error) => void;
+      mockFetch.mockImplementationOnce(() => new Promise((_resolve, fail) => { reject = fail; }));
+      const { toggleChannelsEnabled } = await import('../../stores/channel-actions');
+      const first = toggleChannelsEnabled();
+      expect(mockState.channelsTogglePending).toBe(true);
+      await toggleChannelsEnabled();
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      reject!(new Error('network unavailable'));
+      await first;
+      expect(mockState.channelsEnabled).toBe(false);
+      expect(mockState.channelsTogglePending).toBe(false);
+      expect(mockState.channelsToggleError).toBe('channel.toggleFailed');
+    });
     it('toggles the channel enabled state', async () => {
       mockState.channelsEnabled = true;
 

@@ -1,4 +1,5 @@
 import path from "path";
+import { withToolEditContext, withFileMutation } from "./resource-io/tool-edit-context.ts";
 
 export function wrapWithCheckpoint(tools, { store, maxFileSizeKb, cwd, getSessionPath }) {
   return tools.map((tool) => {
@@ -22,19 +23,26 @@ function wrapPathTool(tool, store, maxFileSizeKb, cwd, getSessionPath) {
     ...tool,
     execute: async (toolCallId, params, ...rest) => {
       const filePath = resolvePath(params.path, cwd);
+      let checkpointId = null;
+      const invoke = async () => {
       if (filePath) {
         try {
-          await store.save({
+          checkpointId = await store.save({
             sessionPath: getSessionPath(),
             tool: tool.name,
             filePath,
             maxSizeKb: maxFileSizeKb,
           });
-        } catch {
-          // Backup failure must not block tool execution
+        } catch (error) {
+          throw new Error(`Checkpoint backup failed; no file change was made. Retry after fixing the backup location: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
-      return tool.execute(toolCallId, params, ...rest);
+      const result = await withToolEditContext(() => tool.execute(toolCallId, params, ...rest));
+      return { ...result, details: { ...result?.details, checkpointId,
+        recoveryCoverage: checkpointId ? "file_snapshot" : "not_snapshotted",
+        ...(checkpointId ? {} : { recoveryNote: "No prior text snapshot: file is new, binary, or exceeds the configured backup size." }) } };
+      };
+      return filePath ? withFileMutation(filePath, invoke) : invoke();
     },
   };
 }
@@ -59,7 +67,9 @@ function wrapBashTool(tool, store, maxFileSizeKb, cwd, getSessionPath) {
               filePath,
               maxSizeKb: maxFileSizeKb,
             });
-          } catch {}
+          } catch (error) {
+            throw new Error(`Checkpoint backup failed; command was not executed: ${error.message}`);
+          }
         }
       } else if ((match = MV_PATTERN.exec(cmd))) {
         const filePath = resolvePath(match[1], cwd);
@@ -71,11 +81,15 @@ function wrapBashTool(tool, store, maxFileSizeKb, cwd, getSessionPath) {
               filePath,
               maxSizeKb: maxFileSizeKb,
             });
-          } catch {}
+          } catch (error) {
+            throw new Error(`Checkpoint backup failed; command was not executed: ${error.message}`);
+          }
         }
       }
 
-      return tool.execute(toolCallId, params, ...rest);
+      const result = await tool.execute(toolCallId, params, ...rest);
+      return { ...result, details: { ...result?.details, recoveryCoverage: 'partial',
+        recoveryNote: 'Shell changes are not fully checkpointed. Only recognized file operands may have backups.' } };
     },
   };
 }

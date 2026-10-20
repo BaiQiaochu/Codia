@@ -33,6 +33,8 @@ import { buildUiContextTurnContext } from "./ui-context-reminder.ts";
 import { runAgentReview, buildReferencedSessionContext, assertAgentReviewActive, isAgentReviewPending } from './agent-review-turns.ts';
 import { COMPOSER_PRESENTATION } from './composer-presentation.ts';
 import { isQuickActionId, QUICK_ACTIONS } from '../shared/quick-actions.ts';
+import { createSubmissionGate } from '../lib/execution/submission-gate.ts';
+import { isExecutionPaused } from '../shared/execution-run.ts';
 
 const LONG_CONTEXT_CHAR_THRESHOLD = 80_000;
 const LONG_CONTEXT_EXCERPT_CHARS = 4_000;
@@ -52,10 +54,11 @@ function isSessionBusyError(err) {
   return (err?.message || String(err || "")) === "session_busy";
 }
 
-async function waitForSessionIdle(engine, sessionPath, reviewRequestId) {
+async function waitForSessionIdle(engine, sessionPath, reviewRequestId, gate) {
   if (typeof engine.isSessionStreaming !== "function") return;
   const startedAt = Date.now();
   while (engine.isSessionStreaming(sessionPath, reviewRequestId)) {
+    gate?.check();
     if (Date.now() - startedAt > SESSION_QUEUE_MAX_WAIT_MS) {
       throw new Error("session_busy");
     }
@@ -84,12 +87,16 @@ function enqueueDesktopSessionSubmission(sessionPath, job) {
   return run;
 }
 
-async function promptSessionQueued(engine, sessionPath, promptText, promptOpts) {
+async function promptSessionQueued(engine, sessionPath, promptText, promptOpts, gate) {
   while (true) {
     assertAgentReviewActive(engine, sessionPath, promptOpts?.reviewRequestId);
-    await waitForSessionIdle(engine, sessionPath, promptOpts?.reviewRequestId);
+    gate?.check();
+    if (isExecutionPaused(engine.getExecutionRun?.(sessionPath))) throw new Error("run_paused");
+    await waitForSessionIdle(engine, sessionPath, promptOpts?.reviewRequestId, gate);
     try {
-      await engine.promptSession(sessionPath, promptText, promptOpts);
+      const promise = engine.promptSession(sessionPath, promptText, promptOpts);
+      // Busy rejection must not restart the absolute submission deadline.
+      await promise;
       return;
     } catch (err) {
       if (!isSessionBusyError(err)) throw err;
@@ -129,8 +136,12 @@ export async function submitDesktopSessionMessage(engine, opts = {}) {
     throw new Error("desktop-session-submit: text, images, videos, or audios required");
   }
 
-  return enqueueDesktopSessionSubmission(queueKey, async () => {
-  await waitForSessionIdle(engine, sessionPath, opts.reviewRequestId);
+  const gate = createSubmissionGate(sessionPath, opts.signal);
+  return gate.wait(enqueueDesktopSessionSubmission(queueKey, async () => {
+  gate.check();
+  if (isExecutionPaused(engine.getExecutionRun?.(sessionPath))) throw new Error("run_paused");
+  await waitForSessionIdle(engine, sessionPath, opts.reviewRequestId, gate);
+  gate.check();
   const session = await engine.ensureSessionLoaded(sessionPath);
   if (!session) throw new Error(`desktop-session-submit: failed to load session ${sessionPath}`);
 
@@ -291,7 +302,9 @@ export async function submitDesktopSessionMessage(engine, opts = {}) {
       ...(promptAudioAttachmentPaths.length ? { audioAttachmentPaths: promptAudioAttachmentPaths } : {}),
       ...(turnContext ? { context: turnContext } : {}),
     };
-    await promptSessionQueued(engine, sessionPath, promptText, Object.keys(promptOpts).length ? promptOpts : undefined);
+    // The model entrypoint signals admission before starting long-running work.
+    const promptOptions = { ...promptOpts, onExecutionStarted: () => gate.start() };
+    await promptSessionQueued(engine, sessionPath, promptText, promptOptions, gate);
     if (opts.reviewInternal) {
       const last = session.messages?.at(-1);
       if (last?.role === 'assistant' && last.stopReason === 'error') throw new Error(last.errorMessage || '模型请求失败。');
@@ -305,7 +318,7 @@ export async function submitDesktopSessionMessage(engine, opts = {}) {
     text: captured.trim() || null,
     toolMedia,
   };
-  });
+  }));
 }
 
 async function materializeLongContextIfNeeded({

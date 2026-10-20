@@ -38,7 +38,7 @@ describe('channel workflow window contract', () => {
     expect(source).toContain("aria-label={pageMode ? '工作流页面' : '工作流可视窗口'}");
     expect(source).toContain('workflowPageOverlay');
     expect(source).toContain('workflowDraftStorageKey');
-    expect(source).toContain('关联执行频道');
+    expect(source).toContain('关联执行Agent 小队');
     expect(source).toContain('工作流画布');
     expect(source).not.toContain('Codia 工作流画布');
   });

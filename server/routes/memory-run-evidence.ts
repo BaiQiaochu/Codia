@@ -1,4 +1,4 @@
-import { collectConsoleRuns } from './task-console-records.ts';
+import { collectActivityRuns } from './activity-run-records.ts';
 import type { ExperienceEnvironment } from '../../lib/experience-store.ts';
 import type { GovernanceQuery } from '../../lib/memory/governance-query.ts';
 export interface MemoryRunEvidence {
@@ -7,9 +7,9 @@ export interface MemoryRunEvidence {
   environmentDiagnostics:string[];evidenceOrigin:'recorded_run';summary:string;artifacts:unknown[];timeProvenance:unknown;
 }
 /** Projects and versions are historical evidence only when recorded by the executor.
- * A current session cwd can be displayed by the task console, but cannot verify an old run. */
+ * A current session cwd may help locate a source, but cannot verify an old run. */
 export async function listMemoryRunEvidence(engine:unknown, agentId:string, query:GovernanceQuery={}) {
-  const {runs,limitations}=await collectConsoleRuns(engine);
+  const {runs,limitations}=await collectActivityRuns(engine);
   const all:MemoryRunEvidence[]=runs.filter(run=>run.agentId===agentId).map(run=>{
     const snapshot=run.environment as typeof run.environment & ExperienceEnvironment;
     const recorded=snapshot.provenance==='recorded';
@@ -18,7 +18,7 @@ export async function listMemoryRunEvidence(engine:unknown, agentId:string, quer
       ...(snapshot.channel?{channel:snapshot.channel}:{}),...(snapshot.platform?{platform:snapshot.platform}:{}),
       ...(snapshot.appVersion?{appVersion:snapshot.appVersion}:{}),...(snapshot.dependencyVersions?{dependencyVersions:snapshot.dependencyVersions}:{})}:{};
     return {runId:run.id,title:run.title,status:run.status,startedAt:run.startedAt===null?null:new Date(run.startedAt).toISOString(),finishedAt:run.finishedAt===null?null:new Date(run.finishedAt).toISOString(),projectId,environment,
-      evidenceRef:`task-console:${run.id}`,sessionId:run.sessionPath,environmentProvenance:snapshot.provenance,
+      evidenceRef:`recorded-run:${run.id}`,sessionId:run.sessionPath,environmentProvenance:snapshot.provenance,
       summary:run.summary.slice(0,8000),artifacts:run.artifactDetails.slice(0,20),timeProvenance:run.timeProvenance,
       environmentDiagnostics:[...(!recorded?['missing_recorded_environment']:[]),...(!projectId?['missing_project']:[]),...(!environment.channel?['missing_channel']:[]),...(!environment.dependencyVersions?['missing_dependency_snapshot']:[])],evidenceOrigin:'recorded_run' as const};
   });
@@ -28,7 +28,7 @@ export async function listMemoryRunEvidence(engine:unknown, agentId:string, quer
   return {runs:matching.slice(offset,offset+limit),total:matching.length,limit,offset,limitations};
 }
 export async function findMemoryRunEvidence(engine:unknown,agentId:string,runId:string) {
-  // The task collector is authoritative. Never accept a run ID as proof of existence by itself.
+  // Recorded activity is authoritative. Never accept a run ID as proof of existence by itself.
   const {runs}=await listMemoryRunEvidence(engine,agentId,{limit:Number.MAX_SAFE_INTEGER});
   return runs.find(run=>run.runId===runId) || null;
 }

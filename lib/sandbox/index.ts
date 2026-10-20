@@ -1,5 +1,6 @@
 // @ts-nocheck
 import fs from "fs";
+import { withFileMutation, withToolEditContext } from "../resource-io/tool-edit-context.ts";
 import path, { extname } from "path";
 import { deriveSandboxPolicy } from "./policy.ts";
 import { PathGuard } from "./path-guard.ts";
@@ -184,6 +185,7 @@ export function createSandboxedTools(
       resourceIO,
       resourceOps,
       getSessionPath,
+      recordFileOperation,
       resolveSessionFile,
       emitEvent,
     });
@@ -223,6 +225,7 @@ export function createSandboxedTools(
     resourceIO,
     resourceOps,
     getSessionPath,
+    recordFileOperation,
     resolveSessionFile,
     emitEvent,
   });
@@ -241,6 +244,7 @@ function buildToolSet({
   resourceIO,
   resourceOps,
   getSessionPath,
+  recordFileOperation,
   resolveSessionFile,
   emitEvent,
 }) {
@@ -249,8 +253,8 @@ function buildToolSet({
     wrapPathTool(writeTool, guard, "write", cwd, wrapOpts),
     wrapPathTool(editTool, guard, "write", cwd, wrapOpts),
     wrapBashTool(bashTool, guard, cwd, bashWrapOpts),
-    wrapPathTool(createGrepTool(cwd, { operations: resourceOps.grep }), guard, "read", cwd, wrapOpts),
-    wrapPathTool(createFindTool(cwd, { operations: resourceOps.find }), guard, "read", cwd, wrapOpts),
+    wrapPathTool(createGrepTool(cwd, { operations: resourceOps.grep, getSessionPath, recordFileOperation }), guard, "read", cwd, wrapOpts),
+    wrapPathTool(createFindTool(cwd, { operations: resourceOps.find, getSessionPath, recordFileOperation }), guard, "read", cwd, wrapOpts),
     wrapPathTool(createLsTool(cwd, { operations: resourceOps.ls }), guard, "read", cwd, wrapOpts),
   ];
   return {
@@ -258,6 +262,7 @@ function buildToolSet({
       cwd,
       resourceIO,
       getSessionPath,
+      recordFileOperation,
       resolveSessionFile,
       emitEvent,
       withResourceTarget: resourceOps.withResourceTarget,
@@ -300,7 +305,9 @@ function wrapFileTouchTool(tool, cwd, {
       const normalizedParams = normalizeFileTouchToolParams(params);
       const absolutePath = resolveToolPath(fileTouchToolPathParam(normalizedParams), cwd);
       const operation = absolutePath ? operationForPath?.(absolutePath) : null;
-      const result = await tool.execute(toolCallId, normalizedParams, ...rest);
+      const invoke = () => withToolEditContext(() => tool.execute(toolCallId, normalizedParams, ...rest));
+      const result = absolutePath && ['edit', 'write'].includes(tool.name)
+        ? await withFileMutation(absolutePath, invoke) : await invoke();
       const sessionPath = getSessionPath?.() || null;
       if (!absolutePath || !sessionPath || typeof recordFileOperation !== "function") {
         return result;

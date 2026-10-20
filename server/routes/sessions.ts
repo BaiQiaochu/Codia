@@ -1,3 +1,4 @@
+import { moveSessionWithExecutionRunSync } from "../../lib/execution/run-controller.ts";
 import { projectComposerHistory } from '../../core/composer-presentation.ts';
 import { hasAgentReviewRequest } from '../../core/agent-review-turns.ts';
 /**
@@ -296,6 +297,60 @@ const TODO_COMPLETE_MESSAGE =
 export function createSessionsRoute(engine: any, hub: any = null) {
   const route = new Hono<any>();
   const lifecycleLocks = new Map<string, Promise<void>>();
+
+  route.get("/sessions/execution-run", async c => {
+    try {
+      const sessionPath = await resolveSessionPathRef(c.req.query());
+      if (!sessionPath || !isValidSessionPath(sessionPath, engine.agentsDir) || !isActiveSessionPath(sessionPath, engine.agentsDir)) {
+        return c.json({ error: "Invalid session path" }, 403);
+      }
+      return c.json({ run: engine.getExecutionRun(sessionPath) });
+    } catch (error) { return routeError(c, error); }
+  });
+  route.post("/sessions/execution-run/resume", async c => {
+    try {
+      const body = await strictJson(c);
+      const sessionPath = await resolveSessionPathRef(body);
+      if (!sessionPath || !isValidSessionPath(sessionPath, engine.agentsDir) || !isActiveSessionPath(sessionPath, engine.agentsDir)) {
+        return c.json({ error: "Invalid session path" }, 403);
+      }
+      if (typeof body.runId !== "string" || !Number.isSafeInteger(body.revision)) {
+        return c.json({ error: "runId and revision required" }, 400);
+      }
+      return c.json({ run: await engine.resumeExecutionRun(sessionPath, body.runId, body.revision) });
+    } catch (error) {
+      if (String(error?.message).startsWith("run_")) return c.json({ error: error.message }, 409);
+      return routeError(c, error);
+    }
+  });
+  route.post("/sessions/execution-run/stop", async c => {
+    try {
+      const body = await strictJson(c);
+      const sessionPath = await resolveSessionPathRef(body);
+      if (!sessionPath || !isValidSessionPath(sessionPath, engine.agentsDir) || !isActiveSessionPath(sessionPath, engine.agentsDir)) {
+        return c.json({ error: "Invalid session path" }, 403);
+      }
+      await engine.abortSession(sessionPath);
+      return c.json({ run: engine.getExecutionRun(sessionPath) });
+    } catch (error) { return routeError(c, error); }
+  });
+  route.post("/sessions/execution-run/acknowledge", async c => {
+    try {
+      const body = await strictJson(c);
+      const sessionPath = await resolveSessionPathRef(body);
+      if (!sessionPath || !isValidSessionPath(sessionPath, engine.agentsDir) || !isActiveSessionPath(sessionPath, engine.agentsDir)) {
+        return c.json({ error: "Invalid session path" }, 403);
+      }
+      if (body.reviewed !== true || typeof body.runId !== "string" || !Number.isSafeInteger(body.revision)
+        || !Array.isArray(body.toolIds) || body.toolIds.some(id => typeof id !== "string")) {
+        return c.json({ error: "Explicit review and current revision required" }, 400);
+      }
+      return c.json({ run: engine.acknowledgeExecutionRun(sessionPath, body.runId, body.revision, body.toolIds) });
+    } catch (error) {
+      if (String(error?.message).startsWith("run_")) return c.json({ error: error.message }, 409);
+      return routeError(c, error);
+    }
+  });
 
   function currentSessionPathForId(sessionId: string | null) {
     if (!sessionId) return null;
@@ -1000,6 +1055,7 @@ export function createSessionsRoute(engine: any, hub: any = null) {
               sourceIndex,
               ...(m.id ? { entryId: m.id } : {}),
               role: "assistant",
+              ...(m.runId ? { runId: m.runId } : {}),
               content: text,
               thinking: thinking || undefined,
               toolCalls: toolUses.length ? toolUses : undefined,
@@ -1897,7 +1953,7 @@ export function createSessionsRoute(engine: any, hub: any = null) {
           reason: "session_archive",
         }, { optional: true });
         try {
-          await fs.rename(sessionPath, destPath);
+          moveSessionWithExecutionRunSync(sessionPath, destPath);
           moveSessionFileSidecarSync(sessionPath, destPath);
         } catch (err) {
           if (manifestMoved) {
@@ -1994,7 +2050,7 @@ export function createSessionsRoute(engine: any, hub: any = null) {
           return c.json({ error: "Stage file sidecar destination already exists" }, 409);
         }
 
-        await fs.rename(sessionPath, destPath);
+        moveSessionWithExecutionRunSync(sessionPath, destPath);
         moveSessionFileSidecarSync(sessionPath, destPath);
         try {
           await moveSessionLifecycleOrThrow({
@@ -2006,7 +2062,7 @@ export function createSessionsRoute(engine: any, hub: any = null) {
         } catch (err) {
           try {
             await fs.mkdir(archDir, { recursive: true });
-            await fs.rename(destPath, sessionPath);
+            moveSessionWithExecutionRunSync(destPath, sessionPath);
             moveSessionFileSidecarSync(destPath, sessionPath);
           } catch (rollbackErr) {
             log.error?.(`restore file rollback failed for ${destPath}: ${rollbackErr.message}`);

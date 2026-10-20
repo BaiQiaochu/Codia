@@ -1,5 +1,8 @@
 // @ts-nocheck
 import { createInterface } from "node:readline";
+import { createHash, randomUUID } from "node:crypto";
+import { SEARCH_TOOL_RELEASES } from "./search-tool-versions.ts";
+import { saveToolOutput, boundedToolOutput } from "../tools/full-output.ts";
 import { spawn, spawnSync } from "child_process";
 import { extractZip } from "../extract-zip.ts";
 import {
@@ -30,7 +33,6 @@ import {
 const DEFAULT_GREP_LIMIT = 100;
 const DEFAULT_FIND_LIMIT = 1000;
 const GREP_MAX_LINE_LENGTH = 500;
-const NETWORK_TIMEOUT_MS = 10_000;
 const DOWNLOAD_TIMEOUT_MS = 120_000;
 
 const TOOL_CONFIGS = {
@@ -134,23 +136,14 @@ function getToolPath(tool) {
   return null;
 }
 
-async function getLatestVersion(repo) {
-  const response = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, {
-    headers: { "User-Agent": "codia-search-tools" },
-    signal: AbortSignal.timeout(NETWORK_TIMEOUT_MS),
-  });
-  if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
-  const data = await response.json();
-  return String(data.tag_name || "").replace(/^v/, "");
-}
-
-async function downloadFile(url, dest) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS) });
+async function downloadFile(url, dest, signal) {
+  const downloadSignal = AbortSignal.any([AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS), ...(signal ? [signal] : [])]);
+  const response = await fetch(url, { signal: downloadSignal });
   if (!response.ok) throw new Error(`Failed to download: ${response.status}`);
   if (!response.body) throw new Error("No response body");
 
   const fileStream = createWriteStream(dest);
-  await pipeline(Readable.fromWeb(response.body), fileStream);
+  await pipeline(Readable.fromWeb(response.body), fileStream, { signal: downloadSignal });
 }
 
 function findBinaryRecursively(rootDir, binaryFileName) {
@@ -167,19 +160,22 @@ function findBinaryRecursively(rootDir, binaryFileName) {
   return null;
 }
 
-async function downloadTool(tool) {
+async function downloadTool(tool, signal) {
   const config = TOOL_CONFIGS[tool];
   if (!config) throw new Error(`Unknown tool: ${tool}`);
 
   const plat = platform();
   const architecture = arch();
-  const version = await getLatestVersion(config.repo);
+  const release = SEARCH_TOOL_RELEASES[tool];
+  const version = release.version;
+  const digest = release.digests[`${plat}-${architecture}`];
+  if (!digest) throw new Error(`No verified release for ${plat}/${architecture}`);
   const assetName = config.getAssetName(version, plat, architecture);
   if (!assetName) throw new Error(`Unsupported platform: ${plat}/${architecture}`);
 
   mkdirSync(getBinDir(), { recursive: true });
   const archiveUrl = `https://github.com/${config.repo}/releases/download/${config.tagPrefix}${version}/${assetName}`;
-  const archivePath = path.join(getBinDir(), assetName);
+  const archivePath = path.join(getBinDir(), `${randomUUID()}-${assetName}`);
   const binaryExt = plat === "win32" ? ".exe" : "";
   const binaryFileName = `${config.binaryName}${binaryExt}`;
   const binaryPath = path.join(getBinDir(), binaryFileName);
@@ -188,12 +184,16 @@ async function downloadTool(tool) {
     `extract_tmp_${config.binaryName}_${process.pid}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
   );
 
-  await downloadFile(archiveUrl, archivePath);
-  mkdirSync(extractDir, { recursive: true });
-
   try {
+    signal?.throwIfAborted();
+    await downloadFile(archiveUrl, archivePath, signal);
+    if (createHash('sha256').update(readFileSync(archivePath)).digest('hex') !== digest) {
+      throw new Error(`Search tool checksum mismatch: ${assetName}`);
+    }
+    signal?.throwIfAborted();
+    mkdirSync(extractDir, { recursive: true });
     if (assetName.endsWith(".tar.gz")) {
-      const result = spawnSyncHidden("tar", ["xzf", archivePath, "-C", extractDir], { stdio: "pipe" });
+      const result = spawnSyncHidden("tar", ["xzf", archivePath, "-C", extractDir], { stdio: "pipe", timeout: 30_000 });
       if (result.error || result.status !== 0) {
         const message = result.error?.message ?? result.stderr?.toString().trim() ?? "unknown error";
         throw new Error(`Failed to extract ${assetName}: ${message}`);
@@ -215,7 +215,8 @@ async function downloadTool(tool) {
       throw new Error(`Binary not found in archive: expected ${binaryFileName} under ${extractDir}`);
     }
 
-    renameSync(extractedBinary, binaryPath);
+    signal?.throwIfAborted();
+    if (!existsSync(binaryPath)) renameSync(extractedBinary, binaryPath);
     if (plat !== "win32") chmodSync(binaryPath, 0o755);
     return binaryPath;
   } finally {
@@ -224,13 +225,15 @@ async function downloadTool(tool) {
   }
 }
 
-async function ensureSearchTool(tool) {
+async function ensureSearchTool(tool, signal) {
+  signal?.throwIfAborted();
   const existingPath = getToolPath(tool);
   if (existingPath) return existingPath;
   if (isOfflineModeEnabled() || platform() === "android") return undefined;
   try {
-    return await downloadTool(tool);
-  } catch {
+    return await downloadTool(tool, signal);
+  } catch (error) {
+    signal?.throwIfAborted();
     return undefined;
   }
 }
@@ -285,7 +288,7 @@ function createGrepExecute(cwd, options = {}) {
 
       (async () => {
         try {
-          const rgPath = await ensureSearchTool("rg");
+          const rgPath = await ensureSearchTool("rg", signal);
           if (!rgPath) {
             settle(() => reject(new Error("ripgrep (rg) is not available and could not be downloaded")));
             return;
@@ -302,7 +305,7 @@ function createGrepExecute(cwd, options = {}) {
           }
 
           const contextValue = context && context > 0 ? context : 0;
-          const effectiveLimit = Math.max(1, limit ?? DEFAULT_GREP_LIMIT);
+          const effectiveLimit = Math.max(1, Math.min(10_000, limit ?? DEFAULT_GREP_LIMIT));
           const formatPath = (filePath) => {
             if (isDirectory) {
               const relative = path.relative(searchPath, filePath);
@@ -340,6 +343,7 @@ function createGrepExecute(cwd, options = {}) {
           let aborted = false;
           let killedDueToLimit = false;
           const outputLines = [];
+          const fullLines = boundedToolOutput();
           const matches = [];
 
           const cleanup = () => {
@@ -358,7 +362,7 @@ function createGrepExecute(cwd, options = {}) {
           };
 
           signal?.addEventListener("abort", onAbort, { once: true });
-          child.stderr?.on("data", (chunk) => { stderr += chunk.toString(); });
+          child.stderr?.on("data", (chunk) => { stderr = (stderr + chunk.toString()).slice(-32768); });
 
           const formatBlock = async (filePath, lineNumber) => {
             const relativePath = formatPath(filePath);
@@ -371,6 +375,7 @@ function createGrepExecute(cwd, options = {}) {
             for (let current = start; current <= end; current++) {
               const lineText = lines[current - 1] ?? "";
               const sanitized = lineText.replace(/\r/g, "");
+              fullLines.append(`${relativePath}:${current}: ${sanitized}`);
               const isMatchLine = current === lineNumber;
               const { text: truncatedText, wasTruncated } = truncateLine(sanitized);
               if (wasTruncated) linesTruncated = true;
@@ -427,6 +432,7 @@ function createGrepExecute(cwd, options = {}) {
               if (contextValue === 0 && match.lineText !== undefined) {
                 const relativePath = formatPath(match.filePath);
                 const sanitized = match.lineText.replace(/\r\n/g, "\n").replace(/\r/g, "").replace(/\n$/, "");
+                fullLines.append(`${relativePath}:${match.lineNumber}: ${sanitized}`);
                 const { text: truncatedText, wasTruncated } = truncateLine(sanitized);
                 if (wasTruncated) linesTruncated = true;
                 outputLines.push(`${relativePath}:${match.lineNumber}: ${truncatedText}`);
@@ -450,6 +456,10 @@ function createGrepExecute(cwd, options = {}) {
             if (linesTruncated) {
               notices.push(`Some lines truncated to ${GREP_MAX_LINE_LENGTH} chars. Use read tool to see full lines`);
               details.linesTruncated = true;
+            }
+            if (truncation.truncated || linesTruncated) {
+              Object.assign(details, saveToolOutput(fullLines.text(), options.getSessionPath?.(), options.recordFileOperation, fullLines.originalBytes()));
+              notices.push(`Captured result: ${details.fullOutputPath}; use read with offset/limit. ${details.fullOutputTruncated ? "Artifact capped at 2 MiB." : ""}`);
             }
             if (notices.length > 0) output += `\n\n[${notices.join(". ")}]`;
 
@@ -494,7 +504,7 @@ function createFindExecute(cwd, options = {}) {
       (async () => {
         try {
           const searchPath = resolveToCwd(searchDir || ".", cwd);
-          const effectiveLimit = limit ?? DEFAULT_FIND_LIMIT;
+          const effectiveLimit = Math.max(1, Math.min(10_000, limit ?? DEFAULT_FIND_LIMIT));
 
           if (customOps?.glob) {
             if (!(await customOps.exists(searchPath))) {
@@ -509,11 +519,11 @@ function createFindExecute(cwd, options = {}) {
               settle(() => reject(new Error("Operation aborted")));
               return;
             }
-            settle(() => resolve(formatFindResults(results, searchPath, effectiveLimit)));
+            settle(() => resolve(formatFindResults(results, searchPath, effectiveLimit, options)));
             return;
           }
 
-          const fdPath = await ensureSearchTool("fd");
+          const fdPath = await ensureSearchTool("fd", signal);
           if (signal?.aborted) {
             settle(() => reject(new Error("Operation aborted")));
             return;
@@ -550,7 +560,7 @@ function createFindExecute(cwd, options = {}) {
           };
           const cleanup = () => { rl.close(); };
 
-          child.stderr?.on("data", (chunk) => { stderr += chunk.toString(); });
+          child.stderr?.on("data", (chunk) => { stderr = (stderr + chunk.toString()).slice(-32768); });
           rl.on("line", (line) => { lines.push(line); });
           child.on("error", (error) => {
             cleanup();
@@ -571,7 +581,7 @@ function createFindExecute(cwd, options = {}) {
                 return;
               }
             }
-            settle(() => resolve(formatFindResults(lines, searchPath, effectiveLimit)));
+            settle(() => resolve(formatFindResults(lines, searchPath, effectiveLimit, options)));
           });
         } catch (err) {
           if (signal?.aborted) {
@@ -585,7 +595,7 @@ function createFindExecute(cwd, options = {}) {
   };
 }
 
-function formatFindResults(results, searchPath, effectiveLimit) {
+function formatFindResults(results, searchPath, effectiveLimit, options = {}) {
   if (results.length === 0) {
     return { content: [{ type: "text", text: "No files found matching pattern" }], details: undefined };
   }
@@ -619,6 +629,8 @@ function formatFindResults(results, searchPath, effectiveLimit) {
   if (truncation.truncated) {
     notices.push(`${formatSize(DEFAULT_MAX_BYTES)} limit reached`);
     details.truncation = truncation;
+    Object.assign(details, saveToolOutput(relativized.join("\n"), options.getSessionPath?.(), options.recordFileOperation));
+    notices.push(`Captured result: ${details.fullOutputPath}; use read with offset/limit`);
   }
   if (notices.length > 0) resultOutput += `\n\n[${notices.join(". ")}]`;
 

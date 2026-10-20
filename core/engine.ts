@@ -942,6 +942,9 @@ export class CodiaEngine {
 
  //
   async promptSession(p, text, opts) { return this._sessionCoord.promptSession(p, text, opts); }
+  getExecutionRun(p) { return this._sessionCoord.getExecutionRun(p); }
+  resumeExecutionRun(p, runId, revision) { return this._sessionCoord.resumeExecutionRun(p, runId, revision); }
+  acknowledgeExecutionRun(p, runId, revision, toolIds) { return this._sessionCoord.acknowledgeExecutionRun(p, runId, revision, toolIds); }
   steerSession(p, text) { return this._sessionCoord.steerSession(p, text); }
   async abortSession(p) { await cancelAgentReview(this, p); return this._sessionCoord.abortSession(p); }
   recordCustomEntry(p, type, data) { return this._sessionCoord.recordCustomEntry(p, type, data); }
@@ -2113,9 +2116,7 @@ export class CodiaEngine {
       getTraceContext,
       recordToolCall,
       getSandboxEnabled: () => this._readPreferences().sandbox !== false,
-      getSandboxNetworkEnabled: () => process.platform === "win32"
-        ? true
-        : this._readPreferences().sandbox_network !== false,
+      getSandboxNetworkEnabled: () => this._readPreferences().sandbox_network !== false,
       getExternalReadPaths,
       getSessionPath,
       resolveSessionFile: (fileId, options) => this.getSessionFile(fileId, options),

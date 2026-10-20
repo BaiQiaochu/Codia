@@ -1,0 +1,4424 @@
+{
+  "schemaVersion": 1,
+  "description": "Synthetic hard retrieval cases; separated projects and time windows. Holdout is evaluation only.",
+  "cases": [
+    {
+      "id": "HARD-tune-1",
+      "category": "Chinese workspace synonym",
+      "name": "tune: Chinese workspace synonym",
+      "split": "tune",
+      "projectId": "tune-hard-1",
+      "asOf": "2026-02-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "workspace is /projects/current",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-1",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-1-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-1-target",
+              "author": "user"
+            }
+          ]
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "工作目录",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": []
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "workspace is /projects/current",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-tune-2",
+      "category": "Fullwidth query normalization",
+      "name": "tune: Fullwidth query normalization",
+      "split": "tune",
+      "projectId": "tune-hard-2",
+      "asOf": "2026-02-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "Node runtime must be version 24",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-2",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-2-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-2-target",
+              "author": "user"
+            }
+          ]
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "Ｎｏｄｅ",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": []
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "Node runtime must be version 24",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-tune-3",
+      "category": "Repository abbreviation",
+      "name": "tune: Repository abbreviation",
+      "split": "tune",
+      "projectId": "tune-hard-3",
+      "asOf": "2026-02-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "仓库位置是 /projects/current",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-3",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-3-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-3-target",
+              "author": "user"
+            }
+          ]
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "repo",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": []
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "仓库位置是 /projects/current",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-tune-4",
+      "category": "Temporal replacement",
+      "name": "tune: Temporal replacement",
+      "split": "tune",
+      "projectId": "tune-hard-4",
+      "asOf": "2026-02-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "service endpoint is local-new",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-4",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-4-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-4-target",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "old",
+          "fact": "service endpoint is old-invalid",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-4",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-4-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-4-old",
+              "author": "user"
+            }
+          ],
+          "validTo": "2026-02-01T09:00:00.000Z"
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "service endpoint",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": [
+          "old"
+        ]
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "service endpoint is local-new",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-tune-5",
+      "category": "Long distractor history",
+      "name": "tune: Long distractor history",
+      "split": "tune",
+      "projectId": "tune-hard-5",
+      "asOf": "2026-02-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "ZX777 deployment anchor is staging-7",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-target",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise0",
+          "fact": "Historical deployment note number 0 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise0",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise1",
+          "fact": "Historical deployment note number 1 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise1",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise2",
+          "fact": "Historical deployment note number 2 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise2",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise3",
+          "fact": "Historical deployment note number 3 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise3",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise4",
+          "fact": "Historical deployment note number 4 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise4",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise5",
+          "fact": "Historical deployment note number 5 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise5",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise6",
+          "fact": "Historical deployment note number 6 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise6",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise7",
+          "fact": "Historical deployment note number 7 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise7",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise8",
+          "fact": "Historical deployment note number 8 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise8",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise9",
+          "fact": "Historical deployment note number 9 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise9",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise10",
+          "fact": "Historical deployment note number 10 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise10",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise11",
+          "fact": "Historical deployment note number 11 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise11",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise12",
+          "fact": "Historical deployment note number 12 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise12",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise13",
+          "fact": "Historical deployment note number 13 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise13",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise14",
+          "fact": "Historical deployment note number 14 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise14",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise15",
+          "fact": "Historical deployment note number 15 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise15",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise16",
+          "fact": "Historical deployment note number 16 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise16",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise17",
+          "fact": "Historical deployment note number 17 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise17",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise18",
+          "fact": "Historical deployment note number 18 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise18",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise19",
+          "fact": "Historical deployment note number 19 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise19",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise20",
+          "fact": "Historical deployment note number 20 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise20",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise21",
+          "fact": "Historical deployment note number 21 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise21",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise22",
+          "fact": "Historical deployment note number 22 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise22",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise23",
+          "fact": "Historical deployment note number 23 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise23",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise24",
+          "fact": "Historical deployment note number 24 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise24",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise25",
+          "fact": "Historical deployment note number 25 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise25",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise26",
+          "fact": "Historical deployment note number 26 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise26",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise27",
+          "fact": "Historical deployment note number 27 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise27",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise28",
+          "fact": "Historical deployment note number 28 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise28",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise29",
+          "fact": "Historical deployment note number 29 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise29",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise30",
+          "fact": "Historical deployment note number 30 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise30",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise31",
+          "fact": "Historical deployment note number 31 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise31",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise32",
+          "fact": "Historical deployment note number 32 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise32",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise33",
+          "fact": "Historical deployment note number 33 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise33",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise34",
+          "fact": "Historical deployment note number 34 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise34",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise35",
+          "fact": "Historical deployment note number 35 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise35",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise36",
+          "fact": "Historical deployment note number 36 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise36",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise37",
+          "fact": "Historical deployment note number 37 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise37",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise38",
+          "fact": "Historical deployment note number 38 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise38",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise39",
+          "fact": "Historical deployment note number 39 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise39",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise40",
+          "fact": "Historical deployment note number 40 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise40",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise41",
+          "fact": "Historical deployment note number 41 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise41",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise42",
+          "fact": "Historical deployment note number 42 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise42",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise43",
+          "fact": "Historical deployment note number 43 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise43",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise44",
+          "fact": "Historical deployment note number 44 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise44",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise45",
+          "fact": "Historical deployment note number 45 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise45",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise46",
+          "fact": "Historical deployment note number 46 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise46",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise47",
+          "fact": "Historical deployment note number 47 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise47",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise48",
+          "fact": "Historical deployment note number 48 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise48",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise49",
+          "fact": "Historical deployment note number 49 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise49",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise50",
+          "fact": "Historical deployment note number 50 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise50",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise51",
+          "fact": "Historical deployment note number 51 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise51",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise52",
+          "fact": "Historical deployment note number 52 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise52",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise53",
+          "fact": "Historical deployment note number 53 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise53",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise54",
+          "fact": "Historical deployment note number 54 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise54",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise55",
+          "fact": "Historical deployment note number 55 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise55",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise56",
+          "fact": "Historical deployment note number 56 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise56",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise57",
+          "fact": "Historical deployment note number 57 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise57",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise58",
+          "fact": "Historical deployment note number 58 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise58",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise59",
+          "fact": "Historical deployment note number 59 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise59",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise60",
+          "fact": "Historical deployment note number 60 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise60",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise61",
+          "fact": "Historical deployment note number 61 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise61",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise62",
+          "fact": "Historical deployment note number 62 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise62",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise63",
+          "fact": "Historical deployment note number 63 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise63",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise64",
+          "fact": "Historical deployment note number 64 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise64",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise65",
+          "fact": "Historical deployment note number 65 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise65",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise66",
+          "fact": "Historical deployment note number 66 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise66",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise67",
+          "fact": "Historical deployment note number 67 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise67",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise68",
+          "fact": "Historical deployment note number 68 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise68",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise69",
+          "fact": "Historical deployment note number 69 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise69",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise70",
+          "fact": "Historical deployment note number 70 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise70",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise71",
+          "fact": "Historical deployment note number 71 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise71",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise72",
+          "fact": "Historical deployment note number 72 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise72",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise73",
+          "fact": "Historical deployment note number 73 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise73",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise74",
+          "fact": "Historical deployment note number 74 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise74",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise75",
+          "fact": "Historical deployment note number 75 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise75",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise76",
+          "fact": "Historical deployment note number 76 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise76",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise77",
+          "fact": "Historical deployment note number 77 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise77",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise78",
+          "fact": "Historical deployment note number 78 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise78",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise79",
+          "fact": "Historical deployment note number 79 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise79",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise80",
+          "fact": "Historical deployment note number 80 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise80",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise81",
+          "fact": "Historical deployment note number 81 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise81",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise82",
+          "fact": "Historical deployment note number 82 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise82",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise83",
+          "fact": "Historical deployment note number 83 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise83",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise84",
+          "fact": "Historical deployment note number 84 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise84",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise85",
+          "fact": "Historical deployment note number 85 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise85",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise86",
+          "fact": "Historical deployment note number 86 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise86",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise87",
+          "fact": "Historical deployment note number 87 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise87",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise88",
+          "fact": "Historical deployment note number 88 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise88",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise89",
+          "fact": "Historical deployment note number 89 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-5",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-5-noise89",
+              "author": "user"
+            }
+          ]
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "ZX777 deployment anchor",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": [
+          "noise0",
+          "noise1",
+          "noise2",
+          "noise3",
+          "noise4",
+          "noise5",
+          "noise6",
+          "noise7",
+          "noise8",
+          "noise9",
+          "noise10",
+          "noise11",
+          "noise12",
+          "noise13",
+          "noise14",
+          "noise15",
+          "noise16",
+          "noise17",
+          "noise18",
+          "noise19",
+          "noise20",
+          "noise21",
+          "noise22",
+          "noise23",
+          "noise24",
+          "noise25",
+          "noise26",
+          "noise27",
+          "noise28",
+          "noise29",
+          "noise30",
+          "noise31",
+          "noise32",
+          "noise33",
+          "noise34",
+          "noise35",
+          "noise36",
+          "noise37",
+          "noise38",
+          "noise39",
+          "noise40",
+          "noise41",
+          "noise42",
+          "noise43",
+          "noise44",
+          "noise45",
+          "noise46",
+          "noise47",
+          "noise48",
+          "noise49",
+          "noise50",
+          "noise51",
+          "noise52",
+          "noise53",
+          "noise54",
+          "noise55",
+          "noise56",
+          "noise57",
+          "noise58",
+          "noise59",
+          "noise60",
+          "noise61",
+          "noise62",
+          "noise63",
+          "noise64",
+          "noise65",
+          "noise66",
+          "noise67",
+          "noise68",
+          "noise69",
+          "noise70",
+          "noise71",
+          "noise72",
+          "noise73",
+          "noise74",
+          "noise75",
+          "noise76",
+          "noise77",
+          "noise78",
+          "noise79",
+          "noise80",
+          "noise81",
+          "noise82",
+          "noise83",
+          "noise84",
+          "noise85",
+          "noise86",
+          "noise87",
+          "noise88",
+          "noise89"
+        ]
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "ZX777 deployment anchor is staging-7",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-tune-6",
+      "category": "Similar subject isolation",
+      "name": "tune: Similar subject isolation",
+      "split": "tune",
+      "projectId": "tune-hard-6",
+      "asOf": "2026-02-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "database endpoint belongs to this project",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-6",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-6-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-6-target",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "other",
+          "fact": "database endpoint belongs to another project",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-6-other",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-6-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-6-other",
+              "author": "user"
+            }
+          ]
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "database endpoint",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": [
+          "other"
+        ]
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "database endpoint belongs to this project",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-tune-7",
+      "category": "Expired evidence exclusion",
+      "name": "tune: Expired evidence exclusion",
+      "split": "tune",
+      "projectId": "tune-hard-7",
+      "asOf": "2026-02-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "build command is node build.cjs",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-7",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-7-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-7-target",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "expired",
+          "fact": "build command is npm old",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "tune-hard-7",
+          "scope": "project",
+          "observedAt": "2026-02-01T08:00:00.000Z",
+          "time": "2026-02-01T08:00:00.000Z",
+          "session_id": "tune-hard-7-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "tune-hard-7-expired",
+              "author": "user"
+            }
+          ],
+          "expiresAt": "2026-02-01T09:00:00.000Z"
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "build command",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": [
+          "expired"
+        ]
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "build command is node build.cjs",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-holdout-1",
+      "category": "Chinese workspace synonym",
+      "name": "holdout: Chinese workspace synonym",
+      "split": "holdout",
+      "projectId": "holdout-hard-1",
+      "asOf": "2026-03-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "workspace is /projects/current",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-1",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-1-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-1-target",
+              "author": "user"
+            }
+          ]
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "工作目录",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": []
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "workspace is /projects/current",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-holdout-2",
+      "category": "Fullwidth query normalization",
+      "name": "holdout: Fullwidth query normalization",
+      "split": "holdout",
+      "projectId": "holdout-hard-2",
+      "asOf": "2026-03-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "Node runtime must be version 24",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-2",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-2-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-2-target",
+              "author": "user"
+            }
+          ]
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "Ｎｏｄｅ",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": []
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "Node runtime must be version 24",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-holdout-3",
+      "category": "Repository abbreviation",
+      "name": "holdout: Repository abbreviation",
+      "split": "holdout",
+      "projectId": "holdout-hard-3",
+      "asOf": "2026-03-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "仓库位置是 /projects/current",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-3",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-3-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-3-target",
+              "author": "user"
+            }
+          ]
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "repo",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": []
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "仓库位置是 /projects/current",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-holdout-4",
+      "category": "Temporal replacement",
+      "name": "holdout: Temporal replacement",
+      "split": "holdout",
+      "projectId": "holdout-hard-4",
+      "asOf": "2026-03-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "service endpoint is local-new",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-4",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-4-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-4-target",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "old",
+          "fact": "service endpoint is old-invalid",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-4",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-4-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-4-old",
+              "author": "user"
+            }
+          ],
+          "validTo": "2026-03-01T09:00:00.000Z"
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "service endpoint",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": [
+          "old"
+        ]
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "service endpoint is local-new",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-holdout-5",
+      "category": "Long distractor history",
+      "name": "holdout: Long distractor history",
+      "split": "holdout",
+      "projectId": "holdout-hard-5",
+      "asOf": "2026-03-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "ZX777 deployment anchor is staging-7",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-target",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise0",
+          "fact": "Historical deployment note number 0 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise0",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise1",
+          "fact": "Historical deployment note number 1 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise1",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise2",
+          "fact": "Historical deployment note number 2 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise2",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise3",
+          "fact": "Historical deployment note number 3 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise3",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise4",
+          "fact": "Historical deployment note number 4 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise4",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise5",
+          "fact": "Historical deployment note number 5 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise5",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise6",
+          "fact": "Historical deployment note number 6 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise6",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise7",
+          "fact": "Historical deployment note number 7 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise7",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise8",
+          "fact": "Historical deployment note number 8 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise8",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise9",
+          "fact": "Historical deployment note number 9 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise9",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise10",
+          "fact": "Historical deployment note number 10 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise10",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise11",
+          "fact": "Historical deployment note number 11 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise11",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise12",
+          "fact": "Historical deployment note number 12 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise12",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise13",
+          "fact": "Historical deployment note number 13 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise13",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise14",
+          "fact": "Historical deployment note number 14 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise14",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise15",
+          "fact": "Historical deployment note number 15 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise15",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise16",
+          "fact": "Historical deployment note number 16 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise16",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise17",
+          "fact": "Historical deployment note number 17 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise17",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise18",
+          "fact": "Historical deployment note number 18 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise18",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise19",
+          "fact": "Historical deployment note number 19 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise19",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise20",
+          "fact": "Historical deployment note number 20 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise20",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise21",
+          "fact": "Historical deployment note number 21 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise21",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise22",
+          "fact": "Historical deployment note number 22 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise22",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise23",
+          "fact": "Historical deployment note number 23 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise23",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise24",
+          "fact": "Historical deployment note number 24 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise24",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise25",
+          "fact": "Historical deployment note number 25 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise25",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise26",
+          "fact": "Historical deployment note number 26 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise26",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise27",
+          "fact": "Historical deployment note number 27 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise27",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise28",
+          "fact": "Historical deployment note number 28 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise28",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise29",
+          "fact": "Historical deployment note number 29 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise29",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise30",
+          "fact": "Historical deployment note number 30 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise30",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise31",
+          "fact": "Historical deployment note number 31 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise31",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise32",
+          "fact": "Historical deployment note number 32 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise32",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise33",
+          "fact": "Historical deployment note number 33 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise33",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise34",
+          "fact": "Historical deployment note number 34 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise34",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise35",
+          "fact": "Historical deployment note number 35 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise35",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise36",
+          "fact": "Historical deployment note number 36 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise36",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise37",
+          "fact": "Historical deployment note number 37 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise37",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise38",
+          "fact": "Historical deployment note number 38 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise38",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise39",
+          "fact": "Historical deployment note number 39 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise39",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise40",
+          "fact": "Historical deployment note number 40 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise40",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise41",
+          "fact": "Historical deployment note number 41 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise41",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise42",
+          "fact": "Historical deployment note number 42 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise42",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise43",
+          "fact": "Historical deployment note number 43 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise43",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise44",
+          "fact": "Historical deployment note number 44 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise44",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise45",
+          "fact": "Historical deployment note number 45 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise45",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise46",
+          "fact": "Historical deployment note number 46 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise46",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise47",
+          "fact": "Historical deployment note number 47 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise47",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise48",
+          "fact": "Historical deployment note number 48 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise48",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise49",
+          "fact": "Historical deployment note number 49 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise49",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise50",
+          "fact": "Historical deployment note number 50 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise50",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise51",
+          "fact": "Historical deployment note number 51 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise51",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise52",
+          "fact": "Historical deployment note number 52 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise52",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise53",
+          "fact": "Historical deployment note number 53 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise53",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise54",
+          "fact": "Historical deployment note number 54 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise54",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise55",
+          "fact": "Historical deployment note number 55 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise55",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise56",
+          "fact": "Historical deployment note number 56 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise56",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise57",
+          "fact": "Historical deployment note number 57 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise57",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise58",
+          "fact": "Historical deployment note number 58 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise58",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise59",
+          "fact": "Historical deployment note number 59 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise59",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise60",
+          "fact": "Historical deployment note number 60 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise60",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise61",
+          "fact": "Historical deployment note number 61 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise61",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise62",
+          "fact": "Historical deployment note number 62 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise62",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise63",
+          "fact": "Historical deployment note number 63 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise63",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise64",
+          "fact": "Historical deployment note number 64 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise64",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise65",
+          "fact": "Historical deployment note number 65 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise65",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise66",
+          "fact": "Historical deployment note number 66 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise66",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise67",
+          "fact": "Historical deployment note number 67 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise67",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise68",
+          "fact": "Historical deployment note number 68 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise68",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise69",
+          "fact": "Historical deployment note number 69 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise69",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise70",
+          "fact": "Historical deployment note number 70 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise70",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise71",
+          "fact": "Historical deployment note number 71 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise71",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise72",
+          "fact": "Historical deployment note number 72 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise72",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise73",
+          "fact": "Historical deployment note number 73 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise73",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise74",
+          "fact": "Historical deployment note number 74 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise74",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise75",
+          "fact": "Historical deployment note number 75 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise75",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise76",
+          "fact": "Historical deployment note number 76 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise76",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise77",
+          "fact": "Historical deployment note number 77 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise77",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise78",
+          "fact": "Historical deployment note number 78 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise78",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise79",
+          "fact": "Historical deployment note number 79 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise79",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise80",
+          "fact": "Historical deployment note number 80 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise80",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise81",
+          "fact": "Historical deployment note number 81 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise81",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise82",
+          "fact": "Historical deployment note number 82 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise82",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise83",
+          "fact": "Historical deployment note number 83 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise83",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise84",
+          "fact": "Historical deployment note number 84 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise84",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise85",
+          "fact": "Historical deployment note number 85 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise85",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise86",
+          "fact": "Historical deployment note number 86 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise86",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise87",
+          "fact": "Historical deployment note number 87 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise87",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise88",
+          "fact": "Historical deployment note number 88 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise88",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "noise89",
+          "fact": "Historical deployment note number 89 for unrelated component",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-5",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-5-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-5-noise89",
+              "author": "user"
+            }
+          ]
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "ZX777 deployment anchor",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": [
+          "noise0",
+          "noise1",
+          "noise2",
+          "noise3",
+          "noise4",
+          "noise5",
+          "noise6",
+          "noise7",
+          "noise8",
+          "noise9",
+          "noise10",
+          "noise11",
+          "noise12",
+          "noise13",
+          "noise14",
+          "noise15",
+          "noise16",
+          "noise17",
+          "noise18",
+          "noise19",
+          "noise20",
+          "noise21",
+          "noise22",
+          "noise23",
+          "noise24",
+          "noise25",
+          "noise26",
+          "noise27",
+          "noise28",
+          "noise29",
+          "noise30",
+          "noise31",
+          "noise32",
+          "noise33",
+          "noise34",
+          "noise35",
+          "noise36",
+          "noise37",
+          "noise38",
+          "noise39",
+          "noise40",
+          "noise41",
+          "noise42",
+          "noise43",
+          "noise44",
+          "noise45",
+          "noise46",
+          "noise47",
+          "noise48",
+          "noise49",
+          "noise50",
+          "noise51",
+          "noise52",
+          "noise53",
+          "noise54",
+          "noise55",
+          "noise56",
+          "noise57",
+          "noise58",
+          "noise59",
+          "noise60",
+          "noise61",
+          "noise62",
+          "noise63",
+          "noise64",
+          "noise65",
+          "noise66",
+          "noise67",
+          "noise68",
+          "noise69",
+          "noise70",
+          "noise71",
+          "noise72",
+          "noise73",
+          "noise74",
+          "noise75",
+          "noise76",
+          "noise77",
+          "noise78",
+          "noise79",
+          "noise80",
+          "noise81",
+          "noise82",
+          "noise83",
+          "noise84",
+          "noise85",
+          "noise86",
+          "noise87",
+          "noise88",
+          "noise89"
+        ]
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "ZX777 deployment anchor is staging-7",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-holdout-6",
+      "category": "Similar subject isolation",
+      "name": "holdout: Similar subject isolation",
+      "split": "holdout",
+      "projectId": "holdout-hard-6",
+      "asOf": "2026-03-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "database endpoint belongs to this project",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-6",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-6-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-6-target",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "other",
+          "fact": "database endpoint belongs to another project",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-6-other",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-6-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-6-other",
+              "author": "user"
+            }
+          ]
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "database endpoint",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": [
+          "other"
+        ]
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "database endpoint belongs to this project",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    },
+    {
+      "id": "HARD-holdout-7",
+      "category": "Expired evidence exclusion",
+      "name": "holdout: Expired evidence exclusion",
+      "split": "holdout",
+      "projectId": "holdout-hard-7",
+      "asOf": "2026-03-01T12:00:00.000Z",
+      "synthetic": true,
+      "facts": [
+        {
+          "key": "target",
+          "fact": "build command is node build.cjs",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-7",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-7-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-7-target",
+              "author": "user"
+            }
+          ]
+        },
+        {
+          "key": "expired",
+          "fact": "build command is npm old",
+          "tags": [
+            "reference"
+          ],
+          "projectId": "holdout-hard-7",
+          "scope": "project",
+          "observedAt": "2026-03-01T08:00:00.000Z",
+          "time": "2026-03-01T08:00:00.000Z",
+          "session_id": "holdout-hard-7-session",
+          "sourceRefs": [
+            {
+              "kind": "message",
+              "messageId": "holdout-hard-7-expired",
+              "author": "user"
+            }
+          ],
+          "expiresAt": "2026-03-01T09:00:00.000Z"
+        }
+      ],
+      "actions": [],
+      "query": {
+        "query": "build command",
+        "limit": 1,
+        "tokenBudget": 2000
+      },
+      "expect": {
+        "included": [
+          "target"
+        ],
+        "excluded": [
+          "expired"
+        ]
+      },
+      "question": "What does the currently valid project evidence say?",
+      "choices": {
+        "A": "build command is node build.cjs",
+        "B": "Use unrelated or stale evidence",
+        "C": "No supported evidence"
+      },
+      "correctChoice": "A"
+    }
+  ]
+}

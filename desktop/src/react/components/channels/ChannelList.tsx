@@ -33,10 +33,13 @@ export type { MemberInfo };
 export function ChannelListSidebar() {
   const { t } = useI18n();
   const channelsEnabled = useStore((s) => s.channelsEnabled);
+  const togglePending = useStore((s) => s.channelsTogglePending);
+  const toggleError = useStore((s) => s.channelsToggleError);
   const setChannelCreateOverlayVisible = useStore((s) => s.setChannelCreateOverlayVisible);
   const [warningOpen, setWarningOpen] = useState(false);
 
   const handleToggle = useCallback(() => {
+    if (useStore.getState().channelsTogglePending) return;
     const turningOn = !useStore.getState().channelsEnabled;
     if (turningOn) {
       setWarningOpen(true);
@@ -96,9 +99,14 @@ export function ChannelListSidebar() {
           <span className={styles.channelToggleBarLabel}>{t('channel.toggleLabel')}</span>
           <button type="button"
             className={`codia-toggle${channelsEnabled ? ' on' : ''}`}
+            role="switch"
+            aria-checked={channelsEnabled}
+            aria-label={t('channel.toggleLabel')}
+            disabled={togglePending}
             onClick={handleToggle}
           />
         </div>
+        {toggleError && <p role="alert">{toggleError}</p>}
       </div>
       <ChannelWarningModal
         open={warningOpen}

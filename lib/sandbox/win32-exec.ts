@@ -765,7 +765,7 @@ function assertSandboxNetworkSupported(sandbox) {
   if (mode === "none" || mode === false || !enabled) {
     throw new Error(
       "[win32-sandbox] Windows restricted-token sandbox does not support network-off mode. " +
-      "Re-enable sandbox networking or disable the command sandbox explicitly."
+      "This command was not started. Select a supported network policy; network isolation is unavailable in this backend."
     );
   }
 }

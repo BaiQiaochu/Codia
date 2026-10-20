@@ -7,6 +7,7 @@
   * */
 
 import { isUiOnlyDeferredResultTask } from "../deferred-result-notification.ts";
+import { findExecutionRun } from "../execution/run-controller.ts";
 
 function escapeXml(str) {
   return String(str)
@@ -44,6 +45,9 @@ function isExternallyDeliveredTask(task) {
  * @returns {boolean} 是否送达成功
  */
 function tryDeliver(pi, store, taskId, task) {
+  const run = findExecutionRun(task?.sessionPath);
+  if (run?.canContinueAutomatically() === false) return false;
+  if (task.runId && run?.snapshot()?.runId !== task.runId) return false;
   if (isExternallyDeliveredTask(task)) return false;
   if (isUiOnlyDeferredResultTask(task)) return false;
   try {
@@ -74,12 +78,13 @@ export function createDeferredResultExtension(deferredStore) {
     let unsubResult = null;
     let unsubFail = null;
     let retryTimer = null;
+    let startTimer = null;
 
     pi.on("session_start", (event, ctx) => {
       sessionPath = ctx.sessionManager.getSessionFile();
 
  //
-      setTimeout(() => {
+      startTimer = setTimeout(() => {
         const undelivered = deferredStore.listUndelivered(sessionPath);
         for (const task of undelivered) {
           if (isExternallyDeliveredTask(task)) continue;
@@ -133,6 +138,7 @@ export function createDeferredResultExtension(deferredStore) {
     });
 
     pi.on("session_shutdown", () => {
+      if (startTimer) { clearTimeout(startTimer); startTimer = null; }
       unsubResult?.();
       unsubFail?.();
       unsubResult = null;

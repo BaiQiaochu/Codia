@@ -8,8 +8,6 @@ import styles from '../Settings.module.css';
 import v2 from './MemoryGovernanceV2.module.css';
 import { MemoryProjectFilter } from './MemoryProjectFilter';
 import { MemoryBudgetSettings } from './MemoryBudgetSettings';
-import { openTaskConsoleRun } from '../../utils/task-console-navigation';
-import { closeSettingsModal } from '../../stores/settings-modal-actions';
 
 type Tab = 'memories' | 'experiences' | 'review';
 type Section = 'memories' | 'experiences' | 'jobs';
@@ -117,16 +115,6 @@ export function MemoryViewer() {
     window.addEventListener('keydown', handleKey);
     return () => { window.removeEventListener('keydown', handleKey); previousFocus.current?.focus(); };
   }, [visible]);
-  const openRunDetails = (runId: string) => {
-    if (mutationLock.current) return false;
-    // A standalone settings window has no task panel. Do not report navigation in a hidden store.
-    if (document.getElementById('settingsPanel') && !document.querySelector('[data-settings-return]')) {
-      setError(`请在桌面主窗口的“任务与成果”查看运行 ${runId}；此独立设置窗口无法显示任务详情。`);
-      return false;
-    }
-    if (!openTaskConsoleRun(runId)) { setError('无法定位这条运行的任务详情，请核对运行来源。'); return false; }
-    close(); closeSettingsModal(); return true;
-  };
   const runMutation = async (operation: () => Promise<void>, success: string) => {
     if (mutationLock.current) return false;
     mutationLock.current = true;
@@ -308,7 +296,7 @@ export function MemoryViewer() {
           {groupBySource(shownMemories, memory => memory.source || memory.sourceRefs?.[0]?.sessionId || memory.session_id || '来源未记录').map(([source, items]) => <section key={source} className={v2.group} aria-label={`事实来源 ${source}`}><h4>来源：{source}</h4>{items.map(memory => <React.Fragment key={memory.id}><label className={v2.selectionLabel}><input type="checkbox" aria-label={`选择事实 ${memory.id}`} disabled={disabled || !!batchPreview} checked={selected.some(item => item.id === memory.id)} onChange={event => setSelected(current => event.target.checked ? [...current, memory] : current.filter(item => item.id !== memory.id))} />选择事实 #{memory.id}</label><MemoryFactCard memory={memory} agentId={agentId} projects={projects} busy={disabled || !!batchPreview} onUpdate={updateMemory} onForget={forgetMemory} onOpenSource={sessionId => { void openEvidence(sessionId); }} /></React.Fragment>)}</section>)}
           {!loadErrors.memories && pagination('memories')}
         </>}
-        {groupBySource(shownExperiences, entry => entry.sourceRefs[0] ? `${entry.sourceRefs[0].type}:${entry.sourceRefs[0].id}` : '来源未记录').map(([source, items]) => <section key={source} className={v2.group} aria-label={`经验来源 ${source}`}><h4>来源：{source}</h4>{items.map(entry => <ExperienceCard key={entry.id} entry={entry} agentId={agentId} projects={projects} busy={disabled} onTransition={transition} onReview={review} onRevise={reviseExperience} onAttempt={attempt} onOpenRun={openRunDetails} />)}</section>)}
+        {groupBySource(shownExperiences, entry => entry.sourceRefs[0] ? `${entry.sourceRefs[0].type}:${entry.sourceRefs[0].id}` : '来源未记录').map(([source, items]) => <section key={source} className={v2.group} aria-label={`经验来源 ${source}`}><h4>来源：{source}</h4>{items.map(entry => <ExperienceCard key={entry.id} entry={entry} agentId={agentId} projects={projects} busy={disabled} onTransition={transition} onReview={review} onRevise={reviseExperience} onAttempt={attempt} />)}</section>)}
         {tab !== 'memories' && !loadErrors.experiences && pagination('experiences')}
         {tab === 'review' && <>{pendingJobs.map(job => <section key={job.key} className={styles['memory-governance-card']} aria-label="提取失败记录">
           <p>来源会话：{job.sessionId || '未记录'} · {job.status} · 尝试 {job.attempts || 0} 次</p><p className={styles['memory-governance-meta']}>{job.error || '提取未完成，未标记为成功。'}</p>

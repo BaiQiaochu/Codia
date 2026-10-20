@@ -50,6 +50,7 @@ function buildTextInvokeBlocks(text: string): ContentBlock[] {
 }
 
 interface Buffer {
+  runId: string | null;
   sessionPath: string;
   sessionId: string | null;
   streamId: string | null;
@@ -69,6 +70,8 @@ interface Buffer {
   turnTraceId: string | null;
   generationStarted: boolean;
   activeToolEventIds: Record<string, string[]>;
+  seenToolStarts: Set<string>;
+  seenToolEnds: Set<string>;
   activeMediaEventIds: Record<string, string[]>;
   messageSegment: number;
   splitBeforeNextContent: boolean;
@@ -80,6 +83,7 @@ let generatedMessageCounter = 0;
 
 function createBuffer(sessionPath: string, sessionId: string | null = null): Buffer {
   return {
+    runId: null,
     sessionPath,
     sessionId,
     streamId: null,
@@ -98,6 +102,8 @@ function createBuffer(sessionPath: string, sessionId: string | null = null): Buf
     turnTraceId: null,
     generationStarted: false,
     activeToolEventIds: {},
+    seenToolStarts: new Set(),
+    seenToolEnds: new Set(),
     activeMediaEventIds: {},
     messageSegment: 0,
     splitBeforeNextContent: false,
@@ -389,6 +395,8 @@ class StreamBufferManager {
     buf.generationStarted = false;
     buf.activeToolEventIds = {};
     buf.activeMediaEventIds = {};
+    buf.seenToolStarts.clear();
+    buf.seenToolEnds.clear();
     buf.messageSegment = 0;
     buf.splitBeforeNextContent = false;
   }
@@ -481,7 +489,8 @@ class StreamBufferManager {
     const store = useStore.getState();
     store.bindRuntimeTimelineMessage(buf.turnTraceId, buf.messageId);
     store.updateMessageById(buf.sessionPath, buf.messageId, (msg) => (
-      msg.turnTraceId === buf.turnTraceId ? msg : { ...msg, turnTraceId: buf.turnTraceId || undefined }
+      msg.turnTraceId === buf.turnTraceId && msg.runId === (buf.runId || undefined) ? msg
+        : { ...msg, turnTraceId: buf.turnTraceId || undefined, runId: buf.runId || undefined }
     ));
   }
 
@@ -553,7 +562,7 @@ class StreamBufferManager {
     const id = targetId || (buf.streamId
       ? `stream-${buf.streamId}${streamSegmentSuffix}`
       : `stream-${Date.now()}-${generatedMessageCounter}`);
-    const msg: ChatMessage = { id, role: 'assistant', blocks: [], turnTraceId: buf.turnTraceId || undefined };
+    const msg: ChatMessage = { id, role: 'assistant', blocks: [], turnTraceId: buf.turnTraceId || undefined, runId: buf.runId || undefined };
     store.appendItem(buf.sessionPath, { type: 'message', data: msg });
     bumpMessageLiveVersion(buf.sessionPath);
     buf.messageId = id;
@@ -663,6 +672,7 @@ class StreamBufferManager {
     const buf = this.getBuffer(sessionPath, normalizeSessionId(msg.sessionId));
     if (!this.bindStream(buf, msg)) return;
     this.bindTurnTrace(buf, msg);
+    if (typeof msg.runId === 'string') buf.runId = msg.runId;
 
     switch (msg.type) {
       case 'turn_queued':
@@ -772,6 +782,10 @@ class StreamBufferManager {
       }
 
       case 'tool_start':
+        if (toolCallIdFromEvent(msg)) {
+          if (buf.seenToolStarts.has(toolCallIdFromEvent(msg)!)) break;
+          buf.seenToolStarts.add(toolCallIdFromEvent(msg)!);
+        }
         this.detachFromOlderAssistantAfterUser(buf);
         generatedEventCounter += 1;
         {
@@ -791,6 +805,8 @@ class StreamBufferManager {
         this.flush(buf); // 先 flush 文本
         this.updateTargetMessage(buf, (m) => {
           const blocks = [...(m.blocks || [])];
+          const callId = toolCallIdFromEvent(msg);
+          if (callId && blocks.some(block => block.type === 'tool_group' && block.tools.some(tool => tool.id === callId))) return m;
           // 找最后一个 tool_group 或创建新的
           let lastTg = blocks.length - 1;
           while (lastTg >= 0 && blocks[lastTg].type !== 'tool_group') lastTg--;
@@ -813,7 +829,20 @@ class StreamBufferManager {
         });
         break;
 
+      case 'tool_progress':
+        this.updateTargetMessage(buf, m => ({
+          ...m, blocks: (m.blocks || []).map(block => block.type !== 'tool_group' ? block : {
+            ...block, tools: block.tools.map(tool => tool.id === toolCallIdFromEvent(msg) && !tool.done
+              ? { ...tool, progress: msg.progress, parentToolCallId: msg.parentToolCallId || tool.parentToolCallId } : tool),
+          }),
+        }));
+        break;
+
       case 'tool_end':
+        if (toolCallIdFromEvent(msg)) {
+          if (buf.seenToolEnds.has(toolCallIdFromEvent(msg)!)) break;
+          buf.seenToolEnds.add(toolCallIdFromEvent(msg)!);
+        }
         {
           const toolEventKey = toolCallIdFromEvent(msg) || msg.name;
           const queue = buf.activeToolEventIds[toolEventKey] || [];

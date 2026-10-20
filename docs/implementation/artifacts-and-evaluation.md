@@ -1,10 +1,10 @@
-# Artifacts and evaluation workbench
+# Artifact snapshots and offline evaluation
 
 ## Registered artifacts and historical content
 
-The task console lists visible registered session files. Preview and export reuse resource-backed file previews and authenticated resource URLs. Missing, expired and directory resources do not expose current-file preview/export/snapshot actions.
+The standalone task/results surface and snapshot-management API have been removed. Existing snapshot resources remain readable through the normal authenticated resource path so older conversations do not lose registered files.
 
-On a server reporting secure snapshot support, historical versions contain **saved bytes**, not only registration timestamps or sizes. The user explicitly selects **保存内容快照** for a registered artifact. Merely opening the results panel never creates a snapshot. Each save copies the current authorized regular file, records SHA-256, size, capture time, source file ID, source mtime, monotonically increasing sequence and parent snapshot ID. An unchanged latest version is reused. Later source edits or deletion do not change the saved bytes. Existing files do not retroactively acquire unsaved history.
+Historical versions created by earlier builds contain **saved bytes**, not only registration timestamps or sizes. Later source edits or deletion do not change those saved bytes. Current builds do not expose a UI or HTTP operation that creates new snapshots.
 
 Snapshots are hidden session-registry entries with a separate `artifact_snapshot` origin/storage kind, outside transient managed-cache watermarking and expiry. Bytes and records are exclusively created, fsynced and read-only; history is recovered from disk after restart. Filesystem owners can still alter local data, so comparison and content delivery re-verify the stored hash and fails closed on tampering rather than claiming filesystem-level immutability. An interrupted save can leave an unlisted copy; that copy still counts toward the quota. It is not silently deleted or exposed as a complete version.
 
@@ -19,13 +19,7 @@ Safety and retention policy:
 
 ### Platform support and metadata trust
 
-`GET /api/task-artifacts` returns `capabilities: { platform, snapshotAvailable, reason }`.
-Secure snapshot capture, historical-content preview/export, and comparison currently
-require Linux with a usable `/proc/self/fd` handle mapping. Windows and macOS return
-`snapshot_platform_unsupported`; Linux without usable procfs returns
-`snapshot_fd_verification_unavailable`. Content operations fail closed with HTTP 503.
-The UI disables these actions (also for older servers without capabilities) and
-explains the platform limitation. Ordinary registered-file preview/export is unchanged.
+Secure snapshot capture and comparison are no longer exposed by a standalone API. The retained reader still verifies existing snapshot bytes and fails closed when their platform or stored metadata cannot be trusted. Ordinary registered-file preview/export is unchanged.
 
 The existing Windows sandbox helper does use `GetFinalPathNameByHandleW` internally,
 but it closes its own handle and does not expose an API that validates the same
@@ -46,8 +40,8 @@ append-only authenticated storage system or protection from an administrator.
 
 Comparison shows an actual line-level UTF-8 diff for up to 64 KiB and 300 lines per version. React renders content as text, including HTML-like strings. Blank lines and carriage returns are marked, so line-ending changes remain visible. Binary/non-UTF-8 input or larger text receives a clearly labeled byte-hash/size comparison. This is not semantic Word/PDF/spreadsheet diff.
 
-## Evaluation reports
+## Offline evaluation reports
 
-The evaluation tab reads local JSON reports from scripts/evaluation-gate.mjs, validates the schema, strips non-summary fields, compares case outcomes, flags missing prior cases as regressions and exports a local summary. It does not upload reports or execute commands/models. The 30-case gate is deterministic reliability validation, not a real-model task-quality or cost benchmark. The report records source revision and dirty-worktree state, so an uncommitted run is not represented as a clean released revision.
+The removed task/results page no longer imports evaluation reports. `scripts/evaluation-gate.mjs` remains an offline command for deterministic reliability validation; it is not a real-model task-quality or cost benchmark. Reports record source revision and dirty-worktree state, so an uncommitted run is not represented as a clean released revision.
 
-The workbench also accepts the separate [bounded model-task benchmark](model-task-evaluation.md) reports, with explicit disabled/mock/live provenance, versioned datasets, compatible baseline comparison and unknown-cost coverage. Offline reference replay never counts as live model acceptance.
+The separate [bounded model-task benchmark](model-task-evaluation.md) remains available as an offline command with explicit disabled/mock/live provenance, versioned datasets and unknown-cost coverage. Offline reference replay never counts as live model acceptance.

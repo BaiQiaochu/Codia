@@ -97,7 +97,8 @@ function activityFromTool(tool: ToolCall, id: string, translate: Translate): Pro
   const pluginToolName = plugin && tool.name.startsWith(`${plugin}_`)
     ? tool.name.slice(plugin.length + 1).replace(/[_-]+/g, ' ')
     : '';
-  const detailText = [pluginToolName, detail.text].filter(Boolean).join(' · ');
+  const progress = !tool.done && typeof tool.progress === 'string' ? compactText(tool.progress).slice(0, 200) : '';
+  const detailText = [pluginToolName, detail.text, progress].filter(Boolean).join(' · ');
 
   return {
     id,

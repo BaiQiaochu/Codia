@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /** No network by default. Explicit --run-model and --allow-network required for a configured endpoint. */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -6,9 +5,10 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { loadMemoryCases, validateDataset, executeMemoryCase } from '../evals/memory-case-runtime.mjs';
 import { parseChoice, summarizeModelRows, pairedComparison } from '../evals/memory-evaluation-metrics.mjs';
+import { summarizeRetrieval } from '../evals/memory-retrieval-metrics.mjs';
 
 export function parseOptions(argv) {
-  const flags = new Set(['help', 'run-model', 'allow-network']);
+  const flags = new Set(['help', 'run-model', 'allow-network', 'hard-cases']);
   const valued = new Set(['endpoint', 'model', 'split', 'output', 'max-cases', 'max-output-tokens', 'timeout-ms', 'input-price-per-million', 'output-price-per-million', 'max-cost-usd']);
   const result = {};
   for (let i = 0; i < argv.length; i++) {
@@ -29,7 +29,7 @@ export function parseOptions(argv) {
   return result;
 }
 
-const HELP = `Codia memory evaluation (Node 24)\n\nDeterministic, no endpoint or credentials:\n  node scripts/eval-memory.mjs --split all --output artifacts/memory-deterministic.json\n\nReal paired endpoint evaluation (explicit opt-in; synthetic inputs only):\n  node scripts/eval-memory.mjs --run-model --allow-network --endpoint http://localhost:8000/v1/chat/completions --model MODEL --split holdout --output artifacts/memory-model.json\n\nOptional: --max-cases N --max-output-tokens 256 --timeout-ms 60000\n  --input-price-per-million USD --output-price-per-million USD --max-cost-usd USD\nAPI key, only if needed: CODIA_MEMORY_EVAL_API_KEY (never stored in report).\nEndpoint must already be authorized. This runner does not create accounts or discover credentials.\nModel output format: {"choice":"A|B|C"}. Non-JSON/HTTP errors count as incorrect, never silently dropped.\n`;
+const HELP = `Codia memory evaluation (Node 24)\n\nDeterministic, no endpoint or credentials:\n  node scripts/eval-memory.mjs --split all --output artifacts/memory-deterministic.json\n\nReal paired endpoint evaluation (explicit opt-in; synthetic inputs only):\n  node scripts/eval-memory.mjs --run-model --allow-network --endpoint http://localhost:8000/v1/chat/completions --model MODEL --split holdout --output artifacts/memory-model.json\n\nAdditional hard fixtures: --hard-cases --split tune|holdout\n\nOptional: --max-cases N --max-output-tokens 256 --timeout-ms 60000\n  --input-price-per-million USD --output-price-per-million USD --max-cost-usd USD\nAPI key, only if needed: CODIA_MEMORY_EVAL_API_KEY (never stored in report).\nEndpoint must already be authorized. This runner does not create accounts or discover credentials.\nModel output format: {"choice":"A|B|C"}. Non-JSON/HTTP errors count as incorrect, never silently dropped.\n`;
 
 export function buildModelMessages(fixture, memoryText, arm) {
   return [
@@ -56,7 +56,9 @@ export async function requestModel({ endpoint, model, apiKey, messages, maxOutpu
 export async function main(argv = process.argv.slice(2)) {
   const args = parseOptions(argv);
   if (args.help) { console.log(HELP); return; }
-  const all = loadMemoryCases(); validateDataset(all);
+  const datasetUrl = new URL(args['hard-cases'] ? '../evals/memory-hard-cases.json' : '../evals/memory-product-cases.json', import.meta.url);
+  const all = args['hard-cases'] ? JSON.parse(fs.readFileSync(datasetUrl, 'utf8')).cases : loadMemoryCases();
+  if (!args['hard-cases']) validateDataset(all);
   const split = args.split || 'all';
   if (!['all', 'tune', 'holdout'].includes(split)) throw new Error('--split must be all, tune, or holdout');
   let cases = all.filter(c => split === 'all' || c.split === split);
@@ -66,7 +68,7 @@ export async function main(argv = process.argv.slice(2)) {
     cases = cases.slice(0, n);
   }
   const report = {
-    schemaVersion: 1, generatedAt: new Date().toISOString(), datasetSHA256: crypto.createHash('sha256').update(fs.readFileSync(new URL('../evals/memory-product-cases.json', import.meta.url))).digest('hex'),
+    schemaVersion: 1, generatedAt: new Date().toISOString(), datasetSHA256: crypto.createHash('sha256').update(fs.readFileSync(datasetUrl)).digest('hex'),
     datasetKind: 'synthetic fixtures; not private user conversations', split, caseCount: cases.length,
     implementationSHA256: Object.fromEntries(['lib/memory/fact-store.ts', 'lib/memory/query-service.ts', 'lib/experience-store.ts'].map(file => [file, crypto.createHash('sha256').update(fs.readFileSync(new URL('../' + file, import.meta.url))).digest('hex')])),
     mode: args['run-model'] ? 'real-endpoint-paired-model-evaluation' : 'deterministic-production-code-assertions',
@@ -78,12 +80,20 @@ export async function main(argv = process.argv.slice(2)) {
     try {
       const result = executeMemoryCase(fixture); fixtures.set(fixture.id, result);
       report.deterministic.passed++; report.deterministic.assertionCount += result.assertionCount;
-      report.deterministic.cases.push({ id: fixture.id, category: fixture.category, passed: true, assertionCount: result.assertionCount, fixtureLatencyMs: result.fixtureLatencyMs, retrievalRecall: result.retrievalRecall, estimatedInjectionByteBound: result.estimatedTokens });
-    } catch (error) { report.deterministic.failed++; report.deterministic.cases.push({ id: fixture.id, category: fixture.category, passed: false, error: error.message }); }
+      report.deterministic.cases.push({ id: fixture.id, category: fixture.category, passed: true, assertionCount: result.assertionCount,
+        fixtureLatencyMs: result.fixtureLatencyMs, retrievalRecall: result.retrievalRecall,
+        injectionRecall: result.injectionRecall ?? result.retrievalRecall, precisionAtK: result.precisionAtK ?? result.retrievalRecall,
+        k: result.k ?? 8, estimatedInjectionByteBound: result.estimatedTokens });
+    } catch (error) {
+      report.deterministic.failed++;
+      report.deterministic.cases.push({ id: fixture.id, category: fixture.category, passed: false, error: error.message,
+        ...error.retrievalMetrics, infrastructureFailure: error.infrastructureFailure === true });
+    }
   }
-  const retrievalCases = report.deterministic.cases.filter(row => row.passed && row.retrievalRecall !== null);
+  const retrievalCases = report.deterministic.cases.filter(row => !row.infrastructureFailure && row.retrievalRecall != null);
+  report.deterministic.retrieval = summarizeRetrieval(report.deterministic.cases);
   report.deterministic.evidenceRecall = { n: retrievalCases.length, macroRecall: retrievalCases.length ? retrievalCases.reduce((sum, row) => sum + row.retrievalRecall, 0) / retrievalCases.length : null, note: 'Synthetic fixture evidence IDs, not extraction or final-answer accuracy.' };
-  const output = path.resolve(String(args.output || `artifacts/memory-${args['run-model'] ? 'model' : 'deterministic'}.json`));
+  const output = path.resolve(String(args.output || `artifacts/memory-${args['hard-cases'] ? 'hard-' : ''}${args['run-model'] ? 'model' : 'deterministic'}.json`));
   const save = () => { fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n'); };
   if (args['run-model']) {
     if (!args['allow-network']) throw new Error('Real endpoint execution requires --allow-network; no requests were sent.');

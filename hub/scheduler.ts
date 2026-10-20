@@ -11,6 +11,7 @@ import { createFreshCompactDailyScheduler } from "../lib/fresh-compact/daily-sch
 import { FreshCompactMaintainer } from "./fresh-compact-maintainer.ts";
 import { WORKSPACE_OUTPUT_ROOT_DIRNAME } from "../shared/workspace-output.ts";
 import { getAutomationExecutor } from "../lib/desk/automation-executors.ts";
+import { isExecutionPaused } from "../shared/execution-run.ts";
 
 function normalizeCronExecutionContext(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -378,6 +379,7 @@ export class Scheduler {
       runId: id,
     });
     const { sessionPath, error } = result;
+    const paused = isExecutionPaused(result.executionRun);
 
     const finishedAt = Date.now();
     const failed = !!error;
@@ -388,7 +390,7 @@ export class Scheduler {
 
     // Generate an activity summary when a session file was produced.
     let summary = null;
-    if (typeof sessionPath === "string" && sessionPath) {
+    if (!paused && typeof sessionPath === "string" && sessionPath) {
       try {
         summary = await engine.summarizeActivity(sessionPath, undefined, { agentId });
       } catch {}
@@ -407,6 +409,7 @@ export class Scheduler {
         const hbLabel = isZhS ? "日常巡检" : "routine patrol";
         const cronLabel = isZhS ? "定时任务" : "cron job";
         const failSuffix = isZhS ? "执行失败" : "execution failed";
+        if (paused) return `${label || (type === "heartbeat" ? hbLabel : cronLabel)} · ${isZhS ? "已暂停，打开原会话后继续" : "Paused; open the original conversation to continue"}`;
         if (failed) return `${label || (type === "heartbeat" ? hbLabel : cronLabel)} ${failSuffix}`;
         return summary || (type === "heartbeat" ? hbLabel : (label || cronLabel));
       })(),
@@ -414,7 +417,8 @@ export class Scheduler {
       sessionPath: typeof sessionPath === "string" ? sessionPath : null,
       environment: result.environment?.provenance === "recorded" ? result.environment : null,
       sessionFile: typeof sessionPath === "string" ? path.basename(sessionPath) : null,
-      status: failed ? "error" : "done",
+      status: paused ? "paused" : failed ? "error" : "done",
+      executionRun: result.executionRun || null,
       error: error || null,
     };
 
@@ -424,6 +428,9 @@ export class Scheduler {
     // Broadcast activity changes to desktop and PWA clients.
     this._hub.eventBus.emit({ type: "activity_update", activity: entry }, null);
 
+    if (paused) throw Object.assign(new Error('run_paused'), {
+      paused: true, runDetails: { activityId: id, sessionPath: sessionPath || null, runId: result.executionRun.runId },
+    });
     if (failed) {
       const isZhR = getLocale().startsWith("zh");
       const reason = error || (isZhR ? "后台任务未生成 session" : "background task produced no session");

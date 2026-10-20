@@ -68,9 +68,10 @@ interface CompanyTaskTree {
   assigneeCount: number;
 }
 
-function localText(key: string, fallback: string) {
-  const value = window.t?.(key);
-  return value && value !== key ? value : fallback;
+function localText(key: string, fallback: string, params?: Record<string, string>) {
+  const value = window.t?.(key, params);
+  if (value && value !== key) return value;
+  return fallback.replace(/\{(\w+)\}/g, (match, name: string) => params?.[name] ?? match);
 }
 
 function yuanTypeDisplayName(key: (typeof YUAN_OPTIONS)[number]) {
@@ -223,7 +224,7 @@ function isReviewTask(task: CompanyTask) {
 }
 
 function assignmentChannelLabel(task: CompanyTask) {
-  return task.channelId || '未绑定频道';
+  return task.channelId || localText('channel.unboundTeam', '未绑定 Agent 小队');
 }
 
 function suggestAgentName(
@@ -510,7 +511,7 @@ export function ChannelWorkspacePanel() {
     try {
       await removeChannelMember(currentChannel, memberId);
       await loadChannels();
-      addToast(window.t?.('channel.memberRemoved', { name: displayName }) || `${displayName} 已移出频道`, 'success', 2200);
+      addToast(localText('channel.memberRemoved', '{name} 已移出 Agent 小队', { name: displayName }), 'success', 2200);
     } catch (err) {
       addToast(
         `${window.t?.('channel.removeMemberFailed') || '移除成员失败'}: ${err instanceof Error ? err.message : String(err)}`,
@@ -610,7 +611,7 @@ export function ChannelWorkspacePanel() {
             <div className={styles.channelWorkspaceDescription}>{channelInfoDescription}</div>
           )}
         </div>
-        <div className={styles.channelRoleSummary} aria-label="频道角色分布">
+        <div className={styles.channelRoleSummary} aria-label={localText('channel.roleDistribution', 'Agent 小队角色分布')}>
           {roleCounts.project_manager > 0 && (
             <span className={`${styles.channelRoleBadge} ${styles.roleProjectManager}`}>
               {getChannelRoleLabel('project_manager')} {roleCounts.project_manager}
@@ -638,7 +639,7 @@ export function ChannelWorkspacePanel() {
         <div className={styles.channelSectionHeaderRow}>
           <div>
             <div className="channel-info-label">AI Agent 集群调用</div>
-            <div className={styles.channelClusterSubtitle}>按任务树拆解目标，自动派发到频道成员并追踪 Agent 回报。</div>
+            <div className={styles.channelClusterSubtitle}>{localText('channel.taskDistributionHint', '按任务树拆解目标，自动派发到 Agent 小队成员并追踪回报。')}</div>
           </div>
           <span className={styles.channelClusterBadge}>
             {scopedTaskTrees.length} 棵任务树
@@ -665,7 +666,7 @@ export function ChannelWorkspacePanel() {
         <textarea
           className={styles.channelClusterInput}
           value={clusterCommand}
-          placeholder="输入项目目标，自动拆成任务树并派发给频道成员"
+          placeholder={localText('channel.taskGoalPlaceholder', '输入项目目标，自动拆成任务树并派发给 Agent 小队成员')}
           rows={3}
           onChange={(e) => setClusterCommand(e.target.value)}
         />
@@ -679,7 +680,7 @@ export function ChannelWorkspacePanel() {
             {dispatchingCluster ? '派发中' : '拆解并派发'}
           </button>
           <span className={styles.channelClusterHint}>
-            由一人公司插件生成任务树并 @ 对应 Agent，频道调度会继续触发成员处理。
+            {localText('channel.taskPluginHint', '由一人公司插件生成任务树并 @ 对应 Agent，Agent 小队调度会继续触发成员处理。')}
           </span>
         </div>
         <div className={styles.channelAgentLanes} aria-label="Agent 集群分工">
@@ -712,23 +713,25 @@ export function ChannelWorkspacePanel() {
           <div>
             <div className="channel-info-label">调度总监</div>
             <div className={styles.channelDirectorSubtitle}>
-              跨频道查看任务分派、Agent 当前状态、阻塞点和待复核输出。
+              {localText('channel.crossTeamHint', '跨 Agent 小队查看任务分派、Agent 当前状态、阻塞点和待复核输出。')}
             </div>
           </div>
           <span className={styles.channelDirectorBadge}>总监群监督 {directorSupervisors.length}</span>
         </div>
         <div className={styles.channelDirectorGrid}>
           <div className={styles.channelDirectorMetric}>
-            <span>跨频道任务分派</span>
+            <span>{localText('channel.crossTeamAssignments', '跨 Agent 小队任务分派')}</span>
             <strong>{directorSummary.allTasks.length}</strong>
             <small>
-              {directorSummary.assignedTasks.length} 已指派 · {directorSummary.crossChannelTasks.length} 跨频道
+              {localText('channel.assignmentSummary', '{assigned} 已指派 · {cross} 跨 Agent 小队', {
+                assigned: String(directorSummary.assignedTasks.length), cross: String(directorSummary.crossChannelTasks.length),
+              })}
             </small>
           </div>
           <div className={styles.channelDirectorMetric}>
             <span>Agent 当前状态</span>
             <strong>{directorSummary.activeAgentCount}</strong>
-            <small>{taskSummary.active} 个当前频道任务在推进</small>
+            <small>{localText('channel.activeTaskSummary', '{count} 个当前 Agent 小队任务在推进', { count: String(taskSummary.active) })}</small>
           </div>
           <div className={styles.channelDirectorMetric}>
             <span>阻塞点</span>
@@ -768,7 +771,7 @@ export function ChannelWorkspacePanel() {
               <small>{getChannelRoleLabel(role)}</small>
             </button>
           )) : (
-            <div className={styles.channelDirectorEmpty}>暂无项目经理或管理员，总监群监督会使用第一个频道成员兜底。</div>
+            <div className={styles.channelDirectorEmpty}>{localText('channel.noSupervisorHint', '暂无项目经理或管理员，将由第一个 Agent 小队成员承担监督。')}</div>
           )}
         </div>
       </div>
@@ -796,7 +799,7 @@ export function ChannelWorkspacePanel() {
           </div>
         </div>
         <div className={styles.channelTaskTreeNote}>
-          任务树按频道绑定过滤；被 @ 的 Agent 会通过频道调度继续处理任务卡。
+          {localText('channel.taskTreeFilterHint', '任务树按 Agent 小队绑定过滤；被 @ 的 Agent 会继续处理任务卡。')}
         </div>
         {companyError ? (
           <div className={styles.channelTaskTreeEmpty}>

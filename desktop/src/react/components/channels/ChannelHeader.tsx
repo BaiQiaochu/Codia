@@ -106,7 +106,7 @@ export function ChannelHeader() {
           setBusyMemberId(agent.id);
           removeChannelMember(currentChannel, agent.id)
             .then(() => {
-              addToast(`${agent.name} 已移出频道`, 'success', 2200);
+              addToast(t('channel.memberRemoved', { name: agent.name }), 'success', 2200);
               focusWorkspaceSection('members');
             })
             .catch((err) => {

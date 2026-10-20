@@ -61,6 +61,12 @@ function queryTerms(query: string): string[] {
   return [...new Set(terms.map(term => term.trim()).filter(term => term.length > 1))].slice(0, 12);
 }
 
+// Small domain vocabulary; expansion never changes subject/scope filters.
+const ENTITY_ALIASES = [['工作目录', '工作区', 'workspace'], ['数据库', 'db'], ['仓库', 'repo'], ['构建', 'build']];
+export function normalizeMemoryQuery(value: string) {
+  return value.normalize('NFKC').replace(/\s+/g, ' ').trim().slice(0, 2000);
+}
+
 function canUse(fact: MemoryFact, query: MemoryQuery): boolean {
   if (fact.status && fact.status !== 'active') return false;
   const now = query.now || new Date().toISOString();
@@ -105,7 +111,7 @@ export class MemoryQueryService {
 
   query(query: MemoryQuery = {}) {
     const started = performance.now();
-    const text = String(query.query || '').trim().slice(0, 2000);
+    const text = normalizeMemoryQuery(String(query.query || ''));
     const tags = [...new Set((query.tags || []).filter(tag => typeof tag === 'string' && tag.trim()))].slice(0, 24);
     const filters = {
       channelId: query.channelId || null, crossChannel: query.crossChannel === true, excludeChannels: query.excludeChannels === true,
@@ -131,9 +137,15 @@ export class MemoryQueryService {
       if (term === text) continue;
       add(this.factStore.searchFullText(term, Math.min(30, this.candidateLimit), filters), 'entities', 0.25);
     }
+    for (const aliases of ENTITY_ALIASES) {
+      if (!queryTerms(text.toLowerCase()).some(term => aliases.includes(term))) continue;
+      for (const alias of aliases) {
+        add(this.factStore.searchFullText(alias, Math.min(30, this.candidateLimit), filters), 'aliases', 0.15);
+      }
+    }
     const normalized = text.toLocaleLowerCase();
     for (const fact of candidates.values()) {
-      if (normalized && fact.fact.toLocaleLowerCase().includes(normalized)) fact.score! += 0.025;
+      if (normalized && normalizeMemoryQuery(fact.fact).toLocaleLowerCase().includes(normalized)) fact.score! += 0.025;
     }
     const ranked = [...candidates.values()].sort((a, b) => (b.score! - a.score!) || a.id - b.id);
     const result = this.select(ranked, query);

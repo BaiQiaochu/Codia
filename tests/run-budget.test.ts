@@ -10,6 +10,18 @@ const message = (u: any = usage) => ({ role: 'assistant', content: [{ type: 'tex
 const drain = async (stream: AsyncIterable<any>) => { const out = []; for await (const event of stream) out.push(event); return out; };
 
 describe('local run budget reservations', () => {
+  it('restores verified cumulative usage and blocks uncertain reservations', () => {
+    let now = 1000;
+    const original = new RunBudget(limits, model, () => now);
+    original.settle(original.reserve(model).id, usage);
+    now += 100;
+    const saved = original.exportState();
+    const restored = new RunBudget(limits, model, () => now + 5000, saved);
+    expect(restored.snapshot()).toMatchObject({ calls: 1, committedTokens: 110, committedUsd: 0.00012 });
+    expect(restored.exportState().elapsedMs).toBe(100);
+    restored.reserve(model);
+    expect(() => new RunBudget(limits, model, () => now, restored.exportState())).toThrow(/Unsettled/);
+  });
   it('atomically reserves concurrent calls before any dispatch and frees only verified unused allowance', async () => {
     const budget = createRunBudget(limits, model);
     const results = await Promise.allSettled([Promise.resolve().then(() => budget.reserve(model)), Promise.resolve().then(() => budget.reserve(model))]);

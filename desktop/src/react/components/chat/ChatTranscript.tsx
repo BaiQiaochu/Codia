@@ -7,6 +7,7 @@ import { UserMessage } from './UserMessage';
 import { AssistantMessage } from './AssistantMessage';
 import { InterludeBlock } from './InterludeBlock';
 import { ProcessFoldBlock } from './ProcessFoldBlock';
+import { ExecutionRunNotice } from './ExecutionRunNotice';
 import { buildTranscriptRenderItems, type TranscriptRenderItem } from './process-fold';
 import styles from './Chat.module.css';
 
@@ -125,6 +126,7 @@ export const ChatTranscript = memo(function ChatTranscript({
           </MessageRenderBoundary>
         );
       })}
+      {!readOnly && enableProcessFold && <ExecutionRunNotice sessionPath={sessionPath} />}
     </>
   );
 });

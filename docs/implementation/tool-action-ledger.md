@@ -27,10 +27,4 @@ This is duplicate suppression for the same stable tool call, not exactly-once de
 
 Coverage includes forced child-process death after a simulated external effect, reconstruction of the ledger, concurrent duplicate writes, response timeout, successful duplicate suppression, changed parameters/scope, safe read retry, corruption, unavailable storage, failed completion persistence, approval identity, and absence of raw secrets/results on disk.
 
-## Read-only recovery inspection
-
-`GET /api/tool-actions` and `GET /api/tool-actions/:actionId` expose a strict metadata allowlist under the existing studio-owner route policy. The list is bounded to 100 recent entries and reports unreadable entries explicitly. Parameter digests, parameters, outputs and arbitrary legacy JSON keys are excluded. Session navigation is resolved from the opaque session reference against `engine.listSessions()`; missing/legacy sessions receive no guessed target.
-
-The task console includes an on-demand “工具动作恢复检查” panel displaying actual action states, trace/confirmation references and original-session navigation. Navigation does not retry, cancel or undo an external operation. No mutation, reset, deletion or resubmission endpoint is exposed. This closes safe inspection, not the future externally verified reconciliation/cancellation workflow.
-
-Focused verification additionally covers `tests/tool-actions-route.test.ts`, `desktop/src/react/components/ToolActionLedgerPanel.test.tsx`, and the existing task console component tests (34 passing tests across all six related files).
+The ledger remains an internal execution safety boundary. There is no standalone task-center inspection route or panel; callers continue to receive the existing fail-closed tool result when a write cannot be safely classified.

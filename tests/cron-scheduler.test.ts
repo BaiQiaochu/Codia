@@ -53,6 +53,16 @@ afterEach(() => {
 });
 
 describe("cron-scheduler", () => {
+  it("records an allowance pause without reporting success or restarting the task", async () => {
+    const { store, calls } = createStore(dueJob("paused"));
+    const execute = vi.fn(async () => { throw Object.assign(new Error("run_paused"),
+      { paused: true, runDetails: { runId: "run-1", sessionPath: "/original" } }); });
+    const scheduler = createCronScheduler({ cronStore: store, executeJob: execute });
+    await scheduler.checkJobs();
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(calls.runs[0].run).toMatchObject({ status: "paused", runId: "run-1", sessionPath: "/original" });
+    scheduler.stop();
+  });
   it("uses a 20 minute execution timeout by default", () => {
     expect(DEFAULT_CRON_EXECUTION_TIMEOUT_MS).toBe(20 * 60 * 1000);
   });

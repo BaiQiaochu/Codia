@@ -40,9 +40,21 @@ vi.mock("../lib/debug-log.js", () => ({
 }));
 
 import { SessionCoordinator } from "../core/session-coordinator.js";
+import { RunController } from "../lib/execution/run-controller.ts";
 
 describe("SessionCoordinator", () => {
   let tempDir;
+
+  it("does not delegate a bounded local task to an unaccounted external runtime", async () => {
+    const agent = { id: "external", config: { runtime: { target: "wukong" } } };
+    const coordinator = new SessionCoordinator({ getAgent: () => agent });
+    const run = new RunController(); run.begin();
+    try {
+      const result = await run.run(() => coordinator.executeIsolated("delegate"));
+      expect(result.error).toMatch(/cannot enforce.*shared/);
+      expect(createAgentSessionMock).not.toHaveBeenCalled();
+    } finally { run.cancel(); }
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();

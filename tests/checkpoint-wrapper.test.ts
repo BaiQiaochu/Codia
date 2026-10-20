@@ -103,7 +103,7 @@ describe("wrapWithCheckpoint", () => {
     expect(store.save).not.toHaveBeenCalled();
   });
 
-  it("still executes tool even if save fails", async () => {
+  it("blocks the tool when enabled checkpoint protection fails", async () => {
     store.save = vi.fn(async () => { throw new Error("disk full"); });
     const writeTool = makeTool("write");
     const [wrapped] = wrapWithCheckpoint([writeTool], {
@@ -113,7 +113,7 @@ describe("wrapWithCheckpoint", () => {
       getSessionPath: () => null,
     });
 
-    const result = await wrapped.execute("t6", { path: "src/foo.js" });
-    expect(writeTool.execute).toHaveBeenCalled();
+    await expect(wrapped.execute("t6", { path: "src/foo.js" })).rejects.toThrow("Checkpoint backup failed");
+    expect(writeTool.execute).not.toHaveBeenCalled();
   });
 });

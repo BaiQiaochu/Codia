@@ -76,13 +76,29 @@ export class RunBudget {
   private committedTokens = 0;
   private committedUsd = 0;
   private blockedReason: string | null = null;
-  constructor(limits: RunBudgetLimits, model: BudgetModel, now = Date.now) {
+  constructor(limits: RunBudgetLimits, model: BudgetModel, now = Date.now, restored?: ReturnType<RunBudget['exportState']>) {
     const inspection = inspectRunBudget(limits, model);
     if (inspection.state !== 'pass') throw new Error(inspection.reason);
     this.limits = Object.freeze({ ...limits, maxModelCalls: limits.maxModelCalls ?? 32 });
     this.model = Object.freeze({ ...model, cost: Object.freeze({ ...model.cost }), ...(model.pricing !== undefined ? { pricing: structuredClone(model.pricing) } : {}) });
     this.now = now;
-    this.startedAt = now();
+    this.startedAt = now() - (restored?.elapsedMs || 0);
+    if (restored) {
+      if (restored.version !== 1 || restored.modelKey !== modelKey(model)
+        || JSON.stringify(restored.limits) !== JSON.stringify(this.limits)
+        || ![restored.elapsedMs, restored.calls, restored.nextId, restored.committedTokens, restored.committedUsd].every(value => Number.isFinite(value) && value >= 0)
+        || ![restored.calls, restored.nextId, restored.committedTokens].every(Number.isSafeInteger)
+        || restored.nextId < 1 || restored.calls > this.limits.maxModelCalls
+        || restored.committedTokens > this.limits.maxTokens || restored.committedUsd > this.limits.maxUsd
+        || !Array.isArray(restored.reservations)) throw new Error('Invalid or incompatible budget checkpoint');
+      this.calls = restored.calls;
+      this.nextId = restored.nextId;
+      this.committedTokens = restored.committedTokens;
+      this.committedUsd = restored.committedUsd;
+      for (const reservation of restored.reservations) this.reservations.set(reservation.id, Object.freeze({ ...reservation }));
+      this.blockedReason = restored.blockedReason || (this.reservations.size ? 'Unsettled provider usage requires review' : null);
+      this.assertActive();
+    }
   }
   subscribe(listener: (snapshot: ReturnType<RunBudget['snapshot']>) => void) {
     this.listeners.add(listener);
@@ -156,6 +172,16 @@ export class RunBudget {
       reservedTokens: pending.reduce((sum, item) => sum + item.reservedTokens, 0),
       reservedUsd: pending.reduce((sum, item) => sum + item.reservedUsd, 0), pendingCalls: pending.length,
       pricing: 'configured-local-reservation' as const, providerInvoiceHardCap: false, note: RUN_BUDGET_NOTE };
+  }
+  exportState(): {
+    version: 1; modelKey: string; limits: Readonly<Required<RunBudgetLimits>>; elapsedMs: number;
+    nextId: number; calls: number; committedTokens: number; committedUsd: number;
+    blockedReason: string | null; reservations: BudgetReservation[];
+  } {
+    return { version: 1, modelKey: modelKey(this.model), limits: this.limits,
+      elapsedMs: Math.max(0, this.now() - this.startedAt), nextId: this.nextId, calls: this.calls,
+      committedTokens: this.committedTokens, committedUsd: this.committedUsd,
+      blockedReason: this.blockedReason, reservations: [...this.reservations.values()] };
   }
 }
 export const createRunBudget = (limits: RunBudgetLimits, model: BudgetModel) => new RunBudget(limits, model);

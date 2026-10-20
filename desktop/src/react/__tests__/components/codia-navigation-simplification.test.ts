@@ -9,7 +9,7 @@ describe('Codia desktop navigation simplification', () => {
     const app = fs.readFileSync(path.join(ROOT, 'App.tsx'), 'utf8');
 
     expect(app).toContain('<span>聊天</span>');
-    expect(app).toContain('<span>Agent 小队</span>');
+    expect(app).toContain("t('channel.tab')");
     expect(app).toContain('<span>工作流</span>');
     expect(app).toContain("<span>{t('sidebar.automationRecords')}</span>");
     expect(app).not.toContain('<span>活动与插件</span>');

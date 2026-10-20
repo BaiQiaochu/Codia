@@ -599,7 +599,14 @@ export class ConfigCoordinator {
 
     const hub = this._d.getHub();
     if (hub && typeof hub.toggleChannels === "function") {
-      await hub.toggleChannels(next);
+      try { await hub.toggleChannels(next); }
+      catch (error) {
+        prefs.setChannelsEnabled(prev);
+        try { await hub.toggleChannels(prev); } catch (restoreError) {
+          log.warn(`Agent team runtime restoration failed: ${restoreError.message}`);
+        }
+        throw error;
+      }
     }
   }
 

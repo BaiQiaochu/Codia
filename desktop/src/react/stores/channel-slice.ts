@@ -17,6 +17,8 @@ export interface ChannelSlice {
   channelMembers: string[];
   channelTotalUnread: number;
   channelsEnabled: boolean;
+  channelsTogglePending: boolean;
+  channelsToggleError: string | null;
   channelHeaderName: string;
   channelHeaderMembersText: string;
   channelInfoName: string;
@@ -54,6 +56,8 @@ export const createChannelSlice = (
   channelMembers: [],
   channelTotalUnread: 0,
   channelsEnabled: false,
+  channelsTogglePending: false,
+  channelsToggleError: null,
   channelHeaderName: '',
   channelHeaderMembersText: '',
   channelInfoName: '',

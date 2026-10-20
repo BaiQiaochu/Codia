@@ -207,41 +207,6 @@ describe('CodiaLive2DMascot lifecycle', () => {
     expect(handle.dispose).toHaveBeenCalledOnce();
     disconnects.forEach(disconnect => expect(disconnect).toHaveBeenCalledOnce());
   });
-  it('lets users disable and re-enable animation without replacing it with a static image', async () => {
-    const first = render(<CodiaLive2DMascot fallback={<span>Fallback mascot</span>} enabled assets={assets} />);
-    await waitFor(() => expect(first.container.firstChild).toHaveAttribute('data-codia-renderer', 'live2d'));
-    fireEvent.click(screen.getByRole('button', { name: '关闭动画' }));
-    expect(handle.dispose).toHaveBeenCalledOnce();
-    expect(screen.getByText('动画已关闭')).toBeVisible();
-    expect(localStorage.getItem('codia.mascot.static')).toBe('true');
-    expectNoStaticMascot(first.container);
-    expect(first.container.querySelector('canvas')).not.toBeVisible();
-    first.unmount();
-    const second = render(<CodiaLive2DMascot enabled assets={assets} />);
-    expect(second.container.firstChild).toHaveAttribute('data-codia-renderer', 'disabled');
-    expect(loadCodiaLive2D).toHaveBeenCalledOnce();
-    expectNoStaticMascot(second.container);
-    fireEvent.click(screen.getByRole('button', { name: '启用动画' }));
-    await waitFor(() => expect(second.container.firstChild).toHaveAttribute('data-codia-renderer', 'live2d'));
-    expect(localStorage.getItem('codia.mascot.static')).toBe('false');
-  });
-  it('can disable animation during loading without a late load turning it back on', async () => {
-    let finish!: (value: CodiaLive2DHandle) => void;
-    vi.mocked(loadCodiaLive2D).mockReturnValueOnce(new Promise(resolve => { finish = resolve; }));
-    const { container } = render(<CodiaLive2DMascot enabled assets={assets} />);
-    fireEvent.click(screen.getByRole('button', { name: '关闭动画' }));
-    await act(async () => { finish(handle); });
-    expect(handle.dispose).toHaveBeenCalledOnce();
-    expect(container.firstChild).toHaveAttribute('data-codia-renderer', 'disabled');
-    expect(screen.getByText('动画已关闭')).toBeVisible();
-    expectNoStaticMascot(container);
-  });
-  it('supports an explicit reduced motion preference', async () => {
-    render(<CodiaLive2DMascot enabled assets={assets} />);
-    await waitFor(() => expect(handle.setReducedMotion).toHaveBeenCalledWith(false));
-    fireEvent.click(screen.getByRole('button', { name: '减少动态效果' }));
-    await waitFor(() => expect(handle.setReducedMotion).toHaveBeenLastCalledWith(true));
-  });
   it('reports string exceptions from Core instead of showing an empty error', async () => {
     vi.mocked(loadCodiaLive2D).mockRejectedValueOnce('Unable to grow wasm table');
     const { container } = render(<CodiaLive2DMascot fallback={<span>Fallback mascot</span>} enabled assets={assets} />);

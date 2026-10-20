@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { atomicLocalWrite } from "../atomic-file-write.ts";
 import { ResourceIOError, resourceAccessDenied, resourceNotFound, targetAlreadyExists } from "../errors.ts";
 import type { ResourceAccessDecision } from "../resource-access-policy.ts";
 import { normalizeResourceRef, resourceKeyForRef } from "../resource-refs.ts";
@@ -101,11 +102,12 @@ export class LocalFsProvider {
     this.assertAllowed(filePath, "read");
     const stat = fs.statSync(filePath);
     if (!stat.isFile()) throw new Error(`resource is not a file: ${filePath}`);
+    const content = fs.readFileSync(filePath);
     return {
       resourceKey: localResourceKey(filePath),
       resource: this.resourceForPath(filePath),
-      content: fs.readFileSync(filePath),
-      version: versionFromStat(stat),
+      content,
+      version: { ...versionFromStat(stat), sha256: crypto.createHash("sha256").update(content).digest("hex") },
       filePath,
     };
   }
@@ -115,7 +117,7 @@ export class LocalFsProvider {
     this.assertAllowed(filePath, "write");
     const existed = fs.existsSync(filePath);
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, content);
+    atomicLocalWrite(filePath, content);
     return this.mutationResult(filePath, existed ? "modified" : "created");
   }
 
@@ -123,6 +125,9 @@ export class LocalFsProvider {
     const filePath = this.resolvePath(ref);
     this.assertAllowed(filePath, "write");
     const currentVersion = statFileVersionOrNull(filePath);
+    if (currentVersion && expectedVersion.sha256) {
+      currentVersion.sha256 = crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+    }
     if (!currentVersion || !fileVersionsMatch(currentVersion, expectedVersion)) {
       return {
         ok: false,
@@ -133,7 +138,15 @@ export class LocalFsProvider {
         filePath,
       };
     }
-    return this.write(ref, content);
+    atomicLocalWrite(filePath, content, () => {
+      this.assertAllowed(filePath, "write");
+      const version = statFileVersionOrNull(filePath);
+      if (version && expectedVersion.sha256) version.sha256 = crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+      if (!version || !fileVersionsMatch(version, expectedVersion)) {
+        throw new Error("File changed before replacement; original content was preserved. Read and retry.");
+      }
+    });
+    return this.mutationResult(filePath, "modified");
   }
 
   async edit(ref: ResourceRef | unknown, edits: ResourceEdit[]): Promise<ResourceMutationResult> {
@@ -150,7 +163,7 @@ export class LocalFsProvider {
       }
       text = text.replace(edit.oldText, edit.newText);
     }
-    fs.writeFileSync(filePath, text, "utf-8");
+    atomicLocalWrite(filePath, text);
     return this.mutationResult(filePath, "modified");
   }
 

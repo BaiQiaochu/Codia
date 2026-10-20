@@ -2,11 +2,9 @@
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-const mocks = vi.hoisted(() => ({ fetch: vi.fn(), closeSettings: vi.fn(), navigate: vi.fn(() => true), budgetProps: undefined as undefined | { onAcquireMutation?: () => boolean; onReleaseMutation?: () => void } }));
+const mocks = vi.hoisted(() => ({ fetch: vi.fn(), budgetProps: undefined as undefined | { onAcquireMutation?: () => boolean; onReleaseMutation?: () => void } }));
 vi.mock('../store', () => ({ useSettingsStore: { getState: () => ({ getSettingsAgentId: () => 'alpha' }) } }));
 vi.mock('../api', async original => ({ ...(await original<typeof import('../api')>()), codiaFetch: mocks.fetch }));
-vi.mock('../../stores/settings-modal-actions', () => ({ closeSettingsModal: mocks.closeSettings }));
-vi.mock('../../utils/task-console-navigation', () => ({ openTaskConsoleRun: mocks.navigate }));
 vi.mock('../helpers', () => ({ t: (value: string) => value }));
 vi.mock('./MemoryBudgetSettings', () => ({ MemoryBudgetSettings: (props: { onAcquireMutation?: () => boolean; onReleaseMutation?: () => void }) => { mocks.budgetProps = props; return <div>后台处理预算</div>; } }));
 import { MemoryViewer } from './MemoryViewer';
@@ -23,7 +21,7 @@ const initial = (url: string) => {
  return response({ ...meta, total: 10000, pendingTotal: 9999, offset: Number(parsed.searchParams.get('offset') || 0), memories: parsed.searchParams.get('offset') === '25' ? [fact(26)] : [fact(1), fact(2)] });
 };
 const open = async () => { render(<MemoryViewer />); act(() => window.dispatchEvent(new Event('codia-view-memories'))); await screen.findByText('Fact 1'); await waitFor(() => expect(screen.queryByText('正在加载来源与记录…')).toBeNull()); };
-beforeEach(() => { mocks.navigate.mockReturnValue(true); mocks.fetch.mockImplementation(async (url: string) => initial(url)); });
+beforeEach(() => { mocks.fetch.mockImplementation(async (url: string) => initial(url)); });
 afterEach(() => { cleanup(); vi.resetAllMocks(); });
 describe('memory governance paged review workspace', () => {
  it('requests bounded server pages and filters by real project, source, status and dates', async () => {
@@ -200,27 +198,15 @@ describe('memory governance paged review workspace', () => {
   expect(within(card).getByText(/打开来源会话仍是会话级跳转/)).toBeTruthy();
   expect(mocks.fetch.mock.calls.some(([, options]) => options?.method)).toBe(false);
  });
- it('shows real execution summaries and inert artifact paths, and navigates only by the recorded run ID', async () => {
+ it('shows real execution summaries and keeps file references inert', async () => {
   mocks.fetch.mockImplementation(async (url: string) => url.includes('/runs') ? response({ ...meta, total: 1, runs: [{ ...run, summary: 'Observed 12 checks passed', artifacts: [{ path: '/tmp/result.txt' }, { url: 'https://example.com/report', displayName: 'Report' }, { uri: 'javascript:alert(1)' }] }] }) : initial(url));
   await open(); fireEvent.click(screen.getByRole('tab', { name: /^经验/ })); fireEvent.click(screen.getByText('记录核实结果'));
   await waitFor(() => expect(within(screen.getByLabelText('选择真实运行')).getByText(/run-1/)).toBeTruthy());
   fireEvent.change(screen.getByLabelText('选择真实运行'), { target: { value: 'activity:run-1' } });
-  fireEvent.click(screen.getByText('查看执行结果与成果引用'));
+  fireEvent.click(screen.getByText('查看执行结果与文件引用'));
   expect(screen.getByText('Observed 12 checks passed')).toBeTruthy(); expect(screen.getByText('/tmp/result.txt').tagName).toBe('SPAN');
   expect(screen.getByText('javascript:alert(1)').tagName).toBe('SPAN'); expect(screen.getByRole('link').getAttribute('href')).toBe('https://example.com/report');
-  fireEvent.click(screen.getByText('查看任务详情')); expect(mocks.navigate).toHaveBeenCalledWith('activity:run-1'); expect(mocks.closeSettings).toHaveBeenCalledTimes(1); expect(screen.queryByRole('dialog')).toBeNull();
   expect(mocks.fetch.mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false);
- });
-
- it('keeps a standalone settings window open and explains when task navigation is unavailable there', async () => {
-  render(<><div id="settingsPanel" /><MemoryViewer /></>); act(() => window.dispatchEvent(new Event('codia-view-memories')));
-  await screen.findByText('Fact 1'); await waitFor(() => expect(screen.queryByText('正在加载来源与记录…')).toBeNull());
-  fireEvent.click(screen.getByRole('tab', { name: /^经验/ })); fireEvent.click(screen.getByText('记录核实结果'));
-  await waitFor(() => expect(within(screen.getByLabelText('选择真实运行')).getByText(/run-1/)).toBeTruthy());
-  fireEvent.change(screen.getByLabelText('选择真实运行'), { target: { value: 'activity:run-1' } });
-  fireEvent.click(screen.getByText('查看执行结果与成果引用')); fireEvent.click(screen.getByText('查看任务详情'));
-  expect(screen.getByRole('alert').textContent).toContain('独立设置窗口无法显示任务详情');
-  expect(mocks.navigate).not.toHaveBeenCalled(); expect(mocks.closeSettings).not.toHaveBeenCalled(); expect(screen.getByRole('dialog')).toBeTruthy();
  });
  it('aborts precise-evidence reads for an outdated fact revision and discards their late response', async () => {
   let finish!: (value: unknown) => void; let signal: AbortSignal | undefined;

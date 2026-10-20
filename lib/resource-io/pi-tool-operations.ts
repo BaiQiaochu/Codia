@@ -3,6 +3,7 @@ import { constants } from "fs";
 import { AsyncLocalStorage } from "async_hooks";
 import type { ResourceIO } from "./resource-io.ts";
 import { normalizeResourceRef } from "./resource-refs.ts";
+import { readEditVersion, rememberEditVersion } from "./tool-edit-context.ts";
 import type { ResourceRef } from "./types.ts";
 
 type ToolOperationsOptions = {
@@ -139,6 +140,7 @@ export function createResourceIoToolOperations({
 
   const readFile = async (filePath: string) => {
     const result = await resourceIO.read(refForPath(filePath));
+    rememberEditVersion(filePathFromRefPath(filePath, cwd), result.version);
     return result.content;
   };
 
@@ -152,7 +154,12 @@ export function createResourceIoToolOperations({
   };
 
   const editWriteFile = async (filePath: string, content: string | Buffer) => {
-    await resourceIO.write(refForPath(filePath), content, operationContext("agent_edit"));
+    const expected = readEditVersion(filePathFromRefPath(filePath, cwd));
+    if (!expected) throw new Error("Edit read version is unavailable. Read the file again before editing.");
+    const result = await resourceIO.writeExpectedVersion(refForPath(filePath), content, expected, operationContext("agent_edit"));
+    if ("conflict" in result && result.conflict) {
+      throw new Error("The file changed after it was read. Your edit was not written; read the current file and retry.");
+    }
   };
 
   const mkdir = async (dirPath: string) => {

@@ -1,6 +1,6 @@
 {
   "name": "codia",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "private": true,
   "type": "module",
   "description": "Codia - a thoughtful AI workspace for chat, documents, workflows, and teams",
@@ -85,6 +85,8 @@
     "lint": "eslint .",
     "test:watch": "vitest",
     "postinstall": "node scripts/patch-pi-sdk.cjs",
+    "eval:agent-runtime": "node --experimental-transform-types scripts/eval-agent-runtime.ts",
+    "eval:memory:hard": "node scripts/eval-memory.mjs --hard-cases",
     "eval:memory": "node scripts/eval-memory.mjs",
     "eval:memory:benchmark": "node scripts/eval-memory-benchmark.mjs",
     "test:memory:product": "vitest run tests/memory-product-cases.test.ts"

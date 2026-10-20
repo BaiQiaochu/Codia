@@ -12,6 +12,8 @@ import type { ComposerReferences, AgentReviewState } from '../../../../shared/qu
 
 export interface ToolCall {
   id?: string;
+  parentToolCallId?: string;
+  progress?: unknown;
   name: string;
   args?: Record<string, unknown>;
   done: boolean;
@@ -252,6 +254,7 @@ export type ContentBlock = TextDecorator | RichBlock;
 // ── 消息 ──
 
 export interface ChatMessage {
+  runId?: string;
   quickAction?: ComposerReferences['quickAction'];
   agentMentions?: ComposerReferences['agentMentions'];
   sessionRefs?: ComposerReferences['sessionRefs'];
