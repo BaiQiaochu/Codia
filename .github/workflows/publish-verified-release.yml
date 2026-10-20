@@ -1,14 +1,32 @@
-name: Publish verified Codia v0.3.3
+name: Publish verified Codia v0.3.4
 
 on:
   workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact 40-character source SHA shared by both successful packaging runs
+        required: true
+        type: string
+      windows_run_id:
+        description: Successful Package Windows workflow run ID
+        required: true
+        type: string
+      multiplatform_run_id:
+        description: Successful Package Linux and macOS workflow run ID
+        required: true
+        type: string
+
+env:
+  RELEASE_SOURCE_SHA: ${{ inputs.source_sha }}
+  WINDOWS_RUN_ID: ${{ inputs.windows_run_id }}
+  MULTIPLATFORM_RUN_ID: ${{ inputs.multiplatform_run_id }}
 
 permissions:
   contents: read
   actions: read
 
 concurrency:
-  group: codia-publish-v0.3.3
+  group: codia-publish-v0.3.4
   cancel-in-progress: false
 
 jobs:
@@ -20,17 +38,27 @@ jobs:
       contents: read
       actions: read
     steps:
+      - name: Check out exact release source for independent resource verification
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          path: source
+          persist-credentials: false
       - name: Verify pinned successful builds and prepare complete distributions
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           python - <<'CODIA_PY'
-          import hashlib, json, os, pathlib, shutil, subprocess, urllib.request, urllib.error, zipfile
+          import hashlib, json, os, pathlib, re, shutil, struct, subprocess, urllib.request, urllib.error, zipfile
           REPO = 'BaiQiaochu/Codia'
-          SOURCE = 'c2f80c003c6d32199957eda70b01b7029ac68081'
-          MULTI_RUN = 39194362899  # Publication still requires completed/success for this exact run.
-          MULTI = 'fd02cc0285ca8bc07b5630c32bd53a54819696d7'
-          TAG = 'v0.3.3'
+          SOURCE = os.environ['RELEASE_SOURCE_SHA']
+          if not re.fullmatch(r'[0-9a-f]{40}', SOURCE): raise RuntimeError('Expected immutable 40-character source SHA')
+          for key in ('WINDOWS_RUN_ID', 'MULTIPLATFORM_RUN_ID'):
+              if not re.fullmatch(r'[1-9][0-9]{0,19}', os.environ[key]): raise RuntimeError('Invalid run ID')
+          WIN_RUN = int(os.environ['WINDOWS_RUN_ID'])
+          MULTI_RUN = int(os.environ['MULTIPLATFORM_RUN_ID'])
+          MULTI = SOURCE
+          TAG = 'v0.3.4'
           NODE_HASH = '4573185d56580da2b890ba34a85a409257640f1c5632eade4300137266194d18'
           ROOT = pathlib.Path('release-assets')
           def require(condition, message):
@@ -64,15 +92,27 @@ jobs:
           def check_run(run_id, head, workflow):
               run = api(f'actions/runs/{run_id}')
               require(str(run['id']) == str(run_id) and run['repository']['full_name'] == REPO, 'Run identity mismatch')
-              require(run['head_sha'] == head and run['path'] == workflow, 'Workflow commit/path mismatch')
+              require(run['head_sha'] == head and run['path'] == workflow and run['head_branch'] == 'main', 'Workflow commit/path/branch mismatch')
               require(run['event'] == 'workflow_dispatch' and run['status'] == 'completed' and run['conclusion'] == 'success', 'Build not successful')
               return run
           def record(path): return {'name': path.name, 'bytes': path.stat().st_size, 'sha256': sha(path)}
           def validate_record(path, item):
               require(path.is_file() and item['bytes'] > 0 and record(path) == item, 'Asset hash/size/name mismatch: ' + path.name)
           def run_checks():
-              return [check_run(39157457223, SOURCE, '.github/workflows/package-windows.yml'),
-                      check_run(MULTI_RUN, MULTI, '.github/workflows/package-multiplatform.yml')]
+              builds = [check_run(WIN_RUN, SOURCE, '.github/workflows/package-windows.yml'),
+                        check_run(MULTI_RUN, MULTI, '.github/workflows/package-multiplatform.yml')]
+              ci_runs = []
+              for page in range(1, 101):
+                  batch = api(f'actions/workflows/ci.yml/runs?head_sha={SOURCE}&event=push&per_page=100&page={page}')['workflow_runs']
+                  ci_runs.extend(batch)
+                  if len(batch) < 100: break
+              else: raise RuntimeError('CI pagination limit reached')
+              matches = [run for run in ci_runs if run['head_sha'] == SOURCE and run['head_branch'] == 'main'
+                  and run['path'] == '.github/workflows/ci.yml' and run['repository']['full_name'] == REPO]
+              require(bool(matches), 'No CI run for exact release source')
+              latest = max(matches, key=lambda run: (int(run['id']), int(run.get('run_attempt', 1))))
+              require(latest['status'] == 'completed' and latest['conclusion'] == 'success', 'Latest CI for exact release source has not succeeded')
+              return builds + [latest]
           def check_asset_sizes():
               for path in ROOT.iterdir():
                   require(path.is_file() and 0 < path.stat().st_size < 2 * 1024**3, 'Release asset must be nonempty and smaller than 2 GiB: ' + path.name)
@@ -82,13 +122,48 @@ jobs:
               require(len(matches) == 1, 'Portable renamed Node runtime path ambiguous')
               return str(pathlib.PurePosixPath(matches[0]).parent / 'Node-LICENSE.txt')
           
-          require(os.environ['GITHUB_REPOSITORY'] == REPO, 'Wrong repository')
+          require(os.environ['GITHUB_REPOSITORY'] == REPO and os.environ['GITHUB_REF'] == 'refs/heads/main', 'Wrong repository or ref')
+          require(subprocess.check_output(['git', '-C', 'source', 'rev-parse', 'HEAD'], text=True).strip() == SOURCE, 'Checkout SHA mismatch')
+          require(json.loads(pathlib.Path('source/package.json').read_text())['version'] == '0.3.4', 'Source version mismatch')
+          def artifacts_for(run_id):
+              out = []
+              for page in range(1, 101):
+                  batch = api(f'actions/runs/{run_id}/artifacts?per_page=100&page={page}')['artifacts']
+                  out.extend(batch)
+                  if len(batch) < 100: return out
+              raise RuntimeError('Artifact pagination exceeded')
+          def exactly_one(artifacts, name):
+              matches = [item for item in artifacts if item['name'] == name]
+              require(len(matches) == 1, 'Missing or ambiguous artifact: ' + name)
+              return matches[0]
+          live2d_source = pathlib.Path('source/desktop/src/assets/codia/live2d')
+          live2d_expected = {f.relative_to(live2d_source).as_posix(): {'bytes': f.stat().st_size, 'sha256': sha(f)}
+              for f in live2d_source.rglob('*') if f.is_file() and not f.name.endswith('.d.ts')}
+          require(bool(live2d_expected), 'No source Live2D assets')
+          # Existing supplementary font/third-party licenses apply only while all dependency
+          # records and repository font bytes remain identical to the previously audited release.
+          BASELINE = 'c2f80c003c6d32199957eda70b01b7029ac68081'
+          def font_tree(ref):
+              result = api(f'git/trees/{ref}?recursive=1')
+              require(not result.get('truncated'), 'Truncated license-baseline tree')
+              return {item['path']: item['sha'] for item in result['tree'] if item['type'] == 'blob'
+                  and pathlib.PurePosixPath(item['path']).suffix.lower() in ('.woff', '.woff2', '.ttf', '.otf', '.ttc')}
+          require(font_tree(BASELINE) == font_tree(SOURCE), 'Font sources changed; re-audit supplementary licenses')
+          import base64
+          old_lock = api(f'contents/package-lock.json?ref={BASELINE}')
+          old_packages = json.loads(base64.b64decode(old_lock['content']))['packages']
+          new_packages = json.loads(pathlib.Path('source/package-lock.json').read_text())['packages']
+          require({k: v for k, v in old_packages.items() if k} == {k: v for k, v in new_packages.items() if k}, 'Dependencies changed; re-audit supplementary licenses')
+          def verify_live2d(provenance):
+              entries = provenance['live2d']
+              require(len(entries) == len(live2d_expected), 'Live2D file-set cardinality mismatch')
+              require({item['file']: {'bytes': item['bytes'], 'sha256': item['sha256']} for item in entries} == live2d_expected, 'Live2D provenance differs from exact source')
           absent()
           runs = run_checks()
           ROOT.mkdir()
           work = pathlib.Path('downloads'); work.mkdir()
-          metadata = {'version': '0.3.3', 'sourceCommit': SOURCE, 'buildRuns': runs, 'inputs': [], 'assets': [],
-           'verificationScope': 'Original Windows installer hash and packaged Live2D provenance; Linux/macOS package integrity, native SQLite/PTY smoke. No end-user installation or GUI/GPU acceptance.',
+          metadata = {'version': '0.3.4', 'sourceCommit': SOURCE, 'buildRuns': runs, 'inputs': [], 'assets': [],
+           'licenseBaseline': BASELINE, 'verificationScope': 'Original Windows installer hash and packaged Live2D provenance; Linux/macOS package integrity, native SQLite/PTY smoke. No end-user installation or GUI/GPU acceptance.',
            'signing': {'windows': 'Unsigned distribution; SmartScreen may warn.', 'macOS': 'No distribution signing or notarization; Gatekeeper acceptance unverified.', 'linux': 'No package signing.'}}
           def get_artifact(artifact, run_id, head, expected_name, dest):
               require(artifact['name'] == expected_name and not artifact['expired'], 'Artifact name/expiry mismatch')
@@ -97,7 +172,8 @@ jobs:
               with archive.open('wb') as output:
                   subprocess.run(['gh', 'api', f'repos/{REPO}/actions/artifacts/{artifact["id"]}/zip'], stdout=output, check=True)
               digest = artifact.get('digest')
-              if digest: require(digest == 'sha256:' + sha(archive), 'GitHub artifact container digest mismatch')
+              require(re.fullmatch(r'sha256:[0-9a-f]{64}', digest or '') is not None and digest == 'sha256:' + sha(archive), 'GitHub artifact container digest mismatch')
+              require(archive.stat().st_size == artifact['size_in_bytes'] > 0, 'GitHub artifact container size mismatch')
               dest.mkdir()
               with zipfile.ZipFile(archive) as z:
                   require(len(z.namelist()) == len(set(z.namelist())), 'Duplicate ZIP names')
@@ -109,18 +185,21 @@ jobs:
               archive.unlink()
               metadata['inputs'].append(artifact)
               return json.loads((dest / 'build-provenance.json').read_text())
-          win = api('actions/artifacts/12147981293')
+          win_artifacts = artifacts_for(WIN_RUN)
+          win = exactly_one(win_artifacts, 'Codia-Windows-x64-installer-' + SOURCE)
           wd = work / 'windows'
-          p = get_artifact(win, 39157457223, SOURCE, 'Codia-Windows-x64-installer-' + SOURCE, wd)
-          require(p['commit'] == SOURCE and p['run'] == '39157457223' and p['version'] == '0.3.3' and p['platform'] == 'win32-x64', 'Windows provenance mismatch')
-          expected_exe = {'name': 'Codia-0.3.3-Windows-x64.exe', 'bytes': 550042656, 'sha256': '98adb7e805028a6efe63627f1daabdddcaf2bc9120b114522ce6b4dad4e7cb4b'}
-          require(p['artifacts'] == [expected_exe], 'Windows artifact list mismatch')
+          p = get_artifact(win, WIN_RUN, SOURCE, 'Codia-Windows-x64-installer-' + SOURCE, wd)
+          require(p['commit'] == SOURCE and p['run'] == str(WIN_RUN) and p['version'] == '0.3.4' and p['platform'] == 'win32-x64', 'Windows provenance mismatch')
+          verify_live2d(p)
+          require(len(p['artifacts']) == 1 and p['artifacts'][0]['name'] == 'Codia-0.3.4-Windows-x64.exe', 'Windows artifact list mismatch')
+          expected_exe = p['artifacts'][0]
           validate_record(wd / expected_exe['name'], expected_exe)
+          require({f.name for f in wd.iterdir()} == {expected_exe['name'], 'build-provenance.json'}, 'Unexpected installer artifact files')
           license_path = ROOT / 'Node-v24.15.0-LICENSE.txt'
           with urllib.request.urlopen('https://raw.githubusercontent.com/nodejs/node/v24.15.0/LICENSE', timeout=120) as response:
               license_path.write_bytes(response.read())
           require(sha(license_path) == NODE_HASH, 'Upstream Node license changed')
-          notice = f'''Codia 0.3.3 Windows distribution notices\n\nThe installer EXE is byte-for-byte the original GitHub Actions build.\nThe complete Node.js v24.15.0 license is supplied alongside it in this ZIP.\nKeep these notices with redistributed copies.\n\nApache-2.0 covers Codia's own code only. Third-party components retain\ntheir original licenses. This notice does not replace those licenses.\nLive2D original license and notice files:\nhttps://github.com/{REPO}/tree/{SOURCE}/third_party/live2d/cubism-web-5-r.5\nPackaged Live2D notices: resources/app.asar, desktop/dist-renderer/assets/codia/live2d/licenses/\nNode runtime: Node-v24.15.0-LICENSE.txt (complete upstream license)\nOther original Electron, Chromium, Git and dependency notices remain in the package.\nThe Windows package preserves 67 original Git license/notice files.\nBundled Git for Windows 2.54.0.windows.1 official release/source index:\nhttps://github.com/git-for-windows/git/releases/tag/v2.54.0.windows.1\nThe supplementary licenses directory contains project, font, KaTeX and Node notices.\nThe shared Codia-0.3.3-LICENSES.zip accompanies all release platforms.\n\nUnsigned Windows build; installation and GUI/GPU acceptance are unverified.\n'''
+          notice = f'''Codia 0.3.4 Windows distribution notices\n\nThe installer EXE is byte-for-byte the original GitHub Actions build.\nThe complete Node.js v24.15.0 license is supplied alongside it in this ZIP.\nKeep these notices with redistributed copies.\n\nApache-2.0 covers Codia's own code only. Third-party components retain\ntheir original licenses. This notice does not replace those licenses.\nLive2D original license and notice files:\nhttps://github.com/{REPO}/tree/{SOURCE}/third_party/live2d/cubism-web-5-r.5\nPackaged Live2D notices: resources/app.asar, desktop/dist-renderer/assets/codia/live2d/licenses/\nNode runtime: Node-v24.15.0-LICENSE.txt (complete upstream license)\nOther original Electron, Chromium, Git and dependency notices remain in the package.\nOriginal bundled Git license and notice files are retained byte-for-byte.\nBundled Git for Windows 2.54.0.windows.1 official release/source index:\nhttps://github.com/git-for-windows/git/releases/tag/v2.54.0.windows.1\nThe supplementary licenses directory contains project, font, KaTeX and Node notices.\nThe shared Codia-0.3.4-LICENSES.zip accompanies all release platforms.\n\nUnsigned Windows build; installation and GUI/GPU acceptance are unverified.\n'''
           (ROOT / 'THIRD-PARTY-NOTICES.txt').write_text(notice)
           LICENSE_PAYLOAD_SHA256 = '650e2b1dcf7716f7624d9da1464b0a2ea61082bff482fe5bc9c83d68a2f95608'
           LICENSE_PAYLOAD_BASE64 = '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'
@@ -135,9 +214,11 @@ jobs:
                   (license_dir / name).write_bytes(z.read(name))
           for name, source_info in json.loads((license_dir / 'sources.json').read_text()).items():
               require(sha(license_dir / name) == source_info['sha256'], 'Original license text changed: ' + name)
+          require((license_dir / 'Codia-LICENSE.txt').read_bytes() == pathlib.Path('source/LICENSE').read_bytes(), 'Supplementary project license differs from release source')
           shutil.copyfile(license_path, license_dir / license_path.name)
           (license_dir / 'THIRD-PARTY-NOTICES.txt').write_text(notice)
           sources = json.loads((license_dir / 'sources.json').read_text())
+          sources['Codia-LICENSE.txt']['url'] = f'https://github.com/{REPO}/blob/{SOURCE}/LICENSE'
           sources[license_path.name] = {'url': 'https://raw.githubusercontent.com/nodejs/node/v24.15.0/LICENSE', 'sha256': NODE_HASH, 'bytes': license_path.stat().st_size}
           (license_dir / 'sources.json').write_text(json.dumps(sources, indent=2) + '\n')
           (license_dir / 'SHA256SUMS.txt').write_text(''.join(f'{sha(p)}  {p.name}\n' for p in sorted(license_dir.iterdir())))
@@ -151,16 +232,16 @@ jobs:
               for item in license_records:
                   content = z.read('licenses/' + item['name'])
                   require(len(content) == item['bytes'] and hashlib.sha256(content).hexdigest() == item['sha256'], 'Bundled license mismatch')
-          with zipfile.ZipFile(ROOT / 'Codia-0.3.3-LICENSES.zip', 'w', compression=zipfile.ZIP_DEFLATED) as z:
+          with zipfile.ZipFile(ROOT / 'Codia-0.3.4-LICENSES.zip', 'w', compression=zipfile.ZIP_DEFLATED) as z:
               append_licenses(z)
-          with zipfile.ZipFile(ROOT / 'Codia-0.3.3-LICENSES.zip') as z: check_licenses(z)
+          with zipfile.ZipFile(ROOT / 'Codia-0.3.4-LICENSES.zip') as z: check_licenses(z)
           metadata['supplementaryLicenses'] = license_records
-          with zipfile.ZipFile(ROOT / 'Codia-0.3.3-Windows-x64-installer.zip', 'w', compression=zipfile.ZIP_STORED, allowZip64=True) as z:
+          with zipfile.ZipFile(ROOT / 'Codia-0.3.4-Windows-x64-installer.zip', 'w', compression=zipfile.ZIP_STORED, allowZip64=True) as z:
               z.write(wd / expected_exe['name'], expected_exe['name'])
               z.write(license_path, license_path.name)
               z.write(ROOT / 'THIRD-PARTY-NOTICES.txt', 'THIRD-PARTY-NOTICES.txt')
               append_licenses(z)
-          with zipfile.ZipFile(ROOT / 'Codia-0.3.3-Windows-x64-installer.zip') as z:
+          with zipfile.ZipFile(ROOT / 'Codia-0.3.4-Windows-x64-installer.zip') as z:
               check_licenses(z)
               h = hashlib.sha256()
               with z.open(expected_exe['name']) as f:
@@ -169,38 +250,35 @@ jobs:
           shutil.copyfile(wd / 'build-provenance.json', ROOT / 'Windows-x64-build-provenance.json')
           metadata['windowsOriginalInstaller'] = expected_exe
           metadata['windowsTransformation'] = 'Original installer wrapped unchanged with complete supplementary licenses, upstream Node license and a notice index; no binary edits.'
-          artifacts = []
-          for page in range(1, 101):
-              response = api(f'actions/runs/{MULTI_RUN}/artifacts?per_page=100&page={page}')
-              batch = response['artifacts']; artifacts.extend(batch)
-              if len(batch) < 100: break
-          else: raise RuntimeError('Artifact pagination exceeded')
+          artifacts = artifacts_for(MULTI_RUN)
           for label, platform, arch, names in [
-           ('Linux-x64', 'linux', 'x64', ['Codia-0.3.3-Linux-amd64.deb', 'Codia-0.3.3-Linux-x86_64.AppImage']),
-           ('macOS-x64', 'darwin', 'x64', ['Codia-0.3.3-macOS-x64.dmg', 'Codia-0.3.3-macOS-x64.zip']),
-           ('macOS-arm64', 'darwin', 'arm64', ['Codia-0.3.3-macOS-arm64.dmg', 'Codia-0.3.3-macOS-arm64.zip'])]:
-              name = 'Codia-0.3.3-' + label + '-' + SOURCE
+           ('Linux-x64', 'linux', 'x64', ['Codia-0.3.4-Linux-amd64.deb', 'Codia-0.3.4-Linux-x86_64.AppImage']),
+           ('macOS-x64', 'darwin', 'x64', ['Codia-0.3.4-macOS-x64.dmg', 'Codia-0.3.4-macOS-x64.zip']),
+           ('macOS-arm64', 'darwin', 'arm64', ['Codia-0.3.4-macOS-arm64.dmg', 'Codia-0.3.4-macOS-arm64.zip'])]:
+              name = 'Codia-0.3.4-' + label + '-' + SOURCE
               matches = [a for a in artifacts if a['name'] == name]
               require(len(matches) == 1, 'Missing/ambiguous artifact: ' + name)
               dest = work / label
               p = get_artifact(matches[0], MULTI_RUN, MULTI, name, dest)
               require(p['commit'] == SOURCE and p['workflowCommit'] == MULTI and p['run'] == str(MULTI_RUN), 'Source/workflow provenance mismatch')
-              require(p['version'] == '0.3.3' and p['platform'] == platform and p['arch'] == arch, 'Platform/version mismatch')
+              verify_live2d(p)
+              require(p['version'] == '0.3.4' and p['platform'] == platform and p['arch'] == arch, 'Platform/version mismatch')
               require(sorted(a['name'] for a in p['artifacts']) == sorted(names), 'Unexpected package set')
               require(p['nodeLicense']['sha256'] == NODE_HASH, 'Missing/wrong packaged Node license')
+              require({f.name for f in dest.iterdir()} == set(names) | {'build-provenance.json', 'SHA256SUMS.txt'}, 'Unexpected platform artifact files')
               for item in p['artifacts']:
                   validate_record(dest / item['name'], item)
                   shutil.move(dest / item['name'], ROOT / item['name'])
               shutil.copyfile(dest / 'build-provenance.json', ROOT / (label + '-build-provenance.json'))
-          portable = api('actions/artifacts/12148036166')
-          require(portable['name'] == 'Codia-Windows-x64-portable-' + SOURCE and not portable['expired'], 'Portable artifact identity/expiry mismatch')
-          require(str(portable['workflow_run']['id']) == '39157457223' and portable['workflow_run']['head_sha'] == SOURCE, 'Portable artifact run mismatch')
-          portable_hash = '29e9de815b34175ad1692459015bdd5333bfb13e35436559b48f72c5784a23c0'
-          require(portable['digest'] == 'sha256:' + portable_hash and portable['size_in_bytes'] == 1504166754, 'Portable original metadata mismatch')
-          portable_path = ROOT / 'Codia-0.3.3-Windows-x64-portable.zip'
+          portable = exactly_one(win_artifacts, 'Codia-Windows-x64-portable-' + SOURCE)
+          require(not portable['expired'], 'Portable artifact expired')
+          require(str(portable['workflow_run']['id']) == str(WIN_RUN) and portable['workflow_run']['head_sha'] == SOURCE, 'Portable artifact run mismatch')
+          require(re.fullmatch(r'sha256:[0-9a-f]{64}', portable.get('digest', '')) is not None, 'Portable artifact lacks immutable digest')
+          portable_hash = portable['digest'].split(':', 1)[1]
+          portable_path = ROOT / 'Codia-0.3.4-Windows-x64-portable.zip'
           with portable_path.open('wb') as output:
-              subprocess.run(['gh', 'api', f'repos/{REPO}/actions/artifacts/12148036166/zip'], stdout=output, check=True)
-          require(sha(portable_path) == portable_hash and portable_path.stat().st_size == 1504166754, 'Portable original ZIP checksum mismatch')
+              subprocess.run(['gh', 'api', f'repos/{REPO}/actions/artifacts/{portable["id"]}/zip'], stdout=output, check=True)
+          require(sha(portable_path) == portable_hash and portable_path.stat().st_size == portable['size_in_bytes'] > 0, 'Portable original ZIP checksum mismatch')
           original_files = []
           with zipfile.ZipFile(portable_path) as z:
               require(len(z.namelist()) == len(set(z.namelist())), 'Duplicate portable ZIP paths')
@@ -213,12 +291,42 @@ jobs:
                       with z.open(entry) as f:
                           for block in iter(lambda: f.read(8 * 1024 * 1024), b''): h.update(block)
                       original_files.append({'name': entry.filename, 'bytes': entry.file_size, 'sha256': h.hexdigest()})
+              asar_names = [name for name in z.namelist() if name.endswith('/resources/app.asar') or name == 'resources/app.asar']
+              require(len(asar_names) == 1, 'Portable app ASAR missing or ambiguous')
+              asar_path = work / 'portable-app.asar'
+              with z.open(asar_names[0]) as src, asar_path.open('wb') as dst: shutil.copyfileobj(src, dst, 8 * 1024 * 1024)
+              with asar_path.open('rb') as f:
+                  prefix = f.read(16)
+                  require(len(prefix) == 16, 'Invalid ASAR prefix')
+                  size_pickle, header_size, payload_size, string_size = struct.unpack('<4I', prefix)
+                  require(size_pickle == 4 and 0 < string_size <= header_size <= 100_000_000 and payload_size + 4 == header_size, 'Invalid ASAR header')
+                  tree = json.loads(f.read(string_size)); offset = 8 + header_size
+                  def asar_read(relative):
+                      node = tree
+                      for component in pathlib.PurePosixPath(relative).parts: node = node['files'][component]
+                      require(not node.get('link') and not node.get('unpacked'), 'Expected packed regular ASAR file')
+                      start, size = offset + int(node['offset']), int(node['size'])
+                      require(start >= offset and size >= 0 and start + size <= asar_path.stat().st_size, 'Invalid ASAR file range')
+                      f.seek(start); data = f.read(size)
+                      require(len(data) == size, 'Truncated ASAR file')
+                      return data
+                  require(json.loads(asar_read('package.json'))['version'] == '0.3.4', 'Portable application version mismatch')
+                  for relative, expected in live2d_expected.items():
+                      data = asar_read('desktop/dist-renderer/assets/codia/live2d/' + relative)
+                      require(len(data) == expected['bytes'] and hashlib.sha256(data).hexdigest() == expected['sha256'], 'Portable Live2D mismatch: ' + relative)
+              asar_path.unlink()
+              git_notices = [item for item in original_files if '/git/' in ('/' + item['name'].lower())
+                  and re.search(r'(licen[cs]e|notice|copying|copyright)', pathlib.PurePosixPath(item['name']).name, re.I)]
+              require(bool(git_notices), 'Bundled Git license/notice files missing')
+              metadata['windowsGitNotices'] = git_notices
               node_notice = portable_node_notice(z.namelist())
               runtime_path = str(pathlib.PurePosixPath(node_notice).parent / 'codia-server.exe')
               require(z.getinfo(runtime_path).file_size == 91694408, 'Portable renamed Node runtime size mismatch')
-              require(node_notice not in z.namelist() and 'CODIA-DISTRIBUTION-NOTICES.txt' not in z.namelist(), 'Notice path already exists; inspect first')
+              add_node_notice = node_notice not in z.namelist()
+              if not add_node_notice: require(hashlib.sha256(z.read(node_notice)).hexdigest() == NODE_HASH, 'Existing Node license mismatch')
+              require('CODIA-DISTRIBUTION-NOTICES.txt' not in z.namelist(), 'Distribution notice already exists; inspect first')
           with zipfile.ZipFile(portable_path, 'a', compression=zipfile.ZIP_DEFLATED, allowZip64=True) as z:
-              z.write(license_path, node_notice)
+              if add_node_notice: z.write(license_path, node_notice)
               z.writestr('CODIA-DISTRIBUTION-NOTICES.txt', notice.replace('installer', 'portable'))
               append_licenses(z)
           with zipfile.ZipFile(portable_path) as z:
@@ -231,15 +339,15 @@ jobs:
               require(hashlib.sha256(z.read(node_notice)).hexdigest() == NODE_HASH, 'Portable Node notice checksum mismatch')
           metadata['inputs'].append(portable)
           (ROOT / 'Windows-x64-portable-transformation.json').write_text(json.dumps({
-           'sourceRun': '39157457223', 'sourceCommit': SOURCE, 'originalArtifactId': 12148036166,
-           'originalArtifactBytes': 1504166754, 'originalArtifactSHA256': portable_hash,
+           'sourceRun': str(WIN_RUN), 'sourceCommit': SOURCE, 'originalArtifactId': portable['id'],
+           'originalArtifactBytes': portable['size_in_bytes'], 'originalArtifactSHA256': portable_hash,
            'transformation': 'Append complete supplementary licenses, Node license and notice index only; every original archive entry retains its uncompressed bytes.',
-           'addedFiles': [node_notice, 'CODIA-DISTRIBUTION-NOTICES.txt'] + ['licenses/' + p['name'] for p in license_records], 'originalFiles': original_files,
+           'addedFiles': ([node_notice] if add_node_notice else []) + ['CODIA-DISTRIBUTION-NOTICES.txt'] + ['licenses/' + p['name'] for p in license_records], 'originalFiles': original_files,
            'distribution': record(portable_path)}, indent=2) + '\n')
           metadata['assets'] = [record(p) for p in sorted(ROOT.iterdir())]
           (ROOT / 'release-metadata.json').write_text(json.dumps(metadata, indent=2) + '\n')
           (ROOT / 'SHA256SUMS.txt').write_text(''.join(f'{sha(p)}  {p.name}\n' for p in sorted(ROOT.iterdir())))
-          notes = f'''# Codia v0.3.3\n\nSource: [`{SOURCE}`](https://github.com/{REPO}/commit/{SOURCE}).\n\n- Windows x64: download `Codia-0.3.3-Windows-x64-installer.zip`, extract it, and run the EXE. The original EXE is unchanged; the ZIP adds complete supplementary licenses and a notice index.\n- Windows x64 portable: extract the portable ZIP; original files are unchanged, with complete supplementary licenses and notice index added.\n- Linux x64: Debian package and AppImage.\n- macOS: DMG and ZIP for Intel x64 and Apple Silicon arm64.\n\nThese builds are unsigned distributions. macOS is not notarized; Windows SmartScreen and macOS Gatekeeper may warn or block. Linux packages are not signed.\n\nValidation: original Windows installer checksum and packaged Live2D resources; Linux/macOS package/container/resource integrity and native SQLite/PTY smoke checks. End-user installation, GUI/GPU behavior, and operating-system trust acceptance have not been verified.\n\nApache-2.0 applies to Codia's own code only. Third-party components retain their original licenses and notices. See the [original Live2D license and notice files](https://github.com/{REPO}/tree/{SOURCE}/third_party/live2d/cubism-web-5-r.5) and included third-party notices. Download `Codia-0.3.3-LICENSES.zip` alongside any platform package for the complete supplementary project, font, KaTeX and Node notices. Both Windows ZIPs also include the same `licenses/` directory; the six Linux/macOS package files remain unchanged. The Windows distribution preserves 67 original Git license/notice files; see the [matching Git for Windows release/source index](https://github.com/git-for-windows/git/releases/tag/v2.54.0.windows.1).\n\nUse `SHA256SUMS.txt`, `release-metadata.json`, and the platform provenance reports to verify downloads and source/build provenance.\n'''
+          notes = f'''# Codia v0.3.4\n\nThis release adds memory provenance and correction/deletion propagation, extraction retry/idempotency, validated experience lifecycle, hybrid retrieval/context budgets and memory review UI; it also includes runtime evidence selection, task refresh and cost completeness fixes, automation diagnostics and team acceptance tools.\n\nKnown limits: the legacy memory import API is retired and no complete backup restorer is provided. Windows/macOS team file acceptance remains restricted by platform safety checks; text acceptance remains available. Real-model effectiveness/cost and end-user GUI/GPU acceptance remain unverified.\n\nSource: [`{SOURCE}`](https://github.com/{REPO}/commit/{SOURCE}).\n\n- Windows x64: download `Codia-0.3.4-Windows-x64-installer.zip`, extract it, and run the EXE. The original EXE is unchanged; the ZIP adds complete supplementary licenses and a notice index.\n- Windows x64 portable: extract the portable ZIP; original files are unchanged, with complete supplementary licenses and notice index added.\n- Linux x64: Debian package and AppImage.\n- macOS: DMG and ZIP for Intel x64 and Apple Silicon arm64.\n\nThese builds are unsigned distributions. macOS is not notarized; Windows SmartScreen and macOS Gatekeeper may warn or block. Linux packages are not signed.\n\nValidation: original Windows installer checksum and packaged Live2D resources; Linux/macOS package/container/resource integrity and native SQLite/PTY smoke checks. End-user installation, GUI/GPU behavior, and operating-system trust acceptance have not been verified.\n\nApache-2.0 applies to Codia's own code only. Third-party components retain their original licenses and notices. See the [original Live2D license and notice files](https://github.com/{REPO}/tree/{SOURCE}/third_party/live2d/cubism-web-5-r.5) and included third-party notices. Download `Codia-0.3.4-LICENSES.zip` alongside any platform package for the complete supplementary project, font, KaTeX and Node notices. Both Windows ZIPs also include the same `licenses/` directory; the six Linux/macOS package files remain unchanged. The Windows distribution preserves original Git license and notice files; see the [matching Git for Windows release/source index](https://github.com/git-for-windows/git/releases/tag/v2.54.0.windows.1).\n\nUse `SHA256SUMS.txt`, `release-metadata.json`, and the platform provenance reports to verify downloads and source/build provenance.\n'''
           pathlib.Path('release-notes.md').write_text(notes)
           manifest = [dict(record(p), relative=str(p)) for p in sorted(ROOT.iterdir())]
           manifest.append(dict(record(pathlib.Path('release-notes.md')), relative='release-notes.md'))
@@ -250,7 +358,7 @@ jobs:
       - name: Transfer verified assets to isolated publishing job
         uses: actions/upload-artifact@v4
         with:
-          name: Codia-v0.3.3-verified-release-${{ github.run_id }}
+          name: Codia-v0.3.4-verified-release-${{ github.run_id }}
           path: |
             release-assets/
             release-notes.md
@@ -269,19 +377,23 @@ jobs:
       - name: Retrieve this run's verified distributions
         uses: actions/download-artifact@v4
         with:
-          name: Codia-v0.3.3-verified-release-${{ github.run_id }}
+          name: Codia-v0.3.4-verified-release-${{ github.run_id }}
           path: .
       - name: Create draft, verify every uploaded asset, then publish
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           python - <<'CODIA_PY'
-          import hashlib, json, os, pathlib, shutil, subprocess, urllib.request, urllib.error, zipfile
+          import hashlib, json, os, pathlib, re, shutil, struct, subprocess, urllib.request, urllib.error, zipfile
           REPO = 'BaiQiaochu/Codia'
-          SOURCE = 'c2f80c003c6d32199957eda70b01b7029ac68081'
-          MULTI_RUN = 39194362899  # Publication still requires completed/success for this exact run.
-          MULTI = 'fd02cc0285ca8bc07b5630c32bd53a54819696d7'
-          TAG = 'v0.3.3'
+          SOURCE = os.environ['RELEASE_SOURCE_SHA']
+          if not re.fullmatch(r'[0-9a-f]{40}', SOURCE): raise RuntimeError('Expected immutable 40-character source SHA')
+          for key in ('WINDOWS_RUN_ID', 'MULTIPLATFORM_RUN_ID'):
+              if not re.fullmatch(r'[1-9][0-9]{0,19}', os.environ[key]): raise RuntimeError('Invalid run ID')
+          WIN_RUN = int(os.environ['WINDOWS_RUN_ID'])
+          MULTI_RUN = int(os.environ['MULTIPLATFORM_RUN_ID'])
+          MULTI = SOURCE
+          TAG = 'v0.3.4'
           NODE_HASH = '4573185d56580da2b890ba34a85a409257640f1c5632eade4300137266194d18'
           ROOT = pathlib.Path('release-assets')
           def require(condition, message):
@@ -315,15 +427,27 @@ jobs:
           def check_run(run_id, head, workflow):
               run = api(f'actions/runs/{run_id}')
               require(str(run['id']) == str(run_id) and run['repository']['full_name'] == REPO, 'Run identity mismatch')
-              require(run['head_sha'] == head and run['path'] == workflow, 'Workflow commit/path mismatch')
+              require(run['head_sha'] == head and run['path'] == workflow and run['head_branch'] == 'main', 'Workflow commit/path/branch mismatch')
               require(run['event'] == 'workflow_dispatch' and run['status'] == 'completed' and run['conclusion'] == 'success', 'Build not successful')
               return run
           def record(path): return {'name': path.name, 'bytes': path.stat().st_size, 'sha256': sha(path)}
           def validate_record(path, item):
               require(path.is_file() and item['bytes'] > 0 and record(path) == item, 'Asset hash/size/name mismatch: ' + path.name)
           def run_checks():
-              return [check_run(39157457223, SOURCE, '.github/workflows/package-windows.yml'),
-                      check_run(MULTI_RUN, MULTI, '.github/workflows/package-multiplatform.yml')]
+              builds = [check_run(WIN_RUN, SOURCE, '.github/workflows/package-windows.yml'),
+                        check_run(MULTI_RUN, MULTI, '.github/workflows/package-multiplatform.yml')]
+              ci_runs = []
+              for page in range(1, 101):
+                  batch = api(f'actions/workflows/ci.yml/runs?head_sha={SOURCE}&event=push&per_page=100&page={page}')['workflow_runs']
+                  ci_runs.extend(batch)
+                  if len(batch) < 100: break
+              else: raise RuntimeError('CI pagination limit reached')
+              matches = [run for run in ci_runs if run['head_sha'] == SOURCE and run['head_branch'] == 'main'
+                  and run['path'] == '.github/workflows/ci.yml' and run['repository']['full_name'] == REPO]
+              require(bool(matches), 'No CI run for exact release source')
+              latest = max(matches, key=lambda run: (int(run['id']), int(run.get('run_attempt', 1))))
+              require(latest['status'] == 'completed' and latest['conclusion'] == 'success', 'Latest CI for exact release source has not succeeded')
+              return builds + [latest]
           def check_asset_sizes():
               for path in ROOT.iterdir():
                   require(path.is_file() and 0 < path.stat().st_size < 2 * 1024**3, 'Release asset must be nonempty and smaller than 2 GiB: ' + path.name)
@@ -342,23 +466,29 @@ jobs:
               require(item['relative'] == 'release-notes.md' or relative.parent == pathlib.PurePosixPath('release-assets'), 'Unexpected transfer path')
               path = pathlib.Path(item['relative'])
               validate_record(path, {k: item[k] for k in ('name', 'bytes', 'sha256')})
+              require(str(path) not in expected, 'Duplicate transfer manifest path')
               expected.add(str(path))
           require(expected == {'release-notes.md'} | {str(p) for p in ROOT.iterdir()}, 'Transfer file-set mismatch')
           meta = json.loads((ROOT / 'release-metadata.json').read_text())
-          require(meta['sourceCommit'] == SOURCE and meta['version'] == '0.3.3', 'Release metadata mismatch')
+          require(meta['sourceCommit'] == SOURCE and meta['version'] == '0.3.4', 'Release metadata mismatch')
           binary_names = {
-           'Codia-0.3.3-LICENSES.zip',
-           'Codia-0.3.3-Windows-x64-installer.zip', 'Codia-0.3.3-Windows-x64-portable.zip',
-           'Codia-0.3.3-Linux-amd64.deb', 'Codia-0.3.3-Linux-x86_64.AppImage',
-           'Codia-0.3.3-macOS-x64.dmg', 'Codia-0.3.3-macOS-x64.zip',
-           'Codia-0.3.3-macOS-arm64.dmg', 'Codia-0.3.3-macOS-arm64.zip'}
-          require(binary_names.issubset({p.name for p in ROOT.iterdir()}), 'Incomplete platform set')
+           'Codia-0.3.4-LICENSES.zip',
+           'Codia-0.3.4-Windows-x64-installer.zip', 'Codia-0.3.4-Windows-x64-portable.zip',
+           'Codia-0.3.4-Linux-amd64.deb', 'Codia-0.3.4-Linux-x86_64.AppImage',
+           'Codia-0.3.4-macOS-x64.dmg', 'Codia-0.3.4-macOS-x64.zip',
+           'Codia-0.3.4-macOS-arm64.dmg', 'Codia-0.3.4-macOS-arm64.zip'}
+          expected_assets = binary_names | {'Node-v24.15.0-LICENSE.txt', 'THIRD-PARTY-NOTICES.txt',
+              'Windows-x64-build-provenance.json', 'Windows-x64-portable-transformation.json',
+              'Linux-x64-build-provenance.json', 'macOS-x64-build-provenance.json', 'macOS-arm64-build-provenance.json',
+              'release-metadata.json', 'SHA256SUMS.txt'}
+          require(expected_assets == {p.name for p in ROOT.iterdir()}, 'Incomplete or unexpected release asset set')
+          require(len(meta['assets']) == len(expected_assets) - 2 and {item['name'] for item in meta['assets']} == expected_assets - {'release-metadata.json', 'SHA256SUMS.txt'}, 'Metadata asset set mismatch')
           for item in meta['assets']: validate_record(ROOT / item['name'], item)
           check_asset_sizes()
-          run_checks()
+          require([run['id'] for run in run_checks()] == [run['id'] for run in meta['buildRuns']], 'Transferred run identity mismatch')
           absent()
           release = api('releases', 'POST', {'tag_name': TAG, 'target_commitish': SOURCE,
-              'name': 'Codia v0.3.3', 'body': pathlib.Path('release-notes.md').read_text(),
+              'name': 'Codia v0.3.4', 'body': pathlib.Path('release-notes.md').read_text(),
               'draft': True, 'prerelease': False, 'make_latest': 'false'})
           release_id = release['id']
           print('Created draft release', release['html_url'], flush=True)
